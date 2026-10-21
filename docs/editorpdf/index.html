@@ -9,7 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231b61e4'/%3E%3Cpath d='m16 7 9 5-9 5-9-5z' fill='white'/%3E%3Cpath d='m7 16 9 5 9-5M7 20.5l9 5 9-5' stroke='white' stroke-width='1.8' fill='none' opacity='.75'/%3E%3C/svg%3E">
   <script>try{var t=localStorage.getItem("laboratorio.tema");if(t)document.documentElement.dataset.tema=t}catch(e){}</script>
   <link rel="stylesheet" href="../assets/estilo.css?v=3">
-  <link rel="stylesheet" href="web/herramienta.css?v=11">
+  <link rel="stylesheet" href="web/herramienta.css?v=13">
 </head>
 <body>
   <header class="barra">
@@ -130,8 +130,9 @@
               <button type="button" class="enlace" id="cancelar-medida">Cancelar</button>
             </div>
             <div class="contenido" id="contenido" hidden>
-              <h4><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-layers"/></svg><span id="contenido-tit">Contenido de la hoja</span></h4>
+              <h4><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-layers"/></svg><span id="contenido-tit">Contenido de la hoja</span><small class="suave" style="font-weight:600">· desmarca lo que no quieras exportar</small></h4>
               <div class="cap-lista" id="capas-lista"></div>
+              <p class="nota" id="excluidas" hidden><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-info"/></svg><span><b id="excluidas-n"></b> en esta conversión. <button type="button" class="enlace" id="incluir-todo">Incluir todo</button></span></p>
             </div>
           </section>
 
@@ -145,6 +146,15 @@
                   <label class="perfil"><input type="radio" name="perfil" value="fiel"><span class="chip-ico"><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-eye"/></svg></span><span><b>Fiel al PDF</b><span class="d">Cada trazo tal cual viene en el PDF.</span></span></label>
                   <label class="perfil"><input type="radio" name="perfil" value="ligero"><span class="chip-ico"><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-bolt"/></svg></span><span><b>Ligero</b><span class="d">Solo líneas y textos, sin rellenos.</span></span></label>
                 </div>
+              </section>
+
+              <section class="ajuste">
+                <h3><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-file"/></svg>Formato</h3>
+                <div class="segmentado" role="radiogroup" aria-label="Formato del archivo">
+                  <label><input type="radio" name="formato" value="dxf" checked><span><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-dxf"/></svg>DXF (CAD)</span></label>
+                  <label><input type="radio" name="formato" value="svg"><span><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-globe"/></svg>SVG (Inkscape)</span></label>
+                </div>
+                <p class="nota"><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-info"/></svg><span>DXF para AutoCAD, BricsCAD o LibreCAD. SVG para Inkscape, Illustrator, Figma o el navegador (agrupado por capas).</span></p>
               </section>
 
               <section class="ajuste">
@@ -258,6 +268,9 @@
             <li><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-check"/></svg><span>Seleccionas una figura entera en vez de cientos de tramos.</span></li>
             <li><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-check"/></svg><span>Los círculos se pueden escalar y editar por radio.</span></li>
             <li><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-check"/></svg><span>Sin trazos repetidos: se acabó seleccionar uno y que debajo haya otro igual.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-check"/></svg><span>Las líneas discontinuas del PDF salen como tipos de línea de CAD, no como líneas continuas.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-check"/></svg><span>Desmarca capas o colores que no necesites (marcos, rótulos, fondos) antes de exportar.</span></li>
+            <li><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-check"/></svg><span>También sale en SVG, abierto y editable en Inkscape, Illustrator, Figma o el navegador.</span></li>
           </ul>
         </div>
         <div class="tarjeta">
@@ -326,6 +339,6 @@
     </div>
   </footer>
   <script type="module" src="../assets/tema.js?v=3"></script>
-  <script type="module" src="web/app.js?v=4"></script>
+  <script type="module" src="web/app.js?v=6"></script>
 </body>
 </html>

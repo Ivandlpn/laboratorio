@@ -271,3 +271,10 @@ code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-siz
 @media (prefers-reduced-motion: reduce) { .cargando { animation: none; } .progreso > i, .interruptor .pista, .interruptor .pista::after { transition: none; } }
 @media (max-width: 700px) { .heroe .ilustracion { display: none; } .heroe .contenedor { padding-bottom: 84px; } }
 @media (max-width: 700px) { .pasos { grid-template-columns: repeat(4, 1fr); overflow: visible; } .paso { justify-content: center; padding: 12px 4px; } .paso > span:last-child { display: none; } .paso.activo > span:last-child { display: block; } .paso.activo { grid-column: span 1; } .paso + .paso::before { display: none; } }
+.cap { cursor: pointer; user-select: none; }
+.cap input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.cap:has(input:focus-visible) { outline: 3px solid color-mix(in srgb, var(--cobalto-2) 55%, transparent); outline-offset: 2px; }
+.cap .cap-ico { display: inline-grid; }
+.cap .cap-ico .ico { width: 14px; height: 14px; }
+.cap.fuera { opacity: .5; text-decoration: line-through; background: transparent; border-style: dashed; }
+.contenido .nota { margin-top: 8px; }

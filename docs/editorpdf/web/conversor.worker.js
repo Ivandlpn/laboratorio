@@ -1,6 +1,7 @@
 // Trabajador en segundo plano: abre el PDF, dibuja miniaturas y convierte, sin bloquear la ventana.
 import * as mupdf from "./vendor/mupdf/mupdf.js";
 import { Dxf } from "./dxf.js";
+import { Svg } from "./svg.js";
 import { analizarPagina, convertirPagina, columnasPorDefecto, posicionEnCuadricula, SEPARACION_MM } from "./conversor.js";
 
 const LIMITE_ENTIDADES = 450000; // por archivo unido; pasado esto se parte en varios
@@ -36,7 +37,9 @@ function miniatura(n, ancho, id) {
   postMessage({ tipo: "miniatura", n, id, png: copia }, [copia]);
 }
 
-async function convertir({ paginas, unir, columnas, etiquetar, base, opciones = {}, unidades = 4 }) {
+async function convertir({ paginas, unir, columnas, etiquetar, base, opciones = {}, unidades = 4, formato = "dxf" }) {
+  const Doc = formato === "svg" ? Svg : Dxf;
+  const ext = formato === "svg" ? "svg" : "dxf";
   cancelado = false;
   const infos = new Map();
   for (const n of paginas) {
@@ -69,10 +72,10 @@ async function convertir({ paginas, unir, columnas, etiquetar, base, opciones = 
     const p = doc.loadPage(n - 1);
     let r;
     if (unir) {
-      if (!dxfUnido) dxfUnido = new Dxf({ unidades });
+      if (!dxfUnido) dxfUnido = new Doc({ unidades });
       if (kParte && dxfUnido.entidades >= LIMITE_ENTIDADES) {
         partesUnidas.push(dxfUnido);
-        dxfUnido = new Dxf({ unidades });
+        dxfUnido = new Doc({ unidades });
         kParte = 0;
       }
       const { dx, dy } = posicionEnCuadricula(kParte, cols, celdaAncho, celdaAlto);
@@ -81,10 +84,10 @@ async function convertir({ paginas, unir, columnas, etiquetar, base, opciones = 
       r.parte = partesUnidas.length + 1;
       kParte++;
     } else {
-      const dxf = new Dxf({ unidades });
+      const dxf = new Doc({ unidades });
       r = convertirPagina(mupdf, p, dxf, { opciones: opc });
-      archivos.push({ nombre: `${base}_p${n}.dxf`, blob: dxf.blob() });
-      r.archivo = `${base}_p${n}.dxf`;
+      archivos.push({ nombre: `${base}_p${n}.${ext}`, blob: dxf.blob() });
+      r.archivo = `${base}_p${n}.${ext}`;
     }
     liberar(p);
     r.pagina = n;
@@ -97,12 +100,12 @@ async function convertir({ paginas, unir, columnas, etiquetar, base, opciones = 
     await pausa();
     const una = partesUnidas.length === 1;
     partesUnidas.forEach((d, i) => {
-      const nombre = una ? `${base}_unido.dxf` : `${base}_unido_${i + 1}.dxf`;
+      const nombre = una ? `${base}_unido.${ext}` : `${base}_unido_${i + 1}.${ext}`;
       archivos.push({ nombre, blob: d.blob() });
       for (const r of resultados) if (r.parte === i + 1) r.archivo = nombre;
     });
   }
-  postMessage({ tipo: "fin", archivos, resultados, omitidas, unido: unir, partes: partesUnidas.length, columnas: cols, modoCapas, factor: f, unidades });
+  postMessage({ tipo: "fin", archivos, resultados, omitidas, unido: unir, partes: partesUnidas.length, columnas: cols, modoCapas, factor: f, unidades, formato });
 }
 
 onmessage = async (ev) => {

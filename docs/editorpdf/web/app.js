@@ -35,7 +35,7 @@ const DIVISOR = { 4: 1, 5: 10, 6: 1000 }; // mm de papel por unidad de salida, s
 const NOMBRE_UNIDAD = { 4: "milímetros", 5: "centímetros", 6: "metros" };
 
 // ---- estado
-const estado = { archivo: null, paginas: [], seleccion: new Set(), minis: new Map(), vistas: new Map(), colaMinis: [], pidiendoMini: false, trabajando: false, vistaActual: null, midiendo: false, puntos: [], mmMedidos: 0 };
+const estado = { archivo: null, paginas: [], seleccion: new Set(), minis: new Map(), vistas: new Map(), colaMinis: [], pidiendoMini: false, trabajando: false, vistaActual: null, midiendo: false, puntos: [], mmMedidos: 0, excluidas: new Set() };
 let worker = null;
 const compatible = typeof Worker !== "undefined" && typeof WebAssembly !== "undefined";
 
@@ -67,7 +67,7 @@ function nuevoTrabajador() {
   if (worker) worker.terminate();
   trabajadorListo = false;
   pendientes = [];
-  worker = new Worker(new URL("./conversor.worker.js?v=3", import.meta.url), { type: "module" });
+  worker = new Worker(new URL("./conversor.worker.js?v=4", import.meta.url), { type: "module" });
   worker.onmessage = (ev) => alMensaje(ev.data);
   worker.onerror = (e) => mostrarError("No se pudo cargar el motor de conversión", e.message || "Recarga la página e inténtalo de nuevo.");
 }
@@ -124,6 +124,7 @@ async function cargar(archivo) {
   for (const u of [...estado.minis.values(), ...estado.vistas.values()]) URL.revokeObjectURL(u);
   estado.minis = new Map(); estado.vistas = new Map(); estado.colaMinis = []; estado.pidiendoMini = false; estado.vistaActual = null;
   salirDeMedir();
+  estado.excluidas = new Set();
   estudio.dataset.estado = "abriendo";
   nombreArchivo.textContent = archivo.name;
   detalleArchivo.textContent = `${mb(archivo.size)} · abriendo…`;
@@ -268,7 +269,21 @@ function ponerVista(url, n) {
   if (estado.midiendo) lienzo.classList.add("midiendo");
 }
 
-// ---- contenido de la hoja: capas del PDF o colores principales
+// ---- contenido de la hoja: capas del PDF o colores principales (se pueden desmarcar para no exportarlos)
+function chipConmutable(clave, marca, nombre, cant) {
+  const ck = el("input", { type: "checkbox", checked: !estado.excluidas.has(clave) });
+  ck.setAttribute("aria-label", `Incluir ${nombre}`);
+  const chip = el("label", { className: "cap", title: "Desmarca para no exportar esto" }, ck, marca, nombre, ...(typeof cant === "number" ? [el("small", { textContent: miles(cant) })] : []));
+  ck.addEventListener("change", () => { ck.checked ? estado.excluidas.delete(clave) : estado.excluidas.add(clave); chip.classList.toggle("fuera", !ck.checked); actualizarExcluidas(); });
+  chip.classList.toggle("fuera", !ck.checked);
+  return chip;
+}
+function actualizarExcluidas() {
+  const n = estado.excluidas.size;
+  $("#excluidas").hidden = n === 0;
+  $("#excluidas-n").textContent = n ? `${n} sin exportar` : "";
+}
+$("#incluir-todo").addEventListener("click", () => { estado.excluidas.clear(); if (estado.vistaActual) pintarContenido(estado.vistaActual); actualizarExcluidas(); });
 function pintarContenido(n) {
   const info = estado.paginas[n - 1]?.info;
   const caja = $("#contenido"), lista = $("#capas-lista");
@@ -278,13 +293,13 @@ function pintarContenido(n) {
   if (capas.length) {
     $("#contenido-tit").textContent = `${capas.length} ${capas.length === 1 ? "capa" : "capas"} en esta hoja`;
     for (const [nombre, cant] of capas.sort((a, b) => a[0].localeCompare(b[0]))) {
-      lista.append(el("span", { className: "cap" }, icono("i-layers"), nombre, ...(typeof cant === "number" ? [el("small", { textContent: miles(cant) })] : [])));
+      lista.append(chipConmutable("capa:" + nombre, el("span", { className: "cap-ico" }, icono("i-layers")), nombre, cant));
     }
   } else {
     $("#contenido-tit").textContent = "Sin capas en el PDF · colores principales";
     for (const [hex, cant] of info.colores || []) {
       const c = el("i"); c.style.background = hex[0] === "#" ? hex : "#" + hex;
-      lista.append(el("span", { className: "cap" }, c, hex.toUpperCase(), el("small", { textContent: miles(cant) })));
+      lista.append(chipConmutable("color:" + hex.replace("#", "").toUpperCase(), c, hex.toUpperCase(), cant));
     }
   }
   caja.hidden = !lista.children.length;
@@ -381,13 +396,13 @@ function aplicarPerfil(nombre) {
 function opciones() {
   return {
     capas: selCapas.value, unirSegmentos: OPC.unir.checked, circulos: OPC.circulos.checked, quitarDuplicados: OPC.dup.checked,
-    rellenos: OPC.rellenos.checked, textos: OPC.textos.checked, quitarBlancos: OPC.blancos.checked, factor: factor(),
+    rellenos: OPC.rellenos.checked, textos: OPC.textos.checked, quitarBlancos: OPC.blancos.checked, factor: factor(), excluir: [...estado.excluidas],
   };
 }
 function guardarAjustes() {
   const perfil = document.querySelector('input[name="perfil"]:checked')?.value || null;
   guardar({
-    perfil, unir: modoUnir.checked, columnas: columnasSel.value, etiquetar: etiquetar.value, capas: selCapas.value,
+    formato: document.querySelector('input[name="formato"]:checked')?.value, perfil, unir: modoUnir.checked, columnas: columnasSel.value, etiquetar: etiquetar.value, capas: selCapas.value,
     escala: selEscala.value, otra: otra.value, unidades: selUnidades.value,
     o: Object.fromEntries(Object.entries(OPC).map(([k, c]) => [k, c.checked])),
   });
@@ -395,8 +410,11 @@ function guardarAjustes() {
 function ajustes() {
   const a = leer();
   if (a.unir) modoUnir.checked = true;
+  const fr = a.formato && document.querySelector(`input[name="formato"][value="${a.formato}"]`);
+  if (fr) fr.checked = true;
   if (a.columnas) columnasSel.value = a.columnas;
   if (a.etiquetar) etiquetar.value = a.etiquetar;
+  botonConvertir.lastChild.textContent = a.formato === "svg" ? "Convertir a SVG" : "Convertir a DXF";
   if (a.capas) selCapas.value = a.capas;
   if (a.escala && [...selEscala.options].some((o) => o.value === a.escala)) selEscala.value = a.escala;
   if (a.otra) otra.value = a.otra;
@@ -410,6 +428,7 @@ function ajustes() {
 document.querySelectorAll('input[name="perfil"]').forEach((r) => r.addEventListener("change", () => { aplicarPerfil(r.value); guardarAjustes(); }));
 for (const c of Object.values(OPC)) c.addEventListener("change", () => { document.querySelectorAll('input[name="perfil"]').forEach((r) => (r.checked = false)); guardarAjustes(); });
 document.querySelectorAll('input[name="modo"]').forEach((r) => r.addEventListener("change", () => { subUnir.hidden = !modoUnir.checked; guardarAjustes(); }));
+document.querySelectorAll('input[name="formato"]').forEach((r) => r.addEventListener("change", () => { botonConvertir.lastChild.textContent = r.value === "svg" ? "Convertir a SVG" : "Convertir a DXF"; guardarAjustes(); }));
 for (const c of [columnasSel, etiquetar, selCapas]) c.addEventListener("change", guardarAjustes);
 for (const c of [selEscala, selUnidades, otra]) c.addEventListener("change", () => { actualizarEscala(); guardarAjustes(); });
 
@@ -428,7 +447,7 @@ botonConvertir.addEventListener("click", () => {
   enviar({
     tipo: "convertir", paginas: [...estado.seleccion].sort((a, b) => a - b), unir: modoUnir.checked,
     columnas: columnasSel.value === "auto" ? null : Number(columnasSel.value), etiquetar: etiquetar.value === "1", base,
-    opciones: opciones(), unidades: Number(selUnidades.value),
+    opciones: opciones(), unidades: Number(selUnidades.value), formato: document.querySelector('input[name="formato"]:checked').value,
   });
 });
 botonCancelar.addEventListener("click", () => { botonCancelar.disabled = true; estadoTxt.textContent = "Cancelando al terminar la hoja en curso…"; enviar({ tipo: "cancelar" }); });
@@ -482,7 +501,7 @@ function mostrarResultado(m) {
     const lista = el("ul", { className: "entregas" });
     for (const f of m.archivos) {
       const url = URL.createObjectURL(f.blob);
-      lista.append(el("li", {}, el("span", { className: "chip-ico" }, icono("i-dxf")), el("span", { className: "nom", textContent: f.nombre }), el("span", { className: "tam", textContent: mb(f.blob.size) }),
+      lista.append(el("li", {}, el("span", { className: "chip-ico" }, icono(m.formato === "svg" ? "i-file" : "i-dxf")), el("span", { className: "nom", textContent: f.nombre }), el("span", { className: "tam", textContent: mb(f.blob.size) }),
         el("a", { className: "boton boton-chico", href: url, download: f.nombre }, icono("i-download"), "Descargar")));
     }
     // resumen de lo recuperado y capas creadas

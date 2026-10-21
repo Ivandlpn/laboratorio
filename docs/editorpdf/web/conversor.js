@@ -16,7 +16,8 @@ export const OPCIONES_BASE = {
   quitarDuplicados: true,
   rellenos: true,
   textos: true,
-  quitarBlancos: false,  // descarta rellenos blancos (mascaras)
+  quitarBlancos: false, // descarta rellenos blancos (mascaras)
+  discontinuas: true, // trazos discontinuos del PDF como tipos de linea del DXF
   factor: 1,             // unidades de salida por mm de papel (escala / unidad)
 };
 
@@ -235,34 +236,48 @@ export function convertirPagina(mupdf, pagina, dxf, { dx = 0, dy = 0, opciones =
       default: return tipo === "texto" ? CAPA_TEXTO : nombreCapa(pila.length ? pila[pila.length - 1] : "");
     }
   };
+  // elementos que el usuario ha desmarcado: capas del PDF ("capa:NOMBRE") o colores ("color:RRGGBB")
+  const excl = new Set(op.excluir || []);
+  const excluida = (rgb) => excl.size > 0 && ((pila.length > 0 && excl.has("capa:" + nombreCapa(pila[pila.length - 1]))) || excl.has("color:" + hexColor(rgb)));
   const tiposDedup = op.tiposDuplicados || "LPHCT";
   const nueva = (firma) => (op.quitarDuplicados && tiposDedup.includes(firma[0]) ? (dxf.nueva(firma) ? true : (st.conteo.duplicados++, false)) : true);
   const f3 = (n) => Math.round(n * 1000);
 
   // segmentos abiertos pendientes de unir: clave capa|color|grosor -> {capa, rgb, grosor, cadenas[]}
   const cubos = new Map();
-  const emiteLinea = (capa, pts, rgb, grosor) => {
+  // trazo discontinuo del PDF -> tipo de linea del DXF (patron en unidades del dibujo)
+  const tipoDeTrazo = (stroke, escala) => {
+    let d;
+    try { d = stroke.getDashes(); } catch { return ""; }
+    if (!d || !d.length) return "";
+    if (d.length % 2) d = d.concat(d);
+    const k = escala * PT_MM * f;
+    const patron = d.map((v) => Math.max(0, v) * k);
+    if (patron.every((v) => v <= 0) || patron.reduce((a, v) => a + v, 0) < 0.02 * f) return "";
+    return dxf.tipoLinea(patron.map((v) => Math.max(v, 0.001)));
+  };
+  const emiteLinea = (capa, pts, rgb, grosor, tipo = "") => {
     const [a, b] = pts;
-    const firma = a[0] < b[0] || (a[0] === b[0] && a[1] <= b[1]) ? `L|${capa}|${rgb}|${grosor}|${f3(a[0])},${f3(a[1])},${f3(b[0])},${f3(b[1])}` : `L|${capa}|${rgb}|${grosor}|${f3(b[0])},${f3(b[1])},${f3(a[0])},${f3(a[1])}`;
+    const firma = a[0] < b[0] || (a[0] === b[0] && a[1] <= b[1]) ? `L|${capa}|${rgb}|${grosor}|${tipo}|${f3(a[0])},${f3(a[1])},${f3(b[0])},${f3(b[1])}` : `L|${capa}|${rgb}|${grosor}|${tipo}|${f3(b[0])},${f3(b[1])},${f3(a[0])},${f3(a[1])}`;
     if (!nueva(firma)) return;
-    dxf.linea(capa, a[0], a[1], b[0], b[1], rgb, grosor);
+    dxf.linea(capa, a[0], a[1], b[0], b[1], rgb, grosor, tipo);
     st.conteo.lineas++; cuenta(capa, rgb);
   };
-  const emitePolilinea = (capa, pts, cerrada, rgb, grosor) => {
-    if (nueva(`P|${capa}|${rgb}|${grosor}|${cerrada ? 1 : 0}|${pts.map((p) => f3(p[0]) + "," + f3(p[1])).join(";")}`)) {
-      dxf.polilinea(capa, pts, cerrada, rgb, grosor);
+  const emitePolilinea = (capa, pts, cerrada, rgb, grosor, tipo = "") => {
+    if (nueva(`P|${capa}|${rgb}|${grosor}|${tipo}|${cerrada ? 1 : 0}|${pts.map((p) => f3(p[0]) + "," + f3(p[1])).join(";")}`)) {
+      dxf.polilinea(capa, pts, cerrada, rgb, grosor, tipo);
       st.conteo.polilineas++; cuenta(capa, rgb);
     }
   };
-  const emiteCadena = (capa, pts, cerrada, rgb, grosor) => {
-    if (pts.length === 2 && !cerrada) emiteLinea(capa, pts, rgb, grosor);
-    else emitePolilinea(capa, pts, cerrada, rgb, grosor);
+  const emiteCadena = (capa, pts, cerrada, rgb, grosor, tipo = "") => {
+    if (pts.length === 2 && !cerrada) emiteLinea(capa, pts, rgb, grosor, tipo);
+    else emitePolilinea(capa, pts, cerrada, rgb, grosor, tipo);
   };
   const volcar = () => {
     for (const c of cubos.values()) {
       const unidas = unirCadenas(c.cadenas);
       st.conteo.unidos += c.cadenas.length - unidas.length;
-      for (const u of unidas) emiteCadena(c.capa, u.pts, u.cerrada, c.rgb, c.grosor);
+      for (const u of unidas) emiteCadena(c.capa, u.pts, u.cerrada, c.rgb, c.grosor, c.tipo);
     }
     cubos.clear();
   };
@@ -274,6 +289,7 @@ export function convertirPagina(mupdf, pagina, dxf, { dx = 0, dy = 0, opciones =
     fillPath(path, evenOdd, ctm, cs, color) {
       if (!op.rellenos) return;
       const rgb = aRgb(cs, color);
+      if (excluida(rgb)) return;
       if (op.quitarBlancos && rgb[0] > 250 && rgb[1] > 250 && rgb[2] > 250) return;
       const nombre = capaDe("relleno", rgb);
       const rutas = [];
@@ -292,9 +308,11 @@ export function convertirPagina(mupdf, pagina, dxf, { dx = 0, dy = 0, opciones =
 
     strokePath(path, stroke, ctm, cs, color) {
       const rgb = aRgb(cs, color);
+      if (excluida(rgb)) return;
       const nombre = capaDe("geometria", rgb);
       const escala = Math.sqrt(Math.abs(ctm[0] * ctm[3] - ctm[1] * ctm[2]));
       const grosor = grosorDxf(stroke.getLineWidth() * escala);
+      const tipo = op.discontinuas ? tipoDeTrazo(stroke, escala) : "";
       for (const s of subtrazados(path, ctm)) {
         let pts = s.pts.slice();
         let cerrado = s.cerrado;
@@ -304,20 +322,20 @@ export function convertirPagina(mupdf, pagina, dxf, { dx = 0, dy = 0, opciones =
         if (cerrado && op.circulos) {
           const c = ajustarCirculo(pts);
           if (c) {
-            if (nueva(`C|${nombre}|${rgb}|${grosor}|${f3(c.cx)},${f3(c.cy)},${f3(c.radio)}`)) {
-              dxf.circulo(nombre, c.cx, c.cy, c.radio, rgb, grosor);
+            if (nueva(`C|${nombre}|${rgb}|${grosor}|${tipo}|${f3(c.cx)},${f3(c.cy)},${f3(c.radio)}`)) {
+              dxf.circulo(nombre, c.cx, c.cy, c.radio, rgb, grosor, tipo);
               st.conteo.circulos++; cuenta(nombre, rgb);
             }
             continue;
           }
         }
         if (!cerrado && op.unirSegmentos) {
-          const clave = `${nombre}|${rgb}|${grosor}`;
+          const clave = `${nombre}|${rgb}|${grosor}|${tipo}`;
           let cubo = cubos.get(clave);
-          if (!cubo) { cubo = { capa: nombre, rgb, grosor, cadenas: [] }; cubos.set(clave, cubo); }
+          if (!cubo) { cubo = { capa: nombre, rgb, grosor, tipo, cadenas: [] }; cubos.set(clave, cubo); }
           cubo.cadenas.push(pts);
         } else {
-          emiteCadena(nombre, pts, cerrado, rgb, grosor);
+          emiteCadena(nombre, pts, cerrado, rgb, grosor, tipo);
         }
       }
     },
@@ -341,6 +359,7 @@ export function convertirPagina(mupdf, pagina, dxf, { dx = 0, dy = 0, opciones =
       const ancho = tamPt > 0 ? Math.max(0.2, Math.min(3, Math.hypot(a, b) / tamPt)) : 1; // compresion horizontal del texto
       const [x, y] = D([e, ff]);
       const rgb = aRgb(cs, color);
+      if (excluida(rgb)) return;
       const nombre = capaDe("texto", rgb);
       if (!nueva(`T|${nombre}|${rgb}|${texto}|${f3(x)},${f3(y)}|${f3(angulo)}|${f3(tamPt * f)}|${f3(ancho)}`)) return;
       dxf.texto(nombre, texto, x, y, tamPt * PT_MM * 0.72 * f, angulo, ancho, rgb);
