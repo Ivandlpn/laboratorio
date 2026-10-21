@@ -4,221 +4,235 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Editor PDF a DXF · Laboratorio</title>
-  <meta name="description" content="Convierte planos en PDF a archivos DXF editables en AutoCAD u otro editor, directamente en tu navegador. Sin instalar nada y sin subir tus archivos.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232457d6'/%3E%3Cpath d='M12 6h8v2h-1v5.2l5.4 9.2A2.4 2.4 0 0 1 22.3 26H9.7a2.4 2.4 0 0 1-2.1-3.6L13 13.2V8h-1z' fill='white'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="../assets/estilo.css">
-  <link rel="stylesheet" href="web/herramienta.css">
+  <meta name="description" content="Convierte planos en PDF a DXF editable con sus capas, colores y textos. Se hace en tu navegador: el archivo no sale de tu ordenador.">
+  <meta name="theme-color" content="#e9edef">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2316212c'/%3E%3Cpath d='M16 5v22M5 16h22' stroke='white' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='5' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E">
+  <script>try{var t=localStorage.getItem("laboratorio.tema");if(t)document.documentElement.dataset.tema=t}catch(e){}</script>
+  <link rel="stylesheet" href="../assets/estilo.css?v=2">
+  <link rel="stylesheet" href="web/herramienta.css?v=3">
   <style>
-    .heroe { padding: 44px 0 8px; }
-    .heroe h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.08; letter-spacing: -.03em; margin: 14px 0 12px; }
-    .heroe .lead { color: var(--suave); font-size: 1.12rem; max-width: 62ch; margin: 0; }
-    .insignias { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-    h2.seccion { font-size: 1.55rem; letter-spacing: -.02em; margin: 60px 0 6px; }
-    .sub { color: var(--suave); margin: 0 0 22px; }
-    .rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
-    .rejilla .tarjeta { padding: 20px; }
-    .rejilla h3 { margin: 12px 0 6px; font-size: 1.02rem; }
-    .rejilla p { margin: 0; color: var(--suave); font-size: .95rem; }
-    .icono { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--acento-suave); color: var(--acento); }
-    .icono svg { width: 22px; height: 22px; }
-    ol.pasos { list-style: none; counter-reset: paso; padding: 0; margin: 0; display: grid; gap: 14px; }
-    ol.pasos li { counter-increment: paso; display: grid; grid-template-columns: 38px 1fr; gap: 14px; align-items: start; }
-    ol.pasos li::before { content: counter(paso); width: 38px; height: 38px; border-radius: 50%; background: var(--acento); color: #fff; display: grid; place-items: center; font-weight: 700; }
-    ol.pasos strong { display: block; }
-    ol.pasos span { color: var(--suave); font-size: .96rem; }
-    .aviso { border-left: 4px solid var(--aviso); background: var(--superficie); border-radius: 0 var(--radio) var(--radio) 0; padding: 18px 20px; border-top: 1px solid var(--borde); border-right: 1px solid var(--borde); border-bottom: 1px solid var(--borde); }
-    .aviso h3 { margin: 0 0 6px; font-size: 1.02rem; }
-    .aviso p { margin: 0 0 8px; color: var(--suave); }
-    .aviso p:last-child { margin-bottom: 0; }
-    details.pregunta { background: var(--superficie); border: 1px solid var(--borde); border-radius: 12px; padding: 4px 18px; }
-    details.pregunta + details.pregunta { margin-top: 10px; }
-    details.pregunta summary { cursor: pointer; padding: 14px 0; font-weight: 600; }
-    details.pregunta p { margin: 0 0 14px; color: var(--suave); }
-    code { background: var(--superficie-2); padding: 1px 6px; border-radius: 6px; font-size: .9em; }
-    .descargas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
-    .nota { color: var(--suave); font-size: .88rem; margin: 12px 0 0; }
-    .tabla { width: 100%; border-collapse: collapse; font-size: .95rem; }
-    .tabla td { padding: 9px 0; border-bottom: 1px solid var(--borde); vertical-align: top; }
-    .tabla td:first-child { color: var(--suave); width: 36%; }
+    .intro { padding: 56px 0 4px; }
+    .intro h1 { font-size: clamp(2.6rem, 6.4vw, 4.4rem); font-weight: 700; line-height: 1.02; letter-spacing: -.012em; max-width: 19ch; }
+    .intro p { margin-top: 18px; max-width: 56ch; font-size: 1.2rem; color: var(--suave); }
+    .intro p strong { color: var(--tinta); font-weight: 600; }
+    section.bloque { margin-top: 88px; }
+    section.bloque > h2 { font-size: clamp(1.7rem, 3.4vw, 2.3rem); font-weight: 700; margin-bottom: 8px; }
+    section.bloque > .sub-titulo { color: var(--suave); max-width: 60ch; margin-bottom: 26px; }
+    .definiciones { display: grid; margin: 0; border-top: var(--grueso); }
+    .definiciones div { display: grid; grid-template-columns: minmax(150px, 1fr) 3fr; gap: 24px; padding: 16px 0; border-bottom: var(--fino); }
+    .definiciones dt { font: 600 1.2rem/1.2 var(--titulo); }
+    .definiciones dd { margin: 0; color: var(--suave); max-width: 64ch; }
+    ol.pasos { list-style: none; counter-reset: p; margin: 0; padding: 0; border-top: var(--grueso); }
+    ol.pasos li { counter-increment: p; display: grid; grid-template-columns: 64px 1fr; gap: 10px; padding: 18px 0; border-bottom: var(--fino); align-items: baseline; }
+    ol.pasos li::before { content: counter(p); font: 700 2.1rem/1 var(--titulo); color: var(--azul); }
+    ol.pasos strong { font: 600 1.25rem var(--titulo); display: block; }
+    ol.pasos span { color: var(--suave); }
+    .nota-bloque { border-left: 4px solid var(--azul); background: var(--hoja); border-top: var(--fino); border-right: var(--fino); border-bottom: var(--fino); padding: 20px 24px; max-width: 78ch; }
+    .nota-bloque h3 { font-size: 1.35rem; margin-bottom: 8px; }
+    .nota-bloque p + p { margin-top: 10px; }
+    .nota-bloque p { color: var(--suave); }
+    table.datos { width: 100%; border-collapse: collapse; border-top: var(--grueso); }
+    table.datos td { padding: 12px 0; border-bottom: var(--fino); vertical-align: top; }
+    table.datos td:first-child { width: 28%; font: 600 1.1rem var(--titulo); padding-right: 20px; }
+    table.datos td:last-child { color: var(--suave); max-width: 68ch; }
+    details.pregunta { border-bottom: var(--fino); }
+    .preguntas { border-top: var(--grueso); max-width: 820px; }
+    details.pregunta summary { cursor: pointer; padding: 16px 0; font: 600 1.2rem/1.25 var(--titulo); list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+    details.pregunta summary::-webkit-details-marker { display: none; }
+    details.pregunta summary::after { content: "+"; font-weight: 500; color: var(--suave); }
+    details.pregunta[open] summary::after { content: "−"; }
+    details.pregunta p { padding: 0 0 18px; color: var(--suave); max-width: 66ch; }
+    .windows { display: grid; grid-template-columns: minmax(0, 1.4fr) auto; gap: 28px; align-items: center; border-top: var(--grueso); padding-top: 22px; }
+    .windows p { color: var(--suave); max-width: 60ch; }
+    .windows .botones { display: flex; gap: 12px; flex-wrap: wrap; }
+    .pequeno { color: var(--suave); font-size: .93rem; margin-top: 16px; max-width: 80ch; }
+    code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: .88em; background: var(--hoja-2); border: var(--fino); padding: 0 5px; border-radius: 2px; }
+    @media (max-width: 720px) {
+      .definiciones div, .windows { grid-template-columns: 1fr; gap: 6px; }
+      table.datos td { display: block; width: 100% !important; }
+      table.datos td:first-child { border-bottom: 0; padding-bottom: 0; }
+      ol.pasos li { grid-template-columns: 44px 1fr; }
+    }
   </style>
 </head>
 <body>
   <header class="barra">
     <div class="contenedor">
       <a class="marca" href="../">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--acento)"/><path d="M12 6h8v2h-1v5.2l5.4 9.2A2.4 2.4 0 0 1 22.3 26H9.7a2.4 2.4 0 0 1-2.1-3.6L13 13.2V8h-1z" fill="#fff"/></svg>
+        <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="26" height="26"/><path d="M16 3v26M3 16h26"/><circle cx="16" cy="16" r="5" fill="var(--hoja)"/></svg>
         Laboratorio
       </a>
       <nav aria-label="Principal">
         <a href="#herramienta">Convertir</a>
+        <a href="#conserva">Qué conserva</a>
         <a href="#dwg">DWG</a>
         <a href="#preguntas">Preguntas</a>
-        <a class="boton boton-primario" style="padding:8px 14px;font-size:.92rem" href="#windows">Programa para Windows</a>
+        <a href="#windows">Windows</a>
+        <button type="button" class="tema" aria-label="Usar el tema oscuro"></button>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="heroe contenedor">
-      <span class="etiqueta">Gratis · funciona en tu navegador</span>
+    <section class="intro contenedor">
       <h1>Convierte planos PDF a DXF editable</h1>
-      <p class="lead">Arrastra un PDF de plano y descarga un DXF con sus capas, colores y textos, listo para abrir en AutoCAD, LibreCAD o QCAD. <strong>Tus archivos no se suben a ningún sitio</strong>: la conversión ocurre en tu propio ordenador.</p>
-      <div class="insignias">
-        <span class="etiqueta">Sin instalar nada</span>
-        <span class="etiqueta">Sin subir archivos</span>
-        <span class="etiqueta">Capas y colores</span>
-        <span class="etiqueta">Varias páginas en un archivo</span>
-      </div>
+      <p>Suelta el PDF, elige las hojas y descarga un DXF con sus capas, colores y textos. <strong>La conversión ocurre en tu navegador:</strong> el archivo no sale de tu ordenador.</p>
     </section>
 
-    <section class="contenedor herramienta" id="herramienta" aria-label="Conversor">
-      <noscript><p class="aviso">Esta herramienta necesita JavaScript activado.</p></noscript>
-      <div class="tarjeta panel">
-        <div class="paso" id="paso-archivo">
-          <h2><span class="num">1</span> Elige el PDF</h2>
-          <label class="zona" id="zona">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-            <div><strong>Arrastra aquí tu PDF</strong><span id="nombre-archivo">o pulsa para elegirlo desde tu computadora</span></div>
-            <input type="file" id="archivo" accept="application/pdf,.pdf">
-          </label>
-          <p class="nota" style="margin-top:12px">¿No tienes un plano a mano? <button type="button" class="chico" id="ejemplo">Probar con un plano de ejemplo</button></p>
-        </div>
-
-        <div class="paso" id="paso-paginas" hidden>
-          <h2><span class="num">2</span> Elige las páginas</h2>
-          <div class="cuerpo-paginas">
-            <div>
-              <div class="barra-paginas">
-                <span class="contador" id="contador" aria-live="polite"></span>
-                <button type="button" class="chico" id="todas">Todas</button>
-                <button type="button" class="chico" id="ninguna">Ninguna</button>
+    <section class="contenedor mesa" id="herramienta" aria-label="Conversor">
+      <noscript><p class="nota-bloque">Esta herramienta necesita JavaScript activado.</p></noscript>
+      <div class="hoja" id="hoja" data-estado="vacio">
+        <div class="marco">
+          <div class="cuerpo">
+            <aside class="indice" id="indice" aria-label="Hojas del PDF" hidden>
+              <div class="indice-cab">
+                <b id="contador" aria-live="polite">Hojas</b>
+                <span class="acciones"><button type="button" class="enlace" id="todas">Todas</button><button type="button" class="enlace" id="ninguna">Ninguna</button></span>
               </div>
+              <ol class="lista-hojas" id="rejilla"></ol>
               <div class="rango">
-                <label for="rango">Rango:</label>
-                <input type="text" id="rango" placeholder="1-5, 8, 10-12" autocomplete="off">
-                <button type="button" class="chico" id="aplicar-rango">Marcar solo ese rango</button>
+                <label for="rango">Elegir un rango</label>
+                <div class="fila"><input type="text" id="rango" placeholder="1-5, 8, 10-12" autocomplete="off"><button type="button" class="boton boton-claro boton-chico" id="aplicar-rango">Marcar</button></div>
               </div>
-              <div class="rejilla-paginas" id="rejilla" role="group" aria-label="Páginas del PDF"></div>
-            </div>
-            <aside class="vista" aria-label="Vista previa">
-              <div class="titulo-vista"><b>Vista previa</b><span id="titulo-vista"></span></div>
-              <div class="papel" id="papel">Aquí verás la página que señales con el ratón.</div>
             </aside>
-          </div>
-        </div>
 
-        <div class="paso" id="paso-opciones" hidden>
-          <h2><span class="num">3</span> Cómo quieres el resultado</h2>
-          <div class="opciones">
-            <label class="opcion"><input type="radio" name="modo" id="modo-separado" value="separado" checked><div><b>Un archivo por página</b><span>Un DXF por cada página elegida.</span></div></label>
-            <label class="opcion"><input type="radio" name="modo" id="modo-unir" value="unir"><div><b>Todas las páginas en un solo archivo</b><span>Una junto a otra, en cuadrícula. Si queda demasiado pesado, se parte solo en varios archivos.</span></div></label>
-            <div class="sub-opciones" id="sub-unir" hidden>
-              <label>Páginas por fila
-                <select id="columnas"><option value="auto">Automático</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option></select>
+            <div class="lamina">
+              <label class="zona" id="zona">
+                <svg class="dibujo" viewBox="0 0 320 226" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="1" y="1" width="318" height="224"/>
+                  <rect x="9" y="9" width="302" height="208" class="tenue"/>
+                  <rect x="40" y="30" width="62" height="28"/><rect x="129" y="30" width="62" height="28"/><rect x="218" y="30" width="62" height="28"/>
+                  <path d="M71 58v46M160 58v46M249 58v46"/>
+                  <path d="M52 104h216" stroke-width="2.4" style="color:var(--azul)" stroke="var(--azul)"/>
+                  <circle cx="72" cy="140" r="12"/><circle cx="140" cy="140" r="12"/><circle cx="208" cy="140" r="12"/><circle cx="268" cy="140" r="12" stroke="var(--rojo)"/>
+                  <path d="M72 104v24M140 104v24M208 104v24M268 104v24" class="tenue"/>
+                  <path d="M52 172h216" class="tenue" stroke-dasharray="4 4"/>
+                  <rect x="196" y="186" width="106" height="23"/><path d="M196 197h106M240 186v23"/>
+                  <path d="M48 66h14M48 70h22" class="tenue"/>
+                </svg>
+                <div>
+                  <h2>Suelta aquí el PDF del plano</h2>
+                  <p>Se abre en tu navegador. Verás cada hoja y podrás elegir cuáles convertir.</p>
+                  <div class="o"><span class="boton" role="presentation">Elegir un PDF</span><button type="button" class="enlace" id="ejemplo">Probar con un plano de ejemplo</button></div>
+                </div>
+                <input type="file" id="archivo" accept="application/pdf,.pdf">
               </label>
-              <label><input type="checkbox" id="etiquetar" checked> Rótulo «Página N» sobre cada una</label>
+
+              <div class="vista" id="vista" hidden>
+                <div class="vista-cab"><b id="titulo-vista">Vista previa</b><span id="datos-vista"></span></div>
+                <div class="papel" id="papel">Elige una hoja del índice para verla aquí.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cajetin" id="cajetin">
+            <div class="celda">
+              <span class="et">Archivo</span>
+              <span class="valor" id="nombre-archivo">Ninguno todavía</span>
+              <span class="detalle"><span id="detalle-archivo">Arrastra un PDF o elígelo.</span><button type="button" class="enlace" id="cambiar" hidden>Cambiar</button></span>
+            </div>
+            <div class="celda">
+              <span class="et">Salida</span>
+              <fieldset class="segmentado" style="margin:0;padding:0;min-width:0">
+                <legend style="position:absolute;opacity:0;pointer-events:none">Cómo quieres el resultado</legend>
+                <label><input type="radio" name="modo" id="modo-separado" value="separado" checked><span>Un DXF por hoja</span></label>
+                <label><input type="radio" name="modo" id="modo-unir" value="unir"><span>Todas en un DXF</span></label>
+              </fieldset>
+              <div class="sub" id="sub-unir" hidden>
+                <label>Hojas por fila
+                  <select id="columnas"><option value="auto">Automático</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>8</option><option>10</option></select>
+                </label>
+                <label><input type="checkbox" id="etiquetar" checked> Rótulo «Hoja N»</label>
+              </div>
+            </div>
+            <div class="celda accion">
+              <span class="et">Conversión</span>
+              <div class="fila">
+                <button type="button" class="boton" id="convertir" disabled>Convertir a DXF</button>
+                <button type="button" class="boton boton-claro" id="cancelar" hidden>Cancelar</button>
+              </div>
+              <div class="trazo" id="barra" role="progressbar" aria-label="Progreso de la conversión" aria-valuemin="0" aria-valuemax="100"><i></i></div>
+              <span class="estado" id="estado" aria-live="polite"></span>
             </div>
           </div>
         </div>
-
-        <div class="paso" id="paso-convertir" hidden>
-          <h2><span class="num">4</span> Convierte</h2>
-          <div class="fila-convertir">
-            <button type="button" class="boton boton-primario" id="convertir" disabled>Convertir a DXF</button>
-            <button type="button" class="boton boton-claro" id="cancelar" hidden>Cancelar</button>
-            <div class="progreso" id="barra" role="progressbar" aria-label="Progreso de la conversión"><i></i></div>
-          </div>
-          <p class="estado" id="estado" aria-live="polite"></p>
-          <div class="resultado" id="resultado" aria-live="polite"></div>
-        </div>
       </div>
-      <p class="nota">Solo convierte planos vectoriales (hechos en un programa de dibujo). Los PDF escaneados, que son fotos, no se pueden convertir.</p>
+      <div id="resultado" aria-live="polite"></div>
+      <p class="pequeno">Solo convierte planos vectoriales, hechos en un programa de dibujo. Un PDF escaneado es una foto y no se puede convertir.</p>
     </section>
 
-    <section class="contenedor" aria-labelledby="que-hace">
-      <h2 class="seccion" id="que-hace">Qué hace</h2>
-      <p class="sub">Pensado para cuando solo tienes el plano en PDF y necesitas modificarlo.</p>
-      <div class="rejilla">
-        <article class="tarjeta">
-          <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg></span>
-          <h3>Conserva capas y colores</h3>
-          <p>Si el PDF viene de AutoCAD, recupera los nombres de capa, los colores y los grosores de línea.</p>
-        </article>
-        <article class="tarjeta">
-          <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg></span>
-          <h3>Textos editables</h3>
-          <p>Recupera los textos reales del PDF, y corrige los que vienen con las letras mal codificadas.</p>
-        </article>
-        <article class="tarjeta">
-          <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
-          <h3>Un archivo o todas juntas</h3>
-          <p>Un DXF por página, o todas en un solo archivo con rótulos, y descarga todo en un zip.</p>
-        </article>
-        <article class="tarjeta">
-          <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
-          <h3>Privado por diseño</h3>
-          <p>El PDF se procesa en tu navegador. No hay servidor, ni cuentas, ni copias de tus planos.</p>
-        </article>
-      </div>
+    <section class="bloque contenedor" id="conserva">
+      <h2>Qué conserva del plano</h2>
+      <p class="sub-titulo">Pensado para cuando solo tienes el PDF y necesitas modificar el plano.</p>
+      <dl class="definiciones">
+        <div><dt>Capas</dt><dd>Si el PDF viene de AutoCAD, recupera los nombres de capa. Un PDF sin capas se convierte en una sola capa.</dd></div>
+        <div><dt>Colores y grosores</dt><dd>Cada línea y relleno conserva su color, y los grosores se ajustan a los valores estándar de plumilla.</dd></div>
+        <div><dt>Textos</dt><dd>Recupera los textos reales del PDF como texto editable, y corrige los que traen las letras mal codificadas.</dd></div>
+        <div><dt>Varias hojas</dt><dd>Un DXF por hoja, o todas en un solo archivo, una junto a otra con su rótulo. Si el archivo queda muy pesado, se reparte en varios.</dd></div>
+      </dl>
     </section>
 
-    <section class="contenedor" id="como-se-usa" aria-labelledby="titulo-uso">
-      <h2 class="seccion" id="titulo-uso">Cómo se usa</h2>
-      <p class="sub">Tres pasos.</p>
+    <section class="bloque contenedor" id="como-se-usa">
+      <h2>Cómo se usa</h2>
       <ol class="pasos">
-        <li><div><strong>Arrastra tu PDF</strong><span>Se abre al instante y ves las miniaturas de todas las páginas.</span></div></li>
-        <li><div><strong>Elige páginas y formato</strong><span>Marca las que quieras o escribe un rango como <code>1-5, 8</code>. Decide si van separadas o en un solo archivo.</span></div></li>
-        <li><div><strong>Convierte y descarga</strong><span>Descarga cada DXF, o todos juntos en un zip, y ábrelos en tu editor.</span></div></li>
+        <li><div><strong>Suelta el PDF</strong><span>Se abre al instante y aparece el índice con todas las hojas.</span></div></li>
+        <li><div><strong>Elige hojas y salida</strong><span>Marca las hojas o escribe un rango como <code>1-5, 8</code>. Decide si van separadas o juntas.</span></div></li>
+        <li><div><strong>Convierte y descarga</strong><span>Descarga cada DXF, o todos en un zip, y ábrelos en tu editor.</span></div></li>
       </ol>
     </section>
 
-    <section class="contenedor" id="dwg" aria-labelledby="titulo-dwg">
-      <h2 class="seccion" id="titulo-dwg">¿Y el DWG?</h2>
-      <div class="aviso">
-        <h3>En el navegador se crea DXF; el DWG se saca en un clic desde AutoCAD</h3>
-        <p>El DXF es un formato abierto que abren AutoCAD, BricsCAD, LibreCAD, QCAD y casi cualquier editor. Para tener un DWG, ábrelo en AutoCAD y usa <em>Guardar como… DWG</em>.</p>
-        <p>Escribir DWG directamente necesita una herramienta de Windows (ODA File Converter) que no puede ejecutarse en un navegador. Si lo prefieres, el <a href="#windows">programa para Windows</a> crea DXF y DWG a la vez, y además reconoce letras dibujadas.</p>
+    <section class="bloque contenedor" id="dwg">
+      <h2>¿Y el DWG?</h2>
+      <div class="nota-bloque">
+        <h3>Aquí se crea DXF; el DWG sale en un clic desde AutoCAD</h3>
+        <p>El DXF lo abren AutoCAD, BricsCAD, LibreCAD, QCAD y casi cualquier editor. Para tener un DWG, ábrelo en AutoCAD y usa <em>Guardar como…</em> DWG.</p>
+        <p>Escribir DWG directamente requiere ODA File Converter, un programa de Windows que no puede ejecutarse en un navegador. El <a href="#windows">programa para Windows</a> crea DXF y DWG a la vez.</p>
       </div>
     </section>
 
-    <section class="contenedor" aria-labelledby="titulo-datos">
-      <h2 class="seccion" id="titulo-datos">Datos técnicos</h2>
-      <table class="tabla">
-        <tr><td>Funciona con</td><td>Planos en PDF vectorial. No convierte PDF escaneados (imágenes).</td></tr>
-        <tr><td>Formato de salida</td><td>DXF (versión R2004, con color RGB), en milímetros.</td></tr>
+    <section class="bloque contenedor" id="datos">
+      <h2>Datos técnicos</h2>
+      <table class="datos">
+        <tr><td>Entrada</td><td>PDF vectorial. No convierte PDF escaneados (imágenes).</td></tr>
+        <tr><td>Salida</td><td>DXF versión R2004 con color RGB, en milímetros.</td></tr>
         <tr><td>Navegadores</td><td>Chrome, Edge, Firefox y Safari recientes. La primera vez descarga unos 4 MB del motor de lectura de PDF.</td></tr>
         <tr><td>No conserva</td><td>Transparencias y degradados de color.</td></tr>
-        <tr><td>Planos muy grandes</td><td>Una página con decenas de miles de trazos tarda 1-3 segundos. Los PDF de muchas páginas pesadas pueden necesitar bastante memoria del navegador.</td></tr>
+        <tr><td>Rendimiento</td><td>Una hoja con decenas de miles de trazos tarda entre 1 y 3 segundos. Con muchas hojas pesadas puede hacer falta bastante memoria.</td></tr>
       </table>
     </section>
 
-    <section class="contenedor" id="preguntas" aria-labelledby="titulo-preguntas">
-      <h2 class="seccion" id="titulo-preguntas">Preguntas frecuentes</h2>
-      <details class="pregunta"><summary>¿Se suben mis planos a internet?</summary><p>No. El PDF se lee y se convierte dentro de tu navegador; ningún dato sale de tu computadora. Puedes comprobarlo desconectando la red después de cargar la página.</p></details>
-      <details class="pregunta"><summary>¿Por qué un PDF escaneado no se convierte?</summary><p>Un escaneo es una foto, no tiene líneas ni textos. Este conversor traduce las líneas, rellenos y textos que ya existen dentro del PDF, así que solo sirve con planos exportados desde un programa de dibujo.</p></details>
-      <details class="pregunta"><summary>El plano se ve igual, pero no puedo editar el texto</summary><p>Pasa cuando el PDF se generó con las letras convertidas a dibujo. En el navegador esas letras quedan como dibujo (se ven igual). El programa para Windows tiene una opción experimental que intenta reconocerlas y crear texto editable.</p></details>
-      <details class="pregunta"><summary>La página tarda o el navegador se queda sin memoria</summary><p>Prueba a convertir menos páginas cada vez, o sin la opción de unir todo en un archivo. El DXF de una página compleja puede pesar 10-15 MB.</p></details>
-      <details class="pregunta"><summary>¿Qué versión de AutoCAD necesito?</summary><p>El DXF R2004 lo abre cualquier versión de AutoCAD desde 2004 y la mayoría de editores libres.</p></details>
+    <section class="bloque contenedor" id="preguntas">
+      <h2>Preguntas frecuentes</h2>
+      <div class="preguntas">
+        <details class="pregunta"><summary>¿Se suben mis planos a internet?</summary><p>No. El PDF se lee y se convierte dentro de tu navegador; ningún dato sale de tu ordenador. Puedes comprobarlo desconectando la red después de cargar la página.</p></details>
+        <details class="pregunta"><summary>¿Por qué no se convierte un PDF escaneado?</summary><p>Un escaneo es una foto: no tiene líneas ni textos. Este conversor traduce las líneas, rellenos y textos que ya existen dentro del PDF, así que solo sirve con planos exportados desde un programa de dibujo.</p></details>
+        <details class="pregunta"><summary>El plano se ve igual, pero no puedo editar el texto</summary><p>Ocurre cuando el PDF se generó con las letras convertidas en dibujo. Aquí quedan como dibujo y se ven igual. El programa para Windows tiene una opción experimental que intenta reconocerlas y crear texto editable.</p></details>
+        <details class="pregunta"><summary>El navegador tarda o se queda sin memoria</summary><p>Convierte menos hojas cada vez, o sin la opción de juntarlas en un solo DXF. El DXF de una hoja compleja puede pesar entre 10 y 15 MB.</p></details>
+        <details class="pregunta"><summary>¿Qué versión de AutoCAD necesito?</summary><p>El DXF R2004 lo abre cualquier AutoCAD desde 2004 y la mayoría de los editores libres.</p></details>
+      </div>
     </section>
 
-    <section class="contenedor" id="windows" aria-labelledby="titulo-desc">
-      <h2 class="seccion" id="titulo-desc">Programa para Windows (opcional)</h2>
-      <p class="sub">Hace lo mismo y además crea archivos DWG, reconoce letras dibujadas y no necesita internet.</p>
-      <div class="descargas">
-        <a class="boton boton-primario" href="https://github.com/Ivandlpn/laboratorio/releases/download/editorpdf/PDF_a_DWG.zip">Descargar para Windows (79 MB)</a>
-        <a class="boton boton-claro" href="https://github.com/Ivandlpn/laboratorio/tree/main/proyectos/editorpdf" rel="noopener">Código fuente en GitHub</a>
+    <section class="bloque contenedor" id="windows">
+      <h2>Programa para Windows</h2>
+      <div class="windows">
+        <p>Hace lo mismo y además crea archivos DWG, reconoce letras dibujadas y funciona sin internet. Opcional.</p>
+        <div class="botones">
+          <a class="boton" href="https://github.com/Ivandlpn/laboratorio/releases/download/editorpdf/PDF_a_DWG.zip">Descargar (79 MB)</a>
+          <a class="boton boton-claro" href="https://github.com/Ivandlpn/laboratorio/tree/main/proyectos/editorpdf" rel="noopener">Código fuente</a>
+        </div>
       </div>
-      <p class="nota">Si Windows muestra «Windows protegió su PC», pulsa «Más información» → «Ejecutar de todos modos» (el programa no tiene firma digital). Para crear DWG instala además <a href="https://www.opendesign.com/guestfiles/oda_file_converter" rel="noopener" target="_blank">ODA File Converter</a> (gratis solo para uso no comercial).</p>
-      <p class="nota">Esta página usa MuPDF (licencia AGPL, Artifex) en el navegador; el código completo de la página está en el repositorio. El formato DXF se validó con ezdxf (MIT).</p>
+      <p class="pequeno">Si Windows muestra «Windows protegió su PC», pulsa «Más información» y luego «Ejecutar de todos modos»: el programa no tiene firma digital. Para crear DWG instala también <a href="https://www.opendesign.com/guestfiles/oda_file_converter" rel="noopener" target="_blank">ODA File Converter</a>, gratis solo para uso no comercial.</p>
+      <p class="pequeno">Esta página usa MuPDF (licencia AGPL, Artifex) en el navegador; su código completo está en el repositorio. El formato DXF se validó con ezdxf (MIT) y ODA File Converter.</p>
     </section>
   </main>
 
   <footer>
     <div class="contenedor">
-      <span><a href="../">← Volver al Laboratorio</a></span>
+      <span><a href="../">← Laboratorio</a></span>
       <span>Editor PDF a DXF · <a href="https://github.com/Ivandlpn/laboratorio">GitHub</a></span>
     </div>
   </footer>
-  <script type="module" src="web/app.js"></script>
+  <script type="module" src="../assets/tema.js?v=2"></script>
+  <script type="module" src="web/app.js?v=2"></script>
 </body>
 </html>

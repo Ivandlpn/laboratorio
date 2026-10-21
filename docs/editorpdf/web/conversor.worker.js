@@ -72,7 +72,7 @@ async function convertir({ paginas, unir, columnas, etiquetar, base, reconocidas
       }
       const { dx, dy } = posicionEnCuadricula(kParte, cols, celdaAncho, celdaAlto);
       r = convertirPagina(mupdf, p, dxfUnido, { dx, dy });
-      if (etiquetar) dxfUnido.texto("Etiquetas_paginas", `Página ${n}`, dx, dy + r.alto_mm + 6, 6, 0, 1, [0, 0, 255]);
+      if (etiquetar) dxfUnido.texto("Etiquetas_paginas", `Hoja ${n}`, dx, dy + r.alto_mm + 6, 6, 0, 1, [0, 0, 255]);
       r.parte = partesUnidas.length + 1;
       kParte++;
     } else {

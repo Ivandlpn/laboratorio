@@ -4,20 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Página no encontrada · Laboratorio</title>
-  <link rel="stylesheet" href="/laboratorio/assets/estilo.css">
+  <script>try{var t=localStorage.getItem("laboratorio.tema");if(t)document.documentElement.dataset.tema=t}catch(e){}</script>
+  <link rel="stylesheet" href="/laboratorio/assets/estilo.css?v=2">
   <style>
-    main { min-height: 70vh; display: grid; place-items: center; text-align: center; padding: 40px 16px; }
-    h1 { font-size: clamp(3rem, 12vw, 6rem); margin: 0; letter-spacing: -.04em; color: var(--acento); }
-    p { color: var(--suave); margin: 8px 0 24px; }
+    main { min-height: 66vh; display: grid; align-content: center; padding: 56px 0; }
+    h1 { font-size: clamp(4rem, 16vw, 9rem); font-weight: 700; line-height: .9; letter-spacing: -.03em; }
+    p { color: var(--suave); margin: 16px 0 26px; max-width: 44ch; font-size: 1.15rem; }
   </style>
 </head>
 <body>
-  <main>
-    <div>
-      <h1>404</h1>
-      <p>Esta página no existe, o todavía no la hemos publicado.</p>
-      <a class="boton boton-primario" href="/laboratorio/">Ir al Laboratorio</a>
-    </div>
+  <main class="contenedor">
+    <h1>404</h1>
+    <p>Esta página no existe o todavía no se ha publicado.</p>
+    <div><a class="boton" href="/laboratorio/">Ir al Laboratorio</a></div>
   </main>
 </body>
 </html>
