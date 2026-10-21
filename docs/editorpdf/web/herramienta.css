@@ -4,11 +4,12 @@
 .mesa { margin-top: 28px; }
 .hoja { background: var(--hoja); border: var(--medio); padding: 10px; border-radius: 3px; }
 .marco { border: var(--grueso); background: var(--hoja); display: grid; grid-template-rows: minmax(0, 1fr) auto; }
-.cuerpo { display: grid; grid-template-columns: 1fr; min-height: 420px; }
+.cuerpo { display: grid; grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr); min-height: 420px; }
+.hoja:not([data-estado="vacio"]) .cuerpo { height: clamp(420px, 78vh, 680px); }
 .hoja[data-estado="listo"] .cuerpo, .hoja[data-estado="abriendo"] .cuerpo { grid-template-columns: 236px minmax(0, 1fr); }
 
 /* ---- indice de hojas */
-.indice { border-right: var(--fino); background: var(--hoja-2); display: flex; flex-direction: column; min-height: 0; max-height: 620px; }
+.indice { border-right: var(--fino); background: var(--hoja-2); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .indice-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding: 12px 14px 10px; border-bottom: var(--fino); font-family: var(--titulo); }
 .indice-cab b { font-weight: 600; font-size: 1.05rem; }
 .indice-cab .acciones { display: flex; gap: 12px; font-size: .95rem; }
@@ -19,7 +20,7 @@
 .item[aria-current="true"] { border-color: var(--tinta); box-shadow: 0 0 0 1px var(--tinta); }
 .item.marcada .pie b::after { content: ""; }
 .miniatura { appearance: none; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; padding: 6px 6px 7px; display: grid; gap: 6px; }
-.miniatura .mini { aspect-ratio: 420 / 297; background: #fff; border: 1px solid var(--linea-suave); display: grid; place-items: center; overflow: hidden; }
+.miniatura .mini { aspect-ratio: 420 / 297; background: #fff; border: 1px solid var(--linea-suave); display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; overflow: hidden; }
 .miniatura .mini img { width: 100%; height: 100%; object-fit: contain; }
 .miniatura .pie { display: flex; align-items: center; gap: 8px; font-size: .92rem; padding-left: 26px; }
 .miniatura .pie b { font: 600 1rem var(--titulo); }
@@ -37,7 +38,7 @@
 .rango input { min-width: 0; flex: 1; height: 32px; padding: 0 8px; border: var(--medio); border-radius: 2px; background: var(--hoja); color: var(--tinta); font: inherit; }
 
 /* ---- lamina: zona de entrada y vista grande */
-.lamina { position: relative; display: grid; min-width: 0; }
+.lamina { position: relative; display: grid; min-width: 0; min-height: 0; }
 .zona {
   --m: 22px; position: relative; display: grid; grid-template-columns: minmax(180px, 320px) minmax(0, 1fr); gap: 36px; align-items: center;
   padding: 44px 48px; cursor: pointer; background: var(--hoja);
@@ -65,12 +66,12 @@
 .zona p { color: var(--suave); max-width: 38ch; }
 .zona .o { margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 
-.vista { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; background: var(--papel); }
+.vista { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; min-height: 0; background: var(--papel); }
 .vista-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 10px 16px; background: var(--hoja); border-bottom: var(--fino); font-family: var(--titulo); }
 .vista-cab b { font-weight: 600; font-size: 1.1rem; }
 .vista-cab span { color: var(--suave); font-size: .95rem; }
-.papel { padding: 18px; display: grid; place-items: center; min-height: 300px; color: var(--suave); }
-.papel img { width: 100%; height: auto; max-height: 560px; object-fit: contain; background: #fff; border: 1px solid var(--linea-suave); }
+.papel { padding: 18px; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; min-height: 0; overflow: hidden; color: var(--suave); }
+.papel img { max-width: 100%; max-height: 100%; min-height: 0; width: auto; height: auto; object-fit: contain; background: #fff; border: 1px solid var(--linea-suave); }
 
 /* ---- cajetin: archivo, salida y accion */
 .cajetin { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.5fr) minmax(0, 1.15fr); border-top: var(--grueso); }
@@ -118,6 +119,9 @@
 
 @media (max-width: 900px) {
   .hoja[data-estado="listo"] .cuerpo, .hoja[data-estado="abriendo"] .cuerpo { grid-template-columns: 1fr; }
+  .hoja:not([data-estado="vacio"]) .cuerpo { height: auto; grid-template-rows: auto; }
+  .papel { min-height: 220px; }
+  .papel img { max-height: 70vh; }
   .indice { border-right: 0; border-bottom: var(--fino); max-height: none; }
   .lista-hojas { grid-auto-flow: column; grid-auto-columns: 132px; overflow-x: auto; overflow-y: hidden; }
   .zona { grid-template-columns: 1fr; padding: 32px 24px; gap: 20px; }
