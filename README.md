@@ -32,8 +32,8 @@ laboratorio/
 ## Descargas
 
 Los programas ya construidos (por ejemplo `PDF_a_DWG.zip`) **no** se guardan en el repositorio: van en
-[Releases](https://github.com/Ivandlpn/laboratorio/releases). El enlace `releases/latest/download/<archivo>`
-siempre apunta a la última versión.
+[Releases](https://github.com/Ivandlpn/laboratorio/releases). Cada proyecto tiene su propia Release con una etiqueta fija (por ejemplo `editorpdf`) y su archivo se reemplaza
+en cada versión, así que el enlace `releases/download/<etiqueta>/<archivo>` no cambia.
 
 ## Licencia
 

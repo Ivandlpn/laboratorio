@@ -4,7 +4,7 @@ Programa de escritorio para Windows (Python + tkinter) que convierte planos vect
 conservando capas, colores, grosores y textos.
 
 - Página de descarga: https://ivandlpn.github.io/laboratorio/editorpdf/
-- Programa ya construido: [Releases](https://github.com/Ivandlpn/laboratorio/releases/latest) (`PDF_a_DWG.zip`)
+- Programa ya construido: [Release «editorpdf»](https://github.com/Ivandlpn/laboratorio/releases/tag/editorpdf) (`PDF_a_DWG.zip`)
 
 ## Cómo está hecho
 
