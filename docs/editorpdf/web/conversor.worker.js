@@ -36,7 +36,7 @@ function miniatura(n, ancho, id) {
   postMessage({ tipo: "miniatura", n, id, png: copia }, [copia]);
 }
 
-async function convertir({ paginas, unir, columnas, etiquetar, base, reconocidas }) {
+async function convertir({ paginas, unir, columnas, etiquetar, base, opciones = {}, unidades = 4 }) {
   cancelado = false;
   const infos = new Map();
   for (const n of paginas) {
@@ -47,8 +47,13 @@ async function convertir({ paginas, unir, columnas, etiquetar, base, reconocidas
   const utiles = paginas.filter((n) => !infos.get(n).escaneada);
   const omitidas = paginas.filter((n) => infos.get(n).escaneada);
   const cols = columnas || columnasPorDefecto(utiles.length);
-  const celdaAncho = Math.max(...utiles.map((n) => infos.get(n).ancho_mm)) + SEPARACION_MM;
-  const celdaAlto = Math.max(...utiles.map((n) => infos.get(n).alto_mm)) + SEPARACION_MM;
+  const f = opciones.factor || 1; // unidades de salida por mm de papel
+  const celdaAncho = (Math.max(...utiles.map((n) => infos.get(n).ancho_mm)) + SEPARACION_MM) * f;
+  const celdaAlto = (Math.max(...utiles.map((n) => infos.get(n).alto_mm)) + SEPARACION_MM) * f;
+  // "auto": usa las capas del PDF si las trae y, si no, una capa por color
+  const hayCapas = utiles.some((n) => Object.keys(infos.get(n).capas || {}).length > 0);
+  const modoCapas = opciones.capas === "auto" || !opciones.capas ? (hayCapas ? "pdf" : "color") : opciones.capas;
+  const opc = { ...opciones, capas: modoCapas };
 
   const archivos = [];
   const resultados = [];
@@ -64,20 +69,20 @@ async function convertir({ paginas, unir, columnas, etiquetar, base, reconocidas
     const p = doc.loadPage(n - 1);
     let r;
     if (unir) {
-      if (!dxfUnido) dxfUnido = new Dxf();
+      if (!dxfUnido) dxfUnido = new Dxf({ unidades });
       if (kParte && dxfUnido.entidades >= LIMITE_ENTIDADES) {
         partesUnidas.push(dxfUnido);
-        dxfUnido = new Dxf();
+        dxfUnido = new Dxf({ unidades });
         kParte = 0;
       }
       const { dx, dy } = posicionEnCuadricula(kParte, cols, celdaAncho, celdaAlto);
-      r = convertirPagina(mupdf, p, dxfUnido, { dx, dy });
-      if (etiquetar) dxfUnido.texto("Etiquetas_paginas", `Hoja ${n}`, dx, dy + r.alto_mm + 6, 6, 0, 1, [0, 0, 255]);
+      r = convertirPagina(mupdf, p, dxfUnido, { dx, dy, opciones: opc });
+      if (etiquetar) dxfUnido.texto("Etiquetas_paginas", `Hoja ${n}`, dx, dy + r.alto_mm * f + 6 * f, 6 * f, 0, 1, [0, 102, 204]);
       r.parte = partesUnidas.length + 1;
       kParte++;
     } else {
-      const dxf = new Dxf();
-      r = convertirPagina(mupdf, p, dxf);
+      const dxf = new Dxf({ unidades });
+      r = convertirPagina(mupdf, p, dxf, { opciones: opc });
       archivos.push({ nombre: `${base}_p${n}.dxf`, blob: dxf.blob() });
       r.archivo = `${base}_p${n}.dxf`;
     }
@@ -97,7 +102,7 @@ async function convertir({ paginas, unir, columnas, etiquetar, base, reconocidas
       for (const r of resultados) if (r.parte === i + 1) r.archivo = nombre;
     });
   }
-  postMessage({ tipo: "fin", archivos, resultados, omitidas, unido: unir, partes: partesUnidas.length, columnas: cols });
+  postMessage({ tipo: "fin", archivos, resultados, omitidas, unido: unir, partes: partesUnidas.length, columnas: cols, modoCapas, factor: f, unidades });
 }
 
 onmessage = async (ev) => {

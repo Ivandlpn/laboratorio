@@ -11,12 +11,22 @@ const hex = (n) => n.toString(16).toUpperCase();
 const rgbInt = (r, g, b) => ((r & 255) << 16) | ((g & 255) << 8) | (b & 255);
 
 export class Dxf {
-  constructor() {
+  // unidades: codigo $INSUNITS de AutoCAD (4 = mm, 5 = cm, 6 = m)
+  constructor({ unidades = 4 } = {}) {
+    this.unidades = unidades;
+    this.vistos = new Set(); // firmas de entidades ya escritas (para quitar duplicados)
     this.capas = new Map(); // nombre -> handle
     this.siguienteCapa = 0x10000;
     this.siguienteEntidad = 0x100000;
     this.trozos = [];
     this.entidades = 0;
+  }
+
+  // true la primera vez que se ve una firma; false si ya existia (entidad duplicada)
+  nueva(firma) {
+    if (this.vistos.has(firma)) return false;
+    this.vistos.add(firma);
+    return true;
   }
 
   capa(nombre) {
@@ -33,6 +43,27 @@ export class Dxf {
     this.trozos.push(
       this._cabecera("LINE", capa, `370\n${grosor}\n420\n${rgbInt(...color)}\n`) +
         `100\nAcDbLine\n 10\n${num(x1)}\n 20\n${num(y1)}\n 30\n0.0\n 11\n${num(x2)}\n 21\n${num(y2)}\n 31\n0.0\n`
+    );
+  }
+
+  circulo(capa, cx, cy, radio, color, grosor) {
+    this.trozos.push(
+      this._cabecera("CIRCLE", capa, `370
+${grosor}
+420
+${rgbInt(...color)}
+`) +
+        `100
+AcDbCircle
+ 10
+${num(cx)}
+ 20
+${num(cy)}
+ 30
+0.0
+ 40
+${num(radio)}
+`
     );
   }
 
@@ -80,7 +111,7 @@ export class Dxf {
   partes() {
     const semilla = hex(this.siguienteEntidad + 0x1000);
     return [
-      ANTES.replace("@@SEMILLA@@", semilla),
+      ANTES.replace("@@SEMILLA@@", semilla).replace("$INSUNITS\n 70\n4\n", `$INSUNITS\n 70\n${this.unidades}\n`),
       this._tablaCapas(),
       DESPUES,
       "  0\nSECTION\n  2\nENTITIES\n",
