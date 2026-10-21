@@ -1,0 +1,25 @@
+﻿PDF a DWG  -  Como usarlo
+=========================
+
+1. Descomprime esta carpeta donde quieras (mejor en tu computadora, por ejemplo en Documentos).
+2. Abre PDF_a_DWG.exe (doble clic).
+   - Si Windows muestra "Windows protegio su PC": pulsa "Mas informacion" y luego "Ejecutar de todos modos".
+     (Sale porque el programa no tiene firma digital; es normal.)
+3. Arrastra un PDF a la ventana (o pulsa "Abrir PDF").
+4. Elige las paginas, elige si quieres un archivo por pagina o todas en uno, y pulsa "Convertir".
+5. Los archivos .dxf (y .dwg si instalaste ODA File Converter) quedan junto al PDF o en la carpeta que elijas.
+
+Para crear archivos DWG
+- El DXF se crea siempre. Para el DWG hace falta ODA File Converter, gratis para uso NO comercial:
+  https://www.opendesign.com/guestfiles/oda_file_converter  (instalalo una vez; el programa lo detecta solo).
+- Sin ODA File Converter el programa funciona igual pero solo crea DXF.
+
+Notas
+- No hace falta instalar nada mas. Funciona en Windows 10 y 11 de 64 bits. Los archivos no salen de tu computadora.
+- Solo convierte planos vectoriales (hechos en CAD), no PDF escaneados.
+- La opcion "Reconocer letras que son dibujo" usa el reconocimiento de letras de Windows en espanol
+  (necesita el idioma espanol instalado). Es experimental: revisa el resultado.
+
+Licencias de lo que incluye
+- PyMuPDF (AGPL, Artifex): el codigo fuente completo de este programa esta en la pagina de descarga.
+- ezdxf (MIT), OpenCV (Apache 2.0), Pillow, sv-ttk (MIT), tkinterdnd2 (MIT), winrt (MIT).

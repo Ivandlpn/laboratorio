@@ -1,0 +1,32 @@
+PDF a DWG
+
+Para usarlo (en tu computadora):
+1. Doble clic en "Abrir PDF a DWG.bat".
+2. Arrastra el PDF a la ventana (o pulsa "Abrir PDF...").
+3. Marca las paginas y pulsa "Convertir".
+4. Los archivos .dxf y .dwg quedan junto al PDF, con el nombre <PDF>_p<pagina>.
+
+Todas las paginas en un solo archivo: en el paso 3 elige "Todas las paginas en un solo archivo". Las paginas
+quedan una junto a otra en cuadricula (puedes elegir cuantas por fila) y cada una lleva un rotulo "Pagina N" en
+la capa Etiquetas_paginas. Si el archivo quedara demasiado pesado (mas de 450.000 elementos) se parte solo en
+varios archivos unidos (_unido_1, _unido_2...). Tambien puedes elegir la carpeta donde guardar.
+
+Atajos y ayudas: Ctrl+O abre un PDF, Ctrl+Intro convierte, Esc cancela. Al pasar el raton por una
+pagina de la lista se ve su vista previa. En "Rango" puedes escribir, por ejemplo, 1-5, 8, 10-12.
+El programa recuerda tus opciones (modo oscuro, DXF/DWG, version) y la ultima carpeta.
+
+Para otra computadora con Windows:
+1. Copia toda esta carpeta (incluida la carpeta "herramientas").
+2. Instala Python 3.11 o mas nuevo desde python.org, marcando "Add python.exe to PATH".
+3. Doble clic en "Instalar requisitos (una sola vez).bat".
+4. Doble clic en "Abrir PDF a DWG.bat".
+
+Licencia: el conversor a DWG (ODA File Converter, carpeta "herramientas") es gratis solo para
+uso no comercial.
+
+Opcion experimental "Reconocer letras que en el PDF son dibujo": intenta convertir en texto las letras
+dibujadas, usando el reconocimiento de letras de Windows (idioma espanol). Acierta cerca de 9 de cada 10 (fallan sobre todo logos y simbolos).
+Los textos van a la capa Texto_reconocido_REVISAR y el dibujo original no se toca: revisa y corrige.
+
+Limites: solo planos vectoriales (no PDF escaneados); no conserva transparencias ni degradados;
+si las letras del PDF son dibujo (no texto), quedan como dibujo.

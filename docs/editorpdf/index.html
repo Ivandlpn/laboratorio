@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor PDF a DWG · Laboratorio</title>
+  <meta name="description" content="Programa para Windows que convierte planos en PDF a archivos DXF y DWG editables en AutoCAD u otro editor. Sin instalar, sin subir archivos.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232457d6'/%3E%3Cpath d='M12 6h8v2h-1v5.2l5.4 9.2A2.4 2.4 0 0 1 22.3 26H9.7a2.4 2.4 0 0 1-2.1-3.6L13 13.2V8h-1z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="../assets/estilo.css">
+  <style>
+    .heroe { display: grid; grid-template-columns: minmax(0, 1fr); gap: 36px; padding: 56px 0 24px; }
+    .heroe h1 { font-size: clamp(2.1rem, 5vw, 3.2rem); line-height: 1.08; letter-spacing: -.03em; margin: 14px 0 14px; max-width: 18ch; }
+    .heroe .lead { color: var(--suave); font-size: 1.15rem; max-width: 58ch; margin: 0 0 26px; }
+    .acciones { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .nota-descarga { color: var(--suave); font-size: .88rem; margin: 12px 0 0; }
+    .ventana { border: 1px solid var(--borde); border-radius: 14px; overflow: hidden; box-shadow: var(--sombra); background: var(--superficie); }
+    .ventana .titulo { display: flex; gap: 7px; padding: 10px 14px; background: var(--superficie-2); border-bottom: 1px solid var(--borde); }
+    .ventana .titulo i { width: 11px; height: 11px; border-radius: 50%; background: var(--borde); display: block; }
+    .ventana img { width: 100%; height: auto; background: #fff; }
+
+    h2.seccion { font-size: 1.6rem; letter-spacing: -.02em; margin: 64px 0 6px; }
+    .sub { color: var(--suave); margin: 0 0 24px; }
+    .rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+    .rejilla .tarjeta { padding: 20px; }
+    .rejilla h3 { margin: 12px 0 6px; font-size: 1.02rem; }
+    .rejilla p { margin: 0; color: var(--suave); font-size: .95rem; }
+    .icono { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--acento-suave); color: var(--acento); }
+    .icono svg { width: 22px; height: 22px; }
+
+    ol.pasos { list-style: none; counter-reset: paso; padding: 0; margin: 0; display: grid; gap: 14px; }
+    ol.pasos li { counter-increment: paso; display: grid; grid-template-columns: 38px 1fr; gap: 14px; align-items: start; }
+    ol.pasos li::before { content: counter(paso); width: 38px; height: 38px; border-radius: 50%; background: var(--acento); color: #fff; display: grid; place-items: center; font-weight: 700; }
+    ol.pasos strong { display: block; }
+    ol.pasos span { color: var(--suave); font-size: .96rem; }
+
+    .aviso { border-left: 4px solid var(--aviso); background: var(--superficie); border-radius: 0 var(--radio) var(--radio) 0; padding: 18px 20px; border-top: 1px solid var(--borde); border-right: 1px solid var(--borde); border-bottom: 1px solid var(--borde); }
+    .aviso h3 { margin: 0 0 6px; font-size: 1.02rem; }
+    .aviso p { margin: 0 0 8px; color: var(--suave); }
+    .aviso p:last-child { margin-bottom: 0; }
+
+    details { background: var(--superficie); border: 1px solid var(--borde); border-radius: 12px; padding: 4px 18px; }
+    details + details { margin-top: 10px; }
+    summary { cursor: pointer; padding: 14px 0; font-weight: 600; }
+    details p { margin: 0 0 14px; color: var(--suave); }
+    code { background: var(--superficie-2); padding: 1px 6px; border-radius: 6px; font-size: .9em; }
+    .descargas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+    .tabla { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    .tabla td { padding: 9px 0; border-bottom: 1px solid var(--borde); vertical-align: top; }
+    .tabla td:first-child { color: var(--suave); width: 38%; }
+  </style>
+</head>
+<body>
+  <header class="barra">
+    <div class="contenedor">
+      <a class="marca" href="../">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--acento)"/><path d="M12 6h8v2h-1v5.2l5.4 9.2A2.4 2.4 0 0 1 22.3 26H9.7a2.4 2.4 0 0 1-2.1-3.6L13 13.2V8h-1z" fill="#fff"/></svg>
+        Laboratorio
+      </a>
+      <nav aria-label="Principal">
+        <a href="#como-se-usa">Cómo se usa</a>
+        <a href="#dwg">DWG</a>
+        <a href="#preguntas">Preguntas</a>
+        <a class="boton boton-primario" style="padding:8px 14px;font-size:.92rem" href="https://github.com/Ivandlpn/laboratorio/releases/latest/download/PDF_a_DWG.zip">Descargar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="heroe contenedor">
+      <div>
+        <span class="etiqueta">Programa para Windows · gratis</span>
+        <h1>Editor PDF a DWG</h1>
+        <p class="lead">Convierte tus planos en PDF en archivos <strong>DXF y DWG editables</strong> para AutoCAD u otro editor, con sus capas, colores y textos. Sin instalar nada y sin subir tus archivos a ningún sitio.</p>
+        <div class="acciones">
+          <a class="boton boton-primario" href="https://github.com/Ivandlpn/laboratorio/releases/latest/download/PDF_a_DWG.zip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            Descargar para Windows
+          </a>
+          <a class="boton boton-claro" href="#como-se-usa">Ver cómo se usa</a>
+        </div>
+        <p class="nota-descarga">PDF_a_DWG.zip · 79 MB · Windows 10 y 11 (64 bits) · versión del 21 de octubre de 2026</p>
+      </div>
+
+      <figure class="ventana" style="margin:0">
+        <div class="titulo" aria-hidden="true"><i></i><i></i><i></i></div>
+        <img src="captura.png" width="1240" height="838" alt="Ventana del programa con las miniaturas de las páginas de un plano de ejemplo, la vista previa a la derecha y las opciones de DXF, DWG y unir páginas.">
+      </figure>
+    </section>
+
+    <section class="contenedor" aria-labelledby="que-hace">
+      <h2 class="seccion" id="que-hace">Qué hace</h2>
+      <p class="sub">Pensado para cuando solo tienes el plano en PDF y necesitas modificarlo.</p>
+      <div class="rejilla">
+        <article class="tarjeta">
+          <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg></span>
+          <h3>Conserva capas y colores</h3>
+          <p>Si el PDF viene de AutoCAD, recupera los nombres de capa, los colores y los grosores de línea.</p>
+        </article>
+        <article class="tarjeta">
+          <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5h16v2M12 5v14M9 19h6"/></svg></span>
+          <h3>Textos editables</h3>
+          <p>Recupera los textos reales del PDF. Opcionalmente intenta reconocer las letras que están dibujadas (experimental).</p>
+        </article>
+        <article class="tarjeta">
+          <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+          <h3>Un archivo o todas juntas</h3>
+          <p>Un DXF/DWG por página, o todas las páginas en un solo archivo, una junto a otra con su rótulo.</p>
+        </article>
+        <article class="tarjeta">
+          <span class="icono" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span>
+          <h3>Todo en tu computadora</h3>
+          <p>Los planos nunca salen de tu equipo: la conversión se hace localmente, sin internet.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="contenedor" id="como-se-usa" aria-labelledby="titulo-uso">
+      <h2 class="seccion" id="titulo-uso">Cómo se usa</h2>
+      <p class="sub">Cuatro pasos, sin instalación.</p>
+      <ol class="pasos">
+        <li><div><strong>Descarga y descomprime</strong><span>Descomprime <code>PDF_a_DWG.zip</code> en tu computadora (por ejemplo, en Documentos).</span></div></li>
+        <li><div><strong>Abre <code>PDF_a_DWG.exe</code></strong><span>Si Windows muestra «Windows protegió su PC», pulsa «Más información» y luego «Ejecutar de todos modos». Sale porque el programa no tiene firma digital.</span></div></li>
+        <li><div><strong>Arrastra tu PDF y elige las páginas</strong><span>Verás las miniaturas. Marca las que quieras o escribe un rango como <code>1-5, 8</code>.</span></div></li>
+        <li><div><strong>Pulsa Convertir</strong><span>Los archivos <code>.dxf</code> y <code>.dwg</code> quedan junto al PDF, o en la carpeta que elijas.</span></div></li>
+      </ol>
+    </section>
+
+    <section class="contenedor" id="dwg" aria-labelledby="titulo-dwg">
+      <h2 class="seccion" id="titulo-dwg">Para crear archivos DWG</h2>
+      <div class="aviso">
+        <h3>El DXF se crea siempre; el DWG necesita un paso extra</h3>
+        <p>Para escribir DWG el programa usa <strong>ODA File Converter</strong>, de Open Design Alliance. No viene incluido porque su licencia es gratis solo para uso no comercial y no se puede redistribuir libremente.</p>
+        <p>Descárgalo e instálalo una vez desde <a href="https://www.opendesign.com/guestfiles/oda_file_converter" rel="noopener" target="_blank">la página de ODA</a>. El programa lo detecta solo. Sin él, todo funciona igual, pero solo se crea DXF (que AutoCAD, LibreCAD y QCAD abren sin problema).</p>
+      </div>
+    </section>
+
+    <section class="contenedor" aria-labelledby="titulo-datos">
+      <h2 class="seccion" id="titulo-datos">Datos técnicos</h2>
+      <table class="tabla">
+        <tr><td>Funciona con</td><td>Planos en PDF vectorial (hechos en CAD). No convierte PDF escaneados (imágenes).</td></tr>
+        <tr><td>Formatos de salida</td><td>DXF (R2004) y DWG (de AutoCAD 2000 a 2018 o posterior).</td></tr>
+        <tr><td>Sistema</td><td>Windows 10 u 11, 64 bits. No requiere instalar Python ni nada más.</td></tr>
+        <tr><td>No conserva</td><td>Transparencias y degradados de color.</td></tr>
+        <tr><td>Reconocer letras</td><td>Usa el reconocimiento de Windows en español (hay que tener ese idioma instalado). Es experimental: acierta cerca de 9 de cada 10 textos en la prueba hecha; revisa el resultado.</td></tr>
+      </table>
+    </section>
+
+    <section class="contenedor" id="preguntas" aria-labelledby="titulo-preguntas">
+      <h2 class="seccion" id="titulo-preguntas">Preguntas frecuentes</h2>
+      <details>
+        <summary>¿Por qué Windows dice que el programa no es seguro?</summary>
+        <p>Porque no está firmado digitalmente (la firma tiene un costo anual). Al pulsar «Más información» → «Ejecutar de todos modos» se abre con normalidad. El código fuente completo está disponible abajo, así que puedes revisarlo.</p>
+      </details>
+      <details>
+        <summary>¿Se suben mis planos a internet?</summary>
+        <p>No. Todo se procesa en tu computadora; el programa no necesita conexión.</p>
+      </details>
+      <details>
+        <summary>¿Por qué un PDF escaneado no se convierte?</summary>
+        <p>Un escaneo es una foto, no tiene líneas ni textos. Este programa convierte las líneas, rellenos y textos que ya existen dentro del PDF, así que solo sirve con planos exportados desde un programa de dibujo.</p>
+      </details>
+      <details>
+        <summary>El plano se ve igual, pero no puedo editar el texto</summary>
+        <p>Pasa cuando el PDF se generó con las letras convertidas a dibujo. En ese caso activa «Reconocer letras que en el PDF son dibujo»: crea una capa de texto editable aparte, sin tocar el dibujo original.</p>
+      </details>
+      <details>
+        <summary>¿Qué versión de AutoCAD necesito?</summary>
+        <p>El DXF lo abre cualquier versión reciente. Para el DWG puedes elegir la versión de salida (2000, 2004, 2007, 2010, 2013 o 2018 y posterior) según la más antigua que use tu equipo.</p>
+      </details>
+    </section>
+
+    <section class="contenedor" aria-labelledby="titulo-desc">
+      <h2 class="seccion" id="titulo-desc">Descargas</h2>
+      <div class="descargas">
+        <a class="boton boton-primario" href="https://github.com/Ivandlpn/laboratorio/releases/latest/download/PDF_a_DWG.zip">Programa para Windows (79 MB)</a>
+        <a class="boton boton-claro" href="https://github.com/Ivandlpn/laboratorio/tree/main/proyectos/editorpdf" rel="noopener">Código fuente en GitHub</a>
+      </div>
+      <p class="nota-descarga">El programa incluye PyMuPDF (licencia AGPL, Artifex), por eso se publica también el código fuente. Además usa ezdxf, OpenCV, Pillow, sv-ttk y tkinterdnd2 (licencias libres).</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="contenedor">
+      <span><a href="../">← Volver al Laboratorio</a></span>
+      <span>Editor PDF a DWG · <a href="https://github.com/Ivandlpn/laboratorio">GitHub</a></span>
+    </div>
+  </footer>
+</body>
+</html>
