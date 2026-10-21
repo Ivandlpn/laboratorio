@@ -278,3 +278,19 @@ code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-siz
 .cap .cap-ico .ico { width: 14px; height: 14px; }
 .cap.fuera { opacity: .5; text-decoration: line-through; background: transparent; border-style: dashed; }
 .contenido .nota { margin-top: 8px; }
+
+/* todo lo informativo va recogido en un desplegable bajo el editor */
+.mas-info-caja { margin-top: 40px; }
+.mas-info { background: var(--superficie); border: 1px solid var(--borde); border-radius: 18px; box-shadow: var(--sombra); }
+.mas-info > summary { display: flex; align-items: center; gap: 16px; padding: 18px 22px; cursor: pointer; list-style: none; }
+.mas-info > summary::-webkit-details-marker { display: none; }
+.mas-info-texto { display: grid; gap: 2px; min-width: 0; }
+.mas-info-texto b { font-size: 1.1rem; font-weight: 800; }
+.mas-info-texto small { color: var(--suave); font-weight: 500; font-size: .88rem; }
+.mas-info-flecha { margin-left: auto; transition: transform .2s ease; }
+.mas-info[open] .mas-info-flecha { transform: rotate(180deg); }
+.mas-info[open] > summary { border-bottom: 1px solid var(--borde); }
+.mas-info .bloque { width: auto; margin: 0; padding: 40px 28px 8px; }
+.mas-info .bloque:last-child { padding-bottom: 36px; }
+.mas-info .bloque + .bloque { border-top: 1px solid var(--borde); margin-top: 32px; }
+@media (max-width: 700px) { .mas-info .bloque { padding: 32px 16px 4px; } }

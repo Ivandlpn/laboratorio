@@ -9,7 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231b61e4'/%3E%3Cpath d='m16 7 9 5-9 5-9-5z' fill='white'/%3E%3Cpath d='m7 16 9 5 9-5M7 20.5l9 5 9-5' stroke='white' stroke-width='1.8' fill='none' opacity='.75'/%3E%3C/svg%3E">
   <script>try{var t=localStorage.getItem("laboratorio.tema");if(t)document.documentElement.dataset.tema=t}catch(e){}</script>
   <link rel="stylesheet" href="../assets/estilo.css?v=3">
-  <link rel="stylesheet" href="web/herramienta.css?v=13">
+  <link rel="stylesheet" href="web/herramienta.css?v=14">
 </head>
 <body>
   <header class="barra">
@@ -237,6 +237,9 @@
       <p class="pequeno">Solo convierte planos vectoriales, hechos en un programa de dibujo. Un PDF escaneado es una foto y no se puede convertir.</p>
     </div>
 
+    <div class="contenedor mas-info-caja">
+      <details class="mas-info" id="mas-info">
+        <summary><span class="chip-ico"><svg class="ico" aria-hidden="true"><use href="../assets/iconos.svg#i-help"/></svg></span><span class="mas-info-texto"><b>Más información</b><small>Cómo se usa, qué conserva, el motor, DWG, preguntas, programa para Windows y créditos</small></span><svg class="ico mas-info-flecha" aria-hidden="true"><use href="../assets/iconos.svg#i-chevron-down"/></svg></summary>
     <section class="bloque contenedor" id="como">
       <div class="cab"><h2>Tres pasos</h2><p>Pensado para cuando solo tienes el PDF y necesitas modificar el plano.</p></div>
       <div class="recorrido">
@@ -330,6 +333,8 @@
         <div class="credito"><b>darkneoss/pdf2dxf · ek-mc/pdf-to-dxf · leoleonel-jf/PdfToDxf</b>Proyectos públicos que inspiraron las ideas de unir trazos, detectar círculos y elegir capas. No se copió su código.</div>
       </div>
     </section>
+      </details>
+    </div>
   </main>
 
   <footer>
@@ -340,5 +345,10 @@
   </footer>
   <script type="module" src="../assets/tema.js?v=3"></script>
   <script type="module" src="web/app.js?v=6"></script>
+<script>
+  // los enlaces del menú abren el desplegable si apuntan a algo que está dentro
+  (function(){var d=document.getElementById("mas-info");function abre(){var id=location.hash.slice(1);if(id&&d&&!d.open&&d.querySelector("#"+CSS.escape(id))){d.open=true;document.getElementById(id).scrollIntoView();}}
+  addEventListener("hashchange",abre);abre();})();
+</script>
 </body>
 </html>
