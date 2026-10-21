@@ -6,7 +6,23 @@ conservando capas, colores, grosores y textos.
 - Página de descarga: https://ivandlpn.github.io/laboratorio/editorpdf/
 - Programa ya construido: [Release «editorpdf»](https://github.com/Ivandlpn/laboratorio/releases/tag/editorpdf) (`PDF_a_DWG.zip`)
 
-## Cómo está hecho
+## Versión web (DXF en el navegador)
+
+La misma conversión, sin instalar nada: https://ivandlpn.github.io/laboratorio/editorpdf/ . Vive en
+`docs/editorpdf/web/` y todo ocurre en el navegador (el PDF no se sube a ningún servidor).
+
+| Archivo | Para qué sirve |
+|---|---|
+| `conversor.js` | Lee el PDF con MuPDF (WebAssembly) y lo traduce a entidades: la misma lógica que `pdf_a_dxf.py`. |
+| `dxf.js` + `dxf_plantilla.js` | Escribe el DXF R2004; la plantilla fija sale de un archivo de referencia hecho con ezdxf. |
+| `conversor.worker.js` | Trabajador en segundo plano: abre, dibuja miniaturas y convierte sin bloquear la página. |
+| `app.js`, `herramienta.css`, `zip.js` | Interfaz, estilo y creación del .zip. |
+| `vendor/mupdf/` | MuPDF compilado a WebAssembly (AGPL, Artifex). |
+
+Límites respecto al programa de Windows: no crea DWG (necesita ODA File Converter, un programa de Windows) y todavía
+no reconoce letras dibujadas.
+
+## Cómo está hecho (programa de Windows)
 
 | Archivo | Para qué sirve |
 |---|---|

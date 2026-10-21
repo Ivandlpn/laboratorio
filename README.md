@@ -8,7 +8,7 @@ Pequeñas herramientas y pruebas web. Cada proyecto tiene su código en `proyect
 
 | Proyecto | Página | Qué es |
 |---|---|---|
-| [Editor PDF a DWG](proyectos/editorpdf) | [/editorpdf](https://ivandlpn.github.io/laboratorio/editorpdf/) | Programa para Windows que convierte planos en PDF a DXF y DWG editables. |
+| [Editor PDF a DWG](proyectos/editorpdf) | [/editorpdf](https://ivandlpn.github.io/laboratorio/editorpdf/) | Conversor de planos PDF a DXF que funciona en el navegador (sin subir archivos) y programa para Windows que además crea DWG. |
 | [Kntera](proyectos/kntera) | [kntera.web.app](https://kntera.web.app) | Aplicación para la gestión y el seguimiento de equipos de fútbol base. Vive en su propio proyecto de Firebase; aquí está su [documentación](proyectos/kntera/documentacion) (sin el código). |
 
 ## Cómo está organizado
