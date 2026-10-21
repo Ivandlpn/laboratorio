@@ -16,3 +16,6 @@ proyectos/editorpdf/*.pdf
 !proyectos/editorpdf/ejemplo/*.pdf
 .firebase/
 node_modules/
+
+# lista local de nombres que no deben salir en las copias publicas
+.bloqueo-local.txt

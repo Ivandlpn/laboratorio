@@ -9,7 +9,7 @@ Pequeñas herramientas y pruebas web. Cada proyecto tiene su código en `proyect
 | Proyecto | Página | Qué es |
 |---|---|---|
 | [Editor PDF a DWG](proyectos/editorpdf) | [/editorpdf](https://ivandlpn.github.io/laboratorio/editorpdf/) | Programa para Windows que convierte planos en PDF a DXF y DWG editables. |
-| Kntera | [kntera.web.app](https://kntera.web.app) | Aplicación para la gestión y el seguimiento de equipos de fútbol base. Vive en su propio proyecto de Firebase; desde aquí solo se enlaza, no se copia su código. |
+| [Kntera](proyectos/kntera) | [kntera.web.app](https://kntera.web.app) | Aplicación para la gestión y el seguimiento de equipos de fútbol base. Vive en su propio proyecto de Firebase; aquí está su [documentación](proyectos/kntera/documentacion) (sin el código). |
 
 ## Cómo está organizado
 
@@ -20,7 +20,8 @@ laboratorio/
 │  ├─ assets/estilo.css      estilo compartido
 │  └─ editorpdf/             https://ivandlpn.github.io/laboratorio/editorpdf/
 ├─ proyectos/
-│  └─ editorpdf/             código, ejemplo y script para construir el .exe
+│  ├─ editorpdf/             código, ejemplo y script para construir el .exe
+│  └─ kntera/                solo documentación (copia automática)
 ```
 
 ## Añadir un proyecto nuevo
