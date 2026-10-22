@@ -6,8 +6,8 @@ Visor de racks y equipos de red para los emplazamientos de alta velocidad ferrov
 
 ## Qué es esta copia
 
-- Es una **copia de solo lectura**: se puede consultar, buscar, ver los racks (frente y trasera), el mapa con capas, el inventario y el historial, y exportar PDF y PNG. No se puede editar.
-- Todos los datos viajan dentro de una sola página (`snapshot.json`); no hay servidor ni base de datos. La fecha de la copia sale arriba a la derecha.
+- Es una **copia de prueba totalmente funcional**: se puede consultar, buscar, ver los racks (frente y trasera), el mapa, el inventario y el historial, exportar PDF y PNG, y también añadir, mover, conectar y borrar. Los cambios se guardan solo en el navegador de cada persona; hay un botón para restaurar los datos publicados.
+- No hay servidor: la página lleva su propia base de datos (SQLite en el navegador, `data/visorrack.db`). La fecha de la copia sale arriba a la derecha. Antes de abrirla pide una palabra clave.
 - Las direcciones llevan `#` (por ejemplo `.../visorrack/#/racks/2`), porque GitHub Pages no tiene servidor que reenvíe las rutas.
 
 ## La aplicación completa
