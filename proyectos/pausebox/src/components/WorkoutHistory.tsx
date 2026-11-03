@@ -73,41 +73,41 @@ export default function WorkoutHistory({ onSelectSessionForCoach }: WorkoutHisto
     <div className="flex flex-col gap-4 w-full">
       {/* 1. Global KPI Metrics Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <div className="bg-zinc-950/70 border border-white/5 rounded-2xl p-3.5 flex flex-col backdrop-blur-md">
-          <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-[9px] uppercase tracking-wider">
+        <div className="glass-panel rounded-2xl p-3.5 flex flex-col shadow-lg">
+          <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-[9px] uppercase tracking-wider font-bold">
             <Trophy className="h-3 w-3 text-brand" /> Reps Totales
           </div>
-          <span className="text-xl font-black text-white mt-1 font-mono">{totalRepsCount}</span>
+          <span className="text-2xl font-black text-white mt-1 font-mono tracking-tight">{totalRepsCount}</span>
           <span className="text-[8px] text-zinc-500 font-mono mt-0.5">{sessions.length} series registradas</span>
         </div>
 
-        <div className="bg-zinc-950/70 border border-white/5 rounded-2xl p-3.5 flex flex-col backdrop-blur-md">
-          <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-[9px] uppercase tracking-wider">
+        <div className="glass-panel rounded-2xl p-3.5 flex flex-col shadow-lg">
+          <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-[9px] uppercase tracking-wider font-bold">
             <CheckCircle2 className="h-3 w-3 text-emerald-400" /> Tasa de Éxito
           </div>
-          <span className="text-xl font-black text-brand mt-1 font-mono">{successRate}%</span>
+          <span className="text-2xl font-black text-brand mt-1 font-mono tracking-tight">{successRate}%</span>
           <span className="text-[8px] text-zinc-500 font-mono mt-0.5">{successfulRepsCount} de {totalRepsCount} válidas</span>
         </div>
 
-        <div className="bg-zinc-950/70 border border-white/5 rounded-2xl p-3.5 flex flex-col backdrop-blur-md">
-          <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-[9px] uppercase tracking-wider">
+        <div className="glass-panel rounded-2xl p-3.5 flex flex-col shadow-lg">
+          <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-[9px] uppercase tracking-wider font-bold">
             <Clock className="h-3 w-3 text-sky-400" /> Pausa Media
           </div>
-          <span className="text-xl font-black text-white mt-1 font-mono">{avgPauseTime}s</span>
+          <span className="text-2xl font-black text-white mt-1 font-mono tracking-tight">{avgPauseTime}s</span>
           <span className="text-[8px] text-zinc-500 font-mono mt-0.5">En el fondo isométrico</span>
         </div>
 
-        <div className="bg-zinc-950/70 border border-white/5 rounded-2xl p-3.5 flex flex-col backdrop-blur-md">
-          <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-[9px] uppercase tracking-wider">
+        <div className="glass-panel rounded-2xl p-3.5 flex flex-col shadow-lg">
+          <div className="flex items-center gap-1.5 text-zinc-500 font-mono text-[9px] uppercase tracking-wider font-bold">
             <Sparkles className="h-3 w-3 text-yellow-400" /> Calidad Perfecta
           </div>
-          <span className="text-xl font-black text-yellow-300 mt-1 font-mono">{perfectRepsCount}</span>
+          <span className="text-2xl font-black text-yellow-300 mt-1 font-mono tracking-tight">{perfectRepsCount}</span>
           <span className="text-[8px] text-zinc-500 font-mono mt-0.5">Sin balanceos ni fallos</span>
         </div>
       </div>
 
       {/* 2. Controls Action Strip */}
-      <div className="flex items-center justify-between bg-zinc-950/60 border border-white/5 rounded-2xl px-4 py-3 backdrop-blur-md">
+      <div className="flex items-center justify-between glass-panel rounded-2xl px-4 py-3 shadow-md">
         <div className="flex items-center gap-2">
           <History className="h-4 w-4 text-brand" />
           <span className="text-[10px] font-black uppercase tracking-widest text-white font-mono">
@@ -119,7 +119,7 @@ export default function WorkoutHistory({ onSelectSessionForCoach }: WorkoutHisto
           <button
             onClick={exportHistoryJSON}
             disabled={sessions.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
             title="Exportar archivo JSON"
           >
             <Download className="h-3 w-3" /> Exportar
@@ -128,7 +128,7 @@ export default function WorkoutHistory({ onSelectSessionForCoach }: WorkoutHisto
           <button
             onClick={clearAllHistory}
             disabled={sessions.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
             title="Borrar todo el historial"
           >
             <Trash2 className="h-3 w-3" /> Vaciar
@@ -139,7 +139,7 @@ export default function WorkoutHistory({ onSelectSessionForCoach }: WorkoutHisto
       {/* 3. Session List */}
       <div className="flex flex-col gap-3">
         {sessions.length === 0 ? (
-          <div className="bg-zinc-950/60 border border-white/5 rounded-2xl p-8 flex flex-col items-center justify-center text-center backdrop-blur-md">
+          <div className="glass-panel rounded-2xl p-8 flex flex-col items-center justify-center text-center">
             <History className="h-8 w-8 text-zinc-700 animate-pulse mb-2" />
             <span className="text-xs font-black uppercase tracking-wider text-zinc-400 font-mono">No hay series finalizadas aún</span>
             <p className="text-[10px] text-zinc-600 font-mono mt-1 max-w-xs">
@@ -154,7 +154,7 @@ export default function WorkoutHistory({ onSelectSessionForCoach }: WorkoutHisto
             return (
               <div 
                 key={session.id}
-                className="bg-zinc-950/70 border border-white/5 hover:border-white/10 rounded-2xl overflow-hidden transition-all backdrop-blur-md"
+                className="glass-panel rounded-2xl overflow-hidden transition-all shadow-md"
               >
                 {/* Session Header Card */}
                 <div 

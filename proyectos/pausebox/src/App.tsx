@@ -339,42 +339,42 @@ export default function App() {
         </div>
       </header>
 
-      {/* Navigation Sub-header (Aesthetic Athletic Selector Tabs - 3 Sections) */}
+      {/* Navigation Sub-header (Athletic Segmented Control) */}
       <div className="max-w-lg mx-auto w-full px-4 pt-3 relative z-20">
-        <div className="grid grid-cols-3 p-1 bg-zinc-950/80 border border-white/5 rounded-xl backdrop-blur-md">
+        <div className="grid grid-cols-3 p-1.5 bg-zinc-950/90 border border-white/10 rounded-2xl shadow-xl backdrop-blur-xl">
           <button 
             onClick={() => setActiveTab("detector")}
-            className={`py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
+            className={`py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
               activeTab === "detector" 
-                ? "bg-brand text-black shadow-[0_4px_12px_rgba(226,255,49,0.25)]" 
-                : "text-zinc-400 hover:text-white"
+                ? "bg-brand text-black shadow-[0_2px_15px_rgba(226,255,49,0.35)] font-black" 
+                : "text-zinc-400 hover:text-white hover:bg-white/5"
             }`}
           >
-            <Activity className="h-3.5 w-3.5 shrink-0" /> 
+            <Activity className="h-4 w-4 shrink-0" /> 
             <span>Cámara</span>
           </button>
 
           <button 
             onClick={() => setActiveTab("history")}
-            className={`py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
+            className={`py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
               activeTab === "history" 
-                ? "bg-brand text-black shadow-[0_4px_12px_rgba(226,255,49,0.25)]" 
-                : "text-zinc-400 hover:text-white"
+                ? "bg-brand text-black shadow-[0_2px_15px_rgba(226,255,49,0.35)] font-black" 
+                : "text-zinc-400 hover:text-white hover:bg-white/5"
             }`}
           >
-            <History className="h-3.5 w-3.5 shrink-0" /> 
+            <History className="h-4 w-4 shrink-0" /> 
             <span>Historial</span>
           </button>
 
           <button 
             onClick={() => setActiveTab("rounds")}
-            className={`py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-wider rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 ${
+            className={`py-2.5 text-[10px] sm:text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
               activeTab === "rounds" 
-                ? "bg-brand text-black shadow-[0_4px_12px_rgba(226,255,49,0.25)]" 
-                : "text-zinc-400 hover:text-white"
+                ? "bg-brand text-black shadow-[0_2px_15px_rgba(226,255,49,0.35)] font-black" 
+                : "text-zinc-400 hover:text-white hover:bg-white/5"
             }`}
           >
-            <Sparkles className="h-3.5 w-3.5 shrink-0" /> 
+            <Sparkles className="h-4 w-4 shrink-0" /> 
             <span>Rondas</span>
           </button>
         </div>
@@ -636,59 +636,81 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Direct Coach AI Trigger Button */}
+                {/* Direct Coach AI Trigger Button (High Visual Impact Shimmer) */}
                 <button
                   onClick={() => openCoachForSession(activeSessionReps)}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-brand/20 via-brand/10 to-transparent border border-brand/40 text-brand font-black text-xs uppercase tracking-wider flex items-center justify-between hover:border-brand transition-all cursor-pointer shadow-[0_0_20px_rgba(226,255,49,0.12)]"
+                  className="w-full py-3.5 px-4 rounded-2xl shimmer-coach-btn border border-brand/40 text-brand font-black text-xs uppercase tracking-wider flex items-center justify-between hover:border-brand hover:scale-[1.01] transition-all cursor-pointer shadow-[0_4px_25px_rgba(226,255,49,0.18)] active:scale-95"
                 >
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 animate-pulse text-brand" />
-                    <span>CONSULTAR COACH AI (GEMINI)</span>
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-6 w-6 rounded-lg bg-black/60 border border-brand/40 flex items-center justify-center text-brand">
+                      <Sparkles className="h-3.5 w-3.5 animate-pulse text-brand" />
+                    </div>
+                    <div className="text-left">
+                      <span className="block leading-none text-white font-extrabold tracking-wide">ANÁLISIS COACH AI</span>
+                      <span className="block text-[8px] text-brand/90 font-mono mt-0.5 font-bold">POWERLIFTING BIOMECHANICS</span>
+                    </div>
                   </div>
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 text-brand" />
                 </button>
 
-                {/* List of completed reps in current set */}
-                <div className="min-h-[80px] max-h-[180px] overflow-y-auto pr-1 flex flex-col gap-2 scrollbar-thin">
+                {/* List of completed reps in current set with telemetry bar */}
+                <div className="min-h-[80px] max-h-[190px] overflow-y-auto pr-1 flex flex-col gap-2 scrollbar-thin">
                   {activeSessionReps.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-6 text-center">
-                      <Activity className="h-5 w-5 text-zinc-700 animate-pulse mb-1.5" />
+                      <Activity className="h-6 w-6 text-zinc-700 animate-pulse mb-1.5" />
                       <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider">Aún no hay repeticiones grabadas</p>
                       <p className="text-[9px] font-mono text-zinc-600 uppercase tracking-widest mt-0.5">Colócate frente a la cámara o prueba la simulación</p>
                     </div>
                   ) : (
-                    [...activeSessionReps].reverse().map((rep, idx) => (
-                      <div 
-                        key={rep.id}
-                        className="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl px-3 py-2.5 font-mono text-xs hover:border-white/10 transition-all"
-                      >
-                        <div className="flex items-center gap-2.5">
-                          {rep.success ? (
-                            <CheckCircle2 className="h-4 w-4 text-brand shrink-0" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-red-500 shrink-0" />
-                          )}
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] font-bold text-white">REP {activeSessionReps.length - idx}</span>
-                              <span className={`text-[8px] font-black px-1 rounded uppercase ${
-                                rep.quality === "PERFECT" 
-                                  ? "bg-brand/20 text-brand" 
-                                  : "bg-white/10 text-zinc-300"
-                              }`}>
-                                {rep.quality === "PERFECT" ? "Perfecta" : "Válida"}
-                              </span>
+                    [...activeSessionReps].reverse().map((rep, idx) => {
+                      const pausePercent = Math.min(100, Math.round((rep.actualPause / rep.targetPause) * 100));
+                      return (
+                        <div 
+                          key={rep.id}
+                          className="flex flex-col bg-white/[0.03] border border-white/5 hover:border-white/15 rounded-2xl px-3.5 py-2.5 font-mono text-xs transition-all"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2.5">
+                              {rep.success ? (
+                                <div className="h-5 w-5 rounded-full bg-brand/10 border border-brand/30 flex items-center justify-center text-brand shrink-0">
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-brand" />
+                                </div>
+                              ) : (
+                                <div className="h-5 w-5 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 shrink-0">
+                                  <XCircle className="h-3.5 w-3.5 text-red-500" />
+                                </div>
+                              )}
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[11px] font-black text-white">REP {activeSessionReps.length - idx}</span>
+                                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md uppercase ${
+                                    rep.quality === "PERFECT" 
+                                      ? "bg-brand/20 text-brand border border-brand/30" 
+                                      : "bg-white/10 text-zinc-300"
+                                  }`}>
+                                    {rep.quality === "PERFECT" ? "Perfecta" : "Válida"}
+                                  </span>
+                                </div>
+                                <div className="text-[8px] text-zinc-400 flex gap-2.5 mt-0.5 font-bold uppercase">
+                                  <span>Pausa: <strong className="text-zinc-100">{rep.actualPause.toFixed(1)}s</strong> / {rep.targetPause}s</span>
+                                  <span>Ángulo: <strong className="text-zinc-100">{rep.minAngle}°</strong></span>
+                                </div>
+                              </div>
                             </div>
-                            <div className="text-[8px] text-zinc-500 flex gap-2 mt-0.5 font-bold uppercase">
-                              <span>Pausa: <strong className="text-zinc-300">{rep.actualPause.toFixed(1)}s</strong></span>
-                              <span>Ángulo: <strong className="text-zinc-300">{rep.minAngle}°</strong></span>
-                            </div>
+                            
+                            <span className="text-[8px] text-zinc-600 font-bold shrink-0">{rep.timestamp}</span>
+                          </div>
+
+                          {/* Mini Telemetry Pause Progress Bar */}
+                          <div className="w-full bg-white/5 h-1 rounded-full mt-2 overflow-hidden">
+                            <div 
+                              className={`h-full transition-all ${rep.success ? 'bg-brand' : 'bg-red-500'}`}
+                              style={{ width: `${pausePercent}%` }}
+                            />
                           </div>
                         </div>
-                        
-                        <span className="text-[8px] text-zinc-600 font-bold shrink-0">{rep.timestamp}</span>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
 

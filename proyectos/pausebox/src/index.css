@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -6,32 +6,99 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --color-brand: #E2FF31;
   --color-brand-muted: rgba(226, 255, 49, 0.12);
-  --color-brand-glow: rgba(226, 255, 49, 0.35);
+  --color-brand-glow: rgba(226, 255, 49, 0.4);
 }
 
-/* Custom aesthetic styles for modern athletic feel */
+/* Base resets & typography */
 body {
-  background-color: #000000; /* Pure Pitch Black */
+  background-color: #030303;
   color: #f4f4f5;
   font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 /* Dot Grid Background Pattern */
 .bg-dot-grid {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1.5px, transparent 1.5px);
-  background-size: 28px 28px;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
 }
 
-/* Neon glow for key components */
+/* Glass card styling */
+.glass-panel {
+  background: linear-gradient(180deg, rgba(24, 24, 27, 0.75) 0%, rgba(9, 9, 11, 0.9) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Neon glow classes */
 .neon-glow-brand {
-  box-shadow: 0 0 25px rgba(226, 255, 49, 0.15);
+  box-shadow: 0 0 25px rgba(226, 255, 49, 0.25);
+}
+
+.neon-border-glow {
+  border-color: #E2FF31;
+  box-shadow: 0 0 20px rgba(226, 255, 49, 0.35), inset 0 0 15px rgba(226, 255, 49, 0.1);
 }
 
 .neon-text-glow {
-  text-shadow: 0 0 15px rgba(226, 255, 49, 0.4);
+  text-shadow: 0 0 16px rgba(226, 255, 49, 0.5);
 }
 
-/* Hide scrollbars for slick sliders */
+/* Shimmer animated gradient for Call to Action buttons */
+@keyframes shimmer-anim {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer-coach-btn {
+  background: linear-gradient(90deg, rgba(226, 255, 49, 0.08) 0%, rgba(226, 255, 49, 0.35) 50%, rgba(226, 255, 49, 0.08) 100%);
+  background-size: 200% 100%;
+  animation: shimmer-anim 4s infinite linear;
+}
+
+/* Modern Range Slider Styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #E2FF31;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(226, 255, 49, 0.6);
+  border: 2px solid #000;
+  transition: transform 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.25);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #E2FF31;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(226, 255, 49, 0.6);
+  border: 2px solid #000;
+}
+
+/* Hide scrollbars */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }

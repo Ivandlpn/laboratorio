@@ -1164,29 +1164,41 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
       ref={containerRef} 
       id="tracker-container"
     >
-      {/* 1. STATE INDICATOR STRIP (Modern athletic branding) */}
-      <div className="flex items-center justify-between px-3 sm:px-6 py-3 bg-black/85 border-b border-white/10 backdrop-blur-md z-20 relative gap-2 flex-wrap">
-        <div className="flex items-center gap-2.5">
-          <div className="relative flex h-3.5 w-3.5">
-            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${settings.isSimulationMode ? 'bg-amber-500' : 'bg-brand'}`}></span>
-            <span className={`relative inline-flex rounded-full h-3.5 w-3.5 ${settings.isSimulationMode ? 'bg-amber-500' : 'bg-brand'}`}></span>
+      {/* 1. STATE INDICATOR STRIP (Athletic Dynamic Bar) */}
+      <div className="flex items-center justify-between px-3 sm:px-5 py-2.5 bg-black/90 border-b border-white/10 backdrop-blur-xl z-20 relative gap-2 flex-wrap sm:flex-nowrap">
+        {/* Dynamic State Pill */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 shadow-inner">
+            <span className={`relative flex h-2.5 w-2.5 rounded-full ${
+              squatState === "HOLDING" ? "bg-orange-500 animate-ping" :
+              squatState === "COMPLETED_HOLD" ? "bg-brand animate-ping" :
+              squatState === "DESCENDING" ? "bg-sky-400 animate-pulse" :
+              "bg-zinc-600"
+            }`} />
+            <span className="text-[10px] font-mono font-black tracking-wider uppercase text-zinc-200">
+              {squatState === "STANDING" && "DE PIE"}
+              {squatState === "DESCENDING" && <span className="text-sky-400">BAJANDO</span>}
+              {squatState === "HOLDING" && <span className="text-orange-400 animate-pulse">PAUSA {Math.ceil(countdown)}s</span>}
+              {squatState === "COMPLETED_HOLD" && <span className="text-brand font-black animate-bounce">¡SUBE!</span>}
+            </span>
           </div>
-          <span className="text-xs font-mono font-black tracking-widest text-zinc-300 uppercase">
-            {settings.isSimulationMode ? "SISTEMA VIRTUAL" : "BIOMECÁNICA ACTIVA"}
+
+          <span className="hidden xl:inline text-[8px] font-mono tracking-widest text-zinc-500 uppercase">
+            {settings.isSimulationMode ? "MODO VIRTUAL" : "IA EN TIEMPO REAL"}
           </span>
         </div>
 
-        {/* Controls: Camera Switcher, Preparation Timer, Gym Focus, Video & Fullscreen */}
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        {/* Controls: Compact Touch Buttons Bar */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Front / Rear Camera Lens Switcher */}
           {!settings.isSimulationMode && (
             <button
               onClick={toggleCameraFacing}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[9px] sm:text-[10px] font-black tracking-wider uppercase bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer"
-              title={`Cambiar lente (Actual: ${facingMode === "user" ? "Frontal" : "Trasera/Suelo"})`}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[9px] font-black tracking-wider uppercase bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 transition-all cursor-pointer active:scale-95"
+              title={`Alternar cámara (Actual: ${facingMode === "user" ? "Frontal" : "Trasera"})`}
             >
               <SwitchCamera className="h-3.5 w-3.5 text-brand" />
-              <span className="hidden md:inline">{facingMode === "user" ? "CAM FRONTAL" : "CAM TRASERA"}</span>
+              <span className="hidden md:inline">{facingMode === "user" ? "FRONTAL" : "TRASERA"}</span>
             </button>
           )}
 
@@ -1194,45 +1206,45 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
           <button
             onClick={startPrepCountdown}
             disabled={prepCountdown !== null}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[9px] sm:text-[10px] font-black tracking-wider uppercase bg-brand/10 hover:bg-brand/20 text-brand border border-brand/30 transition-all cursor-pointer disabled:opacity-40"
-            title="Cuenta atrás de 3 segundos antes de iniciar la sentadilla"
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[9px] font-black tracking-wider uppercase bg-brand/10 hover:bg-brand/20 text-brand border border-brand/30 transition-all cursor-pointer disabled:opacity-40 active:scale-95"
+            title="Cuenta atrás de 3 segundos para posicionarte"
           >
             <Timer className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">PREP 3s</span>
+            <span className="hidden sm:inline">PREP</span>
           </button>
 
           {/* Gym Focus Mode Toggle */}
           <button
             onClick={() => setIsGymFocusMode(!isGymFocusMode)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[9px] sm:text-[10px] font-black tracking-wider uppercase transition-all cursor-pointer border ${
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[9px] font-black tracking-wider uppercase transition-all cursor-pointer border active:scale-95 ${
               isGymFocusMode
-                ? "bg-brand/20 text-brand border-brand/40 shadow-[0_0_12px_rgba(226,255,49,0.25)]"
+                ? "bg-brand/20 text-brand border-brand/40 shadow-[0_0_10px_rgba(226,255,49,0.2)]"
                 : "bg-white/5 text-zinc-400 border-white/10 hover:text-white"
             }`}
-            title="Alternar modo Gym Focus para visión a más de 2 metros"
+            title="Modo Gym Focus para visión nítida a 2.5 metros"
           >
             <Layers className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{isGymFocusMode ? "GYM: ON" : "GYM: OFF"}</span>
+            <span className="hidden sm:inline">GYM</span>
           </button>
 
           {/* Video Recording Action Button */}
           {!isRecording ? (
             <button
               onClick={startRecording}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[9px] sm:text-[10px] font-black tracking-widest uppercase bg-red-500/15 text-red-400 border border-red-500/40 hover:bg-red-500/25 cursor-pointer transition-all shadow-[0_0_12px_rgba(239,68,68,0.2)]"
-              title="Iniciar grabación de vídeo de la sesión"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[9px] font-black tracking-widest uppercase bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 cursor-pointer transition-all active:scale-95"
+              title="Iniciar grabación de vídeo de la serie"
             >
               <Video className="h-3.5 w-3.5 text-red-500 animate-pulse" />
-              <span className="hidden sm:inline">GRABAR</span>
+              <span className="hidden sm:inline">REC</span>
             </button>
           ) : (
             <button
               onClick={stopRecording}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] sm:text-[10px] font-black tracking-widest uppercase bg-red-600 text-white border border-red-400 cursor-pointer transition-all shadow-[0_0_20px_rgba(239,68,68,0.6)] animate-pulse"
-              title="Detener grabación de vídeo"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black tracking-widest uppercase bg-red-600 text-white border border-red-400 cursor-pointer transition-all shadow-[0_0_16px_rgba(239,68,68,0.5)] animate-pulse active:scale-95"
+              title="Detener grabación"
             >
               <span className="h-2 w-2 rounded-full bg-white animate-ping" />
-              <span>REC {formatRecTime(recordingTime)}</span>
+              <span>{formatRecTime(recordingTime)}</span>
               <Square className="h-3 w-3 fill-white ml-0.5" />
             </button>
           )}
@@ -1240,26 +1252,18 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
           {recordedVideoUrl && !isRecording && (
             <button
               onClick={() => setShowVideoModal(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[9px] sm:text-[10px] font-black tracking-widest uppercase bg-brand/15 text-brand border border-brand/40 hover:bg-brand/25 cursor-pointer transition-all"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[9px] font-black tracking-widest uppercase bg-brand/15 text-brand border border-brand/40 hover:bg-brand/25 cursor-pointer transition-all active:scale-95"
               title="Ver vídeo grabado"
             >
               <Film className="h-3.5 w-3.5 text-brand" />
-              <span className="hidden sm:inline">VER VÍDEO</span>
+              <span className="hidden md:inline">VÍDEO</span>
             </button>
           )}
-
-          {/* State Tag */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[9px] sm:text-[10px] font-black tracking-wider uppercase bg-white/5 border border-white/10">
-            {squatState === "STANDING" && <span className="text-white italic">DE PIE</span>}
-            {squatState === "DESCENDING" && <span className="text-sky-400 animate-pulse italic">BAJANDO</span>}
-            {squatState === "HOLDING" && <span className="text-orange-500 animate-pulse italic">PAUSA</span>}
-            {squatState === "COMPLETED_HOLD" && <span className="text-brand animate-bounce italic">¡SUBE!</span>}
-          </div>
 
           {/* Fullscreen toggle button */}
           <button
             onClick={toggleFullscreen}
-            className="flex items-center justify-center p-2 rounded-full text-[10px] font-black bg-brand/10 text-brand border border-brand/35 hover:bg-brand/25 cursor-pointer transition-all"
+            className="flex items-center justify-center p-2 rounded-xl text-[10px] font-black bg-white/5 text-zinc-300 hover:text-white border border-white/10 hover:bg-white/10 cursor-pointer transition-all active:scale-95"
             title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
           >
             {isFullscreen ? <Minimize className="h-3.5 w-3.5" /> : <Maximize className="h-3.5 w-3.5" />}
@@ -1273,6 +1277,42 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
           ? "relative flex-1 w-full flex items-center justify-center bg-black overflow-hidden" 
           : "relative aspect-[4/3] w-full flex items-center justify-center bg-black overflow-hidden"
       }>
+
+        {/* Floating Circular Biomechanical Depth Gauge */}
+        {personInFrame && squatState !== "HOLDING" && squatState !== "COMPLETED_HOLD" && (
+          <div className="absolute top-4 left-4 z-20 pointer-events-none flex items-center gap-3 bg-black/80 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/15 shadow-2xl">
+            <div className="relative w-11 h-11 flex items-center justify-center">
+              <svg className="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
+                <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="3" />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9155"
+                  fill="none"
+                  stroke={leftKneeAngle <= settings.targetAngle ? "#E2FF31" : leftKneeAngle <= 120 ? "#f97316" : "#38bdf8"}
+                  strokeWidth="3.5"
+                  strokeDasharray="100, 100"
+                  strokeDashoffset={100 - Math.min(100, Math.max(0, ((180 - leftKneeAngle) / (180 - settings.targetAngle)) * 100))}
+                  strokeLinecap="round"
+                  className="transition-all duration-75"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-[11px] font-black font-mono text-white tracking-tighter">
+                  {leftKneeAngle}°
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[8px] font-mono font-bold tracking-widest text-zinc-400 uppercase">
+                PROFUNDIDAD
+              </span>
+              <span className={`text-[10px] font-black font-mono uppercase tracking-tight ${leftKneeAngle <= settings.targetAngle ? 'text-brand' : 'text-zinc-200'}`}>
+                {leftKneeAngle <= settings.targetAngle ? "✓ PARALELA" : `${settings.targetAngle}° META`}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Aesthetic Tech HUD Corner Brackets */}
         <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-brand z-20 pointer-events-none" />
@@ -1623,70 +1663,97 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
         )}
       </div>
 
-      {/* 4. FOOTER HUD (Biomechanical metrics dashboard with High Contrast Support) */}
+      {/* 4. FOOTER TELEMETRY HUD (Biomechanical Pro Dashboard) */}
       <div className={`grid grid-cols-4 divide-x font-mono text-center transition-all ${
         isHighContrast
           ? "divide-yellow-400/50 border-t-2 border-yellow-400 bg-black text-yellow-300"
-          : "divide-white/10 border-t border-white/10 bg-black/60 backdrop-blur-md"
+          : "divide-white/[0.07] border-t border-white/10 bg-gradient-to-t from-black via-zinc-950/90 to-black/70 backdrop-blur-xl"
       }`}>
         {/* Left Knee info */}
-        <div className="py-4">
-          <span className={`text-[10px] uppercase tracking-widest block ${isHighContrast ? "text-yellow-200 font-bold" : "text-zinc-500"}`}>Rodilla Izq</span>
-          <span className={`text-xl font-black mt-1 block ${
+        <div className="py-3 px-1 sm:px-2 flex flex-col items-center justify-center">
+          <span className={`text-[8px] sm:text-[9px] uppercase tracking-widest block font-bold ${isHighContrast ? "text-yellow-200" : "text-zinc-500"}`}>
+            RODILLA IZQ
+          </span>
+          <span className={`text-xl sm:text-2xl font-black mt-0.5 block tracking-tighter ${
             leftKneeAngle <= settings.targetAngle 
-              ? 'text-orange-500' 
+              ? 'text-brand neon-text-glow' 
               : isHighContrast 
-                ? 'text-yellow-300 font-extrabold' 
-                : 'text-zinc-100'
+                ? 'text-yellow-300' 
+                : 'text-white'
           }`}>
             {leftKneeAngle}°
           </span>
-          <span className={`text-[9px] block uppercase font-mono mt-0.5 ${isHighContrast ? "text-yellow-200 font-bold" : "text-zinc-500"}`}>FLEXIÓN</span>
+          <div className="w-10 sm:w-14 h-1 bg-white/10 rounded-full mt-1.5 overflow-hidden">
+            <div 
+              className={`h-full transition-all duration-75 ${leftKneeAngle <= settings.targetAngle ? 'bg-brand' : 'bg-sky-400'}`}
+              style={{ width: `${Math.min(100, Math.max(0, ((180 - leftKneeAngle) / 90) * 100))}%` }}
+            />
+          </div>
         </div>
         
         {/* Right Knee info */}
-        <div className="py-4">
-          <span className={`text-[10px] uppercase tracking-widest block ${isHighContrast ? "text-yellow-200 font-bold" : "text-zinc-500"}`}>Rodilla Der</span>
-          <span className={`text-xl font-black mt-1 block ${
+        <div className="py-3 px-1 sm:px-2 flex flex-col items-center justify-center">
+          <span className={`text-[8px] sm:text-[9px] uppercase tracking-widest block font-bold ${isHighContrast ? "text-yellow-200" : "text-zinc-500"}`}>
+            RODILLA DER
+          </span>
+          <span className={`text-xl sm:text-2xl font-black mt-0.5 block tracking-tighter ${
             rightKneeAngle <= settings.targetAngle 
-              ? 'text-orange-500' 
+              ? 'text-brand neon-text-glow' 
               : isHighContrast 
-                ? 'text-yellow-300 font-extrabold' 
-                : 'text-zinc-100'
+                ? 'text-yellow-300' 
+                : 'text-white'
           }`}>
             {rightKneeAngle}°
           </span>
-          <span className={`text-[9px] block uppercase font-mono mt-0.5 ${isHighContrast ? "text-yellow-200 font-bold" : "text-zinc-500"}`}>FLEXIÓN</span>
+          <div className="w-10 sm:w-14 h-1 bg-white/10 rounded-full mt-1.5 overflow-hidden">
+            <div 
+              className={`h-full transition-all duration-75 ${rightKneeAngle <= settings.targetAngle ? 'bg-brand' : 'bg-sky-400'}`}
+              style={{ width: `${Math.min(100, Math.max(0, ((180 - rightKneeAngle) / 90) * 100))}%` }}
+            />
+          </div>
         </div>
 
         {/* Symmetry factor */}
-        <div className="py-4">
-          <span className={`text-[10px] uppercase tracking-widest block ${isHighContrast ? "text-yellow-200 font-bold" : "text-zinc-500"}`}>Simetría</span>
+        <div className="py-3 px-1 sm:px-2 flex flex-col items-center justify-center">
+          <span className={`text-[8px] sm:text-[9px] uppercase tracking-widest block font-bold ${isHighContrast ? "text-yellow-200" : "text-zinc-500"}`}>
+            SIMETRÍA
+          </span>
           {(() => {
             const dev = Math.abs(leftKneeAngle - rightKneeAngle);
             const isSym = dev <= 5;
+            const symPercent = Math.max(0, 100 - Math.min(100, dev * 2));
             return (
               <>
-                <span className={`text-lg font-black mt-1 inline-flex items-center gap-1 leading-none ${
+                <span className={`text-lg sm:text-xl font-black mt-0.5 inline-flex items-center gap-1 leading-none tracking-tight ${
                   isSym 
-                    ? isHighContrast ? 'text-yellow-300' : 'text-brand' 
-                    : 'text-amber-500'
+                    ? isHighContrast ? 'text-yellow-300' : 'text-emerald-400' 
+                    : 'text-amber-400'
                 }`}>
-                  {isSym ? <Check className="h-3.5 w-3.5 stroke-[3px]" /> : null} {100 - Math.min(100, dev * 2)}%
+                  {isSym ? <Check className="h-3 w-3 stroke-[3px]" /> : null} {symPercent}%
                 </span>
-                <span className={`text-[9px] block mt-0.5 uppercase ${isHighContrast ? "text-yellow-200 font-bold" : "text-zinc-500"}`}>DESV: {dev}°</span>
+                <span className={`text-[8px] block mt-1 uppercase font-mono ${isHighContrast ? "text-yellow-200" : "text-zinc-500"}`}>
+                  DESV: ±{dev}°
+                </span>
               </>
             );
           })()}
         </div>
 
         {/* Rep counter in HUD */}
-        <div className={`py-4 ${isHighContrast ? 'bg-yellow-400 text-black font-extrabold' : 'bg-brand-muted/20'}`}>
-          <span className={`text-[10px] font-black uppercase tracking-widest block ${isHighContrast ? 'text-black font-extrabold' : 'text-brand'}`}>Reps Serie</span>
-          <span className={`text-2xl font-black italic mt-1 block ${isHighContrast ? 'text-black' : 'text-brand'}`}>
+        <div className={`py-3 px-1 sm:px-2 flex flex-col items-center justify-center ${
+          isHighContrast ? 'bg-yellow-400 text-black font-extrabold' : 'bg-brand/[0.08] border-l border-brand/20'
+        }`}>
+          <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-widest block ${isHighContrast ? 'text-black' : 'text-brand'}`}>
+            REPS SERIE
+          </span>
+          <span className={`text-2xl sm:text-3xl font-black italic mt-0.5 block leading-none tracking-tighter ${
+            isHighContrast ? 'text-black' : 'text-brand'
+          }`}>
             {repCount}
           </span>
-          <span className={`text-[9px] block uppercase ${isHighContrast ? 'text-black/90 font-black' : 'text-zinc-400'}`}>REGISTRADAS</span>
+          <span className={`text-[7px] sm:text-[8px] block uppercase font-mono mt-1 ${isHighContrast ? 'text-black/80 font-bold' : 'text-zinc-400'}`}>
+            OBJ VÁLIDAS
+          </span>
         </div>
       </div>
 
