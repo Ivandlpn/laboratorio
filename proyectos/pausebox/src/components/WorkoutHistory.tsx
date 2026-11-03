@@ -16,11 +16,9 @@ import {
   ChevronUp
 } from "lucide-react";
 
-interface WorkoutHistoryProps {
-  onSelectSessionForCoach?: (reps: Repetition[], targetPause: number, targetAngle: number) => void;
-}
+interface WorkoutHistoryProps {}
 
-export default function WorkoutHistory({ onSelectSessionForCoach }: WorkoutHistoryProps) {
+export default function WorkoutHistory({}: WorkoutHistoryProps) {
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
 
@@ -186,19 +184,6 @@ export default function WorkoutHistory({ onSelectSessionForCoach }: WorkoutHisto
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {onSelectSessionForCoach && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectSessionForCoach(session.reps, session.targetPause, session.targetAngle);
-                        }}
-                        className="px-2.5 py-1.5 rounded-lg bg-brand/10 hover:bg-brand/20 border border-brand/30 text-brand text-[9px] font-black uppercase tracking-wider flex items-center gap-1 transition-all cursor-pointer"
-                        title="Analizar esta serie con Coach Gemini"
-                      >
-                        <Sparkles className="h-3 w-3" /> Coach AI
-                      </button>
-                    )}
-
                     <div className="text-zinc-500">
                       {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </div>

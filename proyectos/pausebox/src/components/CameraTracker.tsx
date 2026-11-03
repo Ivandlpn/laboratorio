@@ -21,7 +21,8 @@ import {
   X,
   SwitchCamera,
   Layers,
-  Timer
+  Timer,
+  Zap
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -1184,7 +1185,7 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
           </div>
 
           <span className="hidden xl:inline text-[8px] font-mono tracking-widest text-zinc-500 uppercase">
-            {settings.isSimulationMode ? "MODO VIRTUAL" : "IA EN TIEMPO REAL"}
+            {settings.isSimulationMode ? "MODO VIRTUAL" : "VISIÓN EN TIEMPO REAL"}
           </span>
         </div>
 
@@ -1520,46 +1521,82 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className={`absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none select-none transition-colors duration-200 ${
+              className={`absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none select-none transition-colors duration-150 overflow-hidden ${
                 isHighContrast 
-                  ? "bg-black/95 border-4 border-yellow-300 shadow-[inset_0_0_80px_rgba(255,255,0,0.5)]" 
-                  : "bg-black/60 backdrop-blur-[2px]"
+                  ? "bg-black/95 border-8 border-yellow-300 shadow-[inset_0_0_120px_rgba(255,255,0,0.8)]" 
+                  : "bg-black/70 backdrop-blur-[3px] border-4 border-brand shadow-[inset_0_0_90px_rgba(226,255,49,0.7)]"
               }`}
             >
-              {/* Giant visual yellow-green UP arrow */}
+              {/* Radial Energy Burst Glow */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(226,255,49,0.25)_0%,transparent_75%)] pointer-events-none" />
+
+              {/* Shockwave Rings Expanding outward */}
               <motion.div
-                animate={{ 
-                  y: [12, -12, 12],
-                }}
-                transition={{ 
-                  repeat: Infinity, 
-                  duration: 0.8,
-                  ease: "easeInOut"
-                }}
-                className="flex flex-col items-center justify-center"
-              >
-                <svg 
-                  className={
-                    isHighContrast
-                      ? "w-56 h-56 text-yellow-300 drop-shadow-[0_0_30px_#000]"
-                      : "w-48 h-48 sm:w-56 sm:h-56 text-brand drop-shadow-[0_0_35px_rgba(226,255,49,0.6)]"
-                  } 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor" 
-                  strokeWidth={isHighContrast ? "5" : "4"}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-              </motion.div>
-              
-              <div className={
-                isHighContrast
-                  ? "px-10 py-4 rounded-2xl bg-yellow-400 text-black border-4 border-black text-xl font-black uppercase tracking-widest flex items-center gap-3.5 shadow-[0_0_40px_rgba(255,255,0,1)]"
-                  : "px-8 py-3.5 rounded-full bg-brand text-black border border-brand text-base sm:text-lg font-black uppercase tracking-widest flex items-center gap-3.5 shadow-[0_10px_35px_rgba(226,255,49,0.5)]"
-              }>
-                <Sparkles className="h-5 w-5 text-black animate-pulse" /> ¡EMPUJA! / UP!
+                initial={{ scale: 0.4, opacity: 1 }}
+                animate={{ scale: [0.4, 2.8], opacity: [1, 0] }}
+                transition={{ repeat: Infinity, duration: 0.85, ease: "easeOut" }}
+                className="absolute w-56 h-56 rounded-full border-4 border-brand drop-shadow-[0_0_25px_rgba(226,255,49,0.9)]"
+              />
+              <motion.div
+                initial={{ scale: 0.4, opacity: 0.8 }}
+                animate={{ scale: [0.4, 2.8], opacity: [0.8, 0] }}
+                transition={{ repeat: Infinity, duration: 0.85, delay: 0.28, ease: "easeOut" }}
+                className="absolute w-56 h-56 rounded-full border-2 border-brand/60 drop-shadow-[0_0_15px_rgba(226,255,49,0.6)]"
+              />
+
+              {/* Kinetic Triple Rocket Thrust Chevrons */}
+              <div className="relative flex flex-col items-center justify-center -space-y-12 sm:-space-y-14 z-20 my-1">
+                {[0, 1, 2].map((idx) => (
+                  <motion.div
+                    key={idx}
+                    animate={{
+                      y: [-8, -32, -8],
+                      opacity: [0.35, 1, 0.35],
+                      scale: [0.92, 1.08, 0.92]
+                    }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 0.6,
+                      delay: (2 - idx) * 0.12,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <svg 
+                      className={
+                        isHighContrast
+                          ? "w-44 sm:w-60 h-24 sm:h-32 text-yellow-300 drop-shadow-[0_0_35px_#000]"
+                          : "w-40 sm:w-56 h-20 sm:h-28 text-brand drop-shadow-[0_0_40px_rgba(226,255,49,0.95)]"
+                      }
+                      viewBox="0 0 120 60" 
+                      fill="none"
+                    >
+                      <path 
+                        d="M12 48 L60 12 L108 48" 
+                        stroke="currentColor" 
+                        strokeWidth={isHighContrast ? "16" : "13"} 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                      />
+                    </svg>
+                  </motion.div>
+                ))}
               </div>
+              
+              {/* Massive Impact Action Badge */}
+              <motion.div
+                initial={{ scale: 0.75, opacity: 0, y: 15 }}
+                animate={{ scale: [0.95, 1.06, 0.95], opacity: 1, y: 0 }}
+                transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut" }}
+                className={
+                  isHighContrast
+                    ? "px-10 sm:px-14 py-4 rounded-3xl bg-yellow-300 text-black border-4 border-black text-2xl sm:text-3xl font-black uppercase tracking-widest flex items-center gap-3.5 shadow-[0_0_60px_rgba(255,255,0,1)] z-30 font-mono"
+                    : "px-8 sm:px-12 py-3.5 sm:py-4 rounded-3xl bg-brand text-black border-2 border-white text-xl sm:text-2xl font-black uppercase tracking-widest flex items-center gap-3 shadow-[0_0_50px_rgba(226,255,49,0.9),0_0_100px_rgba(226,255,49,0.4)] z-30 font-mono italic"
+                }
+              >
+                <Zap className="h-6 w-6 sm:h-7 sm:w-7 fill-black text-black animate-bounce" />
+                <span>¡SUBE EXPLOSIVO!</span>
+                <Zap className="h-6 w-6 sm:h-7 sm:w-7 fill-black text-black animate-bounce" />
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -1568,7 +1605,7 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
         {!settings.isSimulationMode && modelLoading && (
           <div className="absolute inset-0 bg-black flex flex-col items-center justify-center p-6 z-30">
             <RefreshCw className="h-10 w-10 text-brand animate-spin mb-4" />
-            <h3 className="text-lg font-black text-white mb-1 uppercase tracking-tight italic">INICIALIZANDO DETECTOR AI</h3>
+            <h3 className="text-lg font-black text-white mb-1 uppercase tracking-tight italic">INICIALIZANDO DETECTOR BIOMECÁNICO</h3>
             <p className="text-[10px] text-zinc-500 font-mono text-center tracking-wider uppercase">{loadingStep}</p>
             <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden mt-4 border border-white/10 relative">
               <div className="h-full bg-brand animate-loading-bar" style={{ width: '40%' }} />

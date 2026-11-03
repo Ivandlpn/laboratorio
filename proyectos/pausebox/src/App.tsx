@@ -3,7 +3,6 @@ import { Repetition, WorkoutSession, WorkoutSettings } from "./types";
 import CameraTracker from "./components/CameraTracker";
 import RoundCounter from "./components/RoundCounter";
 import WorkoutHistory from "./components/WorkoutHistory";
-import CoachModal from "./components/CoachModal";
 import { speakText, playSoundCue, unlockAudio } from "./lib/audioHelper";
 import { 
   Dumbbell, 
@@ -26,7 +25,6 @@ import {
   Minus, 
   Sun, 
   History, 
-  Bot,
   Flame,
   ChevronRight
 } from "lucide-react";
@@ -47,19 +45,6 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [statsSummary, setStatsSummary] = useState({ total: 0, valid: 0 });
   const [activeTab, setActiveTab] = useState<"detector" | "history" | "rounds">("detector");
-
-  // Coach AI Gemini Modal State
-  const [showCoachModal, setShowCoachModal] = useState(false);
-  const [coachAnalysisReps, setCoachAnalysisReps] = useState<Repetition[]>([]);
-  const [coachTargetPause, setCoachTargetPause] = useState(3);
-  const [coachTargetAngle, setCoachTargetAngle] = useState(100);
-
-  const openCoachForSession = (reps: Repetition[] = activeSessionReps, targetPause = settings.pauseDuration, targetAngle = settings.targetAngle) => {
-    setCoachAnalysisReps(reps);
-    setCoachTargetPause(targetPause);
-    setCoachTargetAngle(targetAngle);
-    setShowCoachModal(true);
-  };
 
   // Screen Wake Lock API State
   const [isWakeLockActive, setIsWakeLockActive] = useState(false);
@@ -303,7 +288,7 @@ export default function App() {
                 </span>
               </div>
               <p className="text-[7px] text-zinc-500 font-mono tracking-widest uppercase">
-                DETECTOR BIOMECÁNICO CON IA
+                DETECTOR BIOMECÁNICO PROFESIONAL
               </p>
             </div>
           </div>
@@ -401,9 +386,6 @@ export default function App() {
               </p>
               <p>
                 3. <strong>Cuenta Atrás de Preparación (PREP 3s)</strong>: Pulsa el botón para tener 3 segundos de preparación antes de iniciar la primera repetición.
-              </p>
-              <p>
-                4. <strong>Coach AI con Gemini</strong>: Al terminar una serie, pulsa <em>Consultar Coach AI</em> para recibir feedback biomecánico y motivacional experto.
               </p>
             </div>
           </motion.div>
@@ -586,7 +568,7 @@ export default function App() {
                           : "bg-white/5 border-transparent text-zinc-400 hover:bg-white/10"
                       }`}
                     >
-                      <Mic className="h-3.5 w-3.5" /> Voz AI
+                      <Mic className="h-3.5 w-3.5" /> Voz Guiada
                     </button>
 
                     <button
@@ -635,23 +617,6 @@ export default function App() {
                     <span className="px-2.5 py-1 rounded-lg bg-brand/10 text-brand">OK: <strong className="text-brand">{statsSummary.valid}</strong></span>
                   </div>
                 </div>
-
-                {/* Direct Coach AI Trigger Button (High Visual Impact Shimmer) */}
-                <button
-                  onClick={() => openCoachForSession(activeSessionReps)}
-                  className="w-full py-3.5 px-4 rounded-2xl shimmer-coach-btn border border-brand/40 text-brand font-black text-xs uppercase tracking-wider flex items-center justify-between hover:border-brand hover:scale-[1.01] transition-all cursor-pointer shadow-[0_4px_25px_rgba(226,255,49,0.18)] active:scale-95"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-6 w-6 rounded-lg bg-black/60 border border-brand/40 flex items-center justify-center text-brand">
-                      <Sparkles className="h-3.5 w-3.5 animate-pulse text-brand" />
-                    </div>
-                    <div className="text-left">
-                      <span className="block leading-none text-white font-extrabold tracking-wide">ANÁLISIS COACH AI</span>
-                      <span className="block text-[8px] text-brand/90 font-mono mt-0.5 font-bold">POWERLIFTING BIOMECHANICS</span>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-brand" />
-                </button>
 
                 {/* List of completed reps in current set with telemetry bar */}
                 <div className="min-h-[80px] max-h-[190px] overflow-y-auto pr-1 flex flex-col gap-2 scrollbar-thin">
@@ -779,7 +744,7 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* 4. SUCCESS SAVE OVERLAY NOTIFICATION WITH QUICK COACH TRIGGER */}
+      {/* 4. SUCCESS SAVE OVERLAY NOTIFICATION */}
       <AnimatePresence>
         {showSaveSuccess && (
           <motion.div
@@ -793,31 +758,13 @@ export default function App() {
               <span className="block font-black uppercase tracking-wider text-[10px] leading-none">Serie Guardada con Éxito</span>
               <span className="block font-bold mt-0.5 text-zinc-900 font-sans text-xs leading-none">Guardada en tu Historial de Entrenamientos.</span>
             </div>
-            <button
-              onClick={() => openCoachForSession(coachAnalysisReps)}
-              className="px-2.5 py-1.5 rounded-lg bg-black text-brand text-[9px] font-black uppercase tracking-wider flex items-center gap-1 cursor-pointer hover:bg-zinc-900"
-            >
-              <Sparkles className="h-3 w-3" /> Coach
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 5. COACH AI MODAL */}
-      <CoachModal
-        isOpen={showCoachModal}
-        onClose={() => setShowCoachModal(false)}
-        reps={coachAnalysisReps}
-        settings={{
-          ...settings,
-          pauseDuration: coachTargetPause,
-          targetAngle: coachTargetAngle
-        }}
-      />
-
-      {/* 6. MINIMAL FOOTER */}
+      {/* 5. MINIMAL FOOTER */}
       <footer className="bg-black py-5 border-t border-white/5 text-center text-zinc-700 text-[8px] font-mono tracking-widest uppercase mt-auto">
-        <p>PAUSE BOX PRO SYSTEM • POWERED BY AI & BIOMECHANICS • © {new Date().getFullYear()}</p>
+        <p>PAUSE BOX PRO SYSTEM • BIOMECÁNICA Y VISIÓN EN TIEMPO REAL • © {new Date().getFullYear()}</p>
       </footer>
 
     </div>
