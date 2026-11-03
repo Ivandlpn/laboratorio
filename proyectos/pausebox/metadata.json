@@ -1,0 +1,6 @@
+{
+  "name": "Entrenador de Sentadilla con Pausa",
+  "description": "Aplicación profesional de análisis biomecánico con cámara en tiempo real que detecta la profundidad de la sentadilla y guía al atleta en sus levantamientos con pausa mediante retroalimentación visual y auditiva.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

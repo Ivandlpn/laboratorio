@@ -11,6 +11,7 @@ Pequeñas herramientas y pruebas web. Cada proyecto tiene su código en `proyect
 | [Editor PDF a DWG](proyectos/editorpdf) | [/editorpdf](https://ivandlpn.github.io/laboratorio/editorpdf/) | Conversor de planos PDF a DXF que funciona en el navegador (sin subir archivos) y programa para Windows que además crea DWG. |
 | [Kntera](proyectos/kntera) | [kntera.web.app](https://kntera.web.app) | Aplicación para la gestión y el seguimiento de equipos de fútbol base. Vive en su propio proyecto de Firebase; aquí está su [documentación](proyectos/kntera/documentacion) (sin el código). |
 | [VisorRack](proyectos/visorrack) | [/visorrack](https://ivandlpn.github.io/laboratorio/visorrack/) | Visor de racks y equipos de red de la línea Albacete-Alicante, en copia de solo lectura (mapa, racks por unidades, puertos, inventario e historial). |
+| [PauseBox Pro](proyectos/pausebox) | [/pausebox](https://ivandlpn.github.io/laboratorio/pausebox/) | Entrenador biomecánico en tiempo real para sentadillas con pausa (Pause Squats) con visión por IA, guía sonora y Coach IA con Gemini. |
 
 ## Cómo está organizado
 
