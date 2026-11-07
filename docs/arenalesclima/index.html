@@ -7,6 +7,8 @@
   <meta name="description" content="Visualización meteorológica y marítima profesional e interactiva de Arenales del Sol (Elche). Observación en tiempo real, webcam costera, radar de tormentas, oleaje y alertas AEMET.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
   <!-- Ambient background lighting -->
@@ -411,6 +413,110 @@
           </div>
 
         </div>
+
+        <!-- SunCalc Astronomical, Moon & Golden Hour Card (mourner/suncalc) -->
+        <div class="card suncalc-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Calculadora Solar & Fase Lunar (SunCalc)</h3>
+              <span class="card-hint">Posición solar exacta, hora dorada para fotografía en dunas y mareas en Arenales</span>
+            </div>
+            <div class="planner-update-tag">Astronomía Costera</div>
+          </div>
+
+          <div class="suncalc-grid">
+            <div class="sun-arc-wrap">
+              <svg class="sun-arc-svg" viewBox="0 0 320 130">
+                <path d="M 20 115 A 140 100 0 0 1 300 115" fill="none" stroke="rgba(14, 165, 233, 0.25)" stroke-width="3" stroke-dasharray="4,4"/>
+                <path id="sunArcProgress" d="M 20 115 A 140 100 0 0 1 160 15" fill="none" stroke="#f59e0b" stroke-width="3"/>
+                <line x1="10" y1="115" x2="310" y2="115" stroke="#94a3b8" stroke-width="1.5"/>
+                <g id="sunPositionIndicator" transform="translate(160, 15)">
+                  <circle r="10" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
+                  <circle r="18" fill="none" stroke="rgba(245, 158, 11, 0.4)" stroke-width="2" class="pulsing-halo"/>
+                </g>
+                <text x="20" y="128" fill="#64748b" font-size="10" font-weight="600">07:35 Orto</text>
+                <text x="160" y="128" text-anchor="middle" fill="#0284c7" font-size="10" font-weight="700">Mediodía: 12:47</text>
+                <text x="300" y="128" text-anchor="end" fill="#64748b" font-size="10" font-weight="600">17:58 Ocaso</text>
+              </svg>
+              
+              <div class="golden-hour-badge" id="goldenHourBadge">
+                <span>📸</span>
+                <span>Hora Dorada para Paseo / Foto en Dunas: <strong id="goldenHourTime">17:20 - 17:58</strong></span>
+              </div>
+            </div>
+
+            <div class="lunar-subpanel">
+              <div class="lunar-row">
+                <div class="lunar-disc-wrap">
+                  <svg class="lunar-disc-svg" viewBox="0 0 40 40">
+                    <circle cx="20" cy="20" r="17" fill="#1e293b"/>
+                    <path id="moonPhasePath" d="M 20 3 A 17 17 0 0 1 20 37 A 15 17 0 0 0 20 3" fill="#e2e8f0"/>
+                  </svg>
+                </div>
+                <div class="lunar-details">
+                  <strong id="moonPhaseName">Luna Menguante</strong>
+                  <span id="moonIllumText">Iluminación: 2% · Edad: 27 días</span>
+                </div>
+              </div>
+
+              <div class="astro-times-grid">
+                <div class="astro-time-chip">
+                  <span class="atc-label">Amanecer</span>
+                  <span class="atc-time" id="astroSunrise">07:35</span>
+                </div>
+                <div class="astro-time-chip">
+                  <span class="atc-label">Cénit Solar</span>
+                  <span class="atc-time" id="astroNoon">12:47</span>
+                </div>
+                <div class="astro-time-chip">
+                  <span class="atc-label">Hora Dorada</span>
+                  <span class="atc-time" id="astroGolden">17:20</span>
+                </div>
+                <div class="astro-time-chip">
+                  <span class="atc-label">Puesta de Sol</span>
+                  <span class="atc-time" id="astroSunset">17:58</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bioclimatic & Coastal Health Card (breezy-weather/breezy-weather) -->
+        <div class="card bioclimatic-card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Salud Litoral & Bioclimatología (Breezy UX)</h3>
+              <span class="card-hint">Exposición solar sobre arena blanca, efecto brisa marina y confort térmico</span>
+            </div>
+            <div class="planner-update-tag">Salud Costera</div>
+          </div>
+
+          <div class="bio-grid">
+            <div class="bio-item">
+              <span class="bi-label">Tiempo Seguro de Sol (Arena Blanca)</span>
+              <strong class="bi-val" id="safeSunTime">45 - 60 min</strong>
+              <span class="bi-advice" id="safeSunAdvice">Reflectividad alta en la orilla (+25% UV). Aplique crema SPF 30+.</span>
+            </div>
+
+            <div class="bio-item">
+              <span class="bi-label">Sensación Térmica Costera (Humidex)</span>
+              <strong class="bi-val" id="humidexVal">20.8 °C</strong>
+              <span class="bi-advice" id="humidexAdvice">Ambiente muy agradable con brisa suave de mar. Confort alto.</span>
+            </div>
+
+            <div class="bio-item">
+              <span class="bi-label">Punto de Rocío (Dew Point)</span>
+              <strong class="bi-val" id="dewPointVal">12.4 °C</strong>
+              <span class="bi-advice">Atmósfera seca sin riesgo de neblinas costeras en las dunas.</span>
+            </div>
+
+            <div class="bio-item">
+              <span class="bi-label">Calidad del Aire Marino (ICA)</span>
+              <strong class="bi-val" style="color: #16a34a;" id="aqiVal">Excelente (18)</strong>
+              <span class="bi-advice">Brisa marina limpia y libre de partículas en suspensión.</span>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ================= TAB 2: WEBCAM EN DIRECTO (ALGARA PICTURES) ================= -->
@@ -573,76 +679,45 @@
 
           <div class="radar-canvas-container">
             <div class="radar-map-view" id="radarMapView">
-              <div class="radar-grid-rings">
-                <div class="ring ring-1"></div>
-                <div class="ring ring-2"></div>
-                <div class="ring ring-3"></div>
-                <div class="sweep-beam"></div>
+              <!-- Leaflet Map Layer (rainviewer/rainviewer-api-example) -->
+              <div id="radarLeafletMap" class="radar-leaflet-layer"></div>
+
+              <!-- Quick zoom presets -->
+              <div class="radar-zoom-presets">
+                <button type="button" class="btn-radar-zoom active" id="btnZoomArenales" data-zoom="11">🏖️ Arenales & Bahía</button>
+                <button type="button" class="btn-radar-zoom" id="btnZoomAlicante" data-zoom="9">Alicante / Elche</button>
+                <button type="button" class="btn-radar-zoom" id="btnZoomRegion" data-zoom="7">Comunidad Valenciana</button>
               </div>
 
-              <svg class="radar-geo-svg" viewBox="0 0 500 350">
-                <path d="M 120 0 Q 150 70 210 120 T 260 210 Q 275 250 290 350" fill="none" stroke="rgba(14, 165, 233, 0.4)" stroke-width="2.5" stroke-dasharray="6,4"/>
-                
-                <g class="radar-marker-pulse" transform="translate(230, 160)">
-                  <circle r="7" fill="#0284c7" stroke="#fff" stroke-width="2"/>
-                  <circle r="16" fill="none" stroke="#0ea5e9" stroke-width="1.5" class="pulsing-halo"/>
-                  <text x="14" y="5" fill="#0369a1" font-size="12" font-weight="700">Arenales del Sol</text>
-                  <text x="14" y="20" fill="#64748b" font-size="10">Playa / Dunas</text>
-                </g>
-
-                <g transform="translate(170, 80)">
-                  <circle r="4" fill="#94a3b8"/>
-                  <text x="8" y="4" fill="#64748b" font-size="10">Alicante</text>
-                </g>
-                <g transform="translate(160, 140)">
-                  <circle r="4" fill="#94a3b8"/>
-                  <text x="8" y="4" fill="#64748b" font-size="10">Aeropuerto ALC</text>
-                </g>
-                <g transform="translate(70, 200)">
-                  <circle r="4" fill="#94a3b8"/>
-                  <text x="8" y="4" fill="#64748b" font-size="10">Elche ciudad</text>
-                </g>
-                <g transform="translate(265, 260)">
-                  <circle r="4" fill="#94a3b8"/>
-                  <text x="8" y="4" fill="#64748b" font-size="10">Santa Pola</text>
-                </g>
-                <g transform="translate(360, 275)">
-                  <circle r="4" fill="#0284c7"/>
-                  <text x="8" y="4" fill="#0284c7" font-size="10">Isla de Tabarca</text>
-                </g>
-
-                <g id="radarEchoesGroup"></g>
-              </svg>
-
+              <!-- Doppler Reflectivity dBZ Legend -->
               <div class="radar-scale">
-                <span class="scale-label">Intensidad Reflectividad (dBZ):</span>
+                <span class="scale-label">Doppler dBZ (RainViewer):</span>
                 <div class="scale-gradient"></div>
                 <div class="scale-ticks">
-                  <span>Débil</span>
-                  <span>Mod</span>
-                  <span>Fuerte</span>
-                  <span>Granizo / Tormenta</span>
+                  <span>10 (Débil)</span>
+                  <span>25 (Mod)</span>
+                  <span>40 (Fuerte)</span>
+                  <span>55+ (Tormenta/Granizo)</span>
                 </div>
               </div>
             </div>
 
             <div class="radar-controls">
-              <button id="btnRadarPlay" class="btn-radar-play">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                <span>Animar radar</span>
+              <button type="button" id="btnRadarPlay" class="btn-radar-play">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" id="playIconSvg"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span id="btnRadarPlayText">Animar radar (12 cuadros)</span>
               </button>
               <div class="radar-time-slider">
-                <input type="range" id="radarTimeRange" min="0" max="6" value="6" step="1">
+                <input type="range" id="radarTimeRange" min="0" max="12" value="12" step="1">
                 <div class="radar-time-labels">
-                  <span>-60m</span>
-                  <span>-40m</span>
-                  <span>-20m</span>
-                  <span class="active-time">Ahora</span>
+                  <span id="radarTimeStart">-2h</span>
+                  <span id="radarTimeMid">-1h</span>
+                  <span class="active-time" id="radarTimeActive">En directo</span>
                 </div>
               </div>
-              <div class="radar-mode-toggle">
-                <button class="btn-sub active" id="btnModeRadar">Precipitación</button>
-                <button class="btn-sub" id="btnModeSat">Nubosidad</button>
+              <div class="radar-frame-info">
+                <span class="rfi-dot"></span>
+                <span id="radarTimestampText">Radar Doppler en tiempo real</span>
               </div>
             </div>
           </div>
@@ -727,6 +802,114 @@
                 <strong id="beachTitle">Condiciones idóneas para el baño y paseo</strong>
                 <p id="beachDesc">Viento flojo y mar en calma en la línea de costa de Arenales y Carabassí. Respete siempre la señalización de socorrismo.</p>
               </div>
+            </div>
+          </div>
+
+          <!-- Panel Oficial Windguru Arenales del Sol Spot 6756 -->
+          <div class="card windguru-spot-card">
+            <div class="windguru-header">
+              <div class="wg-brand-badge">
+                <span class="wg-logo-pill">WINDGURU</span>
+                <div>
+                  <h3 class="wg-title">Previsión Marina & Eólica Oficial (Spot #6756)</h3>
+                  <span class="card-hint">Estación Arenales del Sol (38.27° N, -0.53° W) · Multimodelo</span>
+                </div>
+              </div>
+              <div class="wg-unit-selector">
+                <button type="button" class="unit-btn active" data-unit="kmh">km/h</button>
+                <button type="button" class="unit-btn" data-unit="knots">Nudos (kt)</button>
+                <button type="button" class="unit-btn" data-unit="bft">Beaufort</button>
+              </div>
+            </div>
+
+            <div class="wg-models-grid">
+              <!-- Modelo Europeo ECMWF IFS-HRES 9km -->
+              <div class="wg-model-box featured">
+                <div class="wg-model-tag">
+                  <span>Modelo ECMWF (IFS-HRES 9 km)</span>
+                  <span>Alta resolución</span>
+                </div>
+                <div class="wg-model-val-row">
+                  <span class="wg-speed-big" id="wgEcmwfSpeed">11</span>
+                  <span class="wg-unit-label" id="wgUnitLabel1">km/h (6 kn)</span>
+                  <span class="wg-gust-val" id="wgEcmwfGust">Rachas: 20 km/h (11 kn)</span>
+                </div>
+                <div class="wg-dir-row">
+                  <span class="wg-dir-arrow" id="wgEcmwfArrow" style="transform: rotate(155deg);">➔</span>
+                  <span id="wgEcmwfDir">SSE · Brisa marina (Garbí térmico)</span>
+                </div>
+              </div>
+
+              <!-- Modelo Americano GFS 13km -->
+              <div class="wg-model-box">
+                <div class="wg-model-tag">
+                  <span>Modelo NOAA GFS 13 km</span>
+                  <span>Global</span>
+                </div>
+                <div class="wg-model-val-row">
+                  <span class="wg-speed-big" id="wgGfsSpeed">11</span>
+                  <span class="wg-unit-label" id="wgUnitLabel2">km/h (6 kn)</span>
+                  <span class="wg-gust-val" id="wgGfsGust">Rachas: 18 km/h (10 kn)</span>
+                </div>
+                <div class="wg-dir-row">
+                  <span class="wg-dir-arrow" id="wgGfsArrow" style="transform: rotate(150deg);">➔</span>
+                  <span id="wgGfsDir">SSE · Estable</span>
+                </div>
+              </div>
+
+              <!-- Modelo Alemán ICON 13km -->
+              <div class="wg-model-box">
+                <div class="wg-model-tag">
+                  <span>Modelo DWD ICON 13 km</span>
+                  <span>Centroeuropeo</span>
+                </div>
+                <div class="wg-model-val-row">
+                  <span class="wg-speed-big" id="wgIconSpeed">9</span>
+                  <span class="wg-unit-label" id="wgUnitLabel3">km/h (5 kn)</span>
+                  <span class="wg-gust-val" id="wgIconGust">Rachas: 16 km/h (9 kn)</span>
+                </div>
+                <div class="wg-dir-row">
+                  <span class="wg-dir-arrow" id="wgIconArrow" style="transform: rotate(135deg);">➔</span>
+                  <span id="wgIconDir">SE · Brisa suave</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Matriz de Deportes Náuticos en Arenales del Sol -->
+            <h4 class="panel-subtitle">Idoneidad Náutica Deportiva según Viento y Oleaje</h4>
+            <div class="wg-sports-matrix">
+              <div class="sport-chip">
+                <div class="sc-icon">🏊‍♂️</div>
+                <span class="sc-name">Baño & Natación</span>
+                <span class="sc-rating good" id="sportBano">Excelente</span>
+              </div>
+              <div class="sport-chip">
+                <div class="sc-icon">🏄‍♂️</div>
+                <span class="sc-name">Paddle Surf / SUP</span>
+                <span class="sc-rating good" id="sportSup">Ideal</span>
+              </div>
+              <div class="sport-chip">
+                <div class="sc-icon">🛶</div>
+                <span class="sc-name">Kayak de Mar</span>
+                <span class="sc-rating good" id="sportKayak">Óptimo</span>
+              </div>
+              <div class="sport-chip">
+                <div class="sc-icon">⛵</div>
+                <span class="sc-name">Windsurf / Wing</span>
+                <span class="sc-rating fair" id="sportWindsurf">Vela Grande / 0★</span>
+              </div>
+              <div class="sport-chip">
+                <div class="sc-icon">🪁</div>
+                <span class="sc-name">Kitesurf</span>
+                <span class="sc-rating poor" id="sportKite">Insuficiente</span>
+              </div>
+            </div>
+
+            <div class="wg-footer-note">
+              <span>Mareas astronómicas: Amplitud de ~18 cm en la Bahía de Alicante · Presión anticiclónica</span>
+              <a href="https://www.windguru.cz/6756" target="_blank" rel="noopener noreferrer" class="wg-link">
+                Ver tablas completas en Windguru Spot #6756 ↗
+              </a>
             </div>
           </div>
 

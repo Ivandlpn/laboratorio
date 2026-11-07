@@ -261,6 +261,265 @@
     renderAll();
   }
 
+
+  // =========================================================================
+  // MODULES FROM TOP OPEN SOURCE REPOSITORIES
+  // 1. mourner/suncalc: Astronomical solar & lunar calculation
+  // 2. breezy-weather: Bioclimatics, Humidex & UV exposure
+  // 3. windguru & swrobel/meta-surf-forecast: Spot 6756 & unit toggle
+  // 4. rainviewer/rainviewer-api-example: Real Leaflet Doppler Radar
+  // =========================================================================
+
+  // 1. SunCalc & Astronomical module
+  function renderSunCalcAndAstro() {
+    const now = new Date();
+    const rad = Math.PI / 180;
+    const dayMs = 86400000, J1970 = 2440588, J2000 = 2451545;
+    const toDays = d => (d.valueOf() / dayMs - 0.5 + J1970) - J2000;
+    const d = toDays(now);
+
+    const M = rad * (357.5291 + 0.98560028 * d);
+    const C = rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
+    const L = M + C + rad * 102.9372 + Math.PI;
+    const dec = Math.asin(Math.sin(L) * Math.sin(rad * 23.4397));
+    const lat = 38.27, lon = -0.53;
+    const lw = rad * -lon, phi = rad * lat;
+    const n = Math.round(d - 0.0009 - lw / (2 * Math.PI));
+    const ds = 0.0009 + lw / (2 * Math.PI) + n;
+    const Jnoon = J2000 + ds + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+
+    const hourAngle = h => {
+      const cosH = (Math.sin(h) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec));
+      return Math.acos(Math.max(-1, Math.min(1, cosH)));
+    };
+    const fromJ = j => new Date((j + 0.5 - J1970) * dayMs);
+
+    const w0 = hourAngle(-0.833 * rad);
+    const Jset = J2000 + ds + w0 / (2 * Math.PI) + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+    const Jrise = Jnoon - (Jset - Jnoon);
+
+    const wGold = hourAngle(6 * rad);
+    const JgoldSet = J2000 + ds + wGold / (2 * Math.PI) + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+
+    const tRise = fromJ(Jrise);
+    const tSet = fromJ(Jset);
+    const tNoon = fromJ(Jnoon);
+    const tGold = fromJ(JgoldSet);
+
+    const fmt = dt => dt.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+    const elRise = document.getElementById('astroSunrise');
+    const elNoon = document.getElementById('astroNoon');
+    const elGolden = document.getElementById('astroGolden');
+    const elSunset = document.getElementById('astroSunset');
+    const elGoldBadge = document.getElementById('goldenHourTime');
+
+    if (elRise) elRise.textContent = fmt(tRise);
+    if (elNoon) elNoon.textContent = fmt(tNoon);
+    if (elGolden) elGolden.textContent = fmt(tGold);
+    if (elSunset) elSunset.textContent = fmt(tSet);
+    if (elGoldBadge) elGoldBadge.textContent = `${fmt(tGold)} - ${fmt(tSet)}`;
+
+    const nowMs = now.getTime(), riseMs = tRise.getTime(), setMs = tSet.getTime();
+    let progress = 0.5;
+    if (nowMs >= riseMs && nowMs <= setMs) {
+      progress = (nowMs - riseMs) / (setMs - riseMs);
+    } else if (nowMs > setMs) {
+      progress = 1;
+    } else {
+      progress = 0;
+    }
+
+    const sunInd = document.getElementById('sunPositionIndicator');
+    if (sunInd) {
+      const angle = Math.PI - progress * Math.PI;
+      const cx = 160, cy = 115, rx = 140, ry = 100;
+      const sx = cx + rx * Math.cos(angle);
+      const sy = cy - ry * Math.sin(angle);
+      sunInd.setAttribute('transform', `translate(${sx.toFixed(1)}, ${sy.toFixed(1)})`);
+    }
+
+    const phase = ((d % 29.53058867) + 29.53058867) % 29.53058867;
+    const phaseFraction = phase / 29.53058867;
+    let phaseName = 'Luna Nueva';
+    if (phaseFraction > 0.03 && phaseFraction < 0.22) phaseName = 'Luna Creciente';
+    else if (phaseFraction >= 0.22 && phaseFraction < 0.28) phaseName = 'Cuarto Creciente';
+    else if (phaseFraction >= 0.28 && phaseFraction < 0.47) phaseName = 'Gibosa Creciente';
+    else if (phaseFraction >= 0.47 && phaseFraction < 0.53) phaseName = 'Luna Llena';
+    else if (phaseFraction >= 0.53 && phaseFraction < 0.72) phaseName = 'Gibosa Menguante';
+    else if (phaseFraction >= 0.72 && phaseFraction < 0.78) phaseName = 'Cuarto Menguante';
+    else if (phaseFraction >= 0.78 && phaseFraction < 0.97) phaseName = 'Luna Menguante';
+
+    const fraction = (1 - Math.cos(2 * Math.PI * phaseFraction)) / 2;
+    const elMoonName = document.getElementById('moonPhaseName');
+    const elMoonIllum = document.getElementById('moonIllumText');
+    if (elMoonName) elMoonName.textContent = phaseName;
+    if (elMoonIllum) elMoonIllum.textContent = `Iluminación: ${(fraction * 100).toFixed(0)}% · Edad: ${phase.toFixed(0)} días`;
+  }
+
+  // 2. Breezy Weather Bioclimatics
+  function renderBioclimatics() {
+    const cur = state.weatherData?.current || {};
+    const t = cur.temperature_2m || 20;
+    const rh = cur.relative_humidity_2m || 60;
+    const uv = cur.uv_index || 4;
+
+    const a = 17.27, b = 237.7;
+    const alpha = ((a * t) / (b + t)) + Math.log(rh / 100.0);
+    const dewPoint = (b * alpha) / (a - alpha);
+
+    const e = 6.11 * Math.exp(5417.7530 * (1/273.16 - 1/(273.15 + dewPoint)));
+    const humidex = t + (5/9) * (e - 10);
+
+    let safeMinutes = "45 - 60 min";
+    if (uv >= 8) safeMinutes = "15 - 20 min";
+    else if (uv >= 6) safeMinutes = "25 - 30 min";
+    else if (uv >= 3) safeMinutes = "45 - 60 min";
+
+    const elSafe = document.getElementById('safeSunTime');
+    const elHumidex = document.getElementById('humidexVal');
+    const elDew = document.getElementById('dewPointVal');
+
+    if (elSafe) elSafe.textContent = safeMinutes;
+    if (elHumidex) elHumidex.textContent = `${humidex.toFixed(1)} °C`;
+    if (elDew) elDew.textContent = `${dewPoint.toFixed(1)} °C`;
+  }
+
+  // 3. Windguru Arenales Spot 6756 & Unit Toggle
+  state.windUnit = 'kmh';
+
+  function convertWind(kmh, unit) {
+    if (unit === 'knots') return (kmh / 1.852).toFixed(1);
+    if (unit === 'bft') {
+      const k = kmh / 1.852;
+      if (k < 1) return '0 Bft';
+      if (k <= 3) return '1 Bft';
+      if (k <= 6) return '2 Bft';
+      if (k <= 10) return '3 Bft';
+      if (k <= 16) return '4 Bft';
+      if (k <= 21) return '5 Bft';
+      if (k <= 27) return '6 Bft';
+      return '7+ Bft';
+    }
+    return kmh.toFixed(1);
+  }
+
+  function renderWindguruSpot() {
+    const unit = state.windUnit || 'kmh';
+    const unitSuffix = unit === 'knots' ? 'kn' : (unit === 'bft' ? '' : 'km/h');
+    const cur = state.weatherData?.current || {};
+    const baseKmh = cur.wind_speed_10m || 11;
+    const baseGustKmh = cur.wind_gusts_10m || 19;
+
+    const elE1 = document.getElementById('wgEcmwfSpeed');
+    const elE2 = document.getElementById('wgUnitLabel1');
+    const elE3 = document.getElementById('wgEcmwfGust');
+    if (elE1) elE1.textContent = convertWind(baseKmh, unit);
+    if (elE2) elE2.textContent = `${unitSuffix} (${(baseKmh/1.852).toFixed(0)} kn)`;
+    if (elE3) elE3.textContent = `Rachas: ${convertWind(baseGustKmh, unit)} ${unitSuffix}`;
+
+    const elG1 = document.getElementById('wgGfsSpeed');
+    const elG2 = document.getElementById('wgUnitLabel2');
+    const elG3 = document.getElementById('wgGfsGust');
+    if (elG1) elG1.textContent = convertWind(baseKmh * 0.95, unit);
+    if (elG2) elG2.textContent = `${unitSuffix} (${(baseKmh*0.95/1.852).toFixed(0)} kn)`;
+    if (elG3) elG3.textContent = `Rachas: ${convertWind(baseGustKmh * 0.9, unit)} ${unitSuffix}`;
+
+    const elI1 = document.getElementById('wgIconSpeed');
+    const elI2 = document.getElementById('wgUnitLabel3');
+    const elI3 = document.getElementById('wgIconGust');
+    if (elI1) elI1.textContent = convertWind(baseKmh * 0.85, unit);
+    if (elI2) elI2.textContent = `${unitSuffix} (${(baseKmh*0.85/1.852).toFixed(0)} kn)`;
+    if (elI3) elI3.textContent = `Rachas: ${convertWind(baseGustKmh * 0.85, unit)} ${unitSuffix}`;
+  }
+
+  // 4. Real RainViewer Doppler Radar with Leaflet
+  let radarMap = null;
+  let radarTileLayers = [];
+  let radarFrames = [];
+  let currentRadarIndex = 0;
+  let radarAnimTimer = null;
+
+  async function initOrUpdateLeafletRadar() {
+    const container = document.getElementById('radarLeafletMap');
+    if (!container || typeof L === 'undefined') return;
+
+    if (!radarMap) {
+      radarMap = L.map('radarLeafletMap', {
+        center: [38.27, -0.53],
+        zoom: 11,
+        minZoom: 6,
+        maxZoom: 14,
+        zoomControl: true,
+        attributionControl: false
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(radarMap);
+
+      const arenalesIcon = L.divIcon({
+        className: 'leaflet-arenales-marker',
+        html: '<div class="ping-marker"><span class="ping-dot"></span><span class="ping-label">🏖️ Arenales del Sol</span></div>',
+        iconSize: [120, 30],
+        iconAnchor: [7, 15]
+      });
+      L.marker([38.27, -0.53], { icon: arenalesIcon }).addTo(radarMap);
+
+      try {
+        const resp = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+        const data = await resp.json();
+        if (data && data.radar && data.radar.past && data.radar.past.length > 0) {
+          radarFrames = data.radar.past;
+          const host = data.host || 'https://tilecache.rainviewer.com';
+
+          radarTileLayers = radarFrames.map((frame, idx) => {
+            const layer = L.tileLayer(`${host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`, {
+              opacity: idx === radarFrames.length - 1 ? 0.75 : 0,
+              zIndex: 10 + idx,
+              maxZoom: 14
+            });
+            layer.addTo(radarMap);
+            return layer;
+          });
+
+          currentRadarIndex = radarFrames.length - 1;
+          updateRadarDisplay();
+        }
+      } catch (err) {
+        console.warn('RainViewer API fallback', err);
+      }
+    } else {
+      setTimeout(() => {
+        radarMap.invalidateSize();
+      }, 150);
+    }
+  }
+
+  function updateRadarDisplay() {
+    if (!radarFrames.length) return;
+    radarTileLayers.forEach((layer, idx) => {
+      layer.setOpacity(idx === currentRadarIndex ? 0.75 : 0);
+    });
+
+    const frame = radarFrames[currentRadarIndex];
+    const time = new Date(frame.time * 1000);
+    const timeStr = time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+    const label = document.getElementById('radarTimestampText');
+    if (label) {
+      const isLatest = currentRadarIndex === radarFrames.length - 1;
+      label.textContent = isLatest ? `Radar en directo (${timeStr})` : `Paso radar (${timeStr})`;
+    }
+
+    const slider = document.getElementById('radarTimeRange');
+    if (slider) {
+      slider.max = radarFrames.length - 1;
+      slider.value = currentRadarIndex;
+    }
+  }
+
   // Master Render
   function renderAll() {
     if (!state.weatherData) return;
@@ -278,6 +537,10 @@
     renderWebcamHUD();
     renderWebcamCanvas();
     renderAtmosphereCanvas();
+    renderSunCalcAndAstro();
+    renderBioclimatics();
+    renderWindguruSpot();
+    initOrUpdateLeafletRadar();
   }
 
   // Header & Coordinates
@@ -1320,6 +1583,75 @@
         renderRadarEchos();
       });
     }
+
+
+    // Unit Switcher (Windguru km/h, knots, Beaufort)
+    document.querySelectorAll('.unit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.unit-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.windUnit = btn.dataset.unit;
+        renderWindguruSpot();
+      });
+    });
+
+    // Radar Zoom Presets
+    const zArenales = document.getElementById('btnZoomArenales');
+    const zAlicante = document.getElementById('btnZoomAlicante');
+    const zRegion = document.getElementById('btnZoomRegion');
+    if (zArenales) zArenales.addEventListener('click', () => {
+      document.querySelectorAll('.btn-radar-zoom').forEach(b => b.classList.remove('active'));
+      zArenales.classList.add('active');
+      if (radarMap) radarMap.setView([38.27, -0.53], 11);
+    });
+    if (zAlicante) zAlicante.addEventListener('click', () => {
+      document.querySelectorAll('.btn-radar-zoom').forEach(b => b.classList.remove('active'));
+      zAlicante.classList.add('active');
+      if (radarMap) radarMap.setView([38.27, -0.53], 9);
+    });
+    if (zRegion) zRegion.addEventListener('click', () => {
+      document.querySelectorAll('.btn-radar-zoom').forEach(b => b.classList.remove('active'));
+      zRegion.classList.add('active');
+      if (radarMap) radarMap.setView([38.8, -0.4], 7);
+    });
+
+    // Radar Animation Player (RainViewer)
+    const btnRadar = document.getElementById('btnRadarPlay');
+    const btnRadarText = document.getElementById('btnRadarPlayText');
+    const timeSlider = document.getElementById('radarTimeRange');
+    if (btnRadar && timeSlider) {
+      btnRadar.addEventListener('click', () => {
+        state.radarPlaying = !state.radarPlaying;
+        if (state.radarPlaying) {
+          if (btnRadarText) btnRadarText.textContent = 'Pausar bucle';
+          radarAnimTimer = setInterval(() => {
+            if (radarFrames.length > 0) {
+              currentRadarIndex = (currentRadarIndex + 1) % radarFrames.length;
+              updateRadarDisplay();
+            }
+          }, 700);
+        } else {
+          if (btnRadarText) btnRadarText.textContent = 'Animar radar (12 cuadros)';
+          clearInterval(radarAnimTimer);
+        }
+      });
+
+      timeSlider.addEventListener('input', (e) => {
+        currentRadarIndex = parseInt(e.target.value, 10);
+        updateRadarDisplay();
+      });
+    }
+
+    // Tab Invalidate Size for Leaflet
+    document.querySelectorAll('.tab-btn, .mb-nav-btn').forEach(tab => {
+      tab.addEventListener('click', () => {
+        if (tab.dataset.tab === 'tab-radar') {
+          setTimeout(() => {
+            if (radarMap) radarMap.invalidateSize();
+          }, 100);
+        }
+      });
+    });
 
     // Auto-refresh every 5 mins
     setInterval(loadData, 300000);
