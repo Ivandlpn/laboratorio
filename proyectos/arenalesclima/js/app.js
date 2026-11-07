@@ -931,24 +931,34 @@
     }
   }
 
-  // 11. Webcam HUD & Canvas Visualizer
+  // 11. Webcam HUD (Algara Pictures Arenales del Sol)
   function renderWebcamHUD() {
     const cur = state.weatherData?.current;
     if (!cur) return;
 
-    const spotNames = {
-      'arenales-central': '📍 Playa Central de Arenales del Sol',
-      'carabassi': '📍 Playa del Carabassí & Dunas Fósiles',
-      'santapola': '📍 Faro de Santa Pola & Bahía',
-      'tabarca': '📍 Bahía de Alicante & Silueta de Tabarca'
-    };
+    const locEl = document.getElementById('hudLocationName');
+    if (locEl) {
+      locEl.textContent = '📍 Arenales del Sol · Playa Urbana (Algara Pictures)';
+    }
 
-    document.getElementById('hudLocationName').textContent = spotNames[state.camSpot] || spotNames['arenales-central'];
-    document.getElementById('hudTemp').textContent = fmtTemp(cur.temperature_2m);
-    document.getElementById('hudWind').textContent = `${Math.round(cur.wind_speed_10m)} km/h ${getWindName(cur.wind_direction_10m).split(' ')[0]}`;
+    const tempEl = document.getElementById('hudTemp');
+    if (tempEl) tempEl.textContent = fmtTemp(cur.temperature_2m);
+
+    const windEl = document.getElementById('hudWind');
+    if (windEl) {
+      windEl.textContent = `${Math.round(cur.wind_speed_10m)} km/h ${getWindName(cur.wind_direction_10m).split(' ')[0]}`;
+    }
 
     const waveH = state.marineData?.current?.wave_height || 0.3;
-    document.getElementById('hudSea').textContent = `${waveH.toFixed(1)}m (${waveH < 0.6 ? 'Calma' : 'Marejada'})`;
+    const seaEl = document.getElementById('hudSea');
+    if (seaEl) {
+      seaEl.textContent = `${waveH.toFixed(1)}m (${waveH < 0.6 ? 'Calma' : 'Marejada'})`;
+    }
+
+    const flagTextEl = document.getElementById('hudFlagText');
+    if (flagTextEl) {
+      flagTextEl.textContent = waveH < 0.6 ? 'Bandera Verde' : (waveH < 1.2 ? 'Bandera Amarilla' : 'Bandera Roja');
+    }
   }
 
   // Realistic Panoramic Coastal Canvas Renderer
@@ -1256,27 +1266,22 @@
       });
     }
 
-    // Webcam Spot Buttons
-    const camSpotBtns = document.querySelectorAll('.cam-tab-btn');
-    camSpotBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        camSpotBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.camSpot = btn.getAttribute('data-cam');
-        renderWebcamHUD();
+    // Webcam Refresh & Fullscreen (Algara Pictures)
+    const camRefreshBtn = document.getElementById('btnCamRefresh');
+    if (camRefreshBtn) {
+      camRefreshBtn.addEventListener('click', () => {
+        const iframe = document.getElementById('webcamIframe');
+        if (iframe) {
+          camRefreshBtn.style.transform = 'rotate(360deg)';
+          const currentSrc = iframe.src;
+          iframe.src = '';
+          setTimeout(() => {
+            iframe.src = currentSrc;
+            camRefreshBtn.style.transform = 'none';
+          }, 250);
+        }
       });
-    });
-
-    // Webcam Timelapse buttons
-    const tlBtns = document.querySelectorAll('.tl-buttons .btn-sub');
-    tlBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        tlBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.camTimeMode = btn.getAttribute('data-time');
-        renderWebcamCanvas();
-      });
-    });
+    }
 
     // Webcam Fullscreen
     const fsBtn = document.getElementById('btnCamFullscreen');

@@ -413,20 +413,25 @@
         </div>
       </section>
 
-      <!-- ================= TAB 2: WEBCAM LITORAL EN DIRECTO ================= -->
+      <!-- ================= TAB 2: WEBCAM EN DIRECTO (ALGARA PICTURES) ================= -->
       <section id="tab-webcam" class="tab-pane">
         <div class="card webcam-card">
           <div class="card-header">
             <div>
               <div class="webcam-title-row">
                 <span class="webcam-live-badge"><span class="cam-ping"></span> EN DIRECTO</span>
-                <h2 class="card-title">Cámaras Costeras y Visor en Tiempo Real</h2>
+                <h2 class="card-title">Webcam en Directo: Arenales del Sol</h2>
+                <span class="source-badge-algara">Fuente: Algara Pictures</span>
               </div>
-              <span class="card-hint">Transmisión panorámica de Arenales del Sol y la Bahía de Santa Pola</span>
+              <span class="card-hint">Retransmisión oficial en vivo de la playa urbana y costa de Arenales del Sol (Elche)</span>
             </div>
             <div class="webcam-actions">
-              <span class="cam-timestamp" id="camTimestamp">Actualizado: hace unos instantes</span>
-              <button id="btnCamRefresh" class="btn-action btn-icon" title="Refrescar captura de cámara" aria-label="Refrescar cámara">
+              <span class="cam-timestamp" id="camTimestamp">Emisión en tiempo real</span>
+              <a href="https://www.algarapictures.com/webcam?fbclid=IwAR17zQDWZWe9yalqzfuT9CiXiQFWN-ItRuv_rj3hWBx_Z9wUthAHrMBByi0" target="_blank" rel="noopener noreferrer" class="btn-action btn-algara-link" title="Abrir en Algara Pictures">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span>Ver en Algara Pictures</span>
+              </a>
+              <button id="btnCamRefresh" class="btn-action btn-icon" title="Refrescar transmisión en vivo" aria-label="Refrescar cámara">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
               </button>
               <button id="btnCamFullscreen" class="btn-action btn-icon" title="Pantalla completa" aria-label="Pantalla completa">
@@ -435,69 +440,54 @@
             </div>
           </div>
 
-          <!-- Spot selector tabs for webcams -->
-          <div class="cam-spot-tabs">
-            <button class="cam-tab-btn active" data-cam="arenales-central">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
-              <span>Arenales · Playa Central & Dunas</span>
-            </button>
-            <button class="cam-tab-btn" data-cam="carabassi">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 22 22 22 12 2"/></svg>
-              <span>Playa del Carabassí</span>
-            </button>
-            <button class="cam-tab-btn" data-cam="santapola">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              <span>Faro & Bahía Santa Pola</span>
-            </button>
-            <button class="cam-tab-btn" data-cam="tabarca">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18c4-4 8 4 12 0s8 4 12 0"/></svg>
-              <span>Isla de Tabarca / Bahía ALC</span>
-            </button>
-          </div>
-
-          <!-- Video / Stream Viewport -->
+          <!-- Video / Stream Viewport con Iframe Oficial de Algara Pictures / Skyline -->
           <div class="webcam-viewport" id="webcamViewport">
-            <canvas id="webcamCanvas" class="cam-render-canvas"></canvas>
+            <iframe 
+              id="webcamIframe" 
+              class="webcam-live-iframe"
+              src="https://www.skylinewebcams.com/webcam/espana/comunidad-valenciana/alicante/elche-arenales-del-sol.html?w=6147" 
+              frameborder="0" 
+              scrolling="no" 
+              allow="autoplay; fullscreen" 
+              allowfullscreen 
+              title="Webcam en Directo Arenales del Sol - Algara Pictures">
+            </iframe>
 
+            <!-- HUD de datos climáticos superpuesto en tiempo real -->
             <div class="cam-hud-top">
-              <div class="hud-pill hud-location" id="hudLocationName">📍 Playa Central de Arenales del Sol</div>
-              <div class="hud-pill hud-quality">HD 1080p · 30 FPS</div>
+              <div class="hud-pill hud-location" id="hudLocationName">📍 Arenales del Sol · Playa Urbana (Algara Pictures)</div>
+              <div class="hud-pill hud-quality">HD Live Stream</div>
             </div>
 
             <div class="cam-hud-bottom">
               <div class="hud-stat">
                 <span class="hs-label">Temperatura</span>
-                <strong class="hs-val" id="hudTemp">21.4°C</strong>
+                <strong class="hs-val" id="hudTemp">--°C</strong>
               </div>
               <div class="hud-stat">
                 <span class="hs-label">Viento</span>
-                <strong class="hs-val" id="hudWind">16 km/h E</strong>
+                <strong class="hs-val" id="hudWind">-- km/h</strong>
               </div>
               <div class="hud-stat">
                 <span class="hs-label">Estado del Mar</span>
-                <strong class="hs-val" id="hudSea">0.3m (Calma)</strong>
+                <strong class="hs-val" id="hudSea">--m</strong>
               </div>
               <div class="hud-flag" id="hudFlag">
                 <div class="flag-dot-green"></div>
-                <span>Bandera Verde</span>
+                <span id="hudFlagText">Bandera Verde</span>
               </div>
             </div>
           </div>
 
-          <!-- Time-lapse & Snapshot Controls -->
-          <div class="cam-bottom-controls">
-            <div class="cam-timelapse-col">
-              <span class="tl-title">Simulador de Luz Solar & Horas:</span>
-              <div class="tl-buttons">
-                <button class="btn-sub active" data-time="now">En directo</button>
-                <button class="btn-sub" data-time="morning">Amanecer</button>
-                <button class="btn-sub" data-time="noon">Mediodía solar</button>
-                <button class="btn-sub" data-time="sunset">Atardecer</button>
-              </div>
+          <!-- Pie de control con enlace directo exclusivo a Algara Pictures -->
+          <div class="cam-bottom-controls single-source">
+            <div class="cam-source-info">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#0284c7" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              <span>Webcam exclusiva del litoral de Arenales del Sol, Elche · Retransmisión oficial de <strong>Algara Pictures</strong>.</span>
             </div>
             <div class="cam-external-link">
-              <a href="https://www.comunitatvalenciana.com/es/webcams" target="_blank" rel="noopener" class="link-external-cam">
-                <span>Ver red oficial de webcams Comunitat Valenciana</span>
+              <a href="https://www.algarapictures.com/webcam?fbclid=IwAR17zQDWZWe9yalqzfuT9CiXiQFWN-ItRuv_rj3hWBx_Z9wUthAHrMBByi0" target="_blank" rel="noopener noreferrer" class="link-external-cam">
+                <span>Abrir en www.algarapictures.com</span>
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               </a>
             </div>
