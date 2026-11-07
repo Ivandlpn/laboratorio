@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+    <linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded pill -->
+  <rect width="64" height="64" rx="16" fill="url(#skyGrad)"/>
+  <!-- Sun -->
+  <circle cx="32" cy="24" r="12" fill="url(#sunGrad)"/>
+  <g stroke="#fde68a" stroke-width="2.5" stroke-linecap="round">
+    <line x1="32" y1="6" x2="32" y2="9"/>
+    <line x1="17.8" y1="13.8" x2="20" y2="16"/>
+    <line x1="46.2" y1="13.8" x2="44" y2="16"/>
+  </g>
+  <!-- Waves -->
+  <path d="M 10 44 C 18 39, 24 49, 32 44 C 40 39, 46 49, 54 44" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M 14 52 C 20 48, 26 56, 32 52 C 38 48, 44 56, 50 52" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="3" stroke-linecap="round"/>
+</svg>

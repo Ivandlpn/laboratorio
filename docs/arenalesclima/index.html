@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Arenales Clima · Arenales del Sol (Elche)</title>
+  <meta name="description" content="Visualización meteorológica interactiva y moderna de Los Arenales del Sol (Elche, Alicante). Previsión, nubosidad, lluvia, radar de tormentas, estado de la playa y alertas.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Ambient background decor -->
+  <div class="ambient-glow glow-top"></div>
+  <div class="ambient-glow glow-bottom"></div>
+
+  <!-- App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Top Header / Bar -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-logo">
+          <svg viewBox="0 0 24 24" class="icon-brand" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5" fill="#f59e0b" stroke="#d97706"/>
+            <path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+            <path d="M7 16c.8-1.5 2.5-2.5 4.5-2.5 2.2 0 4 1.2 4.7 3" stroke="#0ea5e9" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="brand-titles">
+          <div class="brand-badge">Costa Blanca · Baix Vinalopó</div>
+          <h1 class="brand-name">Arenales del Sol</h1>
+          <span class="brand-sub">Elche / Elx (Alicante) · 38.25°N, 0.52°O</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="live-pill" id="livePill" title="Estado de la conexión">
+          <span class="live-dot"></span>
+          <span class="live-text" id="liveText">En directo</span>
+        </div>
+        <button id="btnUnitToggle" class="btn-action" title="Cambiar unidades (°C / °F)" aria-label="Cambiar unidades">
+          <span id="unitText">°C · km/h</span>
+        </button>
+        <button id="btnRefresh" class="btn-action btn-icon" title="Actualizar datos" aria-label="Actualizar datos">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Alert Banner (dynamic) -->
+    <aside id="alertBanner" class="alert-banner hidden" role="alert">
+      <div class="alert-content">
+        <div class="alert-icon-wrap" id="alertIcon"></div>
+        <div class="alert-texts">
+          <h2 class="alert-title" id="alertTitle">Aviso meteorológico activo</h2>
+          <p class="alert-desc" id="alertDesc">Condiciones especiales en el litoral de Elche.</p>
+        </div>
+      </div>
+      <button class="alert-btn" id="btnAlertDetails">Ver aviso</button>
+    </aside>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" aria-label="Secciones">
+      <button class="tab-btn active" data-tab="tab-overview">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Observación</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-hourly">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Por Horas</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-daily">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>7 Días</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-radar">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/><line x1="12" y1="12" x2="19" y2="5"/></svg>
+        <span>Radar & Tormentas</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-beach">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>Playa & Mar</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-alerts">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Alertas</span>
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- ================= TAB 1: OBSERVACIÓN ACTUAL ================= -->
+      <section id="tab-overview" class="tab-pane active">
+        
+        <!-- Hero Weather Banner Card -->
+        <div class="card hero-card">
+          <div class="hero-left">
+            <div class="hero-status-row">
+              <span class="status-chip" id="conditionText">Cargando datos...</span>
+              <span class="update-time" id="lastUpdated">Actualizado: --:--</span>
+            </div>
+            
+            <div class="hero-temp-row">
+              <div class="temp-big" id="currentTemp">--°</div>
+              <div class="hero-icon-container" id="currentWeatherIcon">
+                <!-- SVG Icon inserted dynamically -->
+              </div>
+            </div>
+
+            <div class="hero-subinfo">
+              <span>Sensación: <strong id="feelsLikeTemp">--°</strong></span>
+              <span class="sep">•</span>
+              <span>Mín: <strong id="tempMin">--°</strong> / Máx: <strong id="tempMax">--°</strong></span>
+            </div>
+          </div>
+
+          <div class="hero-right">
+            <div class="hero-stat-box">
+              <div class="stat-box-title">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <span>Viento Litoral</span>
+              </div>
+              <div class="stat-box-val" id="windSpeed">-- km/h</div>
+              <div class="stat-box-sub" id="windDirection">Brisa marina</div>
+            </div>
+
+            <div class="hero-stat-box">
+              <div class="stat-box-title">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                <span>Nubosidad</span>
+              </div>
+              <div class="stat-box-val" id="cloudCover">--%</div>
+              <div class="stat-box-sub" id="cloudBase">Despejado</div>
+            </div>
+
+            <div class="hero-stat-box">
+              <div class="stat-box-title">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                <span>Humedad</span>
+              </div>
+              <div class="stat-box-val" id="humidityVal">--%</div>
+              <div class="stat-box-sub" id="dewPoint">Rocío: --°</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick 24h Hourly Ribbon -->
+        <div class="card hourly-ribbon-card">
+          <div class="card-header">
+            <h3 class="card-title">Próximas 24 horas en Arenales</h3>
+            <span class="card-hint">Desliza para explorar</span>
+          </div>
+          <div class="hourly-ribbon" id="quickHourlyRibbon">
+            <!-- Dynamically populated 24 hours -->
+          </div>
+        </div>
+
+        <!-- Detailed Climatology Grid -->
+        <div class="metrics-grid">
+          
+          <!-- Nubosidad y Cielo -->
+          <div class="card metric-card">
+            <div class="metric-top">
+              <div class="metric-icon-bubble blue">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+              </div>
+              <span class="metric-label">Nubosidad por capas</span>
+            </div>
+            <div class="metric-big-val" id="cloudCoverBig">--%</div>
+            <div class="cloud-bars">
+              <div class="cloud-bar-item">
+                <span class="bar-name">Bajas (0-2 km)</span>
+                <div class="bar-track"><div class="bar-fill" id="cloudLowBar" style="width: 0%"></div></div>
+                <span class="bar-val" id="cloudLowVal">0%</span>
+              </div>
+              <div class="cloud-bar-item">
+                <span class="bar-name">Medias (2-6 km)</span>
+                <div class="bar-track"><div class="bar-fill" id="cloudMidBar" style="width: 0%"></div></div>
+                <span class="bar-val" id="cloudMidVal">0%</span>
+              </div>
+              <div class="cloud-bar-item">
+                <span class="bar-name">Altas (>6 km)</span>
+                <div class="bar-track"><div class="bar-fill" id="cloudHighBar" style="width: 0%"></div></div>
+                <span class="bar-val" id="cloudHighVal">0%</span>
+              </div>
+            </div>
+            <div class="metric-footer-text" id="visibilityText">Visibilidad: Excelente (>10 km)</div>
+          </div>
+
+          <!-- Lluvia y Probabilidad -->
+          <div class="card metric-card">
+            <div class="metric-top">
+              <div class="metric-icon-bubble cyan">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 19v2M8 13v2M12 21v2M12 15v2M16 19v2M16 13v2"/></svg>
+              </div>
+              <span class="metric-label">Precipitación & Lluvia</span>
+            </div>
+            <div class="metric-big-val" id="rainSum">0.0 mm</div>
+            <div class="rain-chance-badge" id="rainChanceBadge">Probabilidad: 0% hoy</div>
+            <div class="rain-gauge-wrap">
+              <div class="gauge-label-row">
+                <span>Intensidad estimada</span>
+                <span id="rainIntensityLabel">Seco</span>
+              </div>
+              <div class="gauge-bar"><div class="gauge-fill" id="rainGaugeFill" style="width: 0%"></div></div>
+            </div>
+            <div class="metric-footer-text" id="rainHoursText">Sin precipitaciones en las próximas horas</div>
+          </div>
+
+          <!-- Tormentas y Actividad Convectiva -->
+          <div class="card metric-card">
+            <div class="metric-top">
+              <div class="metric-icon-bubble amber">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              </div>
+              <span class="metric-label">Tormentas & CAPE</span>
+            </div>
+            <div class="metric-big-val" id="stormRiskLabel">Bajo</div>
+            <div class="storm-indicator">
+              <div class="cape-metric">
+                <span class="cape-title">Energía CAPE</span>
+                <strong id="capeVal">120 J/kg</strong>
+              </div>
+              <div class="cape-metric">
+                <span class="cape-title">Riesgo Eléctrico</span>
+                <strong id="lightningRisk">Mínimo</strong>
+              </div>
+            </div>
+            <div class="metric-footer-text" id="stormAdvice">Atmósfera costera estable sin células convectivas</div>
+          </div>
+
+          <!-- Viento y Brisa Térmica (Garbí / Levante) -->
+          <div class="card metric-card">
+            <div class="metric-top">
+              <div class="metric-icon-bubble blue">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>
+              </div>
+              <span class="metric-label">Rosa del Viento</span>
+            </div>
+            <div class="wind-visual-container">
+              <div class="wind-compass">
+                <div class="compass-dial">
+                  <span class="comp-point n">N</span>
+                  <span class="comp-point e">E</span>
+                  <span class="comp-point s">S</span>
+                  <span class="comp-point w">O</span>
+                  <div class="compass-needle" id="compassNeedle">
+                    <div class="needle-arrow"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="wind-readouts">
+                <div class="wind-val" id="windSpeedDetail">-- km/h</div>
+                <div class="wind-dir-name" id="windName">Levante (E)</div>
+                <div class="wind-gusts">Ráfagas: <strong id="windGusts">-- km/h</strong></div>
+              </div>
+            </div>
+            <div class="metric-footer-text" id="windComment">Brisa típica costera de Arenales del Sol</div>
+          </div>
+
+          <!-- Radiación UV y Sol -->
+          <div class="card metric-card">
+            <div class="metric-top">
+              <div class="metric-icon-bubble orange">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+              </div>
+              <span class="metric-label">Índice Ultravioleta</span>
+            </div>
+            <div class="metric-big-val" id="uvIndexVal">--</div>
+            <div class="uv-badge" id="uvBadge">Moderado</div>
+            <div class="sun-times-row">
+              <div class="sun-time-col">
+                <span class="sun-sub">Amanecer</span>
+                <strong id="sunriseTime">--:--</strong>
+              </div>
+              <div class="sun-time-col">
+                <span class="sun-sub">Puesta de sol</span>
+                <strong id="sunsetTime">--:--</strong>
+              </div>
+            </div>
+            <div class="metric-footer-text" id="uvAdvice">Protección solar recomendada al mediodía</div>
+          </div>
+
+          <!-- Presión Atmosférica y Tendencia -->
+          <div class="card metric-card">
+            <div class="metric-top">
+              <div class="metric-icon-bubble purple">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 8v8"/></svg>
+              </div>
+              <span class="metric-label">Presión Barométrica</span>
+            </div>
+            <div class="metric-big-val" id="pressureVal">1016 hPa</div>
+            <div class="pressure-trend" id="pressureTrend">
+              <span class="trend-icon">→</span>
+              <span class="trend-text">Presión estable a nivel del mar</span>
+            </div>
+            <div class="metric-footer-text">Nivel del mar (Altitud Arenales: ~5 m)</div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= TAB 2: PREVISIÓN POR HORAS Y GRÁFICOS ================= -->
+      <section id="tab-hourly" class="tab-pane">
+        <div class="card chart-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Curva de Temperatura y Sensación (48h)</h2>
+              <span class="card-hint">Mueve el cursor o dedo sobre la gráfica para ver detalles</span>
+            </div>
+            <div class="chart-legend">
+              <span class="legend-item"><span class="legend-dot temp"></span> Temperatura</span>
+              <span class="legend-item"><span class="legend-dot rain"></span> Lluvia (mm)</span>
+            </div>
+          </div>
+          
+          <!-- Interactive SVG Chart Container -->
+          <div class="chart-wrapper">
+            <svg id="hourlyChartSvg" class="interactive-chart" viewBox="0 0 800 240" preserveAspectRatio="none">
+              <!-- Rendered via JS -->
+            </svg>
+            <div id="chartTooltip" class="chart-tooltip hidden">
+              <div class="tooltip-time" id="tooltipTime">14:00</div>
+              <div class="tooltip-row"><span class="t-label">Temp:</span> <span class="t-val" id="tooltipTemp">22°C</span></div>
+              <div class="tooltip-row"><span class="t-label">Lluvia:</span> <span class="t-val" id="tooltipRain">0.0 mm (0%)</span></div>
+              <div class="tooltip-row"><span class="t-label">Viento:</span> <span class="t-val" id="tooltipWind">15 km/h</span></div>
+            </div>
+          </div>
+
+          <!-- Extended Hourly List -->
+          <div class="hourly-table-wrap">
+            <table class="hourly-table">
+              <thead>
+                <tr>
+                  <th>Hora</th>
+                  <th>Cielo</th>
+                  <th>Temp</th>
+                  <th>Sensación</th>
+                  <th>Lluvia</th>
+                  <th>Nubes</th>
+                  <th>Viento</th>
+                  <th>UV</th>
+                </tr>
+              </thead>
+              <tbody id="hourlyTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 3: PREVISIÓN 7 DÍAS ================= -->
+      <section id="tab-daily" class="tab-pane">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Previsión Semanal para Arenales del Sol</h2>
+              <span class="card-hint">Haz clic en cualquier día para desplegar los detalles completos</span>
+            </div>
+            <div class="daily-avg-pill">Próximos 7 días</div>
+          </div>
+          <div class="daily-forecast-list" id="dailyForecastList">
+            <!-- Dynamically populated daily items -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 4: RADAR & TORMENTAS ================= -->
+      <section id="tab-radar" class="tab-pane">
+        <div class="card radar-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Radar de Tormentas y Precipitación</h2>
+              <span class="card-hint">Visualización interactiva centrada en el litoral de Elche y Santa Pola</span>
+            </div>
+            <div class="radar-status-badge" id="radarStatusBadge">
+              <span class="radar-ping"></span>
+              <span>Ecos en tiempo real</span>
+            </div>
+          </div>
+
+          <div class="radar-canvas-container">
+            <div class="radar-map-view" id="radarMapView">
+              <!-- Radar Screen Overlay -->
+              <div class="radar-grid-rings">
+                <div class="ring ring-1"></div>
+                <div class="ring ring-2"></div>
+                <div class="ring ring-3"></div>
+                <div class="sweep-beam"></div>
+              </div>
+
+              <!-- Geographical Coastline Canvas SVG -->
+              <svg class="radar-geo-svg" viewBox="0 0 500 350">
+                <!-- Coastline shape representing Alicante, Arenales del Sol, Santa Pola & Tabarca -->
+                <path d="M 120 0 Q 150 70 210 120 T 260 210 Q 275 250 290 350" fill="none" stroke="rgba(14, 165, 233, 0.4)" stroke-width="2.5" stroke-dasharray="6,4"/>
+                <!-- Beach Point Marker -->
+                <g class="radar-marker-pulse" transform="translate(230, 160)">
+                  <circle r="7" fill="#0284c7" stroke="#fff" stroke-width="2"/>
+                  <circle r="16" fill="none" stroke="#0ea5e9" stroke-width="1.5" class="pulsing-halo"/>
+                  <text x="14" y="5" fill="#0369a1" font-size="12" font-weight="700">Arenales del Sol</text>
+                  <text x="14" y="20" fill="#64748b" font-size="10">Playa / Dunas</text>
+                </g>
+                <!-- Reference markers -->
+                <g transform="translate(170, 80)">
+                  <circle r="4" fill="#94a3b8"/>
+                  <text x="8" y="4" fill="#64748b" font-size="10">Alicante</text>
+                </g>
+                <g transform="translate(160, 140)">
+                  <circle r="4" fill="#94a3b8"/>
+                  <text x="8" y="4" fill="#64748b" font-size="10">Aeropuerto ALC</text>
+                </g>
+                <g transform="translate(70, 200)">
+                  <circle r="4" fill="#94a3b8"/>
+                  <text x="8" y="4" fill="#64748b" font-size="10">Elche ciudad</text>
+                </g>
+                <g transform="translate(265, 260)">
+                  <circle r="4" fill="#94a3b8"/>
+                  <text x="8" y="4" fill="#64748b" font-size="10">Santa Pola</text>
+                </g>
+                <g transform="translate(360, 275)">
+                  <circle r="4" fill="#0284c7"/>
+                  <text x="8" y="4" fill="#0284c7" font-size="10">Isla de Tabarca</text>
+                </g>
+                <!-- Storm / Echo Clusters (dynamic SVG groups) -->
+                <g id="radarEchoesGroup">
+                  <!-- Echo clusters drawn dynamically -->
+                </g>
+              </svg>
+
+              <!-- Radar Scale overlay -->
+              <div class="radar-scale">
+                <span class="scale-label">Intensidad (dBZ):</span>
+                <div class="scale-gradient"></div>
+                <div class="scale-ticks">
+                  <span>Débil</span>
+                  <span>Mod</span>
+                  <span>Fuerte</span>
+                  <span>Tormenta / Granizo</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Radar Controls -->
+            <div class="radar-controls">
+              <button id="btnRadarPlay" class="btn-radar-play">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <span>Animar radar</span>
+              </button>
+              <div class="radar-time-slider">
+                <input type="range" id="radarTimeRange" min="0" max="6" value="6" step="1">
+                <div class="radar-time-labels">
+                  <span>-60m</span>
+                  <span>-40m</span>
+                  <span>-20m</span>
+                  <span class="active-time">Ahora</span>
+                </div>
+              </div>
+              <div class="radar-mode-toggle">
+                <button class="btn-sub active" id="btnModeRadar">Precipitación</button>
+                <button class="btn-sub" id="btnModeSat">Nubosidad</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Storm Analysis Box -->
+          <div class="storm-analysis-panel">
+            <h3 class="panel-subtitle">Diagnóstico Convectivo e Inestabilidad Marina</h3>
+            <div class="storm-cards-row">
+              <div class="storm-mini-card">
+                <div class="smc-title">Cizalladura del Viento</div>
+                <div class="smc-val" id="shearVal">Débil (< 10 kt)</div>
+                <div class="smc-sub">Bajo riesgo de frentes organizados</div>
+              </div>
+              <div class="storm-mini-card">
+                <div class="smc-title">Probabilidad de Rayos</div>
+                <div class="smc-val" id="lightningProb">2%</div>
+                <div class="smc-sub">Detección a < 50 km</div>
+              </div>
+              <div class="storm-mini-card">
+                <div class="smc-title">Nivel de Alerta DANA</div>
+                <div class="smc-val green" id="danaAlertVal">Sin alerta DANA</div>
+                <div class="smc-sub">Baja fría ausente en niveles altos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 5: PLAYA Y ESTADO DEL MAR ================= -->
+      <section id="tab-beach" class="tab-pane">
+        <div class="beach-grid">
+          
+          <!-- Beach Flag & Ocean State -->
+          <div class="card beach-hero-card">
+            <div class="card-header">
+              <div>
+                <h2 class="card-title">Playa de Los Arenales del Sol y Carabassí</h2>
+                <span class="card-hint">Condiciones para el baño, deportes acuáticos y dunas protegidas</span>
+              </div>
+              <div class="beach-flag-wrap" id="beachFlagWrap">
+                <div class="flag-icon" id="flagIcon"></div>
+                <span class="flag-text" id="flagText">Bandera Verde</span>
+              </div>
+            </div>
+
+            <div class="marine-metrics-row">
+              <div class="marine-metric">
+                <div class="mm-icon">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12c4-4 8 4 12 0s8 4 12 0"/><path d="M2 18c4-4 8 4 12 0s8 4 12 0"/></svg>
+                </div>
+                <div class="mm-data">
+                  <span class="mm-label">Altura del Oleaje</span>
+                  <strong class="mm-val" id="waveHeightVal">0.3 m</strong>
+                  <span class="mm-sub" id="waveStateDesc">Mar rizada / Marejadilla</span>
+                </div>
+              </div>
+
+              <div class="marine-metric">
+                <div class="mm-icon">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div class="mm-data">
+                  <span class="mm-label">Período de Ola</span>
+                  <strong class="mm-val" id="wavePeriodVal">6.5 s</strong>
+                  <span class="mm-sub">Frecuencia suave</span>
+                </div>
+              </div>
+
+              <div class="marine-metric">
+                <div class="mm-icon">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                </div>
+                <div class="mm-data">
+                  <span class="mm-label">Temp. del Agua del Mar</span>
+                  <strong class="mm-val" id="seaTempVal">19.5 °C</strong>
+                  <span class="mm-sub">Mediterráneo occidental</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="beach-recommendation-box" id="beachComfortBox">
+              <div class="br-icon">🏖️</div>
+              <div class="br-text">
+                <strong id="beachTitle">Condiciones idóneas para el baño y paseo</strong>
+                <p id="beachDesc">Viento flojo y mar en calma en la línea de costa de Arenales y Carabassí. Respete siempre la señalización de socorrismo.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Beach Stations & Spots -->
+          <div class="card beach-spots-card">
+            <h3 class="panel-subtitle">Puntos de Observación Litoral</h3>
+            <div class="spots-list">
+              <div class="spot-item">
+                <div class="spot-info">
+                  <strong>Paseo Marítimo Arenales</strong>
+                  <span>Acceso pasarelas de madera y dunas</span>
+                </div>
+                <div class="spot-badge green">Apto para baño</div>
+              </div>
+              <div class="spot-item">
+                <div class="spot-info">
+                  <strong>Playa del Carabassí</strong>
+                  <span>Zona virgen bajo el Faro de Santa Pola</span>
+                </div>
+                <div class="spot-badge green">Oleaje bajo</div>
+              </div>
+              <div class="spot-item">
+                <div class="spot-info">
+                  <strong>Clot de Galvany (Humedal)</strong>
+                  <span>Espacio natural protegido · Observatorio</span>
+                </div>
+                <div class="spot-badge blue">Humedad alta</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ================= TAB 6: ALERTAS Y AVISOS ================= -->
+      <section id="tab-alerts" class="tab-pane">
+        <div class="card alerts-full-card">
+          <div class="card-header">
+            <div>
+              <h2 class="card-title">Sistema de Alertas y Vigilancia Meteorológica</h2>
+              <span class="card-hint">Umbrales operativos de referencia AEMET / Generalitat Valenciana (Baix Vinalopó)</span>
+            </div>
+            <div class="alerts-overall-pill" id="alertsOverallPill">Sin alertas activas</div>
+          </div>
+
+          <div class="alerts-checklist" id="alertsChecklist">
+            <!-- Dynamic alerts checklist items -->
+          </div>
+
+          <div class="card info-box">
+            <h3 class="info-title">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>Protocolo de Protección Civil en Playas</span>
+            </h3>
+            <p>En el litoral de Arenales del Sol y Carabassí, los avisos amarillos por fenómenos costeros corresponden a viento del este / noreste (Levante) superior a fuerza 7 y olas que superan los 2.5 a 3 metros. Respete en todo momento las banderas de los puestos de salvamento del Ayuntamiento de Elche.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-inner">
+        <div>
+          <strong>Arenales Clima</strong> · Arenales del Sol, Elche (Alicante)
+        </div>
+        <div class="footer-sources">
+          Datos de alta resolución vía Open-Meteo & RainViewer · Actualización en tiempo real
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
