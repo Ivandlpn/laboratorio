@@ -3271,3 +3271,132 @@ body {
   font-size: 0.75rem;
   color: #475569;
 }
+
+
+/* Windguru Widget and Synoptic Table Styles */
+.wg-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.wg-mode-toggle {
+  display: flex;
+  background: #f1f5f9;
+  padding: 3px;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+}
+
+.wg-tab-btn {
+  background: transparent;
+  border: none;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wg-tab-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+}
+
+.wg-synoptic-table-container {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 14px;
+}
+
+.wst-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.wst-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.wst-badge {
+  font-size: 0.7rem;
+  background: rgba(14, 165, 233, 0.12);
+  color: #0369a1;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.wst-scroll-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wst-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 0.78rem;
+}
+
+.wst-table th, .wst-table td {
+  padding: 7px 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.wst-table th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 700;
+}
+
+.wst-table .row-title {
+  text-align: left;
+  font-weight: 700;
+  color: #1e293b;
+  background: #f8fafc;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.wg-official-container {
+  min-height: 220px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 12px;
+  overflow-x: auto;
+}
+
+.wg-official-notice {
+  font-size: 0.8rem;
+  color: #0369a1;
+  background: rgba(14, 165, 233, 0.08);
+  padding: 8px 14px;
+  border-radius: 8px;
+  border-left: 3px solid #0284c7;
+}
+
+.wg-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 30px;
+  color: #64748b;
+  font-size: 0.85rem;
+}

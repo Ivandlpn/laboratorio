@@ -812,103 +812,136 @@
                 <span class="wg-logo-pill">WINDGURU</span>
                 <div>
                   <h3 class="wg-title">Previsión Marina & Eólica Oficial (Spot #6756)</h3>
-                  <span class="card-hint">Estación Arenales del Sol (38.27° N, -0.53° W) · Multimodelo</span>
-                </div>
-              </div>
-              <div class="wg-unit-selector">
-                <button type="button" class="unit-btn active" data-unit="kmh">km/h</button>
-                <button type="button" class="unit-btn" data-unit="knots">Nudos (kt)</button>
-                <button type="button" class="unit-btn" data-unit="bft">Beaufort</button>
-              </div>
-            </div>
-
-            <div class="wg-models-grid">
-              <!-- Modelo Europeo ECMWF IFS-HRES 9km -->
-              <div class="wg-model-box featured">
-                <div class="wg-model-tag">
-                  <span>Modelo ECMWF (IFS-HRES 9 km)</span>
-                  <span>Alta resolución</span>
-                </div>
-                <div class="wg-model-val-row">
-                  <span class="wg-speed-big" id="wgEcmwfSpeed">11</span>
-                  <span class="wg-unit-label" id="wgUnitLabel1">km/h (6 kn)</span>
-                  <span class="wg-gust-val" id="wgEcmwfGust">Rachas: 20 km/h (11 kn)</span>
-                </div>
-                <div class="wg-dir-row">
-                  <span class="wg-dir-arrow" id="wgEcmwfArrow" style="transform: rotate(155deg);">➔</span>
-                  <span id="wgEcmwfDir">SSE · Brisa marina (Garbí térmico)</span>
+                  <span class="card-hint">Estación Arenales del Sol (38.27° N, -0.53° W) · Modelos ECMWF IFS-HRES 9 km & GFS 13 km</span>
                 </div>
               </div>
 
-              <!-- Modelo Americano GFS 13km -->
-              <div class="wg-model-box">
-                <div class="wg-model-tag">
-                  <span>Modelo NOAA GFS 13 km</span>
-                  <span>Global</span>
+              <div class="wg-header-controls">
+                <div class="wg-mode-toggle">
+                  <button type="button" class="wg-tab-btn active" id="btnWgSinoptico">Panel Sinóptico</button>
+                  <button type="button" class="wg-tab-btn" id="btnWgOficial">Widget Oficial Windguru</button>
                 </div>
-                <div class="wg-model-val-row">
-                  <span class="wg-speed-big" id="wgGfsSpeed">11</span>
-                  <span class="wg-unit-label" id="wgUnitLabel2">km/h (6 kn)</span>
-                  <span class="wg-gust-val" id="wgGfsGust">Rachas: 18 km/h (10 kn)</span>
-                </div>
-                <div class="wg-dir-row">
-                  <span class="wg-dir-arrow" id="wgGfsArrow" style="transform: rotate(150deg);">➔</span>
-                  <span id="wgGfsDir">SSE · Estable</span>
-                </div>
-              </div>
 
-              <!-- Modelo Alemán ICON 13km -->
-              <div class="wg-model-box">
-                <div class="wg-model-tag">
-                  <span>Modelo DWD ICON 13 km</span>
-                  <span>Centroeuropeo</span>
-                </div>
-                <div class="wg-model-val-row">
-                  <span class="wg-speed-big" id="wgIconSpeed">9</span>
-                  <span class="wg-unit-label" id="wgUnitLabel3">km/h (5 kn)</span>
-                  <span class="wg-gust-val" id="wgIconGust">Rachas: 16 km/h (9 kn)</span>
-                </div>
-                <div class="wg-dir-row">
-                  <span class="wg-dir-arrow" id="wgIconArrow" style="transform: rotate(135deg);">➔</span>
-                  <span id="wgIconDir">SE · Brisa suave</span>
+                <div class="wg-unit-selector">
+                  <button type="button" class="unit-btn active" data-unit="kmh">km/h</button>
+                  <button type="button" class="unit-btn" data-unit="knots">Nudos (kt)</button>
+                  <button type="button" class="unit-btn" data-unit="bft">Beaufort</button>
                 </div>
               </div>
             </div>
 
-            <!-- Matriz de Deportes Náuticos en Arenales del Sol -->
-            <h4 class="panel-subtitle">Idoneidad Náutica Deportiva según Viento y Oleaje</h4>
-            <div class="wg-sports-matrix">
-              <div class="sport-chip">
-                <div class="sc-icon">🏊‍♂️</div>
-                <span class="sc-name">Baño & Natación</span>
-                <span class="sc-rating good" id="sportBano">Excelente</span>
+            <!-- VISTA 1: PANEL SINÓPTICO MULTIMODELO -->
+            <div id="wgSinopticoView">
+              <div class="wg-models-grid">
+                <!-- Modelo Europeo ECMWF IFS-HRES 9km -->
+                <div class="wg-model-box featured">
+                  <div class="wg-model-tag">
+                    <span>Modelo ECMWF (IFS-HRES 9 km)</span>
+                    <span style="color: #0284c7; font-weight: 800;">Alta resolución</span>
+                  </div>
+                  <div class="wg-model-val-row">
+                    <span class="wg-speed-big" id="wgEcmwfSpeed">11</span>
+                    <span class="wg-unit-label" id="wgUnitLabel1">km/h (6 kn)</span>
+                    <span class="wg-gust-val" id="wgEcmwfGust">Rachas: 20 km/h (11 kn)</span>
+                  </div>
+                  <div class="wg-dir-row">
+                    <span class="wg-dir-arrow" id="wgEcmwfArrow" style="transform: rotate(155deg);">➔</span>
+                    <span id="wgEcmwfDir">SSE · Brisa marina (Garbí térmico)</span>
+                  </div>
+                </div>
+
+                <!-- Modelo Americano GFS 13km -->
+                <div class="wg-model-box">
+                  <div class="wg-model-tag">
+                    <span>Modelo NOAA GFS 13 km</span>
+                    <span>Global</span>
+                  </div>
+                  <div class="wg-model-val-row">
+                    <span class="wg-speed-big" id="wgGfsSpeed">11</span>
+                    <span class="wg-unit-label" id="wgUnitLabel2">km/h (6 kn)</span>
+                    <span class="wg-gust-val" id="wgGfsGust">Rachas: 18 km/h (10 kn)</span>
+                  </div>
+                  <div class="wg-dir-row">
+                    <span class="wg-dir-arrow" id="wgGfsArrow" style="transform: rotate(150deg);">➔</span>
+                    <span id="wgGfsDir">SSE · Estable</span>
+                  </div>
+                </div>
+
+                <!-- Modelo Alemán ICON 13km -->
+                <div class="wg-model-box">
+                  <div class="wg-model-tag">
+                    <span>Modelo DWD ICON 13 km</span>
+                    <span>Centroeuropeo</span>
+                  </div>
+                  <div class="wg-model-val-row">
+                    <span class="wg-speed-big" id="wgIconSpeed">9</span>
+                    <span class="wg-unit-label" id="wgUnitLabel3">km/h (5 kn)</span>
+                    <span class="wg-gust-val" id="wgIconGust">Rachas: 16 km/h (9 kn)</span>
+                  </div>
+                  <div class="wg-dir-row">
+                    <span class="wg-dir-arrow" id="wgIconArrow" style="transform: rotate(135deg);">➔</span>
+                    <span id="wgIconDir">SE · Brisa suave</span>
+                  </div>
+                </div>
               </div>
-              <div class="sport-chip">
-                <div class="sc-icon">🏄‍♂️</div>
-                <span class="sc-name">Paddle Surf / SUP</span>
-                <span class="sc-rating good" id="sportSup">Ideal</span>
+
+              <!-- Tabla Sinóptica Horaria de Viento Windguru (Próximas horas) -->
+              <div class="wg-synoptic-table-container">
+                <div class="wst-header">
+                  <span class="wst-title">Evolución Sinóptica Horaria en Arenales del Sol (Próximas 48 Horas)</span>
+                  <span class="wst-badge">ECMWF IFS-HRES 9 km</span>
+                </div>
+                <div class="wst-scroll-wrap" id="wgHourlyTableWrap"></div>
               </div>
-              <div class="sport-chip">
-                <div class="sc-icon">🛶</div>
-                <span class="sc-name">Kayak de Mar</span>
-                <span class="sc-rating good" id="sportKayak">Óptimo</span>
+
+              <!-- Matriz de Deportes Náuticos en Arenales del Sol -->
+              <h4 class="panel-subtitle" style="margin-top: 18px;">Idoneidad Náutica Deportiva según Viento y Oleaje</h4>
+              <div class="wg-sports-matrix">
+                <div class="sport-chip">
+                  <div class="sc-icon">🏊‍♂️</div>
+                  <span class="sc-name">Baño & Natación</span>
+                  <span class="sc-rating good" id="sportBano">Excelente</span>
+                </div>
+                <div class="sport-chip">
+                  <div class="sc-icon">🏄‍♂️</div>
+                  <span class="sc-name">Paddle Surf / SUP</span>
+                  <span class="sc-rating good" id="sportSup">Ideal</span>
+                </div>
+                <div class="sport-chip">
+                  <div class="sc-icon">🛶</div>
+                  <span class="sc-name">Kayak de Mar</span>
+                  <span class="sc-rating good" id="sportKayak">Óptimo</span>
+                </div>
+                <div class="sport-chip">
+                  <div class="sc-icon">⛵</div>
+                  <span class="sc-name">Windsurf / Wing</span>
+                  <span class="sc-rating fair" id="sportWindsurf">Vela Grande / 0★</span>
+                </div>
+                <div class="sport-chip">
+                  <div class="sc-icon">🪁</div>
+                  <span class="sc-name">Kitesurf</span>
+                  <span class="sc-rating poor" id="sportKite">Insuficiente</span>
+                </div>
               </div>
-              <div class="sport-chip">
-                <div class="sc-icon">⛵</div>
-                <span class="sc-name">Windsurf / Wing</span>
-                <span class="sc-rating fair" id="sportWindsurf">Vela Grande / 0★</span>
+            </div>
+
+            <!-- VISTA 2: WIDGET OFICIAL EMBEBIDO DE WINDGURU -->
+            <div id="wgOficialView" style="display: none;">
+              <div class="wg-official-notice">
+                <span>Tablas oficiales del modelo en tiempo real generadas por el motor de Windguru.cz (Spot #6756)</span>
               </div>
-              <div class="sport-chip">
-                <div class="sc-icon">🪁</div>
-                <span class="sc-name">Kitesurf</span>
-                <span class="sc-rating poor" id="sportKite">Insuficiente</span>
+              <div class="wg-official-container" id="wg_target_div_6756">
+                <div class="wg-loading-box" id="wgLoadingBox">
+                  <div class="loading-spinner"></div>
+                  <span>Cargando tablas oficiales de Windguru Arenales del Sol (Spot #6756)...</span>
+                </div>
               </div>
             </div>
 
             <div class="wg-footer-note">
               <span>Mareas astronómicas: Amplitud de ~18 cm en la Bahía de Alicante · Presión anticiclónica</span>
               <a href="https://www.windguru.cz/6756" target="_blank" rel="noopener noreferrer" class="wg-link">
-                Ver tablas completas en Windguru Spot #6756 ↗
+                Abrir Spot #6756 en Windguru.cz ↗
               </a>
             </div>
           </div>

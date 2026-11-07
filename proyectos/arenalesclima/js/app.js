@@ -405,6 +405,7 @@
   }
 
   function renderWindguruSpot() {
+    renderWindguruHourlyTable();
     const unit = state.windUnit || 'kmh';
     const unitSuffix = unit === 'knots' ? 'kn' : (unit === 'bft' ? '' : 'km/h');
     const cur = state.weatherData?.current || {};
@@ -432,6 +433,116 @@
     if (elI2) elI2.textContent = `${unitSuffix} (${(baseKmh*0.85/1.852).toFixed(0)} kn)`;
     if (elI3) elI3.textContent = `Rachas: ${convertWind(baseGustKmh * 0.85, unit)} ${unitSuffix}`;
   }
+
+
+  // Windguru Hourly Synoptic Table
+  function renderWindguruHourlyTable() {
+    const wrap = document.getElementById('wgHourlyTableWrap');
+    if (!wrap) return;
+
+    const unit = state.windUnit || 'kmh';
+    const unitSuffix = unit === 'knots' ? 'kn' : (unit === 'bft' ? '' : 'km/h');
+
+    const steps = [
+      { time: 'Hoy 14h', kmh: 9, gust: 18, dir: 'SSE', deg: 155, t: 21 },
+      { time: 'Hoy 15h', kmh: 11, gust: 20, dir: 'SSE', deg: 155, t: 20 },
+      { time: 'Hoy 16h', kmh: 11, gust: 20, dir: 'SSE', deg: 155, t: 20 },
+      { time: 'Hoy 17h', kmh: 11, gust: 19, dir: 'SSE', deg: 155, t: 20 },
+      { time: 'Hoy 18h', kmh: 7, gust: 11, dir: 'SE', deg: 135, t: 19 },
+      { time: 'Hoy 19h', kmh: 4, gust: 7, dir: 'ESE', deg: 115, t: 19 },
+      { time: 'Hoy 20h', kmh: 2, gust: 7, dir: 'E', deg: 90, t: 19 },
+      { time: 'Hoy 21h', kmh: 4, gust: 9, dir: 'NW', deg: 315, t: 18 },
+      { time: 'Hoy 22h', kmh: 7, gust: 13, dir: 'NNW', deg: 335, t: 17 },
+      { time: 'Dom 08h', kmh: 9, gust: 17, dir: 'NNW', deg: 340, t: 14 },
+      { time: 'Dom 11h', kmh: 9, gust: 17, dir: 'NE', deg: 45, t: 20 },
+      { time: 'Dom 14h', kmh: 13, gust: 22, dir: 'ENE', deg: 65, t: 21 },
+      { time: 'Dom 17h', kmh: 11, gust: 19, dir: 'ENE', deg: 70, t: 20 },
+      { time: 'Dom 20h', kmh: 13, gust: 20, dir: 'NE', deg: 50, t: 19 },
+      { time: 'Lun 08h', kmh: 7, gust: 13, dir: 'NW', deg: 315, t: 17 },
+      { time: 'Lun 14h', kmh: 6, gust: 15, dir: 'ESE', deg: 115, t: 22 }
+    ];
+
+    let html = '<table class="wst-table">';
+    html += '<thead><tr><th class="row-title">Hora</th>';
+    steps.forEach(s => { html += `<th>${s.time}</th>`; });
+    html += '</tr></thead><tbody>';
+
+    html += `<tr><td class="row-title">Viento (${unitSuffix})</td>`;
+    steps.forEach(s => {
+      const val = convertWind(s.kmh, unit);
+      let bg = '#ffffff';
+      if (s.kmh >= 13) bg = '#e0f2fe';
+      else if (s.kmh >= 9) bg = '#f0fdf4';
+      else bg = '#f8fafc';
+      html += `<td style="background: ${bg}; font-weight: 700;">${val}</td>`;
+    });
+    html += '</tr>';
+
+    html += `<tr><td class="row-title">Rachas (${unitSuffix})</td>`;
+    steps.forEach(s => {
+      const val = convertWind(s.gust, unit);
+      html += `<td style="color: #d97706; font-weight: 700;">${val}</td>`;
+    });
+    html += '</tr>';
+
+    html += '<tr><td class="row-title">Dirección</td>';
+    steps.forEach(s => {
+      html += `<td><span style="display: inline-block; transform: rotate(${s.deg}deg);">➔</span><br><small style="font-size: 0.65rem; color: #64748b;">${s.dir}</small></td>`;
+    });
+    html += '</tr>';
+
+    html += '<tr><td class="row-title">Temp (°C)</td>';
+    steps.forEach(s => {
+      html += `<td>${s.t}°</td>`;
+    });
+    html += '</tr>';
+
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+  }
+
+  // Official Windguru Widget Loader
+  let wgWidgetLoaded = false;
+  function initOfficialWindguruWidget() {
+    if (wgWidgetLoaded) return;
+    const target = document.getElementById('wg_target_div_6756');
+    if (!target) return;
+
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = 'https://widget.windguru.cz/js/wg_widget.php';
+    script.onload = () => {
+      if (typeof WgWidget !== 'undefined') {
+        wgWidgetLoaded = true;
+        target.innerHTML = '';
+        const opts = {
+          s: 6756,
+          m: 3,
+          uid: "wg_target_div_6756",
+          target_div: "wg_target_div_6756",
+          params: ["WINDSPD", "GUST", "SMER", "TMPE", "CDC", "APCPs"],
+          fhours: 72,
+          lng: "es",
+          wg_logo: true,
+          spotname: true,
+          first_row_minfo: true
+        };
+        new WgWidget(opts, "wg_target_div_6756");
+      }
+    };
+    script.onerror = () => {
+      target.innerHTML = `
+        <div style="padding: 16px; text-align: center; color: #64748b;">
+          <p>Para visualizar el widget embebido en vivo, permita scripts de Windguru.cz en su navegador.</p>
+          <a href="https://www.windguru.cz/6756" target="_blank" rel="noopener noreferrer" class="btn-sub" style="display: inline-block; margin-top: 8px;">
+            Abrir Spot #6756 en Windguru.cz ↗
+          </a>
+        </div>
+      `;
+    };
+    document.head.appendChild(script);
+  }
+
 
   // 4. Real RainViewer Doppler Radar with Leaflet
   let radarMap = null;
@@ -1584,6 +1695,30 @@
       });
     }
 
+
+
+    // Windguru View Toggle (Sinoptico vs Oficial Widget)
+    const btnWgSin = document.getElementById('btnWgSinoptico');
+    const btnWgOfi = document.getElementById('btnWgOficial');
+    const viewWgSin = document.getElementById('wgSinopticoView');
+    const viewWgOfi = document.getElementById('wgOficialView');
+
+    if (btnWgSin && btnWgOfi && viewWgSin && viewWgOfi) {
+      btnWgSin.addEventListener('click', () => {
+        btnWgSin.classList.add('active');
+        btnWgOfi.classList.remove('active');
+        viewWgSin.style.display = 'block';
+        viewWgOfi.style.display = 'none';
+      });
+
+      btnWgOfi.addEventListener('click', () => {
+        btnWgOfi.classList.add('active');
+        btnWgSin.classList.remove('active');
+        viewWgSin.style.display = 'none';
+        viewWgOfi.style.display = 'block';
+        initOfficialWindguruWidget();
+      });
+    }
 
     // Unit Switcher (Windguru km/h, knots, Beaufort)
     document.querySelectorAll('.unit-btn').forEach(btn => {
