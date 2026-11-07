@@ -554,8 +554,293 @@ body {
 }
 
 /* ==========================================================================
-   Hero Card & Sky Canvas
+   Hero Card & Primera Plana Master Display
    ========================================================================== */
+.primera-plana-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.85rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.97) 0%, rgba(240, 249, 255, 0.94) 100%);
+  border: 1px solid rgba(186, 230, 253, 0.9);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 36px -4px rgba(2, 132, 199, 0.12), 0 4px 12px -2px rgba(2, 132, 199, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  margin-bottom: 1.5rem;
+}
+
+.plana-hero-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid rgba(224, 242, 254, 0.9);
+}
+
+.plana-main-col {
+  flex: 1 1 360px;
+}
+
+.plana-status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background: rgba(224, 242, 254, 0.85);
+  border: 1px solid rgba(186, 230, 253, 0.85);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.85rem;
+}
+
+.plana-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  animation: pulse-dot 2s infinite ease-in-out;
+}
+
+.plana-condition-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0369a1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.plana-update-time {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-left: 0.25rem;
+}
+
+.plana-temp-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.plana-temp-big {
+  font-size: 5rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #0c4a6e;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.plana-icon-container {
+  width: 86px;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plana-icon-container svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 6px 14px rgba(14, 165, 233, 0.28));
+}
+
+.plana-sky-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.plana-sky-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.plana-sky-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.plana-sky-sub strong {
+  color: #0f172a;
+}
+
+.plana-sky-sub .sep {
+  color: var(--border-light);
+}
+
+.plana-pills-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  flex: 1 1 360px;
+}
+
+.plana-quick-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(224, 242, 254, 0.95);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.85rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: var(--transition);
+}
+
+.plana-quick-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.plana-quick-pill svg {
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.pqp-texts {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.pqp-title {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pqp-val {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0.15rem 0;
+}
+
+.pqp-sub {
+  font-size: 0.74rem;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+/* Plana Hourly Section (Next hours progression) */
+.plana-hourly-section {
+  position: relative;
+  z-index: 1;
+  padding-top: 1.25rem;
+}
+
+.plana-hourly-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ph-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #0284c7;
+}
+
+.ph-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.ph-hint {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.plana-hourly-ribbon {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding: 0.35rem 0.25rem 0.75rem;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(2, 132, 199, 0.3) transparent;
+}
+
+.plana-hourly-ribbon::-webkit-scrollbar {
+  height: 6px;
+}
+
+.plana-hourly-ribbon::-webkit-scrollbar-thumb {
+  background-color: rgba(2, 132, 199, 0.25);
+  border-radius: 9999px;
+}
+
+.plana-hourly-ribbon .hourly-chip {
+  flex: 0 0 106px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(224, 242, 254, 0.95);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.45rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.04);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.plana-hourly-ribbon .hourly-chip:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+}
+
+.plana-hourly-ribbon .hourly-chip.current {
+  background: linear-gradient(135deg, rgba(224, 242, 254, 0.95), rgba(186, 230, 253, 0.8));
+  border-color: #0284c7;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.22);
+}
+
+.plana-hourly-ribbon .hourly-chip.current .h-time {
+  color: #0369a1;
+  font-weight: 900;
+}
+
+.plana-hourly-ribbon .hourly-chip .h-condition {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #0369a1;
+  text-align: center;
+  line-height: 1.15;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
 .hero-card {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
@@ -2310,6 +2595,16 @@ body {
     gap: 1.25rem;
     padding: 1.25rem;
   }
+
+  .plana-hero-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+
+  .plana-pills-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
   
   .daily-item-row {
     grid-template-columns: 110px 36px 1fr 30px;
@@ -2348,6 +2643,31 @@ body {
     justify-content: flex-end;
   }
 
+  .primera-plana-card {
+    padding: 1.25rem;
+  }
+
+  .plana-temp-big {
+    font-size: 4rem;
+  }
+
+  .plana-icon-container {
+    width: 70px;
+    height: 70px;
+  }
+
+  .plana-sky-title {
+    font-size: 1.2rem;
+  }
+
+  .plana-pills-row {
+    grid-template-columns: 1fr;
+  }
+
+  .plana-hourly-ribbon .hourly-chip {
+    flex: 0 0 98px;
+  }
+
   .temp-big {
     font-size: 3.5rem;
   }
@@ -2370,3 +2690,4 @@ body {
     align-items: flex-start;
   }
 }
+

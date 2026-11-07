@@ -77,19 +77,6 @@
       </div>
     </header>
 
-    <!-- Natural Language Weather Brief -->
-    <section class="smart-brief-card" id="smartBriefCard">
-      <div class="brief-icon">✨</div>
-      <div class="brief-content">
-        <div class="brief-tag">DIAGNÓSTICO METEOROLÓGICO INTELIGENTE</div>
-        <p class="brief-text" id="smartBriefText">Cargando diagnóstico climático de Arenales del Sol...</p>
-      </div>
-      <div class="brief-badges">
-        <span class="brief-pill" id="beachComfortPill">🏖️ Confort Baño: 9/10</span>
-        <span class="brief-pill" id="windSportPill">🏄 Windsurf: Óptimo</span>
-      </div>
-    </section>
-
     <!-- Dynamic Warning Banner -->
     <aside id="alertBanner" class="alert-banner hidden" role="alert">
       <div class="alert-content">
@@ -138,95 +125,98 @@
     <!-- Main Content Area -->
     <main class="main-content">
 
-      <!-- ================= TAB 1: OBSERVACIÓN ACTUAL ================= -->
+      <!-- ================= TAB 1: OBSERVACIÓN ACTUAL (EN PRIMERA PLANA) ================= -->
       <section id="tab-overview" class="tab-pane active">
         
-        <!-- Hero Weather Card with Atmosphere Canvas -->
-        <div class="card hero-card">
+        <!-- ================= BLOQUE PRIMERA PLANA ================= -->
+        <!-- Tarjeta Maestra con Datos Cruciales en Primer Vistazo: Temperatura Actual + Situación del Cielo + Próximas Horas -->
+        <div class="card primera-plana-card">
           <canvas id="skyAtmosphereCanvas" class="sky-canvas"></canvas>
-          <div class="hero-left">
-            <div class="hero-status-row">
-              <span class="status-chip" id="conditionText">Cargando datos...</span>
-              <span class="update-time" id="lastUpdated">Actualizado: --:--</span>
-            </div>
+
+          <!-- Zona Superior: Temperatura Actual y Estado del Cielo en Directo -->
+          <div class="plana-hero-header">
             
-            <div class="hero-temp-row">
-              <div class="temp-big" id="currentTemp">--°</div>
-              <div class="hero-icon-container" id="currentWeatherIcon"></div>
+            <div class="plana-main-col">
+              <div class="plana-status-tag">
+                <span class="plana-dot"></span>
+                <span id="conditionText" class="plana-condition-label">Cargando estado del cielo...</span>
+                <span class="plana-update-time" id="lastUpdated">--:--</span>
+              </div>
+
+              <div class="plana-temp-row">
+                <div class="plana-temp-big" id="currentTemp">--°</div>
+                <div class="plana-icon-container" id="currentWeatherIcon"></div>
+                <div class="plana-sky-summary">
+                  <div class="plana-sky-title" id="skyConditionTitle">Soleado y despejado</div>
+                  <div class="plana-sky-sub">
+                    <span>Sensación: <strong id="feelsLikeTemp">--°</strong></span>
+                    <span class="sep">•</span>
+                    <span>Mín: <strong id="tempMin">--°</strong> / Máx: <strong id="tempMax">--°</strong></span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div class="hero-subinfo">
-              <span>Sensación térmica: <strong id="feelsLikeTemp">--°</strong></span>
-              <span class="sep">•</span>
-              <span>Mín: <strong id="tempMin">--°</strong> / Máx: <strong id="tempMax">--°</strong></span>
+            <!-- Fila de tres píldoras clave inmediatas -->
+            <div class="plana-pills-row">
+              <div class="plana-quick-pill">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                <div class="pqp-texts">
+                  <span class="pqp-title">Viento costero</span>
+                  <strong class="pqp-val" id="windSpeed">-- km/h</strong>
+                  <span class="pqp-sub" id="windDirection">Levante (E)</span>
+                </div>
+              </div>
+
+              <div class="plana-quick-pill">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 19v2M12 21v2M16 19v2"/></svg>
+                <div class="pqp-texts">
+                  <span class="pqp-title">Lluvia hoy</span>
+                  <strong class="pqp-val" id="rainChanceHeader">0% prob.</strong>
+                  <span class="pqp-sub" id="rainSumHeader">0.0 mm acum.</span>
+                </div>
+              </div>
+
+              <div class="plana-quick-pill">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><circle cx="12" cy="7" r="4"/></svg>
+                <div class="pqp-texts">
+                  <span class="pqp-title">Estado del Mar</span>
+                  <strong class="pqp-val" id="beachFlagHeader">Bandera Verde</strong>
+                  <span class="pqp-sub" id="waveHeightHeader">Olas ~0.3 m</span>
+                </div>
+              </div>
             </div>
-            
-            <div class="hero-trend-pill" id="heroTrendPill">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-              <span>+1.2°C respecto a ayer a esta hora · Tendencia al alza</span>
+
+          </div>
+
+          <!-- Zona Inferior de Primera Plana: Situación del Cielo y Temperatura en las Próximas Horas -->
+          <div class="plana-hourly-section">
+            <div class="plana-hourly-header">
+              <div class="ph-title-wrap">
+                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <h2 class="ph-title">Situación del cielo y temperatura en las próximas horas</h2>
+              </div>
+              <span class="ph-hint">Desliza para ver la jornada completa</span>
+            </div>
+
+            <!-- Tira de horas ultra-visual -->
+            <div class="plana-hourly-ribbon" id="quickHourlyRibbon">
+              <!-- Rellenado dinámicamente con Hora, Icono, Estado de cielo, Temp y Lluvia -->
             </div>
           </div>
 
-          <div class="hero-right">
-            <!-- Radial gauges mini row -->
-            <div class="radial-gauges-row">
-              <!-- UV Gauge -->
-              <div class="radial-gauge-item">
-                <svg class="radial-svg" viewBox="0 0 100 60">
-                  <path d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="#e2e8f0" stroke-width="7" stroke-linecap="round"/>
-                  <path id="uvRadialArc" d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="url(#uvArcGrad)" stroke-width="7" stroke-dasharray="110" stroke-dashoffset="50" stroke-linecap="round"/>
-                  <defs>
-                    <linearGradient id="uvArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stop-color="#10b981"/>
-                      <stop offset="40%" stop-color="#f59e0b"/>
-                      <stop offset="80%" stop-color="#ef4444"/>
-                      <stop offset="100%" stop-color="#8b5cf6"/>
-                    </linearGradient>
-                  </defs>
-                  <text x="50" y="44" text-anchor="middle" font-size="14" font-weight="800" fill="#0f172a" id="uvGaugeVal">4.8</text>
-                  <text x="50" y="56" text-anchor="middle" font-size="7" fill="#64748b">Índice UV</text>
-                </svg>
-              </div>
+        </div>
 
-              <!-- Humidity Gauge -->
-              <div class="radial-gauge-item">
-                <svg class="radial-svg" viewBox="0 0 100 60">
-                  <path d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="#e2e8f0" stroke-width="7" stroke-linecap="round"/>
-                  <path id="humRadialArc" d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="#0ea5e9" stroke-width="7" stroke-dasharray="110" stroke-dashoffset="40" stroke-linecap="round"/>
-                  <text x="50" y="44" text-anchor="middle" font-size="14" font-weight="800" fill="#0f172a" id="humGaugeVal">62%</text>
-                  <text x="50" y="56" text-anchor="middle" font-size="7" fill="#64748b">Humedad</text>
-                </svg>
-              </div>
-
-              <!-- Sea Wave Gauge -->
-              <div class="radial-gauge-item">
-                <svg class="radial-svg" viewBox="0 0 100 60">
-                  <path d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="#e2e8f0" stroke-width="7" stroke-linecap="round"/>
-                  <path id="waveRadialArc" d="M 15 50 A 35 35 0 0 1 85 50" fill="none" stroke="#06b6d4" stroke-width="7" stroke-dasharray="110" stroke-dashoffset="85" stroke-linecap="round"/>
-                  <text x="50" y="44" text-anchor="middle" font-size="13" font-weight="800" fill="#0f172a" id="waveGaugeVal">0.3m</text>
-                  <text x="50" y="56" text-anchor="middle" font-size="7" fill="#64748b">Oleaje</text>
-                </svg>
-              </div>
-            </div>
-
-            <!-- Hero Quick Stat Boxes -->
-            <div class="hero-stat-box">
-              <div class="stat-box-title">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                <span>Viento Litoral</span>
-              </div>
-              <div class="stat-box-val" id="windSpeed">-- km/h</div>
-              <div class="stat-box-sub" id="windDirection">Levante (E) · Brisa marina</div>
-            </div>
-
-            <div class="hero-stat-box">
-              <div class="stat-box-title">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
-                <span>Nubosidad</span>
-              </div>
-              <div class="stat-box-val" id="cloudCover">--%</div>
-              <div class="stat-box-sub" id="cloudBase">Despejado</div>
-            </div>
+        <!-- ================= SEGUNDA SECCIÓN: DIAGNÓSTICO Y CONFORT ================= -->
+        <div class="smart-brief-card" id="smartBriefCard">
+          <div class="brief-icon">✨</div>
+          <div class="brief-content">
+            <div class="brief-tag">DIAGNÓSTICO METEOROLÓGICO INTELIGENTE</div>
+            <p class="brief-text" id="smartBriefText">Cargando diagnóstico climático de Arenales del Sol...</p>
+          </div>
+          <div class="brief-badges">
+            <span class="brief-pill" id="beachComfortPill">🏖️ Confort Baño: 9/10</span>
+            <span class="brief-pill" id="windSportPill">🏄 Windsurf: Óptimo</span>
           </div>
         </div>
 
@@ -276,15 +266,6 @@
               <div class="act-score" id="actBuceoScore">8.5/10</div>
             </div>
           </div>
-        </div>
-
-        <!-- 24h Hourly Ribbon -->
-        <div class="card hourly-ribbon-card">
-          <div class="card-header">
-            <h3 class="card-title">Próximas 24 horas en el Litoral</h3>
-            <span class="card-hint">Desliza horizontalmente para ver la evolución</span>
-          </div>
-          <div class="hourly-ribbon" id="quickHourlyRibbon"></div>
         </div>
 
         <!-- Detailed Metrics Grid (6 cards) -->
@@ -465,7 +446,7 @@
               <span>Playa del Carabassí</span>
             </button>
             <button class="cam-tab-btn" data-cam="santapola">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               <span>Faro & Bahía Santa Pola</span>
             </button>
             <button class="cam-tab-btn" data-cam="tabarca">
@@ -476,10 +457,8 @@
 
           <!-- Video / Stream Viewport -->
           <div class="webcam-viewport" id="webcamViewport">
-            <!-- Canvas generating simulated real-time Mediterranean coast water & light conditions -->
             <canvas id="webcamCanvas" class="cam-render-canvas"></canvas>
 
-            <!-- Real-time HUD on top of webcam -->
             <div class="cam-hud-top">
               <div class="hud-pill hud-location" id="hudLocationName">📍 Playa Central de Arenales del Sol</div>
               <div class="hud-pill hud-quality">HD 1080p · 30 FPS</div>
@@ -540,7 +519,6 @@
             </div>
           </div>
           
-          <!-- Interactive SVG Chart -->
           <div class="chart-wrapper">
             <svg id="hourlyChartSvg" class="interactive-chart" viewBox="0 0 800 240" preserveAspectRatio="none"></svg>
             <div id="chartTooltip" class="chart-tooltip hidden">
@@ -551,7 +529,6 @@
             </div>
           </div>
 
-          <!-- Extended Table -->
           <div class="hourly-table-wrap">
             <table class="hourly-table">
               <thead>
@@ -602,7 +579,6 @@
 
           <div class="radar-canvas-container">
             <div class="radar-map-view" id="radarMapView">
-              <!-- Radar sweep rings -->
               <div class="radar-grid-rings">
                 <div class="ring ring-1"></div>
                 <div class="ring ring-2"></div>
@@ -610,7 +586,6 @@
                 <div class="sweep-beam"></div>
               </div>
 
-              <!-- Geographical Coastline Canvas SVG -->
               <svg class="radar-geo-svg" viewBox="0 0 500 350">
                 <path d="M 120 0 Q 150 70 210 120 T 260 210 Q 275 250 290 350" fill="none" stroke="rgba(14, 165, 233, 0.4)" stroke-width="2.5" stroke-dasharray="6,4"/>
                 
@@ -645,7 +620,6 @@
                 <g id="radarEchoesGroup"></g>
               </svg>
 
-              <!-- Radar Scale Legend -->
               <div class="radar-scale">
                 <span class="scale-label">Intensidad Reflectividad (dBZ):</span>
                 <div class="scale-gradient"></div>
@@ -658,7 +632,6 @@
               </div>
             </div>
 
-            <!-- Controls -->
             <div class="radar-controls">
               <button id="btnRadarPlay" class="btn-radar-play">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -680,7 +653,6 @@
             </div>
           </div>
 
-          <!-- CAPE Diagnostic Panel -->
           <div class="storm-analysis-panel">
             <h3 class="panel-subtitle">Diagnóstico Convectivo e Inestabilidad Marina</h3>
             <div class="storm-cards-row">

@@ -357,52 +357,105 @@
     const cur = state.weatherData.current;
     const meta = getWeatherMeta(cur.weather_code, cur.is_day);
 
-    document.getElementById('conditionText').textContent = meta.desc;
-    document.getElementById('currentTemp').textContent = fmtTemp(cur.temperature_2m);
-    document.getElementById('currentWeatherIcon').innerHTML = meta.icon;
-    document.getElementById('feelsLikeTemp').textContent = fmtTemp(cur.apparent_temperature);
+    const condEl = document.getElementById('conditionText');
+    if (condEl) condEl.textContent = meta.desc;
 
-    const todayMin = state.weatherData.daily.temperature_2m_min[0];
-    const todayMax = state.weatherData.daily.temperature_2m_max[0];
-    document.getElementById('tempMin').textContent = fmtTemp(todayMin);
-    document.getElementById('tempMax').textContent = fmtTemp(todayMax);
+    const tempEl = document.getElementById('currentTemp');
+    if (tempEl) tempEl.textContent = fmtTemp(cur.temperature_2m);
+
+    const iconEl = document.getElementById('currentWeatherIcon');
+    if (iconEl) iconEl.innerHTML = meta.icon;
+
+    const feelsEl = document.getElementById('feelsLikeTemp');
+    if (feelsEl) feelsEl.textContent = fmtTemp(cur.apparent_temperature);
+
+    const todayMin = state.weatherData.daily?.temperature_2m_min?.[0] ?? 14;
+    const todayMax = state.weatherData.daily?.temperature_2m_max?.[0] ?? 23;
+    const minEl = document.getElementById('tempMin');
+    if (minEl) minEl.textContent = fmtTemp(todayMin);
+    const maxEl = document.getElementById('tempMax');
+    if (maxEl) maxEl.textContent = fmtTemp(todayMax);
+
+    const skyTitleEl = document.getElementById('skyConditionTitle');
+    if (skyTitleEl) skyTitleEl.textContent = meta.desc;
 
     const now = new Date();
-    document.getElementById('lastUpdated').textContent = `Actualizado: ${now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
+    const updatedEl = document.getElementById('lastUpdated');
+    if (updatedEl) updatedEl.textContent = `Actualizado: ${now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`;
 
-    // Stat boxes
-    document.getElementById('windSpeed').textContent = fmtSpeed(cur.wind_speed_10m);
-    document.getElementById('windDirection').textContent = getWindName(cur.wind_direction_10m);
-    document.getElementById('cloudCover').textContent = `${Math.round(cur.cloud_cover)}%`;
+    // Primera Plana Pills & Stat boxes
+    const windEl = document.getElementById('windSpeed');
+    if (windEl) windEl.textContent = fmtSpeed(cur.wind_speed_10m);
+    const windDirEl = document.getElementById('windDirection');
+    if (windDirEl) windDirEl.textContent = getWindName(cur.wind_direction_10m);
+
+    const rainChanceEl = document.getElementById('rainChanceHeader');
+    const rainSumEl = document.getElementById('rainSumHeader');
+    const rainProb = state.weatherData.daily?.precipitation_probability_max?.[0] ?? 0;
+    const rainSum = state.weatherData.daily?.precipitation_sum?.[0] ?? 0;
+    if (rainChanceEl) rainChanceEl.textContent = `${rainProb}% prob.`;
+    if (rainSumEl) rainSumEl.textContent = `${rainSum.toFixed(1)} mm acum.`;
+
+    const beachFlagEl = document.getElementById('beachFlagHeader');
+    const waveHeightEl = document.getElementById('waveHeightHeader');
+    const wave = state.marineData?.current?.wave_height || 0.3;
+    if (beachFlagEl) {
+      if (wave < 0.5) {
+        beachFlagEl.textContent = 'Bandera Verde';
+        beachFlagEl.style.color = '#059669';
+      } else if (wave < 1.2) {
+        beachFlagEl.textContent = 'Bandera Amarilla';
+        beachFlagEl.style.color = '#d97706';
+      } else {
+        beachFlagEl.textContent = 'Bandera Roja';
+        beachFlagEl.style.color = '#dc2626';
+      }
+    }
+    if (waveHeightEl) {
+      waveHeightEl.textContent = `Olas ~${wave.toFixed(1)} m`;
+    }
+
+    const cloudEl = document.getElementById('cloudCover');
+    if (cloudEl) cloudEl.textContent = `${Math.round(cur.cloud_cover)}%`;
 
     // Radial Gauges SVG calculations
-    const uv = state.weatherData.daily.uv_index_max ? state.weatherData.daily.uv_index_max[0] : 4.8;
-    document.getElementById('uvGaugeVal').textContent = uv.toFixed(1);
-    const uvOffset = Math.max(0, 110 - (uv / 11) * 110);
+    const uv = state.weatherData.daily?.uv_index_max?.[0] ?? 4.8;
+    const uvEl = document.getElementById('uvGaugeVal');
+    if (uvEl) uvEl.textContent = uv.toFixed(1);
     const uvArc = document.getElementById('uvRadialArc');
-    if (uvArc) uvArc.style.strokeDashoffset = uvOffset;
+    if (uvArc) {
+      const uvOffset = Math.max(0, 110 - (uv / 11) * 110);
+      uvArc.style.strokeDashoffset = uvOffset;
+    }
 
     const hum = cur.relative_humidity_2m || 60;
-    document.getElementById('humGaugeVal').textContent = `${Math.round(hum)}%`;
-    const humOffset = Math.max(0, 110 - (hum / 100) * 110);
+    const humEl = document.getElementById('humGaugeVal');
+    if (humEl) humEl.textContent = `${Math.round(hum)}%`;
     const humArc = document.getElementById('humRadialArc');
-    if (humArc) humArc.style.strokeDashoffset = humOffset;
+    if (humArc) {
+      const humOffset = Math.max(0, 110 - (hum / 100) * 110);
+      humArc.style.strokeDashoffset = humOffset;
+    }
 
-    const wave = state.marineData?.current?.wave_height || 0.3;
-    document.getElementById('waveGaugeVal').textContent = `${wave.toFixed(1)}m`;
-    const waveOffset = Math.max(0, 110 - (wave / 2.5) * 110);
+    const waveEl = document.getElementById('waveGaugeVal');
+    if (waveEl) waveEl.textContent = `${wave.toFixed(1)}m`;
     const waveArc = document.getElementById('waveRadialArc');
-    if (waveArc) waveArc.style.strokeDashoffset = waveOffset;
+    if (waveArc) {
+      const waveOffset = Math.max(0, 110 - (wave / 2.5) * 110);
+      waveArc.style.strokeDashoffset = waveOffset;
+    }
   }
 
-  // 4. Quick 24h Hourly Ribbon
+  // 4. Quick 24h Hourly Ribbon in Primera Plana
   function renderHourlyRibbon() {
     const container = document.getElementById('quickHourlyRibbon');
+    if (!container) return;
     container.innerHTML = '';
 
     const hourly = state.weatherData.hourly;
+    if (!hourly || !hourly.time) return;
     const now = new Date();
-    const currentHourIndex = hourly.time.findIndex(t => new Date(t) >= now) || 0;
+    const currentHourIndex = Math.max(0, hourly.time.findIndex(t => new Date(t) >= now));
 
     for (let i = currentHourIndex; i < currentHourIndex + 24; i++) {
       if (!hourly.time[i]) break;
@@ -417,8 +470,9 @@
       chip.innerHTML = `
         <span class="h-time">${isNow ? 'Ahora' : hourStr}</span>
         <div class="h-icon">${meta.icon}</div>
+        <span class="h-condition" title="${meta.desc}">${meta.desc}</span>
         <span class="h-temp">${fmtTemp(hourly.temperature_2m[i])}</span>
-        <span class="h-rain">${hourly.precipitation_probability[i] || 0}%</span>
+        <span class="h-rain">💧 ${hourly.precipitation_probability[i] || 0}%</span>
       `;
       container.appendChild(chip);
     }
