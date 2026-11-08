@@ -1109,11 +1109,9 @@ class AdventCalendar {
                   <video id="modal-product-video" 
                          src="${gift.video || 'Videos/Dia1.mp4'}"
                          controls 
-                         autoplay 
-                         muted 
                          loop 
                          playsinline 
-                         preload="auto" 
+                         preload="metadata" 
                          poster="assets/products/P${gift.day}.jpg" 
                          class="w-full h-full object-contain rounded-xl shadow-2xl bg-black">
                     <source src="${gift.video || 'Videos/Dia1.mp4'}" type="video/mp4">
@@ -1270,8 +1268,7 @@ class AdventCalendar {
         photoBox.classList.add('hidden');
         toggleVideoBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-gradient-to-r from-red-600 to-amber-500 text-white shadow";
         togglePhotoBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 text-slate-300 hover:text-white";
-        const v = document.getElementById('modal-product-video');
-        if (v) v.play().catch(() => {});
+        // Vídeo en pausa manual al alternar pestaña
       };
       togglePhotoBtn.onclick = () => {
         videoBox.classList.add('hidden');
@@ -1686,7 +1683,7 @@ class TeaserFallingGifts {
     this.active = true;
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    // Listado de compañeros exacto
+    // Listado de compañeros exacto (Iván A. e Iván C. para los regalos voladores)
     this.names = [
       "Ana", "Edu", "Ernesto", "Gloria", "Irene",
       "Iván A.", "Iván C.", "Jose Luis", "Manuel",
@@ -1708,15 +1705,40 @@ class TeaserFallingGifts {
     this.BOX_WIDTH = 74;
     this.BOX_HEIGHT = 56;
 
-    this.maxGifts = window.innerWidth < 768 ? 14 : 24;
     this.resize();
-    this.initGifts();
-    this.initSparkles();
-
     window.addEventListener('resize', () => this.resize());
     this.lastTime = performance.now();
     this.animate = this.animate.bind(this);
     this.animId = requestAnimationFrame(this.animate);
+  }
+
+  getLanes() {
+    // EN LA VERSIÓN MÓVIL (< 1024px): NO vuelan los regalos para mantener legibilidad total
+    if (this.width < 1024) return null;
+
+    const contentEl = document.getElementById('teaser-main-content');
+    let leftLimit = 180;
+    let rightLimit = this.width - 180;
+
+    if (contentEl) {
+      const rect = contentEl.getBoundingClientRect();
+      // Margen de seguridad estricto antes del contenido central
+      leftLimit = Math.max(30, Math.min(rect.left - 45, this.width * 0.22));
+      rightLimit = Math.min(this.width - 30, Math.max(rect.right + 45, this.width * 0.78));
+    } else {
+      leftLimit = this.width * 0.18;
+      rightLimit = this.width * 0.82;
+    }
+
+    // Si la pantalla no tiene espacio lateral suficiente para los paquetes, no dibujar
+    if (leftLimit < 65 || (this.width - rightLimit) < 65) {
+      return null;
+    }
+
+    return {
+      leftLane: [20, leftLimit],
+      rightLane: [rightLimit, this.width - 20]
+    };
   }
 
   resize() {
@@ -1728,6 +1750,19 @@ class TeaserFallingGifts {
     this.canvas.style.width = this.width + 'px';
     this.canvas.style.height = this.height + 'px';
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
+    const lanes = this.getLanes();
+    if (!lanes) {
+      // Móvil o pantalla estrecha: limpiar y no generar regalos
+      this.gifts = [];
+      this.sparkles = [];
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      return;
+    }
+
+    this.maxGifts = 18; // 9 por lateral aprox
+    this.initGifts(lanes);
+    this.initSparkles(lanes);
   }
 
   getNextName() {
@@ -1736,48 +1771,67 @@ class TeaserFallingGifts {
     return name;
   }
 
-  initGifts() {
+  initGifts(lanes) {
     this.gifts = [];
     const count = this.maxGifts;
     for (let i = 0; i < count; i++) {
       const startY = (this.height / count) * i + (Math.random() * 40 - 20);
-      this.gifts.push(this.createGift(startY));
+      const side = (i % 2 === 0) ? 'left' : 'right';
+      this.gifts.push(this.createGift(startY, side, lanes));
     }
   }
 
-  createGift(startY) {
+  createGift(startY, forceSide = null, lanes = null) {
+    lanes = lanes || this.getLanes();
+    if (!lanes) return null;
+
     const name = this.getNextName();
     const scheme = this.colorSchemes[Math.floor(Math.random() * this.colorSchemes.length)];
+    const side = forceSide || (Math.random() < 0.5 ? 'left' : 'right');
+    const [laneMin, laneMax] = side === 'left' ? lanes.leftLane : lanes.rightLane;
+
+    const safeSpan = Math.max(10, (laneMax - laneMin) - this.BOX_WIDTH);
+    const baseX = laneMin + this.BOX_WIDTH / 2 + Math.random() * safeSpan;
 
     return {
       name: name,
       scheme: scheme,
-      x: Math.random() * (this.width || 800),
+      side: side,
+      x: baseX,
+      baseX: baseX,
+      laneMin: laneMin + this.BOX_WIDTH / 2,
+      laneMax: laneMax - this.BOX_WIDTH / 2,
       y: startY !== undefined ? startY : -90 - Math.random() * 80,
-      width: this.BOX_WIDTH,   // TAMAÑO EXACTO Y UNIFORME
-      height: this.BOX_HEIGHT, // TAMAÑO EXACTO Y UNIFORME
-      speedY: 0.95 + Math.random() * 0.45, // Caída suave y constante como copo
-      swayAmp: 0.9 + Math.random() * 0.8,   // Movimiento lateral sereno y estable
+      width: this.BOX_WIDTH,
+      height: this.BOX_HEIGHT,
+      speedY: 0.95 + Math.random() * 0.45,
+      swayAmp: Math.min(1.2, Math.max(0.4, (laneMax - laneMin) * 0.05)),
       swayFreq: 0.009 + Math.random() * 0.006,
       swayOffset: Math.random() * Math.PI * 2,
-      tiltAmp: 0.05 + Math.random() * 0.04, // Balanceo pendular sutil (máx 3-4° sin deformación)
+      tiltAmp: 0.05 + Math.random() * 0.04,
       tiltFreq: 0.011 + Math.random() * 0.006,
       tiltOffset: Math.random() * Math.PI * 2,
-      opacity: 0.92,
+      opacity: 0.95,
       t: Math.random() * 500
     };
   }
 
-  initSparkles() {
+  initSparkles(lanes) {
     this.sparkles = [];
-    for (let i = 0; i < 40; i++) {
+    if (!lanes) return;
+    for (let i = 0; i < 30; i++) {
+      const side = i % 2 === 0 ? 'left' : 'right';
+      const [lMin, lMax] = side === 'left' ? lanes.leftLane : lanes.rightLane;
       this.sparkles.push({
-        x: Math.random() * (this.width || 800),
+        x: lMin + Math.random() * (lMax - lMin),
         y: Math.random() * (this.height || 600),
         size: Math.random() * 2.2 + 0.8,
         alpha: Math.random(),
         speed: 0.02 + Math.random() * 0.025,
-        vy: 0.35 + Math.random() * 0.45
+        vy: 0.35 + Math.random() * 0.45,
+        side: side,
+        lMin: lMin,
+        lMax: lMax
       });
     }
   }
@@ -1788,27 +1842,44 @@ class TeaserFallingGifts {
       return;
     }
 
+    // Si estamos en versión móvil (< 1024px), pantalla limpia sin regalos
+    if (this.width < 1024) {
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      this.animId = requestAnimationFrame(this.animate);
+      return;
+    }
+
     const dt = Math.min((now - (this.lastTime || now)) / 16.67, 2.5);
     this.lastTime = now;
 
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // 1. Chispas doradas flotantes
-    this.drawSparkles(dt);
+    const lanes = this.getLanes();
+    if (!lanes) {
+      this.animId = requestAnimationFrame(this.animate);
+      return;
+    }
 
-    // 2. Regalos cayendo de forma estable y profesional
+    // 1. Chispas doradas en los laterales
+    this.drawSparkles(dt, lanes);
+
+    // 2. Regalos cayendo exclusivamente por los laterales
     for (let i = 0; i < this.gifts.length; i++) {
       const g = this.gifts[i];
+      if (!g) continue;
       g.t += dt;
 
       g.y += g.speedY * dt;
-      g.x += Math.sin(g.t * g.swayFreq + g.swayOffset) * g.swayAmp;
+      
+      // Oscilación suave estrictamente limitada a su carril lateral
+      const sway = Math.sin(g.t * g.swayFreq + g.swayOffset) * g.swayAmp;
+      g.x = Math.max(g.laneMin, Math.min(g.laneMax, g.baseX + sway));
 
-      // Inclinación pendular suave sin escalado ni deformación de la caja
       const tilt = Math.sin(g.t * g.tiltFreq + g.tiltOffset) * g.tiltAmp;
 
       if (g.y > this.height + 90) {
-        Object.assign(g, this.createGift(-90));
+        const recycled = this.createGift(-90, g.side, lanes);
+        if (recycled) Object.assign(g, recycled);
       }
 
       this.drawGiftBox(g, tilt);
@@ -1817,7 +1888,7 @@ class TeaserFallingGifts {
     this.animId = requestAnimationFrame(this.animate);
   }
 
-  drawSparkles(dt) {
+  drawSparkles(dt, lanes) {
     const ctx = this.ctx;
     ctx.save();
     for (let s of this.sparkles) {
@@ -1825,7 +1896,8 @@ class TeaserFallingGifts {
       s.alpha += s.speed * dt;
       if (s.y > this.height) {
         s.y = -10;
-        s.x = Math.random() * this.width;
+        const [lMin, lMax] = s.side === 'left' ? lanes.leftLane : lanes.rightLane;
+        s.x = lMin + Math.random() * (lMax - lMin);
       }
       const currentAlpha = 0.2 + Math.sin(s.alpha) * 0.35;
 
@@ -1841,7 +1913,6 @@ class TeaserFallingGifts {
     const ctx = this.ctx;
     ctx.save();
 
-    // Posicionamiento sin escalado que deforme el regalo
     ctx.translate(g.x, g.y);
     ctx.rotate(tilt);
     ctx.globalAlpha = g.opacity;
@@ -1865,7 +1936,7 @@ class TeaserFallingGifts {
     this.drawRoundedRect(ctx, -w / 2, -h / 2, w, h, radius);
     ctx.fill();
 
-    // Bisel superior iluminado (efecto 3D pulido)
+    // Bisel superior iluminado
     ctx.shadowColor = "transparent";
     ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
     ctx.lineWidth = 1;
@@ -1895,7 +1966,6 @@ class TeaserFallingGifts {
     const loopH = 6;
 
     ctx.fillStyle = g.scheme.ribbon;
-    // Bucle izquierdo
     ctx.beginPath();
     ctx.ellipse(-7, bowY - 4, loopW, loopH, -0.35, 0, Math.PI * 2);
     ctx.fill();
@@ -1903,7 +1973,6 @@ class TeaserFallingGifts {
     ctx.lineWidth = 0.8;
     ctx.stroke();
 
-    // Bucle derecho
     ctx.beginPath();
     ctx.ellipse(7, bowY - 4, loopW, loopH, 0.35, 0, Math.PI * 2);
     ctx.fill();
@@ -1915,22 +1984,19 @@ class TeaserFallingGifts {
     ctx.arc(0, bowY - 2, 3.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // 5. Placa / Cartela con el Nombre de la Persona (Dentro del regalo)
-    const tagW = w - 12; // 62px de ancho
-    const tagH = 21;     // 21px de alto
-    const tagY = 3;      // Centrada verticalmente en el regalo
+    // 5. Placa con el Nombre de la Persona (Dentro del cuerpo del regalo)
+    const tagW = w - 12; // 62px
+    const tagH = 21;
+    const tagY = 3;
 
-    // Fondo oscuro premium para la cartela
     ctx.fillStyle = "rgba(10, 16, 28, 0.94)";
     this.drawRoundedRect(ctx, -tagW / 2, tagY - tagH / 2, tagW, tagH, 4);
     ctx.fill();
 
-    // Borde dorado fino de la cartela
     ctx.strokeStyle = g.scheme.ribbon;
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Texto con el nombre del compañero, perfectamente legible y centrado
     ctx.font = "700 11px Inter, system-ui, -apple-system, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -1983,7 +2049,6 @@ function initTeaserGate() {
   const unlockedView = document.getElementById('teaser-unlocked-view');
   const adminBar = document.getElementById('creator-admin-bar');
   const teaserVideo = document.getElementById('teaser-video');
-  const videoPlaceholder = document.getElementById('teaser-video-placeholder');
   const unmuteBtn = document.getElementById('teaser-video-unmute-btn');
   const muteIcon = document.getElementById('teaser-video-mute-icon');
   const muteLabel = document.getElementById('teaser-video-mute-label');
@@ -2002,61 +2067,58 @@ function initTeaserGate() {
   // Inicializar efecto espectacular de regalos cayendo con los nombres de las personas
   window.teaserGiftsBlizzard = new TeaserFallingGifts('teaser-gifts-canvas');
 
-  // 1. Manejo del Vídeo con Autoplay
+  // 1. Manejo del Vídeo Oficial (REPRODUCCIÓN MANUAL: NO SE AUTOREPRODUCE SOLO)
+  const videoPlayOverlay = document.getElementById('teaser-video-play-overlay');
+  const videoPlayBtn = document.getElementById('teaser-video-play-btn');
+  const videoContainer = document.getElementById('teaser-video-container');
+
   if (teaserVideo) {
-    teaserVideo.muted = true;
+    // Asegurar que comience pausado
+    teaserVideo.pause();
 
-    const hidePlaceholder = () => {
-      if (videoPlaceholder) {
-        videoPlaceholder.style.opacity = '0';
-        videoPlaceholder.style.pointerEvents = 'none';
-        setTimeout(() => {
-          if (videoPlaceholder) videoPlaceholder.style.display = 'none';
-        }, 500);
+    const hidePlayOverlay = () => {
+      if (videoPlayOverlay) {
+        videoPlayOverlay.classList.add('opacity-0', 'pointer-events-none');
       }
     };
 
-    teaserVideo.addEventListener('playing', hidePlaceholder);
-    teaserVideo.addEventListener('loadeddata', hidePlaceholder);
-    teaserVideo.addEventListener('canplay', hidePlaceholder);
-    teaserVideo.addEventListener('timeupdate', () => {
-      if (teaserVideo.currentTime > 0.05) hidePlaceholder();
-    });
-
-    const tryPlay = () => {
-      teaserVideo.muted = true;
-      const playPromise = teaserVideo.play();
-      if (playPromise !== undefined) {
-        playPromise.then(() => {
-          hidePlaceholder();
-        }).catch(err => {
-          console.log("Autoplay de vídeo en espera de interacción del usuario:", err);
-        });
+    const showPlayOverlay = () => {
+      if (videoPlayOverlay) {
+        videoPlayOverlay.classList.remove('opacity-0', 'pointer-events-none');
       }
     };
 
-    tryPlay();
-    // Reintentar si hubo restricciones de carga inicial
-    setTimeout(tryPlay, 400);
+    const toggleVideoPlayback = (e) => {
+      if (e) e.stopPropagation();
+      if (!teaserVideo) return;
 
-    // Clic en el vídeo para alternar pausa/reproducción
-    teaserVideo.addEventListener('click', () => {
       if (teaserVideo.paused) {
-        teaserVideo.play();
+        teaserVideo.play().then(() => {
+          hidePlayOverlay();
+        }).catch(err => {
+          console.log("Reproducción manual iniciada:", err);
+        });
       } else {
         teaserVideo.pause();
+        showPlayOverlay();
       }
-    });
+    };
 
+    if (videoPlayOverlay) videoPlayOverlay.onclick = toggleVideoPlayback;
+    if (videoPlayBtn) videoPlayBtn.onclick = toggleVideoPlayback;
+    if (videoContainer) videoContainer.onclick = toggleVideoPlayback;
+
+    teaserVideo.addEventListener('play', hidePlayOverlay);
+    teaserVideo.addEventListener('pause', showPlayOverlay);
+    teaserVideo.addEventListener('ended', showPlayOverlay);
+
+    // Botón de alternancia de Sonido
     if (unmuteBtn) {
       unmuteBtn.onclick = (e) => {
         e.stopPropagation();
         teaserVideo.muted = !teaserVideo.muted;
         if (muteIcon) muteIcon.innerText = teaserVideo.muted ? "🔇" : "🔊";
-        if (muteLabel) muteLabel.innerText = teaserVideo.muted ? "Activar Sonido" : "Silenciar";
-        if (!teaserVideo.muted && teaserVideo.paused) {
-          teaserVideo.play();
-        }
+        if (muteLabel) muteLabel.innerText = teaserVideo.muted ? "Silenciado" : "Sonido Activo";
       };
     }
   }
@@ -2089,8 +2151,10 @@ function initTeaserGate() {
         if (!currentSrc.includes('Dia1.mp4')) {
           teaserVideo.src = 'Videos/Dia1.mp4';
           teaserVideo.load();
-          teaserVideo.play().catch(e => console.log('Autoplay Dia1:', e));
+          teaserVideo.pause();
         }
+        const badge = document.getElementById('teaser-video-badge');
+        if (badge) badge.innerText = "DÍA 1 • VÍDEO OFICIAL";
       }
     } else {
       // Estado Bloqueado: Antes del 1 de diciembre
@@ -2104,8 +2168,10 @@ function initTeaserGate() {
         if (!currentSrc.includes('Video1.mp4')) {
           teaserVideo.src = 'Videos/Video1.mp4';
           teaserVideo.load();
-          teaserVideo.play().catch(e => console.log('Autoplay Video1:', e));
+          teaserVideo.pause();
         }
+        const badge = document.getElementById('teaser-video-badge');
+        if (badge) badge.innerText = "TRÁILER OFICIAL";
       }
     }
   }
