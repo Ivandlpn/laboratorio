@@ -1210,7 +1210,8 @@ class ColleagueGiftBox {
             <div>
               <span class="text-[10px] text-slate-500 uppercase font-bold">DESTINO PRIORITARIO:</span>
               <p class="font-bold text-red-600">Base Monforte del Cid</p>
-              <p class="text-[10px] text-slate-500">Alicante • P.K. 420</p>
+              <p class="text-[10px] text-slate-500 font-mono">38.40674°N, -0.69494°W</p>
+              <a href="https://www.google.com/maps?q=38.406741739956495,-0.6949394856139979" target="_blank" rel="noopener" class="inline-block text-[10px] text-blue-700 hover:text-blue-900 underline font-semibold mt-0.5">📍 Ver Ubicación en Maps ↗</a>
             </div>
             <div>
               <span class="text-[10px] text-slate-500 uppercase font-bold">FECHA ENTREGA:</span>
@@ -1349,8 +1350,8 @@ class ColleagueGiftBox {
     ctx.fillText('INECO • BILLETE SOLIDARIO 2026', 70, 75);
 
     ctx.fillStyle = '#FCD34D';
-    ctx.font = 'bold 16px Poppins, sans-serif';
-    ctx.fillText('BASE MONFORTE DEL CID (ALICANTE)', 440, 75);
+    ctx.font = 'bold 15px Poppins, sans-serif';
+    ctx.fillText('MONFORTE (38.4067°N, -0.6949°W)', 430, 75);
 
     ctx.fillStyle = '#0D2246';
     ctx.font = '900 32px Poppins, sans-serif';
