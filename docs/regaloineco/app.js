@@ -899,42 +899,70 @@ class AdventCalendar {
 
       col.innerHTML = `
         <div class="advent-card ${isOpened ? 'opened' : ''}" data-day="${gift.day}" id="gift-card-${gift.day}">
-          <!-- CARA FRONTAL: MISTERIO TOTAL (SIN SPOILER DE LO QUE HAY DENTRO) -->
-          <div class="advent-front p-5 flex flex-col justify-between select-none foil-sheen">
-            <div class="gift-ribbon-horizontal"></div>
-            <div class="gift-ribbon-vertical"></div>
+          <!-- CARA FRONTAL: BILLETE SOLIDARIO DE ALTA VELOCIDAD (LUJO, MISTERIO Y SIN SPOILER) -->
+          <div class="advent-front p-4 sm:p-5 flex flex-col justify-between select-none foil-sheen relative overflow-hidden">
+            <!-- Trama de Seguridad Ferroviaria Guilloche -->
+            <div class="ticket-guilloche-bg"></div>
 
-            <div class="gift-seal-badge w-20 h-20 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 border-4 border-slate-900 shadow-2xl flex flex-col items-center justify-center p-2 red-pulse">
-              <span class="text-[9px] uppercase font-black tracking-widest text-slate-950">DÍA</span>
-              <span class="text-2xl font-black text-slate-950 font-poppins leading-none">${gift.day}</span>
-              <span class="text-[8px] font-extrabold text-slate-900">2027</span>
+            <!-- Muescas Semicirculares de Billete Troquelado -->
+            <div class="ticket-notch notch-left"></div>
+            <div class="ticket-notch notch-right"></div>
+
+            <!-- Cintas Festivas Cruzadas con Pespunte Dorado -->
+            <div class="gift-ribbon-horizontal">
+              <div class="ribbon-stitch-line"></div>
+            </div>
+            <div class="gift-ribbon-vertical">
+              <div class="ribbon-stitch-line-vert"></div>
             </div>
 
-            <div class="flex justify-between items-center z-10">
-              <span class="text-[10px] font-black tracking-wider px-2.5 py-1 rounded-full bg-blue-900/90 text-blue-200 border border-blue-400/30">
-                SOLIDARIO
+            <!-- Sello Central: Moneda de Oro Relieve y Lacra 2026 -->
+            <div class="gift-seal-badge w-20 h-20 sm:w-22 sm:h-22 rounded-full flex flex-col items-center justify-center red-pulse">
+              <div class="seal-inner-coin flex flex-col items-center justify-center w-full h-full rounded-full">
+                <span class="text-[8px] font-black uppercase tracking-widest text-amber-950 flex items-center gap-1">
+                  <span>★</span><span>DÍA</span><span>★</span>
+                </span>
+                <span class="text-2xl sm:text-3xl font-black text-slate-950 font-poppins leading-none my-0.5">${gift.day}</span>
+                <span class="text-[8px] font-black tracking-widest text-slate-900 bg-amber-200/90 px-2 py-0.5 rounded-full border border-amber-600/30">2026</span>
+              </div>
+            </div>
+
+            <!-- Cabecera Superior del Billete -->
+            <div class="flex justify-between items-center z-10 w-full">
+              <span class="ticket-tag-ave inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9.5px] font-black tracking-wider uppercase shadow-md">
+                <span class="text-xs">🚄</span> <span>BILLETE AVE</span>
               </span>
-              <span class="text-xs text-amber-300 font-bold flex items-center gap-1">
-                <span>🎁</span> <span class="hidden xs:inline">Toca para abrir</span>
+              <span class="ticket-tag-action inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9.5px] font-bold text-amber-200 shadow-md">
+                <span>🎁</span> <span class="hidden xs:inline">Toca o Rasca</span>
               </span>
             </div>
 
-            <!-- PIE DE LA PUERTA: ENIGMA / SIN SPOILER DEL PRODUCTO -->
-            <div class="z-10 mt-auto pt-2 flex items-center justify-between text-xs text-slate-300 border-t border-blue-400/20">
-              <span class="font-bold text-[11px] text-amber-300 flex items-center gap-1">
-                <span>✨</span> <span>Sorpresa Navideña</span>
+            <!-- Banda de Serial y Microperforación Ferroviaria -->
+            <div class="z-10 w-full my-auto pointer-events-none flex items-center justify-between text-[8px] font-mono text-blue-200/75 px-1">
+              <span class="font-bold">№ 2026-AV-0${gift.day}</span>
+              <span class="tracking-widest hidden sm:inline">• • • • • • • • • • • •</span>
+              <span class="text-amber-300 font-bold">LAV LEVANTE</span>
+            </div>
+
+            <!-- Pie de Puerta: Enigma Total Sin Ningún Spoiler de Producto -->
+            <div class="z-10 mt-auto pt-2.5 w-full flex items-center justify-between text-xs border-t border-amber-400/30">
+              <span class="font-bold text-[11px] text-amber-300 flex items-center gap-1.5 drop-shadow">
+                <span class="text-xs animate-pulse">✨</span>
+                <span>Regalo Misterioso</span>
               </span>
-              <span class="text-[10px] bg-red-700 text-white px-2.5 py-0.5 rounded-full font-black tracking-wider shadow">INECO</span>
+              <span class="ticket-ineco-badge px-3 py-0.5 rounded-full text-[10px] text-white font-black tracking-wider shadow-md">
+                INECO 2026
+              </span>
             </div>
           </div>
 
-          <!-- CARA TRASERA (Abierta / Producto Revelado) -->
+          <!-- CARA TRASERA<!-- CARA TRASERA (Abierta / Producto Revelado) -->
           <div class="advent-back p-4 flex flex-col justify-between">
             <div class="flex justify-between items-center">
               <span class="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full">
                 ✓ Día ${gift.day} Descubierto
               </span>
-              <span class="text-xs font-black text-red-400">INECO 2027</span>
+              <span class="text-xs font-black text-red-400">INECO 2026</span>
             </div>
 
             <div class="w-full h-36 my-1 flex items-center justify-center p-1 relative overflow-hidden rounded-xl bg-slate-950/60 border border-slate-700/60">
@@ -1268,7 +1296,7 @@ class ColleagueGiftBox {
                 <span class="text-[10px] font-black tracking-widest uppercase text-blue-900 flex items-center gap-1.5">
                   <span>INECO ALTA VELOCIDAD</span>
                   <span class="text-amber-500">•</span>
-                  <span>BILLETE SOLIDARIO 2027</span>
+                  <span>BILLETE SOLIDARIO 2026</span>
                 </span>
                 <h3 class="text-2xl sm:text-3xl font-black text-slate-900 font-poppins">${colleague.name}</h3>
               </div>
@@ -1300,7 +1328,7 @@ class ColleagueGiftBox {
               <p class="text-[10px] text-slate-500">09:00 - 15:00 horas</p>
             </div>
             <div>
-              <span class="text-[10px] text-slate-500 uppercase font-bold">LOCALIZADOR 2027:</span>
+              <span class="text-[10px] text-slate-500 uppercase font-bold">LOCALIZADOR:</span>
               <p class="font-bold text-blue-900 font-mono">${colleague.loc}</p>
               <p class="text-[10px] text-emerald-700 font-semibold">Cesta Solidaria Completa</p>
             </div>
@@ -1308,13 +1336,13 @@ class ColleagueGiftBox {
 
           <!-- Mensaje Personalizado Navideño para 2027 -->
           <div class="bg-blue-50/90 rounded-xl p-4 border border-blue-200 text-xs text-slate-800 leading-relaxed my-2 ml-3">
-            <span class="font-bold text-blue-900">Deseo para el 2027 • ${colleague.name} (${colleague.role}):</span>
+            <span class="font-bold text-blue-900">Deseo para el próximo 2027 • ${colleague.name} (${colleague.role}):</span>
             <p class="italic mt-1 text-sm font-medium">"${colleague.wish}"</p>
           </div>
 
           <!-- Código de Barras / QR Simulado -->
           <div class="flex items-center justify-between pt-3 border-t border-dashed border-slate-300 text-[10px] text-slate-500 font-mono pl-3">
-            <span>RESGUARDO OFICIAL 2027</span>
+            <span>RESGUARDO OFICIAL 2026</span>
             <span class="tracking-widest">|||||| | |||||||| ||| ||||||| | ||</span>
             <span>BASE MONFORTE DEL CID</span>
           </div>
@@ -1389,15 +1417,28 @@ class ColleagueGiftBox {
           </div>
 
           <!-- IMAGEN REAL DE LA CESTA<!-- IMAGEN REAL DE LA CESTA GENERADA SEGÚN ESPECIFICACIONES -->
-          <div id="basket-render-box" class="w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-2xl mb-6 relative group">
-            <img src="assets/cesta_solidaria_real.jpg" alt="Cesta de Navidad Solidaria Ineco 2027" class="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-700">
-            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent p-4 flex items-center justify-between text-xs text-amber-300 font-bold">
-              <span>📦 Acondicionamiento Interior Antichoque con 9 Artículos</span>
-              <span class="text-white bg-red-600/90 px-2.5 py-0.5 rounded-full text-[10px]">Horizonte 2027</span>
+          <div id="basket-render-box" class="w-full max-w-3xl mx-auto rounded-3xl overflow-hidden border-2 border-amber-400/70 shadow-[0_0_40px_rgba(212,175,55,0.35)] mb-6 relative group bg-slate-950">
+            <div class="relative overflow-hidden">
+              <img src="assets/cesta_solidaria_real.jpg" alt="Gran Cesta de Navidad Solidaria Ineco 2026" class="w-full h-auto max-h-[520px] object-cover transform group-hover:scale-103 transition-transform duration-700">
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-transparent to-black/20 pointer-events-none"></div>
+            </div>
+            
+            <div class="absolute top-4 left-4 bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-amber-400/60 text-xs font-black text-amber-300 shadow flex items-center gap-2">
+              <span>🎁</span> <span>Lote Solidario 2026 Completo (9 Artículos)</span>
+            </div>
+
+            <div class="absolute bottom-0 inset-x-0 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+              <div>
+                <span class="text-amber-300 font-extrabold text-sm block">Acondicionamiento Interior Antichoque con Separadores</span>
+                <span class="text-slate-300 text-[11px]">Caja de cartón kraft reciclado serigrafiada con motivos de Ineco</span>
+              </div>
+              <span class="text-white bg-red-600/95 px-3 py-1 rounded-full text-xs font-black tracking-wider shadow shrink-0">
+                Llegada 14 Dic 2026
+              </span>
             </div>
           </div>
 
-          <!-- Botones de Acción -->
+          <!-- Botones de Acción<!-- Botones de Acción -->
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 max-w-4xl mx-auto">
             <button id="unbox-basket-btn" class="px-3 py-3 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white font-black text-xs shadow-lg flex items-center justify-center gap-1.5 transition active:scale-95">
               <span>🎉 ¡Abrir Cesta!</span>
@@ -1409,7 +1450,7 @@ class ColleagueGiftBox {
               <span>📱 Story (9:16)</span>
             </button>
             <button id="download-ticket-btn" class="px-3 py-3 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition border border-blue-400/40 active:scale-95">
-              <span>🎟️ Billete 2027</span>
+              <span>🎟️ Billete 2026</span>
             </button>
             <button id="share-whatsapp-btn" class="col-span-2 sm:col-span-1 px-3 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition active:scale-95">
               <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.087-.179.182-.077.357.101.174.449.741.963 1.199.662.59 1.22.774 1.393.861.173.087.274.072.376-.044.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.072.043.419-.101.824z"/></svg>
@@ -1598,7 +1639,7 @@ class ColleagueGiftBox {
 
     ctx.fillStyle = '#FCD34D';
     ctx.font = 'bold 26px Poppins, sans-serif';
-    ctx.fillText(`Deseo para el 2027:`, 540, 1515);
+    ctx.fillText(`Deseo para el próximo 2027:`, 540, 1515);
 
     ctx.fillStyle = '#F8FAFC';
     ctx.font = 'italic 26px Poppins, sans-serif';
@@ -1665,7 +1706,7 @@ class ColleagueGiftBox {
     // Textos cabecera
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 24px Poppins, sans-serif';
-    ctx.fillText('INECO • BILLETE SOLIDARIO 2027', 75, 75);
+    ctx.fillText('INECO • BILLETE SOLIDARIO 2026', 75, 75);
 
     ctx.fillStyle = '#FCD34D';
     ctx.font = 'bold 15px Poppins, sans-serif';
@@ -1695,7 +1736,7 @@ class ColleagueGiftBox {
     ctx.fillText(`BASE MONFORTE DEL CID  |||||||||| ||||| ||||||||  ${colleague.loc}`, 75, 360);
 
     const link = document.createElement('a');
-    link.download = `Billete_Solidario_Ineco_2027_${colleague.name.replace(/\s+/g, '_')}.png`;
+    link.download = `Billete_Solidario_Ineco_2026_${colleague.name.replace(/\s+/g, '_')}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
     sound.playBellChime();
@@ -2274,18 +2315,27 @@ class SolidaryDriverGame {
     sound.playConfettiFanfare();
     haptics.fanfare();
     if (typeof confetti === 'function') {
-      confetti({ particleCount: 90, spread: 80, origin: { y: 0.5 } });
+      confetti({ particleCount: 100, spread: 90, origin: { y: 0.5 } });
     }
+
+    const stars = this.collected >= 9 ? '⭐⭐⭐' : this.collected >= 6 ? '⭐⭐' : '⭐';
+    const rankTitle = this.collected >= 9 
+      ? '¡MAQUINISTA DE HONOR DE MONFORTE!' 
+      : this.collected >= 6 
+        ? '¡EXCELENTE SERVICIO FERROVIARIO!' 
+        : '¡BUEN TRAYECTO SOLIDARIO!';
 
     if (this.overlay) {
       this.overlay.innerHTML = `
-        <div class="text-5xl mb-2">🏆 🚄</div>
-        <h3 class="text-xl font-black text-amber-300 font-poppins">¡Misión Cumplida en Monforte!</h3>
+        <div class="text-4xl mb-1">${stars}</div>
+        <div class="text-3xl mb-2">🚄 🎁</div>
+        <h3 class="text-base sm:text-lg font-black text-amber-300 font-poppins">${rankTitle}</h3>
         <p class="text-xs text-white max-w-xs mt-2 mb-4 leading-relaxed">
-          Has entregado <strong class="text-amber-400 font-bold">${this.collected} Regalos Solidarios</strong> a tiempo en la Base de Mantenimiento de Monforte del Cid.<br>
+          Has entregado <strong class="text-amber-400 font-black text-sm">${this.collected} de 9 Regalos Solidarios 2026</strong> a tiempo en la Base de Monforte del Cid.<br>
           <span class="text-emerald-400 font-bold text-sm block mt-1">Puntuación Final: ${this.score} pts</span>
+          <span class="text-[11px] text-blue-200 block mt-1">¡Feliz y próspero año 2027 para todo el equipo!</span>
         </p>
-        <button id="restart-game-btn" class="px-8 py-3 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-red-600 text-white font-black text-xs shadow-xl active:scale-95 transition">
+        <button id="restart-game-btn" class="px-8 py-3 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white font-black text-xs shadow-xl active:scale-95 transition border border-amber-300">
           🔄 Volver a Jugar
         </button>
       `;
@@ -2301,45 +2351,75 @@ class SolidaryDriverGame {
     const w = this.canvas.width;
     const h = this.canvas.height;
 
-    // Fondo vías
-    ctx.fillStyle = '#020617';
+    // Fondo túnel / cielo nocturno con efecto velocidad
+    ctx.fillStyle = '#030816';
     ctx.fillRect(0, 0, w, h);
 
-    // Dibujar 3 vías de alta velocidad
-    ctx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
-    ctx.lineWidth = 4;
-    this.lanes.forEach(lx => {
+    // Dibujar postes de catenaria a los lados pasando a toda velocidad
+    const postY = (Date.now() / 2.5) % 80;
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+    ctx.lineWidth = 2;
+    for (let y = postY; y < h; y += 80) {
       ctx.beginPath();
-      ctx.moveTo(lx - 25, 0);
-      ctx.lineTo(lx - 25, h);
-      ctx.moveTo(lx + 25, 0);
-      ctx.lineTo(lx + 25, h);
+      ctx.moveTo(10, y);
+      ctx.lineTo(35, y);
+      ctx.moveTo(w - 10, y);
+      ctx.lineTo(w - 35, y);
       ctx.stroke();
+      ctx.fillStyle = '#F59E0B';
+      ctx.fillRect(8, y - 2, 4, 4);
+      ctx.fillRect(w - 12, y - 2, 4, 4);
+    }
 
-      // Traviesas
-      ctx.strokeStyle = 'rgba(100, 116, 139, 0.25)';
-      ctx.lineWidth = 3;
-      const offset = (Date.now() / 8) % 30;
-      for (let y = offset; y < h; y += 30) {
+    // Dibujar 3 vías de alta velocidad balastadas
+    this.lanes.forEach(lx => {
+      // Balasto
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+      ctx.fillRect(lx - 34, 0, 68, h);
+
+      // Traviesas de hormigón en movimiento
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.45)';
+      ctx.lineWidth = 4;
+      const offset = (Date.now() / 4) % 24;
+      for (let y = offset; y < h; y += 24) {
         ctx.beginPath();
         ctx.moveTo(lx - 32, y);
         ctx.lineTo(lx + 32, y);
         ctx.stroke();
       }
+
+      // Carriles de acero relucientes
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.moveTo(lx - 24, 0);
+      ctx.lineTo(lx - 24, h);
+      ctx.moveTo(lx + 24, 0);
+      ctx.lineTo(lx + 24, h);
+      ctx.stroke();
     });
 
-    // Actualizar y dibujar ítems cayendo
+    // Actualizar y dibujar ítems cayendo (regalos y copos)
     for (let i = this.items.length - 1; i >= 0; i--) {
       const it = this.items[i];
       it.y += it.speed;
 
       const itemX = this.lanes[it.lane];
-      ctx.font = '28px sans-serif';
+      
+      // Halo brillante bajo el regalo
+      if (it.isGift) {
+        ctx.fillStyle = 'rgba(253, 224, 71, 0.25)';
+        ctx.beginPath();
+        ctx.arc(itemX, it.y - 8, 22, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.font = '30px sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(it.icon, itemX, it.y);
 
-      // Colisión con tren
-      if (it.y >= h - 100 && it.y <= h - 40 && it.lane === this.currentLane) {
+      // Colisión con tren del jugador
+      if (it.y >= h - 110 && it.y <= h - 45 && it.lane === this.currentLane) {
         if (it.isGift) {
           this.score += 100;
           this.collected++;
@@ -2359,44 +2439,65 @@ class SolidaryDriverGame {
       }
     }
 
-    // Dibujar tren del jugador
+    // Dibujar Tren AVE del Maquinista
     const trainX = this.lanes[this.currentLane];
-    const trainY = h - 70;
+    const trainY = h - 75;
 
-    // Foco AVE
-    ctx.fillStyle = 'rgba(253, 224, 71, 0.35)';
+    // Cono de luz volumétrico de los faros
+    const beamGrad = ctx.createLinearGradient(trainX, trainY, trainX, trainY - 140);
+    beamGrad.addColorStop(0, 'rgba(254, 240, 138, 0.7)');
+    beamGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
+    ctx.fillStyle = beamGrad;
     ctx.beginPath();
-    ctx.moveTo(trainX, trainY);
-    ctx.lineTo(trainX - 25, trainY - 90);
-    ctx.lineTo(trainX + 25, trainY - 90);
+    ctx.moveTo(trainX, trainY - 10);
+    ctx.lineTo(trainX - 35, trainY - 140);
+    ctx.lineTo(trainX + 35, trainY - 140);
     ctx.fill();
 
-    // Locomotora
+    // Sombra del tren sobre la vía
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(trainX - 22, trainY - 10, 44, 60);
+
+    // Carrocería aerodinámica AVE
     ctx.fillStyle = '#CB1823';
-    ctx.roundRect ? ctx.roundRect(trainX - 20, trainY - 15, 40, 55, 8) : ctx.fillRect(trainX - 20, trainY - 15, 40, 55);
+    ctx.roundRect ? ctx.roundRect(trainX - 22, trainY - 20, 44, 65, 10) : ctx.fillRect(trainX - 22, trainY - 20, 44, 65);
     ctx.fill();
     ctx.strokeStyle = '#D4AF37';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 9px Poppins, sans-serif';
-    ctx.fillText('INECO', trainX, trainY + 12);
-    ctx.font = '16px sans-serif';
-    ctx.fillText('🎅', trainX, trainY + 30);
+    // Franja corporativa azul
+    ctx.fillStyle = '#1A4488';
+    ctx.fillRect(trainX - 20, trainY + 8, 40, 8);
 
-    // HUD Superior
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-    ctx.fillRect(0, 0, w, 40);
+    // Parabrisas
+    ctx.fillStyle = '#38BDF8';
+    ctx.fillRect(trainX - 16, trainY - 12, 32, 14);
+
+    // Faros LED
+    ctx.fillStyle = '#FEF08A';
+    ctx.fillRect(trainX - 18, trainY - 18, 6, 4);
+    ctx.fillRect(trainX + 12, trainY - 18, 6, 4);
+
+    // HUD Superior del Juego
+    ctx.fillStyle = 'rgba(8, 16, 36, 0.95)';
+    ctx.fillRect(0, 0, w, 44);
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, 0, w, 44);
+
     ctx.fillStyle = '#FCD34D';
-    ctx.font = 'bold 13px Poppins, sans-serif';
+    ctx.font = 'bold 12.5px Poppins, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`🎁 Regalos: ${this.collected}/9`, 15, 25);
+    ctx.fillText(`🎁 Lote: ${this.collected}/9`, 14, 28);
+
     ctx.textAlign = 'center';
-    ctx.fillText(`⏱️ ${this.timeLeft}s`, w / 2, 25);
+    ctx.fillStyle = this.timeLeft <= 5 ? '#EF4444' : '#FFFFFF';
+    ctx.fillText(`⏱️ ${this.timeLeft}s`, w / 2, 28);
+
     ctx.textAlign = 'right';
     ctx.fillStyle = '#38BDF8';
-    ctx.fillText(`${this.score} pts`, w - 15, 25);
+    ctx.fillText(`${this.score} pts`, w - 14, 28);
 
     this.animId = requestAnimationFrame(() => this.loop());
   }

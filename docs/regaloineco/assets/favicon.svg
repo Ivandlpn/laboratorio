@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="14" fill="#0D2246"/>
+  <!-- Vías doradas -->
+  <line x1="8" y1="54" x2="56" y2="54" stroke="#D4AF37" stroke-width="3" stroke-linecap="round"/>
+  <line x1="14" y1="58" x2="20" y2="58" stroke="#FCD34D" stroke-width="2"/>
+  <line x1="28" y1="58" x2="34" y2="58" stroke="#FCD34D" stroke-width="2"/>
+  <line x1="42" y1="58" x2="48" y2="58" stroke="#FCD34D" stroke-width="2"/>
+  <!-- Tren AVE Ineco -->
+  <path d="M12 48 L16 28 Q24 22 42 22 L52 28 L54 48 Z" fill="#1A4488" stroke="#38BDF8" stroke-width="1.5"/>
+  <path d="M18 32 L36 32 L46 38 L16 38 Z" fill="#93C5FD" opacity="0.8"/>
+  <rect x="22" y="40" width="28" height="4" rx="1" fill="#CB1823"/>
+  <!-- Gorro Papá Noel -->
+  <path d="M38 18 Q46 6 54 14 Q52 18 42 22 Z" fill="#CB1823"/>
+  <circle cx="55" cy="14" r="3.5" fill="#FFFFFF"/>
+  <rect x="36" y="20" width="16" height="4" rx="2" fill="#FFFFFF"/>
+</svg>
