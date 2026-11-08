@@ -337,19 +337,6 @@
     </div>
   </div>
 
-  <!-- GUIRNALDA & CATENARIA SUPERIOR INTERACTIVA -->
-  <div class="w-full catenary-wire catenary-interactive flex justify-between px-4 overflow-hidden select-none" id="interactive-catenary" title="¡Toca las bombillas para tocar villancicos!">
-    <div class="catenary-light bg-red-500 text-red-500" style="left: 4%; animation-delay: 0.1s"></div>
-    <div class="catenary-light bg-amber-400 text-amber-400" style="left: 14%; animation-delay: 0.5s"></div>
-    <div class="catenary-light bg-blue-400 text-blue-400" style="left: 26%; animation-delay: 0.8s"></div>
-    <div class="catenary-light bg-emerald-400 text-emerald-400" style="left: 38%; animation-delay: 0.2s"></div>
-    <div class="catenary-light bg-red-500 text-red-500" style="left: 50%; animation-delay: 0.6s"></div>
-    <div class="catenary-light bg-amber-400 text-amber-400" style="left: 62%; animation-delay: 0.3s"></div>
-    <div class="catenary-light bg-blue-400 text-blue-400" style="left: 74%; animation-delay: 0.9s"></div>
-    <div class="catenary-light bg-emerald-400 text-emerald-400" style="left: 86%; animation-delay: 0.4s"></div>
-    <div class="catenary-light bg-red-500 text-red-500" style="left: 96%; animation-delay: 0.7s"></div>
-  </div>
-
   <!-- ======================================================== -->
   <!-- CONTENEDOR PRINCIPAL DUAL: BARRA LATERAL 33% + MAIN 67% -->
   <!-- ======================================================== -->
@@ -358,7 +345,7 @@
     <!-- ======================================================== -->
     <!-- BARRA LATERAL IZQUIERDA FIJA (33% ANCHO • CUENTA ATRÁS & HILO TEMPORAL) -->
     <!-- ======================================================== -->
-    <aside class="w-full lg:w-[33%] lg:max-w-[430px] lg:h-screen lg:sticky lg:top-0 lg:overflow-y-auto bg-[#030815]/95 backdrop-blur-2xl border-b lg:border-b-0 lg:border-r border-blue-900/40 p-4 sm:p-5 flex flex-col justify-between shrink-0 z-30 custom-sidebar-scroll" id="seccion-radar">
+    <aside class="w-full lg:fixed lg:top-0 lg:left-0 lg:bottom-0 lg:w-[33.333333%] lg:h-screen lg:overflow-y-auto bg-[#030815]/95 backdrop-blur-2xl border-b lg:border-b-0 lg:border-r border-blue-900/40 p-4 sm:p-5 flex flex-col justify-between shrink-0 z-30 custom-sidebar-scroll" id="seccion-radar">
       
       <div class="space-y-4">
         <!-- Bloque Superior: Logo Ineco & Controles de Ambiente/Sonido -->
@@ -611,7 +598,20 @@
     <!-- ======================================================== -->
     <!-- CONTENIDO PRINCIPAL DERECHO (67% ANCHO EN DESKTOP)        -->
     <!-- ======================================================== -->
-    <main class="w-full lg:w-[67%] lg:flex-1 p-3 sm:p-6 lg:p-8 space-y-10">
+    <main class="w-full lg:w-[66.666667%] lg:ml-[33.333333%] p-3 sm:p-6 lg:p-8 space-y-8 min-h-screen main-content-column">
+      
+      <!-- GUIRNALDA & CATENARIA SUPERIOR INTERACTIVA -->
+      <div class="w-full catenary-wire catenary-interactive flex justify-between px-4 overflow-hidden select-none -mt-2 mb-2" id="interactive-catenary" title="¡Toca las bombillas para tocar villancicos!">
+        <div class="catenary-light bg-red-500 text-red-500" style="left: 4%; animation-delay: 0.1s"></div>
+        <div class="catenary-light bg-amber-400 text-amber-400" style="left: 14%; animation-delay: 0.5s"></div>
+        <div class="catenary-light bg-blue-400 text-blue-400" style="left: 26%; animation-delay: 0.8s"></div>
+        <div class="catenary-light bg-emerald-400 text-emerald-400" style="left: 38%; animation-delay: 0.2s"></div>
+        <div class="catenary-light bg-red-500 text-red-500" style="left: 50%; animation-delay: 0.6s"></div>
+        <div class="catenary-light bg-amber-400 text-amber-400" style="left: 62%; animation-delay: 0.3s"></div>
+        <div class="catenary-light bg-blue-400 text-blue-400" style="left: 74%; animation-delay: 0.9s"></div>
+        <div class="catenary-light bg-emerald-400 text-emerald-400" style="left: 86%; animation-delay: 0.4s"></div>
+        <div class="catenary-light bg-red-500 text-red-500" style="left: 96%; animation-delay: 0.7s"></div>
+      </div>
       
       <!-- HERO BANNER: ADVIENTO & PROGRESO -->
       <section class="bg-gradient-to-r from-blue-950/80 via-slate-900/90 to-blue-950/80 rounded-3xl p-5 sm:p-7 border border-blue-500/30 shadow-2xl relative overflow-hidden">

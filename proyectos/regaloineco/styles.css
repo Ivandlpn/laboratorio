@@ -513,7 +513,28 @@ input[type="range"]::-moz-range-thumb {
   100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
 }
 
-/* BARRA LATERAL FIJA 33% & UTILIDADES */
+/* BARRA LATERAL ANCLADA / FIJA (33.33% ANCHO • CUENTA ATRÁS & ITINERARIO FIJO) */
+@media (min-width: 1024px) {
+  #seccion-radar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 33.333333% !important;
+    max-width: none !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+    z-index: 35 !important;
+  }
+
+  .main-content-column {
+    margin-left: 33.333333% !important;
+    width: 66.666667% !important;
+    max-width: 66.666667% !important;
+  }
+}
+
+/* UTILIDADES SCROLLBAR LATERAL */
 .custom-sidebar-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(212, 175, 55, 0.3) rgba(15, 23, 42, 0.4);
