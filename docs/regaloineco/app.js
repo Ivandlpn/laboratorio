@@ -13,6 +13,8 @@ const GIFTS_DATA = [
     subtitle: "D.O. de Andalucía • Botella Vidrio 500 ml",
     badge: "Oro Líquido",
     iconBg: "from-amber-600 to-yellow-500",
+    realImage: "assets/products/P1.jpg",
+    realThumb: "assets/products/P1_thumb.jpg",
     description: "Obtenido directamente de olivares andaluces bajo Denominación de Origen protegida, este Aceite de Oliva Virgen Extra de 500 ml representa la máxima excelencia del campo andaluz. Su elaboración mediante extracción en frío a partir de aceitunas seleccionadas en su punto óptimo de maduración garantiza una acidez excepcionalmente baja, un perfil aromático de frutado verde con recuerdos a hierba fresca y tomatera, y una riqueza sobresaliente en polifenoles y antioxidantes naturales. Presentado en una distinguida botella individual de vidrio oscuro que lo resguarda de la luz y el oxígeno para preservar intactas todas sus propiedades organolépticas, es el auténtico oro líquido de nuestra gastronomía: sublime tanto para regar en crudo unas rebanadas de pan tostado en los desayunos de invierno como para ensalzar los ibéricos, asados y ensaladas en estas fiestas familiares.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <defs>
@@ -48,6 +50,8 @@ const GIFTS_DATA = [
     subtitle: "Lomos Selectos del Cantábrico • 400 gramos",
     badge: "Cantábrico Seleccionado",
     iconBg: "from-sky-700 to-blue-500",
+    realImage: "assets/products/P2.jpg",
+    realThumb: "assets/products/P2_thumb.jpg",
     description: "Capturado de forma artesanal a caña uno a uno en aguas del Mar Cantábrico durante la costera estival tradicional, este tarro de cristal hermético de 400 gramos encierra los lomos más nobles, blancos y limpios del atún blanco (Thunnus alalunga). Su carne de tonalidad marfil, textura delicadamente hojaldrada y sabor limpio y marino reposa sumergida en un suave aceite de oliva de primera prensa que redondea su jugosidad sin enmascarar su frescura original. Una conserva artesanal de alta cuna que no precisa artificios: exquisita servida al natural con unas escamas de sal marina, sobre tostas crujientes de pan rústico o acompañada de pimientos asados templados en las celebraciones navideñas.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <defs>
@@ -80,6 +84,8 @@ const GIFTS_DATA = [
     subtitle: "Elaboración Artesanal • 120 gramos",
     badge: "Dulce & Especiado",
     iconBg: "from-red-700 to-rose-500",
+    realImage: "assets/products/P3.jpg",
+    realThumb: "assets/products/P3_thumb.jpg",
     description: "Elaborada artesanalmente a fuego muy lento a partir de pimientos del piquillo cuidadosamente seleccionados en su punto dulce de maduración y caramelizados con azúcar de caña puro, esta mermelada gourmet de 120 gramos ofrece un equilibrio magistral entre la dulzura untuosa y las notas sutilmente ahumadas y especiadas características de este pimiento tradicional. Envasada en un tarro de cristal con precinto hermético de calidad, su textura sedosa y brillante la convierte en el maridaje idóneo para acompañar quesos curados de oveja manchegos, rulos de cabra pasados por la plancha, patés de caza y carnes a la brasa, aportando un toque festivo sofisticado y lleno de matices a cualquier mesa de fiesta.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <defs>
@@ -108,6 +114,8 @@ const GIFTS_DATA = [
     subtitle: "Rojo Tradicional • Verde Cilantro • Mojo Picón (3x100g)",
     badge: "Sabor Canario",
     iconBg: "from-emerald-700 via-amber-600 to-red-600",
+    realImage: "assets/products/P4.jpg",
+    realThumb: "assets/products/P4_thumb.jpg",
     description: "Auténtica trilogía del sabor insular presentada en un exclusivo pack expositor con tres tarros de cristal de 100 gramos que rinden homenaje a la rica tradición culinaria de las Islas Canarias. El conjunto reúne el Mojo Rojo clásico elaborado con pimiento y pimentón dulce para un paladar suave y meloso, el fresco y aromático Mojo Verde a base de cilantro fresco y ajo ideal para acompañar pescados y mariscos, y el vibrante Mojo Picón para quienes buscan ese toque bravo y enérgico que despierta los sentidos. Preparados únicamente con ingredientes naturales de primera calidad y aceite vegetal refinado, son el alma indispensable para dar vida a unas tradicionales papas arrugadas o enriquecer las carnes asadas de los encuentros navideños.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <rect x="25" y="130" width="150" height="28" rx="6" fill="#1E293B" stroke="#D4AF37" stroke-width="1.8"/>
@@ -132,6 +140,8 @@ const GIFTS_DATA = [
     subtitle: "3 Tabletas con Almendras (Negro, Leche y Blanco) • 450g",
     badge: "Delicatessen Gourmet",
     iconBg: "from-amber-900 via-amber-800 to-amber-950",
+    realImage: "assets/products/P5.jpg",
+    realThumb: "assets/products/P5_thumb.jpg",
     description: "Una selecta colección de tres tabletas artesanales de 150 gramos cada una —Chocolate Negro de gran pureza e intensidad aromática, Chocolate con Leche de cuerpo cremoso y sedoso, y Chocolate Blanco delicadamente perfumado con manteca de cacao natural—, repletas de almendras enteras seleccionadas de la cuenca mediterránea tostadas a fuego lento hasta alcanzar un crujido inconfundible. Cortadas a cuchillo y elaboradas por maestros chocolateros siguiendo la receta tradicional, se presentan en un distinguido estuche de madera natural con tapa corredera grabado conmemorativamente, convirtiéndose en el postre gourmet imprescindible para compartir en la sobremesa junto a un buen café recién molido o una copa de licor dulce.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <rect x="42" y="55" width="116" height="105" rx="6" fill="#78350F" stroke="#92400E" stroke-width="3"/>
@@ -157,6 +167,8 @@ const GIFTS_DATA = [
     subtitle: "Paquete de 250 gramos • Tueste Natural Molido",
     badge: "Esencia Exclusiva",
     iconBg: "from-stone-800 to-amber-950",
+    realImage: "assets/products/P6.jpg",
+    realThumb: "assets/products/P6_thumb.jpg",
     description: "Selección exclusiva de granos 100% Arábica cosechados en cafetales de altura y sometidos a un proceso de tueste natural pausado que realza su cuerpo sedoso, sus elegantes notas florales y una acidez limpia y vivaz. Con un peso de 250 gramos y una molienda equilibrada apta para cafetera italiana tradicional o de goteo, se presenta en una bolsa termosellada con válvula de desgasificación unidireccional que aísla el grano del aire y la humedad exterior, garantizando que cada taza conserve intactos sus aceites aromáticos esenciales para inundar el hogar del inconfundible aroma a café tostado en las mañanas más entrañables del invierno.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <path d="M68 50 L132 50 L126 155 Q126 165 116 165 L84 165 Q74 165 74 155 Z" fill="#78350F" stroke="#92400E" stroke-width="2"/>
@@ -178,6 +190,8 @@ const GIFTS_DATA = [
     subtitle: "40 Naipes de 61,5 x 95 mm • Barniz Acuoso Durabilidad",
     badge: "Edición Coleccionista",
     iconBg: "from-blue-700 to-indigo-900",
+    realImage: "assets/products/P7.jpg",
+    realThumb: "assets/products/P7_thumb.jpg",
     description: "Edición conmemorativa de coleccionista de la clásica baraja española de 40 cartas (61,5 x 95 mm), fabricada sobre naipe estucado de 310 g/m² de fibra larga y recubierta con un barniz acuoso protector de alta densidad que le otorga un deslizamiento sedoso y una resistencia incomparable frente al uso continuado. Cada naipe luce un reverso ilustrado en exclusiva con los colores corporativos y la iconografía del ferrocarril de alta velocidad de Ineco, protegido dentro de su estuche policromado con envoltura de celofán antihumedad, pensado para avivar las tertulias, risas y tradicionales partidas familiares de naipes tras las cenas de fiesta con la mirada ilusionada puesta en el 2027.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <g transform="translate(60, 65) rotate(-15)">
@@ -208,6 +222,8 @@ const GIFTS_DATA = [
     subtitle: "Algodón ≥80% • Costura Plana Anti-Rozaduras • Puntera Reforzada",
     badge: "Confort Máximo",
     iconBg: "from-blue-800 to-red-700",
+    realImage: null,
+    realThumb: null,
     description: "Concebidos para brindar el máximo confort térmico y ergonomía durante la temporada invernal, estos calcetines corporativos de alta velocidad han sido confeccionados con más de un 80% de algodón peinado transpirable de fibra larga y elastano de memoria para un ajuste ceñido que no resbala ni oprime la pierna. Destacan por su remallado plano artesanal punto a punto sin relieves en la puntera para eliminar cualquier punto de fricción o rozadura, reforzando además la suela y el talón con acolchado amortiguador. Un detalle cálido y confortable con el sello de Ineco, pensado para relajarse en casa o disfrutar de los días festivos con la calidez del espíritu de equipo.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <path d="M72 45 L98 45 L98 105 Q98 135 125 135 L135 135 Q145 135 145 148 Q145 160 130 160 L90 160 Q68 160 68 135 L68 48 Q68 45 72 45 Z" fill="#1A4488" stroke="#3463AC" stroke-width="2.2"/>
@@ -228,6 +244,8 @@ const GIFTS_DATA = [
     subtitle: "Formato A4 Doble Cara • Papel Offset Blanco 80g FSC",
     badge: "Compromiso Social",
     iconBg: "from-red-800 to-amber-700",
+    realImage: null,
+    realThumb: null,
     description: "Impresa a doble cara en formato A4 plegado sobre papel offset blanco premium de 80 g/m² de tacto natural y fibra reciclada con certificación ecológica FSC, esta tarjeta conmemorativa transmite el mensaje institucional de felicitación y gratitud de Ineco hacia todos los profesionales de la Base de Mantenimiento de Monforte del Cid. En su interior se plasma no solo el reconocimiento a su compromiso diario con la seguridad y la alta velocidad ferroviaria, sino también el balance social y solidario de los proyectos y colectivos apoyados con la entrega de este detalle, constituyendo un recuerdo entrañable y un testimonio de unión para dar la bienvenida con ilusión al nuevo año 2027.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <rect x="45" y="45" width="110" height="120" rx="5" fill="#FFFFFF" stroke="#D4AF37" stroke-width="2.2"/>
@@ -919,8 +937,13 @@ class AdventCalendar {
               <span class="text-xs font-black text-red-400">INECO 2027</span>
             </div>
 
-            <div class="w-full h-32 my-1 flex items-center justify-center p-1">
-              ${gift.svg}
+            <div class="w-full h-36 my-1 flex items-center justify-center p-1 relative overflow-hidden rounded-xl bg-slate-950/60 border border-slate-700/60">
+              ${gift.realThumb ? `
+                <img src="${gift.realThumb}" alt="${gift.title}" class="w-full h-full object-cover rounded-lg border border-amber-400/40 shadow-md group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.classList.remove('hidden');">
+                <div class="hidden w-full h-full flex items-center justify-center">${gift.svg}</div>
+              ` : `
+                <div class="w-full h-full flex items-center justify-center">${gift.svg}</div>
+              `}
             </div>
 
             <div class="text-center mt-auto">
@@ -1049,8 +1072,14 @@ class AdventCalendar {
                 <span class="text-xs font-bold text-amber-300 tracking-wider">INECO 2027</span>
               </div>
               <div class="gift-box-lid"></div>
-              <div class="gift-emerging-item">
-                ${gift.svg}
+              <div class="gift-emerging-item flex items-center justify-center">
+                ${gift.realImage ? `
+                  <div class="w-32 h-32 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-2xl bg-slate-900 relative">
+                    <img src="${gift.realImage}" alt="${gift.title}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML = '${gift.svg.replace(chr(10), ' ').replace(chr(39), '\'')}';">
+                  </div>
+                ` : `
+                  ${gift.svg}
+                `}
               </div>
             </div>
 
@@ -1300,42 +1329,42 @@ class ColleagueGiftBox {
                 </span>
               </div>
 
-              <!-- 9 Burbujas Flotantes de Productos con Enlace Directo -->
-              <div class="exploded-item-bubble" style="top: 10px; left: 15%;" data-day="1" title="AOVE 500ml D.O. Andalucía">
-                <span class="text-xl">🫒</span>
-                <span class="text-[8px] font-bold text-amber-300">AOVE</span>
+              <!-- 9 Burbujas Flotantes con Fotografías Reales de Productos -->
+              <div class="exploded-item-bubble" style="top: 8px; left: 14%;" data-day="1" title="AOVE 500ml D.O. Andalucía">
+                <img src="assets/products/P1_thumb.jpg" alt="AOVE" class="w-9 h-9 object-cover rounded-full border border-amber-400 mb-0.5" onerror="this.src=''; this.innerText='🫒';">
+                <span class="text-[7.5px] font-bold text-amber-300 leading-none">AOVE</span>
               </div>
-              <div class="exploded-item-bubble" style="top: 10px; right: 15%;" data-day="2" title="Bonito del Norte 400g">
-                <span class="text-xl">🐟</span>
-                <span class="text-[8px] font-bold text-sky-300">Bonito</span>
+              <div class="exploded-item-bubble" style="top: 8px; right: 14%;" data-day="2" title="Bonito del Norte 400g">
+                <img src="assets/products/P2_thumb.jpg" alt="Bonito" class="w-9 h-9 object-cover rounded-full border border-sky-400 mb-0.5">
+                <span class="text-[7.5px] font-bold text-sky-300 leading-none">Bonito</span>
               </div>
-              <div class="exploded-item-bubble" style="top: 130px; left: 4%;" data-day="3" title="Mermelada Piquillo 120g">
-                <span class="text-xl">🌶️</span>
-                <span class="text-[8px] font-bold text-red-300">Piquillo</span>
+              <div class="exploded-item-bubble" style="top: 130px; left: 3%;" data-day="3" title="Mermelada Piquillo 120g">
+                <img src="assets/products/P3_thumb.jpg" alt="Piquillo" class="w-9 h-9 object-cover rounded-full border border-red-400 mb-0.5">
+                <span class="text-[7.5px] font-bold text-red-300 leading-none">Piquillo</span>
               </div>
-              <div class="exploded-item-bubble" style="top: 130px; right: 4%;" data-day="4" title="Trilogía Mojos Canarios">
-                <span class="text-xl">🥫</span>
-                <span class="text-[8px] font-bold text-emerald-300">Mojos</span>
+              <div class="exploded-item-bubble" style="top: 130px; right: 3%;" data-day="4" title="Trilogía Mojos Canarios">
+                <img src="assets/products/P4_thumb.jpg" alt="Mojos" class="w-9 h-9 object-cover rounded-full border border-emerald-400 mb-0.5">
+                <span class="text-[7.5px] font-bold text-emerald-300 leading-none">Mojos</span>
               </div>
-              <div class="exploded-item-bubble" style="bottom: 110px; left: 6%;" data-day="5" title="Chocolates Artesanales en Caja Madera">
-                <span class="text-xl">🍫</span>
-                <span class="text-[8px] font-bold text-amber-400">Chocolate</span>
+              <div class="exploded-item-bubble" style="bottom: 110px; left: 5%;" data-day="5" title="Chocolates Artesanales en Caja Madera">
+                <img src="assets/products/P5_thumb.jpg" alt="Chocolate" class="w-9 h-9 object-cover rounded-full border border-amber-600 mb-0.5">
+                <span class="text-[7.5px] font-bold text-amber-400 leading-none">Chocolate</span>
               </div>
-              <div class="exploded-item-bubble" style="bottom: 110px; right: 6%;" data-day="6" title="Café Arábica Natural 250g">
-                <span class="text-xl">☕</span>
-                <span class="text-[8px] font-bold text-amber-200">Café</span>
+              <div class="exploded-item-bubble" style="bottom: 110px; right: 5%;" data-day="6" title="Café Arábica Natural 250g">
+                <img src="assets/products/P6_thumb.jpg" alt="Café" class="w-9 h-9 object-cover rounded-full border border-amber-300 mb-0.5">
+                <span class="text-[7.5px] font-bold text-amber-200 leading-none">Café</span>
               </div>
-              <div class="exploded-item-bubble" style="bottom: 15px; left: 20%;" data-day="7" title="Baraja Española Ineco">
-                <span class="text-xl">🃏</span>
-                <span class="text-[8px] font-bold text-blue-300">Baraja</span>
+              <div class="exploded-item-bubble" style="bottom: 15px; left: 18%;" data-day="7" title="Baraja Española Ineco">
+                <img src="assets/products/P7_thumb.jpg" alt="Baraja" class="w-9 h-9 object-cover rounded-full border border-blue-400 mb-0.5">
+                <span class="text-[7.5px] font-bold text-blue-300 leading-none">Baraja</span>
               </div>
-              <div class="exploded-item-bubble" style="bottom: 15px; right: 20%;" data-day="8" title="Calcetines Técnicos Ineco">
-                <span class="text-xl">🧦</span>
-                <span class="text-[8px] font-bold text-indigo-300">Calcetines</span>
+              <div class="exploded-item-bubble" style="bottom: 15px; right: 18%;" data-day="8" title="Calcetines Técnicos Ineco">
+                <img src="assets/products/P8_thumb.jpg" alt="Calcetines" class="w-9 h-9 object-cover rounded-full border border-indigo-400 mb-0.5">
+                <span class="text-[7.5px] font-bold text-indigo-300 leading-none">Calcetines</span>
               </div>
               <div class="exploded-item-bubble" style="top: 45%; left: 50%; transform: translate(-50%, -150%);" data-day="9" title="Tarjeta Navideña 2027">
-                <span class="text-xl">💌</span>
-                <span class="text-[8px] font-bold text-amber-300">Tarjeta</span>
+                <img src="assets/products/P9_thumb.jpg" alt="Tarjeta" class="w-9 h-9 object-cover rounded-full border border-amber-300 mb-0.5">
+                <span class="text-[7.5px] font-bold text-amber-300 leading-none">Tarjeta</span>
               </div>
             </div>
             <p class="text-[11px] text-amber-300 font-semibold mt-2">
@@ -1343,7 +1372,7 @@ class ColleagueGiftBox {
             </p>
           </div>
 
-          <!-- IMAGEN REAL DE LA CESTA GENERADA SEGÚN ESPECIFICACIONES -->
+          <!-- IMAGEN REAL DE LA CESTA<!-- IMAGEN REAL DE LA CESTA GENERADA SEGÚN ESPECIFICACIONES -->
           <div id="basket-render-box" class="w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-2xl mb-6 relative group">
             <img src="assets/cesta_solidaria_real.jpg" alt="Cesta de Navidad Solidaria Ineco 2027" class="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-700">
             <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent p-4 flex items-center justify-between text-xs text-amber-300 font-bold">
@@ -1700,6 +1729,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeMgr = new ThemeManager(snow);
   const driverGame = new SolidaryDriverGame();
 
+  // Desbloqueo silencioso de AudioContext en el primer gesto del usuario
+  const unlockAudioOnGesture = () => {
+    sound.init();
+    if (sound.ctx && sound.ctx.state === 'suspended') {
+      sound.ctx.resume();
+    }
+    document.removeEventListener('pointerdown', unlockAudioOnGesture);
+    document.removeEventListener('keydown', unlockAudioOnGesture);
+  };
+  document.addEventListener('pointerdown', unlockAudioOnGesture, { passive: true });
+  document.addEventListener('keydown', unlockAudioOnGesture, { passive: true });
+
+  // Cerrar cualquier modal con la tecla ESCAPE y restaurar scroll
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modals = [
+        document.getElementById('gift-modal'),
+        document.getElementById('cab-modal'),
+        document.getElementById('game-modal')
+      ];
+      modals.forEach(m => {
+        if (m && !m.classList.contains('hidden')) {
+          m.classList.add('hidden');
+        }
+      });
+      document.body.style.overflow = '';
+    }
+  });
+
+
 
   const soundBtn = document.getElementById('toggle-sound-btn');
   const mobileSoundBtn = document.getElementById('mobile-sound-btn');
@@ -1871,6 +1930,19 @@ function setupCardScratch(cardElement, day, onReveal) {
       }, 450);
     }
   };
+
+  // Si el usuario simplemente hace clic o tap directo sin rascar
+  canvas.addEventListener('click', () => {
+    if (revealed) return;
+    revealed = true;
+    sound.playIceCrack();
+    haptics.scratch();
+    canvas.classList.add('shattering');
+    setTimeout(() => {
+      canvas.remove();
+      onReveal();
+    }, 320);
+  });
 
   canvas.addEventListener('mousedown', () => isScratching = true);
   window.addEventListener('mouseup', () => isScratching = false);
