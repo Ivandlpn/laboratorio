@@ -374,6 +374,52 @@ class SoundEngine {
     return !this.muted;
   }
 
+  playNote(freq = 440, duration = 0.35) {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + duration);
+  }
+
+  playIceCrack() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const bufferSize = this.ctx.sampleRate * 0.08;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.3));
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1800;
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.2, now);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    noise.start(now);
+  }
+
+  playGameCollect() {
+    this.playNote(880, 0.15);
+    setTimeout(() => this.playNote(1174.66, 0.25), 90);
+  }
+
   playBellChime() {
     if (this.muted) return;
     this.init();
@@ -538,6 +584,29 @@ class SoundEngine {
 }
 
 const sound = new SoundEngine();
+
+// ==========================================
+// 3.1. MOTOR HÁPTICO MULTI-SENSORIAL (MEJORA 9)
+// Patrones de rodadura sobre vías, crujido de escarcha y silbato
+// ==========================================
+const haptics = {
+  trainJoint() {
+    if (navigator.vibrate) navigator.vibrate([25, 35, 25]);
+  },
+  scratch() {
+    if (navigator.vibrate) navigator.vibrate(12);
+  },
+  horn() {
+    if (navigator.vibrate) navigator.vibrate([180, 60, 260]);
+  },
+  fanfare() {
+    if (navigator.vibrate) navigator.vibrate([40, 50, 40, 50, 100, 40, 160]);
+  },
+  chime() {
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+};
+
 
 // ==========================================
 // 4. ANIMACIÓN DE NIEVE (Canvas)
@@ -724,6 +793,24 @@ class SantaRailTracker {
     if (this.speedDisplay) this.speedDisplay.innerText = currentWp.speed;
     if (this.coordsDisplay) this.coordsDisplay.innerText = currentWp.coords;
     if (this.etaDisplay) this.etaDisplay.innerText = currentWp.eta;
+
+    // Actualizar aguja del tacómetro / velocímetro analógico ferroviario (MEJORA 8)
+    const needle = document.getElementById('speedo-needle-line');
+    if (needle) {
+      let numericSpeed = 180;
+      if (currentWp.speed.includes('350')) numericSpeed = 350;
+      else if (currentWp.speed.includes('300')) numericSpeed = 300;
+      else if (currentWp.speed.includes('260')) numericSpeed = 260;
+      else if (currentWp.speed.includes('220')) numericSpeed = 220;
+      else if (currentWp.speed.includes('180')) numericSpeed = 180;
+      else if (currentWp.speed.includes('160')) numericSpeed = 160;
+      else if (currentWp.speed.includes('0')) numericSpeed = 0;
+
+      // Mapear 0 - 400 km/h a un arco de -90deg a +90deg
+      const angle = -90 + (numericSpeed / 400) * 180;
+      needle.style.transform = `rotate(${angle.toFixed(1)}deg)`;
+    }
+
   }
 
   jumpTo(stage) {
@@ -759,6 +846,7 @@ class SantaRailTracker {
 
   boostSpeed() {
     sound.playTrainHorn();
+    haptics.horn();
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     if (this.speedDisplay) this.speedDisplay.innerText = "350 km/h (Modo Trineo AVE)";
     setTimeout(() => {
@@ -851,6 +939,13 @@ class AdventCalendar {
       card.addEventListener('click', () => {
         this.handleCardClick(gift.day);
       });
+
+      // Efecto rascar la escarcha en casillas aún no abiertas (MEJORA 2)
+      if (!isOpened) {
+        setupCardScratch(card, gift.day, () => {
+          this.handleCardClick(gift.day);
+        });
+      }
 
       this.container.appendChild(col);
     });
@@ -1191,6 +1286,60 @@ class ColleagueGiftBox {
             Caja de cartón reciclado sostenible serigrafiada con motivos de Ineco, acondicionada con separadores troquelados a medida para proteger cada frasco y producto en su viaje a Monforte.
           </p>
 
+          <!-- CONTENEDOR DESPIECE 3D (MEJORA 6) -->
+          <div id="exploded-view-container" class="hidden mb-6 relative">
+            <div class="exploded-container py-8">
+              <!-- Cesta Núcleo Central -->
+              <div class="relative z-10 text-center">
+                <img src="assets/cesta_solidaria_real.jpg" alt="Cesta Núcleo" class="exploded-basket-core mx-auto">
+                <span class="inline-block mt-2 px-3 py-0.5 rounded-full bg-slate-900/90 text-amber-300 text-[10px] font-bold border border-amber-400/50">
+                  📦 Lote Central Solidario
+                </span>
+              </div>
+
+              <!-- 9 Burbujas Flotantes de Productos con Enlace Directo -->
+              <div class="exploded-item-bubble" style="top: 10px; left: 15%;" data-day="1" title="AOVE 500ml D.O. Andalucía">
+                <span class="text-xl">🫒</span>
+                <span class="text-[8px] font-bold text-amber-300">AOVE</span>
+              </div>
+              <div class="exploded-item-bubble" style="top: 10px; right: 15%;" data-day="2" title="Bonito del Norte 400g">
+                <span class="text-xl">🐟</span>
+                <span class="text-[8px] font-bold text-sky-300">Bonito</span>
+              </div>
+              <div class="exploded-item-bubble" style="top: 130px; left: 4%;" data-day="3" title="Mermelada Piquillo 120g">
+                <span class="text-xl">🌶️</span>
+                <span class="text-[8px] font-bold text-red-300">Piquillo</span>
+              </div>
+              <div class="exploded-item-bubble" style="top: 130px; right: 4%;" data-day="4" title="Trilogía Mojos Canarios">
+                <span class="text-xl">🥫</span>
+                <span class="text-[8px] font-bold text-emerald-300">Mojos</span>
+              </div>
+              <div class="exploded-item-bubble" style="bottom: 110px; left: 6%;" data-day="5" title="Chocolates Artesanales en Caja Madera">
+                <span class="text-xl">🍫</span>
+                <span class="text-[8px] font-bold text-amber-400">Chocolate</span>
+              </div>
+              <div class="exploded-item-bubble" style="bottom: 110px; right: 6%;" data-day="6" title="Café Arábica Natural 250g">
+                <span class="text-xl">☕</span>
+                <span class="text-[8px] font-bold text-amber-200">Café</span>
+              </div>
+              <div class="exploded-item-bubble" style="bottom: 15px; left: 20%;" data-day="7" title="Baraja Española Ineco">
+                <span class="text-xl">🃏</span>
+                <span class="text-[8px] font-bold text-blue-300">Baraja</span>
+              </div>
+              <div class="exploded-item-bubble" style="bottom: 15px; right: 20%;" data-day="8" title="Calcetines Técnicos Ineco">
+                <span class="text-xl">🧦</span>
+                <span class="text-[8px] font-bold text-indigo-300">Calcetines</span>
+              </div>
+              <div class="exploded-item-bubble" style="top: 45%; left: 50%; transform: translate(-50%, -150%);" data-day="9" title="Tarjeta Navideña 2027">
+                <span class="text-xl">💌</span>
+                <span class="text-[8px] font-bold text-amber-300">Tarjeta</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-amber-300 font-semibold mt-2">
+              💡 Toca cualquier producto para leer su nota completa
+            </p>
+          </div>
+
           <!-- IMAGEN REAL DE LA CESTA GENERADA SEGÚN ESPECIFICACIONES -->
           <div id="basket-render-box" class="w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-2xl mb-6 relative group">
             <img src="assets/cesta_solidaria_real.jpg" alt="Cesta de Navidad Solidaria Ineco 2027" class="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-700">
@@ -1202,13 +1351,19 @@ class ColleagueGiftBox {
 
           <!-- Botones de Acción -->
           <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button id="unbox-basket-btn" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 active:scale-95 text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition duration-300">
-              <span>🎉 ¡Celebrar y Abrir Mi Cesta!</span>
+            <button id="unbox-basket-btn" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 active:scale-95 text-white font-black text-xs shadow-xl flex items-center justify-center gap-1.5 transition">
+              <span>🎉 ¡Abrir Cesta!</span>
             </button>
-            <button id="download-ticket-btn" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-blue-900 hover:bg-blue-800 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition border border-blue-400/40">
-              <span>🎟️ Descargar Mi Billete 2027</span>
+            <button id="toggle-exploded-btn" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-indigo-900/90 hover:bg-indigo-800 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 transition border border-indigo-400/40">
+              <span>🔍 Despiece 3D</span>
             </button>
-            <button id="share-whatsapp-btn" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition">
+            <button id="download-story-btn" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 transition">
+              <span>📱 Story (9:16)</span>
+            </button>
+            <button id="download-ticket-btn" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-blue-900 hover:bg-blue-800 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 transition border border-blue-400/40">
+              <span>🎟️ Billete 2027</span>
+            </button>
+            <button id="share-whatsapp-btn" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 transition">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.087-.179.182-.077.357.101.174.449.741.963 1.199.662.59 1.22.774 1.393.861.173.087.274.072.376-.044.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.072.043.419-.101.824z"/></svg>
               <span>Compartir en WhatsApp</span>
             </button>
@@ -1219,8 +1374,46 @@ class ColleagueGiftBox {
 
     const unboxBtn = document.getElementById('unbox-basket-btn');
     const downloadBtn = document.getElementById('download-ticket-btn');
+    const downloadStoryBtn = document.getElementById('download-story-btn');
+    const toggleExplodedBtn = document.getElementById('toggle-exploded-btn');
     const shareBtn = document.getElementById('share-whatsapp-btn');
     const renderBox = document.getElementById('basket-render-box');
+    const explodedBox = document.getElementById('exploded-view-container');
+
+    if (toggleExplodedBtn && explodedBox && renderBox) {
+      toggleExplodedBtn.onclick = () => {
+        const isExploded = !explodedBox.classList.contains('hidden');
+        if (isExploded) {
+          explodedBox.classList.add('hidden');
+          renderBox.classList.remove('hidden');
+          toggleExplodedBtn.innerHTML = '<span>🔍 Despiece 3D</span>';
+        } else {
+          renderBox.classList.add('hidden');
+          explodedBox.classList.remove('hidden');
+          toggleExplodedBtn.innerHTML = '<span>📦 Vista Empaque</span>';
+          sound.playBellChime();
+          haptics.chime();
+        }
+      };
+
+      // Interactividad en burbujas del despiece 3D
+      explodedBox.querySelectorAll('.exploded-item-bubble').forEach(b => {
+        b.onclick = () => {
+          const day = parseInt(b.dataset.day, 10);
+          sound.playBellChime();
+          haptics.scratch();
+          if (window.adventInstance) {
+            window.adventInstance.openGiftModal(day);
+          }
+        };
+      });
+    }
+
+    if (downloadStoryBtn) {
+      downloadStoryBtn.onclick = () => {
+        this.downloadStoryPass(colleague);
+      };
+    }
 
     if (unboxBtn) {
       unboxBtn.onclick = () => {
@@ -1249,6 +1442,153 @@ class ColleagueGiftBox {
       };
     }
   }
+
+  // ==========================================
+  // GENERADOR DE STORY VERTICAL (9:16) (MEJORA 5)
+  // Formato 1080 x 1920 para WhatsApp Status e Instagram
+  // ==========================================
+  downloadStoryPass(colleague) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext('2d');
+
+    // Fondo Azul Ineco Ultra Oscuro
+    const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1920);
+    bgGrad.addColorStop(0, '#030A18');
+    bgGrad.addColorStop(0.35, '#071635');
+    bgGrad.addColorStop(0.75, '#0D2246');
+    bgGrad.addColorStop(1, '#020612');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1080, 1920);
+
+    // Destellos dorados en esquinas
+    ctx.fillStyle = 'rgba(212, 175, 55, 0.15)';
+    ctx.beginPath();
+    ctx.arc(100, 150, 250, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(980, 1750, 300, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Marco exterior festivo
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 12;
+    ctx.strokeRect(30, 30, 1020, 1860);
+
+    ctx.strokeStyle = '#CB1823';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(45, 45, 990, 1830);
+
+    // Cabecera Institucional
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(140, 100, 800, 120);
+    ctx.fillStyle = '#1A4488';
+    ctx.font = '900 48px Poppins, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('ineco', 540, 178);
+
+    // Insignia Superior
+    ctx.fillStyle = '#FCD34D';
+    ctx.font = 'bold 28px Poppins, sans-serif';
+    ctx.fillText('✨ REGALO SOLIDARIO 2027 • MONFORTE DEL CID ✨', 540, 280);
+
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '500 24px Poppins, sans-serif';
+    ctx.fillText('Base de Mantenimiento de Alta Velocidad (Alicante)', 540, 320);
+
+    // Tarjeta del Compañero
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.roundRect ? ctx.roundRect(80, 370, 920, 320, 32) : ctx.fillRect(80, 370, 920, 320);
+    ctx.fill();
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    ctx.fillStyle = '#CB1823';
+    ctx.font = 'bold 24px Poppins, sans-serif';
+    ctx.fillText('TREN AVE SOLIDARIO • BILLETE OFICIAL 2027', 540, 430);
+
+    ctx.fillStyle = '#0D2246';
+    ctx.font = '900 68px Poppins, sans-serif';
+    ctx.fillText(colleague.name, 540, 520);
+
+    ctx.fillStyle = '#334155';
+    ctx.font = '600 30px Poppins, sans-serif';
+    ctx.fillText(colleague.role, 540, 580);
+
+    ctx.fillStyle = '#1A4488';
+    ctx.font = 'bold 26px monospace';
+    ctx.fillText(`${colleague.ticketSeat} | ${colleague.loc}`, 540, 640);
+
+    // Cesta de Navidad (Foto real o silueta enmarcada)
+    const basketImg = document.querySelector('#basket-render-box img');
+    if (basketImg && basketImg.complete) {
+      try {
+        ctx.save();
+        ctx.roundRect ? ctx.roundRect(80, 740, 920, 680, 32) : ctx.rect(80, 740, 920, 680);
+        ctx.clip();
+        ctx.drawImage(basketImg, 80, 740, 920, 680);
+        ctx.restore();
+
+        ctx.strokeStyle = '#FCD34D';
+        ctx.lineWidth = 6;
+        ctx.strokeRect ? ctx.roundRect(80, 740, 920, 680, 32) : ctx.strokeRect(80, 740, 920, 680);
+      } catch (e) {
+        ctx.fillStyle = '#1E293B';
+        ctx.fillRect(80, 740, 920, 680);
+      }
+    }
+
+    // Pie: Deseo Personalizado para 2027
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.roundRect ? ctx.roundRect(80, 1460, 920, 260, 28) : ctx.fillRect(80, 1460, 920, 260);
+    ctx.fill();
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = '#FCD34D';
+    ctx.font = 'bold 26px Poppins, sans-serif';
+    ctx.fillText(`Deseo para el 2027:`, 540, 1515);
+
+    ctx.fillStyle = '#F8FAFC';
+    ctx.font = 'italic 26px Poppins, sans-serif';
+    
+    // Wrap de texto simple para el deseo
+    const words = colleague.wish.split(' ');
+    let line = '';
+    let yPos = 1570;
+    words.forEach(w => {
+      const testLine = line + w + ' ';
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > 820 && line !== '') {
+        ctx.fillText(line, 540, yPos);
+        line = w + ' ';
+        yPos += 42;
+      } else {
+        line = testLine;
+      }
+    });
+    ctx.fillText(line, 540, yPos);
+
+    // Coordenadas y Marca Final
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = 'bold 22px monospace';
+    ctx.fillText('38.406742°N, -0.694939°W • BASE MONFORTE DEL CID', 540, 1780);
+
+    ctx.fillStyle = '#FCD34D';
+    ctx.font = 'bold 24px Poppins, sans-serif';
+    ctx.fillText('¡FELIZ AÑO NUEVO 2027!', 540, 1830);
+
+    const link = document.createElement('a');
+    link.download = `Story_Ineco_2027_${colleague.name.replace(/\s+/g, '_')}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    sound.playBellChime();
+    haptics.fanfare();
+  }
+
 
   downloadTicketPass(colleague) {
     const canvas = document.createElement('canvas');
@@ -1347,8 +1687,16 @@ document.addEventListener('DOMContentLoaded', () => {
   initIntroScreen();
   initCountdown();
   const advent = new AdventCalendar();
+  window.adventInstance = advent;
   const colleagueBox = new ColleagueGiftBox();
   const santaRadar = new SantaRailTracker();
+  // INICIALIZACIÓN DE LAS 10 MEJORAS VISUALES E INTERACTIVAS
+  const gyro = new GyroParallaxManager();
+  initCatenaryHarp();
+  const cabViewer = new Cab360Viewer();
+  const themeMgr = new ThemeManager(snow);
+  const driverGame = new SolidaryDriverGame();
+
 
   const soundBtn = document.getElementById('toggle-sound-btn');
   const mobileSoundBtn = document.getElementById('mobile-sound-btn');
@@ -1395,6 +1743,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (resetBtn) resetBtn.onclick = () => advent.resetAll();
 
   if (hornBtn) hornBtn.onclick = () => sound.playTrainHorn();
+    haptics.horn();
   if (boostBtn) boostBtn.onclick = () => santaRadar.boostSpeed();
 
   document.body.addEventListener('click', () => {
@@ -1402,3 +1751,568 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { once: true });
 });
 
+
+
+// ==========================================
+// 11. GIROSCOPIO & PARALLAX 3D (MEJORA 1)
+// ==========================================
+class GyroParallaxManager {
+  constructor() {
+    this.cards = [];
+    this.ticket = null;
+    this.init();
+  }
+
+  init() {
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', (e) => {
+        if (e.gamma !== null && e.beta !== null) {
+          const gx = Math.max(-20, Math.min(20, e.gamma));
+          const gy = Math.max(-20, Math.min(20, e.beta - 45));
+          this.applyTilt(gx, gy);
+        }
+      });
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      const gx = ((e.clientX / window.innerWidth) - 0.5) * 24;
+      const gy = ((e.clientY / window.innerHeight) - 0.5) * 24;
+      this.applyTilt(gx, gy);
+    });
+  }
+
+  applyTilt(x, y) {
+    const ticket = document.getElementById('ticket-pass-element');
+    if (ticket) {
+      ticket.style.transform = `perspective(1000px) rotateY(${x * 0.4}deg) rotateX(${-y * 0.4}deg)`;
+      const pctX = 50 + x * 2;
+      const pctY = 50 + y * 2;
+      ticket.style.setProperty('--gx', `${pctX}%`);
+      ticket.style.setProperty('--gy', `${pctY}%`);
+    }
+
+    const box3d = document.querySelector('.box-stage-3d');
+    if (box3d) {
+      box3d.style.transform = `perspective(800px) rotateY(${x * 0.5}deg) rotateX(${-y * 0.5}deg)`;
+    }
+  }
+}
+
+// ==========================================
+// 12. EFECTO RASCAR LA ESCARCHA (MEJORA 2)
+// Scratch-to-reveal canvas en las tarjetas de adviento
+// ==========================================
+function setupCardScratch(cardElement, day, onReveal) {
+  const front = cardElement.querySelector('.advent-front');
+  if (!front) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.className = 'frost-scratch-canvas';
+  front.appendChild(canvas);
+
+  const rect = front.getBoundingClientRect();
+  canvas.width = rect.width || 300;
+  canvas.height = rect.height || 240;
+
+  const ctx = canvas.getContext('2d');
+  
+  // Dibujar capa de escarcha / hielo translúcido
+  ctx.fillStyle = 'rgba(186, 230, 253, 0.92)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Patrón de cristales de hielo
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < 14; i++) {
+    ctx.beginPath();
+    const sx = Math.random() * canvas.width;
+    const sy = Math.random() * canvas.height;
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx + (Math.random() - 0.5) * 60, sy + (Math.random() - 0.5) * 60);
+    ctx.stroke();
+  }
+
+  // Texto guía
+  ctx.fillStyle = '#0369A1';
+  ctx.font = 'bold 13px Poppins, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('❄️ Rasca para abrir', canvas.width / 2, canvas.height - 24);
+
+  let isScratching = false;
+  let scratchedStrokes = 0;
+  let revealed = false;
+
+  const scratch = (clientX, clientY) => {
+    if (revealed) return;
+    const b = canvas.getBoundingClientRect();
+    const x = clientX - b.left;
+    const y = clientY - b.top;
+
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(x, y, 28, 0, Math.PI * 2);
+    ctx.fill();
+
+    scratchedStrokes++;
+    if (scratchedStrokes % 4 === 0) {
+      sound.playIceCrack();
+      haptics.scratch();
+    }
+
+    if (scratchedStrokes >= 24) {
+      revealed = true;
+      canvas.classList.add('shattering');
+      setTimeout(() => {
+        canvas.remove();
+        onReveal();
+      }, 450);
+    }
+  };
+
+  canvas.addEventListener('mousedown', () => isScratching = true);
+  window.addEventListener('mouseup', () => isScratching = false);
+  canvas.addEventListener('mousemove', (e) => {
+    if (isScratching) scratch(e.clientX, e.clientY);
+  });
+
+  canvas.addEventListener('touchstart', (e) => {
+    isScratching = true;
+    if (e.touches[0]) scratch(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (isScratching && e.touches[0]) scratch(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', () => isScratching = false);
+}
+
+// ==========================================
+// 13. CATENARIA MUSICAL INTERACTIVA (MEJORA 3)
+// ==========================================
+function initCatenaryHarp() {
+  const wire = document.getElementById('interactive-catenary');
+  if (!wire) return;
+
+  const notes = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51, 1567.98];
+  const lights = wire.querySelectorAll('.catenary-light');
+
+  lights.forEach((light, idx) => {
+    const playLight = (e) => {
+      const noteFreq = notes[idx % notes.length];
+      sound.playNote(noteFreq, 0.4);
+      haptics.chime();
+      light.classList.add('playing');
+      setTimeout(() => light.classList.remove('playing'), 250);
+
+      // Crear chispas voladoras
+      for (let s = 0; s < 4; s++) {
+        const spark = document.createElement('div');
+        spark.className = 'spark-particle';
+        spark.style.left = `${light.offsetLeft + 4}px`;
+        spark.style.top = `${light.offsetTop + 4}px`;
+        spark.style.setProperty('--dx', `${(Math.random() - 0.5) * 40}px`);
+        spark.style.setProperty('--dy', `${(Math.random() - 0.5) * 40 + 10}px`);
+        wire.appendChild(spark);
+        setTimeout(() => spark.remove(), 600);
+      }
+    };
+
+    light.addEventListener('pointerenter', playLight);
+    light.addEventListener('click', playLight);
+  });
+}
+
+// ==========================================
+// 14. VISOR 360° CABINA AVE EN MONFORTE (MEJORA 4)
+// ==========================================
+class Cab360Viewer {
+  constructor() {
+    this.modal = document.getElementById('cab-modal');
+    this.openBtn = document.getElementById('open-cab-btn');
+    this.mobileOpenBtn = document.getElementById('mobile-cab-btn');
+    this.closeBtn = document.getElementById('close-cab-btn');
+    this.viewport = document.getElementById('cab-viewport');
+    this.panoramicLayer = document.getElementById('cab-panoramic-layer');
+    this.wipersBtn = document.getElementById('cab-wipers-btn');
+    this.lightsBtn = document.getElementById('cab-lights-btn');
+    this.hornBtn = document.getElementById('cab-horn-sound-btn');
+    this.wiperL = document.getElementById('wiper-left');
+    this.wiperR = document.getElementById('wiper-right');
+    this.lightBeam = document.getElementById('cab-light-beam');
+
+    this.panX = -33.3; // Centro en panel 2
+    this.isDragging = false;
+    this.startX = 0;
+    this.wipersOn = false;
+    this.lightsOn = true;
+
+    this.init();
+  }
+
+  init() {
+    if (this.openBtn) this.openBtn.onclick = () => this.open();
+    if (this.mobileOpenBtn) this.mobileOpenBtn.onclick = () => this.open();
+    if (this.closeBtn) this.closeBtn.onclick = () => this.close();
+
+    if (this.viewport && this.panoramicLayer) {
+      const startDrag = (x) => {
+        this.isDragging = true;
+        this.startX = x;
+      };
+      const moveDrag = (x) => {
+        if (!this.isDragging) return;
+        const delta = (x - this.startX) * 0.08;
+        this.panX = Math.max(-66.6, Math.min(0, this.panX + delta));
+        this.startX = x;
+        this.panoramicLayer.style.transform = `translateX(${this.panX}%)`;
+      };
+      const endDrag = () => this.isDragging = false;
+
+      this.viewport.addEventListener('mousedown', (e) => startDrag(e.clientX));
+      window.addEventListener('mousemove', (e) => moveDrag(e.clientX));
+      window.addEventListener('mouseup', endDrag);
+
+      this.viewport.addEventListener('touchstart', (e) => {
+        if (e.touches[0]) startDrag(e.touches[0].clientX);
+      }, { passive: true });
+      this.viewport.addEventListener('touchmove', (e) => {
+        if (e.touches[0]) moveDrag(e.touches[0].clientX);
+      }, { passive: true });
+      this.viewport.addEventListener('touchend', endDrag);
+    }
+
+    if (this.wipersBtn) {
+      this.wipersBtn.onclick = () => {
+        this.wipersOn = !this.wipersOn;
+        if (this.wiperL) this.wiperL.classList.toggle('wiper-active', this.wipersOn);
+        if (this.wiperR) this.wiperR.classList.toggle('wiper-active', this.wipersOn);
+        this.wipersBtn.innerText = this.wipersOn ? '🌧️ Limpias: ON' : '🌧️ Limpiaparabrisas';
+        sound.playNote(220, 0.15);
+      };
+    }
+
+    if (this.lightsBtn) {
+      this.lightsBtn.onclick = () => {
+        this.lightsOn = !this.lightsOn;
+        if (this.lightBeam) this.lightBeam.style.opacity = this.lightsOn ? '0.5' : '0.08';
+        this.lightsBtn.innerText = this.lightsOn ? '💡 Faros: LARGOS' : '💡 Faros: CRUCE';
+        sound.playBellChime();
+      };
+    }
+
+    if (this.hornBtn) {
+      this.hornBtn.onclick = () => {
+        sound.playTrainHorn();
+        haptics.horn();
+      };
+    }
+  }
+
+  open() {
+    if (this.modal) {
+      this.modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      sound.playBellChime();
+      haptics.trainJoint();
+    }
+  }
+
+  close() {
+    if (this.modal) {
+      this.modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+}
+
+// ==========================================
+// 15. CONMUTADOR DÍA / NOCHE (MEJORA 7)
+// Noche Polar Ártica vs. Atardecer Mediterráneo
+// ==========================================
+class ThemeManager {
+  constructor(snowInstance) {
+    this.snow = snowInstance;
+    this.btn = document.getElementById('toggle-theme-btn');
+    this.isMed = false;
+    this.init();
+  }
+
+  init() {
+    if (this.btn) {
+      this.btn.onclick = () => this.toggle();
+    }
+  }
+
+  toggle() {
+    this.isMed = !this.isMed;
+    document.body.classList.toggle('theme-mediterraneo', this.isMed);
+    if (this.snow) {
+      this.snow.setTheme(this.isMed ? 'mediterranean' : 'arctic');
+    }
+    if (this.btn) {
+      this.btn.innerHTML = this.isMed ? '<span>☀️</span> <span class="hidden md:inline">Atardecer</span>' : '<span>❄️</span> <span class="hidden md:inline">Polar</span>';
+    }
+    sound.playBellChime();
+    haptics.chime();
+  }
+}
+
+// ==========================================
+// 16. MINIJUEGO: EL MAQUINISTA SOLIDARIO (MEJORA 10)
+// ==========================================
+class SolidaryDriverGame {
+  constructor() {
+    this.modal = document.getElementById('game-modal');
+    this.openBtn = document.getElementById('open-game-btn');
+    this.mobileOpenBtn = document.getElementById('mobile-game-btn');
+    this.closeBtn = document.getElementById('close-game-btn');
+    this.startBtn = document.getElementById('start-game-btn');
+    this.overlay = document.getElementById('game-overlay-screen');
+    this.canvas = document.getElementById('game-canvas');
+    this.btnLeft = document.getElementById('game-btn-left');
+    this.btnRight = document.getElementById('game-btn-right');
+
+    this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
+    this.lanes = [70, 180, 290];
+    this.currentLane = 1; // 0: izq, 1: centro, 2: dcha
+    this.items = [];
+    this.score = 0;
+    this.collected = 0;
+    this.timeLeft = 30;
+    this.isPlaying = false;
+    this.timerInterval = null;
+    this.spawnInterval = null;
+    this.animId = null;
+
+    this.giftIcons = ['🫒', '🐟', '🌶️', '🥫', '🍫', '☕', '🃏', '🧦', '💌'];
+
+    this.init();
+  }
+
+  init() {
+    if (this.openBtn) this.openBtn.onclick = () => this.open();
+    if (this.mobileOpenBtn) this.mobileOpenBtn.onclick = () => this.open();
+    if (this.closeBtn) this.closeBtn.onclick = () => this.close();
+    if (this.startBtn) this.startBtn.onclick = () => this.startGame();
+
+    if (this.btnLeft) {
+      this.btnLeft.onclick = () => this.moveLeft();
+    }
+    if (this.btnRight) {
+      this.btnRight.onclick = () => this.moveRight();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (!this.isPlaying) return;
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') this.moveLeft();
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.moveRight();
+    });
+  }
+
+  moveLeft() {
+    if (this.currentLane > 0) {
+      this.currentLane--;
+      haptics.scratch();
+    }
+  }
+
+  moveRight() {
+    if (this.currentLane < 2) {
+      this.currentLane++;
+      haptics.scratch();
+    }
+  }
+
+  open() {
+    if (this.modal) {
+      this.modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      if (this.overlay) this.overlay.classList.remove('hidden');
+    }
+  }
+
+  close() {
+    this.stopGame();
+    if (this.modal) {
+      this.modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  startGame() {
+    if (this.overlay) this.overlay.classList.add('hidden');
+    this.score = 0;
+    this.collected = 0;
+    this.timeLeft = 30;
+    this.items = [];
+    this.currentLane = 1;
+    this.isPlaying = true;
+
+    clearInterval(this.timerInterval);
+    clearInterval(this.spawnInterval);
+    cancelAnimationFrame(this.animId);
+
+    this.timerInterval = setInterval(() => {
+      this.timeLeft--;
+      if (this.timeLeft <= 0) {
+        this.endGame();
+      }
+    }, 1000);
+
+    this.spawnInterval = setInterval(() => {
+      if (!this.isPlaying) return;
+      const lane = Math.floor(Math.random() * 3);
+      const isSnowball = Math.random() < 0.35;
+      const icon = isSnowball ? '❄️' : this.giftIcons[Math.floor(Math.random() * this.giftIcons.length)];
+      this.items.push({
+        lane: lane,
+        y: -30,
+        isGift: !isSnowball,
+        icon: icon,
+        speed: 4.8 + Math.random() * 2
+      });
+    }, 650);
+
+    this.loop();
+  }
+
+  stopGame() {
+    this.isPlaying = false;
+    clearInterval(this.timerInterval);
+    clearInterval(this.spawnInterval);
+    cancelAnimationFrame(this.animId);
+  }
+
+  endGame() {
+    this.stopGame();
+    sound.playConfettiFanfare();
+    haptics.fanfare();
+    if (typeof confetti === 'function') {
+      confetti({ particleCount: 90, spread: 80, origin: { y: 0.5 } });
+    }
+
+    if (this.overlay) {
+      this.overlay.innerHTML = `
+        <div class="text-5xl mb-2">🏆 🚄</div>
+        <h3 class="text-xl font-black text-amber-300 font-poppins">¡Misión Cumplida en Monforte!</h3>
+        <p class="text-xs text-white max-w-xs mt-2 mb-4 leading-relaxed">
+          Has entregado <strong class="text-amber-400 font-bold">${this.collected} Regalos Solidarios</strong> a tiempo en la Base de Mantenimiento de Monforte del Cid.<br>
+          <span class="text-emerald-400 font-bold text-sm block mt-1">Puntuación Final: ${this.score} pts</span>
+        </p>
+        <button id="restart-game-btn" class="px-8 py-3 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-red-600 text-white font-black text-xs shadow-xl active:scale-95 transition">
+          🔄 Volver a Jugar
+        </button>
+      `;
+      this.overlay.classList.remove('hidden');
+      const rBtn = document.getElementById('restart-game-btn');
+      if (rBtn) rBtn.onclick = () => this.startGame();
+    }
+  }
+
+  loop() {
+    if (!this.isPlaying || !this.ctx) return;
+    const ctx = this.ctx;
+    const w = this.canvas.width;
+    const h = this.canvas.height;
+
+    // Fondo vías
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0, 0, w, h);
+
+    // Dibujar 3 vías de alta velocidad
+    ctx.strokeStyle = 'rgba(71, 85, 105, 0.4)';
+    ctx.lineWidth = 4;
+    this.lanes.forEach(lx => {
+      ctx.beginPath();
+      ctx.moveTo(lx - 25, 0);
+      ctx.lineTo(lx - 25, h);
+      ctx.moveTo(lx + 25, 0);
+      ctx.lineTo(lx + 25, h);
+      ctx.stroke();
+
+      // Traviesas
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.25)';
+      ctx.lineWidth = 3;
+      const offset = (Date.now() / 8) % 30;
+      for (let y = offset; y < h; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(lx - 32, y);
+        ctx.lineTo(lx + 32, y);
+        ctx.stroke();
+      }
+    });
+
+    // Actualizar y dibujar ítems cayendo
+    for (let i = this.items.length - 1; i >= 0; i--) {
+      const it = this.items[i];
+      it.y += it.speed;
+
+      const itemX = this.lanes[it.lane];
+      ctx.font = '28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(it.icon, itemX, it.y);
+
+      // Colisión con tren
+      if (it.y >= h - 100 && it.y <= h - 40 && it.lane === this.currentLane) {
+        if (it.isGift) {
+          this.score += 100;
+          this.collected++;
+          sound.playGameCollect();
+          haptics.chime();
+        } else {
+          this.score = Math.max(0, this.score - 40);
+          sound.playIceCrack();
+          haptics.scratch();
+        }
+        this.items.splice(i, 1);
+        continue;
+      }
+
+      if (it.y > h + 40) {
+        this.items.splice(i, 1);
+      }
+    }
+
+    // Dibujar tren del jugador
+    const trainX = this.lanes[this.currentLane];
+    const trainY = h - 70;
+
+    // Foco AVE
+    ctx.fillStyle = 'rgba(253, 224, 71, 0.35)';
+    ctx.beginPath();
+    ctx.moveTo(trainX, trainY);
+    ctx.lineTo(trainX - 25, trainY - 90);
+    ctx.lineTo(trainX + 25, trainY - 90);
+    ctx.fill();
+
+    // Locomotora
+    ctx.fillStyle = '#CB1823';
+    ctx.roundRect ? ctx.roundRect(trainX - 20, trainY - 15, 40, 55, 8) : ctx.fillRect(trainX - 20, trainY - 15, 40, 55);
+    ctx.fill();
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 9px Poppins, sans-serif';
+    ctx.fillText('INECO', trainX, trainY + 12);
+    ctx.font = '16px sans-serif';
+    ctx.fillText('🎅', trainX, trainY + 30);
+
+    // HUD Superior
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+    ctx.fillRect(0, 0, w, 40);
+    ctx.fillStyle = '#FCD34D';
+    ctx.font = 'bold 13px Poppins, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`🎁 Regalos: ${this.collected}/9`, 15, 25);
+    ctx.textAlign = 'center';
+    ctx.fillText(`⏱️ ${this.timeLeft}s`, w / 2, 25);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#38BDF8';
+    ctx.fillText(`${this.score} pts`, w - 15, 25);
+
+    this.animId = requestAnimationFrame(() => this.loop());
+  }
+}

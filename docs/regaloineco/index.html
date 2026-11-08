@@ -123,7 +123,7 @@
   <!-- ========================================== -->
   <!-- GUIRNALDA & CATENARIA SUPERIOR               -->
   <!-- ========================================== -->
-  <div class="w-full catenary-wire flex justify-between px-4 overflow-hidden pointer-events-none select-none">
+  <div class="w-full catenary-wire catenary-interactive flex justify-between px-4 overflow-hidden select-none" id="interactive-catenary" title="¡Desliza o toca las bombillas para tocar villancicos!">
     <div class="catenary-light bg-red-500 text-red-500" style="left: 4%; animation-delay: 0.1s"></div>
     <div class="catenary-light bg-amber-400 text-amber-400" style="left: 12%; animation-delay: 0.5s"></div>
     <div class="catenary-light bg-blue-400 text-blue-400" style="left: 22%; animation-delay: 0.8s"></div>
@@ -153,17 +153,29 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button id="toggle-sound-btn" class="px-3.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
-          <span>🔇 Sonido Off</span>
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <button id="toggle-theme-btn" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700 transition flex items-center gap-1 shadow-sm" title="Alternar entre Noche Ártica y Atardecer Mediterráneo">
+          <span>🌓</span> <span class="hidden md:inline">Ambiente</span>
         </button>
 
-        <button id="toggle-snow-btn" class="hidden sm:flex px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-blue-200 font-medium border border-slate-700 transition items-center gap-1.5">
-          <span>❄️ Nieve On</span>
+        <button id="open-cab-btn" class="hidden sm:flex px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-900/80 hover:bg-blue-800 text-xs text-blue-200 font-semibold border border-blue-500/40 transition items-center gap-1 shadow-sm">
+          <span>🚆</span> <span>Cabina 360°</span>
         </button>
 
-        <a href="#seccion-mi-regalo" class="px-4 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-xs font-bold text-white shadow-md transition flex items-center gap-1">
-          <span>🎁 Mi Regalo</span>
+        <button id="open-game-btn" class="hidden sm:flex px-2.5 sm:px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-xs text-white font-bold transition items-center gap-1 shadow-sm">
+          <span>🎮</span> <span>Minijuego</span>
+        </button>
+
+        <button id="toggle-sound-btn" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700 transition flex items-center gap-1 shadow-sm">
+          <span>🔇</span> <span class="hidden xs:inline">Sonido</span>
+        </button>
+
+        <button id="toggle-snow-btn" class="hidden lg:flex px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-blue-200 font-medium border border-slate-700 transition items-center gap-1">
+          <span>❄️</span>
+        </button>
+
+        <a href="#seccion-mi-regalo" class="px-3 sm:px-4 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-xs font-bold text-white shadow-md transition flex items-center gap-1">
+          <span>🎁</span> <span class="hidden xs:inline">Mi Regalo</span>
         </a>
       </div>
     </div>
@@ -343,9 +355,20 @@
             <span class="text-[9px] uppercase font-bold text-slate-400 block">Tiempo Restante</span>
             <span id="radar-distance" class="text-xs sm:text-sm font-extrabold text-emerald-400 font-mono">35 días</span>
           </div>
-          <div class="px-2 border-x border-slate-800">
-            <span class="text-[9px] uppercase font-bold text-slate-400 block">Velocidad</span>
-            <span id="radar-speed" class="text-xs sm:text-sm font-black text-amber-400 font-mono">180 km/h</span>
+          <div class="px-2 border-x border-slate-800 flex flex-col items-center justify-center">
+            <span class="text-[9px] uppercase font-bold text-slate-400 block">Velocímetro AVE</span>
+            <!-- Tacómetro / Velocímetro Analógico Ferroviario -->
+            <div class="speedo-gauge-container w-16 h-12 relative overflow-hidden my-0.5">
+              <svg viewBox="0 0 130 90" class="w-full h-auto">
+                <path d="M 20 75 A 50 50 0 0 1 110 75" fill="none" stroke="#1E293B" stroke-width="12" stroke-linecap="round"/>
+                <path d="M 20 75 A 50 50 0 0 1 85 30" fill="none" stroke="#10B981" stroke-width="10" stroke-linecap="round"/>
+                <path d="M 85 30 A 50 50 0 0 1 110 75" fill="none" stroke="#CB1823" stroke-width="10" stroke-linecap="round"/>
+                <!-- Aguja dinámica -->
+                <line id="speedo-needle-line" x1="65" y1="75" x2="65" y2="30" stroke="#FCD34D" stroke-width="3" stroke-linecap="round" class="speedo-needle" style="transform: rotate(-45deg);"/>
+                <circle cx="65" cy="75" r="6" fill="#FCD34D" stroke="#0F172A" stroke-width="2"/>
+              </svg>
+            </div>
+            <span id="radar-speed" class="text-xs font-black text-amber-400 font-mono leading-none">180 km/h</span>
           </div>
           <div class="px-2 col-span-2 sm:col-span-1">
             <span class="text-[9px] uppercase font-bold text-slate-400 block">Fecha Prevista</span>
@@ -518,22 +541,30 @@
   <!-- ========================================== -->
   <!-- BARRA DE NAVEGACIÓN MÓVIL INFERIOR         -->
   <!-- ========================================== -->
-  <nav class="mobile-bottom-nav md:hidden px-3 py-2 flex items-center justify-around text-center select-none" aria-label="Navegación Móvil">
-    <a href="#seccion-calendario" class="flex-1 flex flex-col items-center py-1 text-slate-300 hover:text-amber-300 active:scale-95 transition">
+  <nav class="mobile-bottom-nav md:hidden px-2 py-2 flex items-center justify-around text-center select-none" aria-label="Navegación Móvil">
+    <a href="#seccion-calendario" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-amber-300 active:scale-95 transition">
       <span class="text-base">📅</span>
-      <span class="text-[10px] font-semibold mt-0.5">Calendario</span>
+      <span class="text-[9px] font-semibold">Adviento</span>
     </a>
-    <a href="#seccion-mi-regalo" class="flex-1 flex flex-col items-center py-1 text-slate-300 hover:text-amber-300 active:scale-95 transition">
+    <a href="#seccion-mi-regalo" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-amber-300 active:scale-95 transition">
       <span class="text-base">🎁</span>
-      <span class="text-[10px] font-semibold mt-0.5">Mi Regalo</span>
+      <span class="text-[9px] font-semibold">Mi Regalo</span>
     </a>
-    <a href="#seccion-radar" class="flex-1 flex flex-col items-center py-1 text-slate-300 hover:text-amber-300 active:scale-95 transition">
+    <a href="#seccion-radar" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-amber-300 active:scale-95 transition">
       <span class="text-base">🚄</span>
-      <span class="text-[10px] font-semibold mt-0.5">Radar AVE</span>
+      <span class="text-[9px] font-semibold">Radar</span>
     </a>
-    <button id="mobile-sound-btn" class="flex-1 flex flex-col items-center py-1 text-slate-300 hover:text-amber-300 active:scale-95 transition">
+    <button id="mobile-cab-btn" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-blue-300 active:scale-95 transition">
+      <span class="text-base">🚆</span>
+      <span class="text-[9px] font-semibold">Cabina</span>
+    </button>
+    <button id="mobile-game-btn" class="flex-1 flex flex-col items-center py-0.5 text-amber-400 hover:text-amber-300 active:scale-95 transition font-bold">
+      <span class="text-base">🎮</span>
+      <span class="text-[9px]">Juego</span>
+    </button>
+    <button id="mobile-sound-btn" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-amber-300 active:scale-95 transition">
       <span class="text-base">🔇</span>
-      <span class="text-[10px] font-semibold mt-0.5">Sonido</span>
+      <span class="text-[9px] font-semibold">Sonido</span>
     </button>
   </nav>
 
@@ -558,5 +589,159 @@
   </footer>
 
   <script src="app.js"></script>
+  <!-- ========================================== -->
+  <!-- MODAL: VISOR 360° CABINA AVE EN MONFORTE    -->
+  <!-- ========================================== -->
+  <div id="cab-modal" class="cab-modal hidden">
+    <div class="p-4 border-b border-slate-700 flex items-center justify-between bg-slate-950/80">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🚆</span>
+        <div>
+          <h3 class="text-sm font-black text-white font-poppins">Cabina de Conducción AVE • Base Monforte del Cid</h3>
+          <p class="text-[10px] text-blue-300">Arrastra con el dedo o mueve el móvil para explorar la vista panorámica en 360°</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="cab-wipers-btn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-blue-300 font-bold border border-slate-700 transition">
+          🌧️ Limpiaparabrisas
+        </button>
+        <button id="cab-lights-btn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-amber-300 font-bold border border-slate-700 transition">
+          💡 Faros Largos
+        </button>
+        <button id="close-cab-btn" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700 transition">✕</button>
+      </div>
+    </div>
+
+    <div class="cab-viewport flex-1 relative" id="cab-viewport">
+      <!-- Capa panorámica navegable -->
+      <div class="cab-panoramic-layer" id="cab-panoramic-layer">
+        <!-- Panel 1: Ventana Lateral Izquierda -->
+        <div class="w-1/3 h-full relative bg-gradient-to-b from-[#020617] via-[#0B1528] to-[#040816] flex items-center justify-center border-r border-slate-800 p-8">
+          <div class="text-center">
+            <span class="text-5xl block mb-2">🏔️</span>
+            <span class="text-xs font-bold text-slate-400">Trazado Sierra de las Águilas</span>
+            <p class="text-[11px] text-blue-300 mt-1">Catenaria electrificada 25 kV AC y detectores de viento lateral</p>
+          </div>
+        </div>
+        <!-- Panel 2: Frontal Central (Vía de Entrada y Base Monforte) -->
+        <div class="w-1/3 h-full relative bg-gradient-to-b from-[#020818] via-[#0F1E36] to-[#050C1B] flex flex-col items-center justify-end pb-12 border-r border-slate-800 overflow-hidden">
+          <!-- Cielo nocturno y estrellas -->
+          <div class="absolute top-10 inset-x-0 text-center">
+            <span class="px-3 py-1 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 text-xs font-bold animate-pulse">
+              🟢 SEÑAL VERDE: VÍA LIBRE • ACCESO A BASE MONFORTE
+            </span>
+          </div>
+
+          <!-- Naves de la Base de Mantenimiento al fondo con luces navideñas -->
+          <div class="absolute bottom-40 text-center z-10">
+            <div class="inline-block bg-slate-900/90 px-4 py-2 rounded-xl border border-amber-400/60 shadow-[0_0_25px_rgba(212,175,55,0.4)]">
+              <span class="text-xs font-black text-amber-300">🏢 BASE DE MANTENIMIENTO MONFORTE DEL CID</span>
+              <p class="text-[10px] text-white">Naves de Talleres y Vías de Estacionamiento</p>
+            </div>
+            <div class="flex justify-center gap-1 mt-1 text-base">🎄 🎅 ✨ 🎁</div>
+          </div>
+
+          <!-- Trazado de vías en perspectiva hacia la cabina -->
+          <svg viewBox="0 0 400 200" class="w-full max-w-lg h-auto relative z-0">
+            <polygon points="175,80 225,80 340,200 60,200" fill="#0F172A" opacity="0.8"/>
+            <!-- Carriles de acero -->
+            <line x1="180" y1="80" x2="80" y2="200" stroke="#E2E8F0" stroke-width="4"/>
+            <line x1="220" y1="80" x2="320" y2="200" stroke="#E2E8F0" stroke-width="4"/>
+            <!-- Traviesas de hormigón -->
+            <line x1="170" y1="95" x2="230" y2="95" stroke="#64748B" stroke-width="2.5"/>
+            <line x1="160" y1="115" x2="240" y2="115" stroke="#64748B" stroke-width="3"/>
+            <line x1="145" y1="140" x2="255" y2="140" stroke="#64748B" stroke-width="3.5"/>
+            <line x1="125" y1="170" x2="275" y2="170" stroke="#64748B" stroke-width="4"/>
+            <!-- Foco del tren -->
+            <polygon id="cab-light-beam" points="200,70 40,200 360,200" fill="url(#cabBeamGrad)" opacity="0.45"/>
+            <defs>
+              <linearGradient id="cabBeamGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#FDE047" stop-opacity="0.8"/>
+                <stop offset="100%" stop-color="#FDE047" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+          </svg>
+
+          <!-- Limpiaparabrisas izquierdo y derecho -->
+          <div class="wiper-arm left-1/3" id="wiper-left"></div>
+          <div class="wiper-arm right-1/3" id="wiper-right"></div>
+        </div>
+        <!-- Panel 3: Ventana Lateral Derecha -->
+        <div class="w-1/3 h-full relative bg-gradient-to-b from-[#020617] via-[#0B1528] to-[#040816] flex items-center justify-center p-8">
+          <div class="text-center">
+            <span class="text-5xl block mb-2">🌴</span>
+            <span class="text-xs font-bold text-slate-400">Paisaje de Alicante • Valle del Vinalopó</span>
+            <p class="text-[11px] text-blue-300 mt-1">Coordenadas GPS: 38.406742°N, -0.694939°W</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cuadro de Mandos Inferior de la Cabina -->
+      <div class="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-slate-950 via-slate-900 to-transparent border-t-2 border-slate-700/80 px-4 py-2 flex items-center justify-between z-20">
+        <div class="flex items-center gap-3">
+          <div class="bg-black/90 px-3 py-1.5 rounded-lg border border-emerald-500/40 text-center font-mono">
+            <span class="text-[8px] text-slate-400 block uppercase">ERTMS Nivel 2</span>
+            <span class="text-xs font-bold text-emerald-400">FS • MODO NORMAL</span>
+          </div>
+          <div class="bg-black/90 px-3 py-1.5 rounded-lg border border-amber-500/40 text-center font-mono">
+            <span class="text-[8px] text-slate-400 block uppercase">Velocidad Fijada</span>
+            <span class="text-xs font-bold text-amber-300">180 KM/H</span>
+          </div>
+        </div>
+        <div class="text-center hidden sm:block">
+          <span class="text-xs font-black text-amber-400">TREN SOLIDARIO INECO 2027</span>
+          <p class="text-[10px] text-slate-400">Base de Monforte del Cid • P.K. 415+800</p>
+        </div>
+        <button id="cab-horn-sound-btn" class="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-bold text-xs shadow-lg active:scale-95 transition">
+          📢 Tocar Silbato Cabina
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MINIJUEGO "EL MAQUINISTA SOLIDARIO"  -->
+  <!-- ========================================== -->
+  <div id="game-modal" class="minigame-modal hidden">
+    <div class="w-full max-w-md flex items-center justify-between mb-3 text-white">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🎮</span>
+        <div>
+          <h3 class="text-sm font-black font-poppins">El Desafío del Maquinista Solidario</h3>
+          <p class="text-[10px] text-amber-300">¡Recoge los 9 regalos evitando los copos gigantes!</p>
+        </div>
+      </div>
+      <button id="close-game-btn" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700 transition">✕</button>
+    </div>
+
+    <div class="game-canvas-container">
+      <canvas id="game-canvas" width="360" height="480"></canvas>
+      
+      <!-- Controles táctiles en pantalla para móvil -->
+      <div class="absolute bottom-3 inset-x-3 flex justify-between gap-3 pointer-events-auto">
+        <button id="game-btn-left" class="flex-1 py-3 bg-blue-900/90 active:bg-blue-700 text-white rounded-xl font-black text-lg border border-amber-400/50 shadow-lg select-none">
+          ◀ Vía Izquierda
+        </button>
+        <button id="game-btn-right" class="flex-1 py-3 bg-blue-900/90 active:bg-blue-700 text-white rounded-xl font-black text-lg border border-amber-400/50 shadow-lg select-none">
+          Vía Derecha ▶
+        </button>
+      </div>
+    </div>
+
+    <!-- Pantalla de Inicio / Instrucciones del Juego -->
+    <div id="game-overlay-screen" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center z-30">
+      <div class="text-5xl mb-3">🚄 🎁</div>
+      <h3 class="text-xl font-black text-white font-poppins mb-1">El Maquinista Solidario 2027</h3>
+      <p class="text-xs text-blue-200 max-w-xs mb-4">
+        Guía el AVE de Ineco por las 3 vías. Tienes <strong>30 segundos</strong> para recoger los 9 regalos solidarios antes de la entrada a la Base de Monforte del Cid.
+      </p>
+      <div class="flex gap-2 text-xs text-slate-300 mb-6 bg-slate-900 px-4 py-2 rounded-xl border border-slate-700">
+        <span>🎮 Controles: Flechas ◀ ▶ o botones en pantalla</span>
+      </div>
+      <button id="start-game-btn" class="px-8 py-3 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white font-black text-sm shadow-xl active:scale-95 transition tracking-wider">
+        ¡COMENZAR DESAFÍO!
+      </button>
+    </div>
+  </div>
 </body>
 </html>
