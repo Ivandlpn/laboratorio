@@ -269,18 +269,18 @@ const COLLEAGUES = [
     loc: "LOC-IRE-2027-MDC"
   },
   {
-    name: "Iván Álvarez",
+    name: "Iván A.",
     role: "Especialista de Sistemas y Auscultación",
     wish: "¡Velocidad de crucero a 300 km/h para tus metas y la mejor sintonía en cada reto del nuevo año 2027!",
     ticketSeat: "Coche 03 • Asiento 06B (Turista Plus)",
     loc: "LOC-IVA-2027-MDC"
   },
   {
-    name: "Iván de la Paz",
+    name: "Iván C.",
     role: "Responsable de Equipos & Innovación Tecnológica",
     wish: "¡Gracias por liderar con entusiasmo y visión de futuro! Que el 2027 te devuelva multiplicado todo tu esfuerzo y compañerismo.",
     ticketSeat: "Coche 01 • Asiento 01B (Cabina de Mando)",
-    loc: "LOC-IDP-2027-MDC"
+    loc: "LOC-IVC-2027-MDC"
   },
   {
     name: "Jose Luis",
@@ -1684,124 +1684,150 @@ class TeaserFallingGifts {
     this.gifts = [];
     this.sparkles = [];
     this.active = true;
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    // Listado de compañeros exacto
     this.names = [
       "Ana", "Edu", "Ernesto", "Gloria", "Irene",
-      "Iván Álvarez", "Iván de la Paz", "Jose Luis", "Manuel",
+      "Iván A.", "Iván C.", "Jose Luis", "Manuel",
       "Pascual", "Pepe", "Raúl"
     ];
+    this.nameCursor = 0;
+
+    // Paletas elegantes de alta gama navideña / Ineco
     this.colorSchemes = [
       { bodyTop: "#DC2626", bodyBottom: "#991B1B", ribbon: "#FCD34D", ribbonDark: "#D97706", text: "#FEF08A" }, // Rojo Ineco & Oro
       { bodyTop: "#1A4488", bodyBottom: "#0D2246", ribbon: "#FCD34D", ribbonDark: "#D97706", text: "#FFFFFF" }, // Azul Ineco & Oro
-      { bodyTop: "#059669", bodyBottom: "#064E3B", ribbon: "#FEF08A", ribbonDark: "#EAB308", text: "#FFFFFF" }, // Verde Abeto & Oro
-      { bodyTop: "#D97706", bodyBottom: "#78350F", ribbon: "#FFFFFF", ribbonDark: "#E2E8F0", text: "#FEF3C7" }, // Oro Cálido & Blanco
-      { bodyTop: "#7C3AED", bodyBottom: "#4C1D95", ribbon: "#FDE047", ribbonDark: "#CA8A04", text: "#FFFFFF" }, // Púrpura Real & Oro
-      { bodyTop: "#BE123C", bodyBottom: "#881337", ribbon: "#FCD34D", ribbonDark: "#D97706", text: "#FFFFFF" }  // Granate Navideño & Oro
+      { bodyTop: "#047857", bodyBottom: "#064E3B", ribbon: "#FEF08A", ribbonDark: "#EAB308", text: "#FFFFFF" }, // Verde Abeto & Oro
+      { bodyTop: "#D97706", bodyBottom: "#78350F", ribbon: "#FFFFFF", ribbonDark: "#E2E8F0", text: "#FEF3C7" }, // Oro Cálido & Blanco Seda
+      { bodyTop: "#6D28D9", bodyBottom: "#4C1D95", ribbon: "#FDE047", ribbonDark: "#CA8A04", text: "#FFFFFF" }, // Púrpura Real & Oro
+      { bodyTop: "#BE123C", bodyBottom: "#881337", ribbon: "#FCD34D", ribbonDark: "#D97706", text: "#FFFFFF" }  // Rubí Navideño & Oro
     ];
-    this.maxGifts = window.innerWidth < 768 ? 16 : 28;
+
+    // Dimensiones fijas e idénticas para TODOS los paquetes (tamaño uniforme)
+    this.BOX_WIDTH = 74;
+    this.BOX_HEIGHT = 56;
+
+    this.maxGifts = window.innerWidth < 768 ? 14 : 24;
     this.resize();
     this.initGifts();
     this.initSparkles();
+
     window.addEventListener('resize', () => this.resize());
+    this.lastTime = performance.now();
     this.animate = this.animate.bind(this);
     this.animId = requestAnimationFrame(this.animate);
   }
 
   resize() {
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.canvas.width = this.width;
-    this.canvas.height = this.height;
+    this.canvas.width = Math.round(this.width * this.dpr);
+    this.canvas.height = Math.round(this.height * this.dpr);
+    this.canvas.style.width = this.width + 'px';
+    this.canvas.style.height = this.height + 'px';
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+  }
+
+  getNextName() {
+    const name = this.names[this.nameCursor % this.names.length];
+    this.nameCursor++;
+    return name;
   }
 
   initGifts() {
     this.gifts = [];
-    for (let i = 0; i < this.maxGifts; i++) {
-      this.gifts.push(this.createGift(Math.random() * (this.height || 800)));
+    const count = this.maxGifts;
+    for (let i = 0; i < count; i++) {
+      const startY = (this.height / count) * i + (Math.random() * 40 - 20);
+      this.gifts.push(this.createGift(startY));
     }
   }
 
   createGift(startY) {
-    const nameIndex = Math.floor(Math.random() * this.names.length);
+    const name = this.getNextName();
     const scheme = this.colorSchemes[Math.floor(Math.random() * this.colorSchemes.length)];
-    const depth = Math.random(); // 0 (lejos) a 1 (primer plano)
-    const size = 46 + depth * 34; // de 46px a 80px de ancho
 
     return {
-      name: this.names[nameIndex],
+      name: name,
       scheme: scheme,
       x: Math.random() * (this.width || 800),
-      y: startY !== undefined ? startY : -85 - Math.random() * 120,
-      width: size,
-      height: size * 0.88,
-      speedY: 0.7 + depth * 1.3, // velocidad de caída suave a modo de copo
-      swayAmp: 1.2 + depth * 2.2,
-      swayFreq: 0.012 + Math.random() * 0.015,
+      y: startY !== undefined ? startY : -90 - Math.random() * 80,
+      width: this.BOX_WIDTH,   // TAMAÑO EXACTO Y UNIFORME
+      height: this.BOX_HEIGHT, // TAMAÑO EXACTO Y UNIFORME
+      speedY: 0.95 + Math.random() * 0.45, // Caída suave y constante como copo
+      swayAmp: 0.9 + Math.random() * 0.8,   // Movimiento lateral sereno y estable
+      swayFreq: 0.009 + Math.random() * 0.006,
       swayOffset: Math.random() * Math.PI * 2,
-      tiltAmp: 0.16 + Math.random() * 0.12,
-      tiltFreq: 0.015 + Math.random() * 0.012,
+      tiltAmp: 0.05 + Math.random() * 0.04, // Balanceo pendular sutil (máx 3-4° sin deformación)
+      tiltFreq: 0.011 + Math.random() * 0.006,
       tiltOffset: Math.random() * Math.PI * 2,
-      spinYFreq: 0.01 + Math.random() * 0.01,
-      spinYOffset: Math.random() * Math.PI * 2,
-      depth: depth,
-      opacity: 0.6 + depth * 0.38,
-      t: Math.random() * 600
+      opacity: 0.92,
+      t: Math.random() * 500
     };
   }
 
   initSparkles() {
     this.sparkles = [];
-    for (let i = 0; i < 45; i++) {
+    for (let i = 0; i < 40; i++) {
       this.sparkles.push({
         x: Math.random() * (this.width || 800),
         y: Math.random() * (this.height || 600),
-        size: Math.random() * 2.5 + 0.8,
+        size: Math.random() * 2.2 + 0.8,
         alpha: Math.random(),
-        speed: 0.02 + Math.random() * 0.03,
-        vy: 0.4 + Math.random() * 0.6
+        speed: 0.02 + Math.random() * 0.025,
+        vy: 0.35 + Math.random() * 0.45
       });
     }
   }
 
-  animate() {
+  animate(now) {
     if (!this.active) {
       this.animId = requestAnimationFrame(this.animate);
       return;
     }
 
+    const dt = Math.min((now - (this.lastTime || now)) / 16.67, 2.5);
+    this.lastTime = now;
+
     this.ctx.clearRect(0, 0, this.width, this.height);
 
-    // 1. Chispas de nieve y estrellas flotantes
-    this.drawSparkles();
+    // 1. Chispas doradas flotantes
+    this.drawSparkles(dt);
 
-    // 2. Regalos cayendo suavemente
+    // 2. Regalos cayendo de forma estable y profesional
     for (let i = 0; i < this.gifts.length; i++) {
       const g = this.gifts[i];
-      g.t += 1;
+      g.t += dt;
 
-      g.y += g.speedY;
+      g.y += g.speedY * dt;
       g.x += Math.sin(g.t * g.swayFreq + g.swayOffset) * g.swayAmp;
 
+      // Inclinación pendular suave sin escalado ni deformación de la caja
       const tilt = Math.sin(g.t * g.tiltFreq + g.tiltOffset) * g.tiltAmp;
-      const spinScaleX = 0.82 + Math.cos(g.t * g.spinYFreq + g.spinYOffset) * 0.18;
 
-      if (g.y > this.height + 80) {
-        Object.assign(g, this.createGift(-80));
+      if (g.y > this.height + 90) {
+        Object.assign(g, this.createGift(-90));
       }
 
-      this.drawGiftBox(g, tilt, spinScaleX);
+      this.drawGiftBox(g, tilt);
     }
 
     this.animId = requestAnimationFrame(this.animate);
   }
 
-  drawSparkles() {
+  drawSparkles(dt) {
     const ctx = this.ctx;
     ctx.save();
     for (let s of this.sparkles) {
-      s.y += s.vy;
-      s.alpha += s.speed;
-      if (s.y > this.height) s.y = -10;
-      const currentAlpha = 0.25 + Math.sin(s.alpha) * 0.35;
+      s.y += s.vy * dt;
+      s.alpha += s.speed * dt;
+      if (s.y > this.height) {
+        s.y = -10;
+        s.x = Math.random() * this.width;
+      }
+      const currentAlpha = 0.2 + Math.sin(s.alpha) * 0.35;
 
       ctx.fillStyle = `rgba(254, 240, 138, ${Math.max(0, currentAlpha)})`;
       ctx.beginPath();
@@ -1811,26 +1837,26 @@ class TeaserFallingGifts {
     ctx.restore();
   }
 
-  drawGiftBox(g, tilt, spinScaleX) {
+  drawGiftBox(g, tilt) {
     const ctx = this.ctx;
     ctx.save();
 
+    // Posicionamiento sin escalado que deforme el regalo
     ctx.translate(g.x, g.y);
     ctx.rotate(tilt);
-    ctx.scale(spinScaleX, 1);
     ctx.globalAlpha = g.opacity;
 
     const w = g.width;
     const h = g.height;
-    const radius = 8;
-    const ribbonW = Math.max(6, w * 0.18);
+    const radius = 7;
+    const ribbonW = 12;
 
-    // Sombra proyectada 3D
-    ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-    ctx.shadowBlur = 12 * g.depth + 6;
-    ctx.shadowOffsetY = 6 * g.depth + 4;
+    // Sombra suave profesional y nítida
+    ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 5;
 
-    // 1. Caja de Regalo
+    // 1. Cuerpo del Regalo
     const grad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
     grad.addColorStop(0, g.scheme.bodyTop);
     grad.addColorStop(1, g.scheme.bodyBottom);
@@ -1839,70 +1865,81 @@ class TeaserFallingGifts {
     this.drawRoundedRect(ctx, -w / 2, -h / 2, w, h, radius);
     ctx.fill();
 
-    // Borde brillante fino
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.lineWidth = 1.2;
+    // Bisel superior iluminado (efecto 3D pulido)
+    ctx.shadowColor = "transparent";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    ctx.shadowColor = "transparent";
+    // 2. Cinta Vertical Centrada
+    const ribbonGradV = ctx.createLinearGradient(-ribbonW / 2, 0, ribbonW / 2, 0);
+    ribbonGradV.addColorStop(0, g.scheme.ribbonDark);
+    ribbonGradV.addColorStop(0.5, g.scheme.ribbon);
+    ribbonGradV.addColorStop(1, g.scheme.ribbonDark);
 
-    // 2. Cinta Vertical
-    const ribbonGrad = ctx.createLinearGradient(-ribbonW / 2, 0, ribbonW / 2, 0);
-    ribbonGrad.addColorStop(0, g.scheme.ribbonDark);
-    ribbonGrad.addColorStop(0.5, g.scheme.ribbon);
-    ribbonGrad.addColorStop(1, g.scheme.ribbonDark);
-
-    ctx.fillStyle = ribbonGrad;
+    ctx.fillStyle = ribbonGradV;
     ctx.fillRect(-ribbonW / 2, -h / 2, ribbonW, h);
 
-    // 3. Cinta Horizontal
-    ctx.fillStyle = ribbonGrad;
+    // 3. Cinta Horizontal Centrada
+    const ribbonGradH = ctx.createLinearGradient(0, -ribbonW / 2, 0, ribbonW / 2);
+    ribbonGradH.addColorStop(0, g.scheme.ribbonDark);
+    ribbonGradH.addColorStop(0.5, g.scheme.ribbon);
+    ribbonGradH.addColorStop(1, g.scheme.ribbonDark);
+
+    ctx.fillStyle = ribbonGradH;
     ctx.fillRect(-w / 2, -ribbonW / 2, w, ribbonW);
 
     // 4. Lazo Tridimensional Superior (Bow)
-    const bowSize = ribbonW * 1.5;
     const bowY = -h / 2;
+    const loopW = 10;
+    const loopH = 6;
 
     ctx.fillStyle = g.scheme.ribbon;
+    // Bucle izquierdo
     ctx.beginPath();
-    ctx.ellipse(-bowSize * 0.55, bowY - 4, bowSize * 0.65, bowSize * 0.4, -0.4, 0, Math.PI * 2);
-    ctx.ellipse(bowSize * 0.55, bowY - 4, bowSize * 0.65, bowSize * 0.4, 0.4, 0, Math.PI * 2);
+    ctx.ellipse(-7, bowY - 4, loopW, loopH, -0.35, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = g.scheme.ribbonDark;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // Bucle derecho
+    ctx.beginPath();
+    ctx.ellipse(7, bowY - 4, loopW, loopH, 0.35, 0, Math.PI * 2);
+    ctx.fill();
     ctx.stroke();
 
     // Nudo central del lazo
     ctx.fillStyle = "#FFFBEB";
     ctx.beginPath();
-    ctx.arc(0, bowY - 2, ribbonW * 0.45, 0, Math.PI * 2);
+    ctx.arc(0, bowY - 2, 3.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // 5. Placa con el Nombre de la Persona
-    const tagH = Math.max(17, h * 0.38);
-    const tagW = w * 0.88;
-    const tagY = h * 0.12;
+    // 5. Placa / Cartela con el Nombre de la Persona (Dentro del regalo)
+    const tagW = w - 12; // 62px de ancho
+    const tagH = 21;     // 21px de alto
+    const tagY = 3;      // Centrada verticalmente en el regalo
 
-    ctx.fillStyle = "rgba(6, 12, 26, 0.92)";
-    this.drawRoundedRect(ctx, -tagW / 2, tagY - tagH / 2, tagW, tagH, 5);
+    // Fondo oscuro premium para la cartela
+    ctx.fillStyle = "rgba(10, 16, 28, 0.94)";
+    this.drawRoundedRect(ctx, -tagW / 2, tagY - tagH / 2, tagW, tagH, 4);
     ctx.fill();
 
+    // Borde dorado fino de la cartela
     ctx.strokeStyle = g.scheme.ribbon;
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1;
     ctx.stroke();
 
-    // Ajuste dinámico del tamaño de fuente según la longitud del nombre
-    const maxChars = Math.max(g.name.length, 5);
-    const fontSize = Math.max(8, Math.min(13, Math.floor((tagW - 8) / (maxChars * 0.65))));
-
-    ctx.font = `900 ${fontSize}px Poppins, sans-serif`;
+    // Texto con el nombre del compañero, perfectamente legible y centrado
+    ctx.font = "700 11px Inter, system-ui, -apple-system, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
 
     ctx.fillStyle = g.scheme.text;
-    ctx.shadowColor = "rgba(252, 211, 77, 0.7)";
-    ctx.shadowBlur = 4;
-    ctx.fillText(g.name, 0, tagY + 0.5);
+    ctx.shadowColor = "rgba(0, 0, 0, 0.8)";
+    ctx.shadowBlur = 2;
+    ctx.shadowOffsetY = 1;
+    ctx.fillText(g.name, 0, tagY);
 
     ctx.restore();
   }
