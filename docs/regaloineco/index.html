@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
-  <title>Regalo Solidario Ineco 2026 • Calendario de Adviento</title>
+  <title>Regalo Solidario Ineco 2027 • Calendario de Adviento</title>
   
-  <meta name="description" content="Calendario de Adviento interactivo del Regalo Solidario 2026 de Ineco para el equipo de la Base de Mantenimiento de Alta Velocidad de Monforte del Cid (Alicante).">
+  <meta name="description" content="Calendario de Adviento interactivo del Regalo Solidario 2027 de Ineco para el equipo de la Base de Mantenimiento de Alta Velocidad de Monforte del Cid (Alicante).">
   <meta name="theme-color" content="#1A4488">
   
   <!-- Tipografía Oficial Ineco: Poppins -->
@@ -77,11 +77,11 @@
       </div>
 
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-700 via-red-600 to-amber-600 text-white font-extrabold text-xs uppercase tracking-widest border border-amber-300 shadow-xl mb-3">
-        <span>✨ EXPEDICIÓN POLAR SOLIDARIA 2026</span>
+        <span>✨ EXPEDICIÓN POLAR SOLIDARIA 2027</span>
       </div>
 
       <h1 class="text-2xl md:text-4xl font-black text-white font-poppins tracking-tight drop-shadow-md">
-        REGALO SOLIDARIO <span class="text-amber-400">2026</span>
+        REGALO SOLIDARIO <span class="text-amber-400">2027</span>
       </h1>
       <p class="text-xs md:text-sm text-blue-200 mt-2 font-medium">
         Ruta: <strong class="text-amber-300">Laponia</strong> ➔ <strong class="text-white">Sede Ineco (Madrid)</strong> ➔ <strong class="text-emerald-400">Base Monforte del Cid</strong>
@@ -148,7 +148,7 @@
           <span class="absolute -top-3 -right-2 text-xl">🎅</span>
         </a>
         <div class="hidden sm:block">
-          <h2 class="text-xs font-black uppercase tracking-wider text-amber-400">Regalo Solidario 2026</h2>
+          <h2 class="text-xs font-black uppercase tracking-wider text-amber-400">Regalo Solidario 2027</h2>
           <p class="text-[10px] text-blue-200">Base Mantenimiento Monforte del Cid (Alicante)</p>
         </div>
       </div>
@@ -178,7 +178,7 @@
       <!-- Insignia Festiva -->
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/60 border border-blue-400/40 text-blue-200 text-xs font-semibold mb-4 shadow-lg backdrop-blur-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Detalle Navideño Solidario 2026</span>
+        <span>Detalle Navideño Solidario 2027</span>
         <span class="text-blue-400">•</span>
         <span class="text-amber-300">Base de Monforte del Cid</span>
       </div>
@@ -186,7 +186,7 @@
       <h1 class="text-3xl sm:text-5xl md:text-6xl font-black text-white font-poppins tracking-tight leading-tight">
         CALENDARIO DE ADVIENTO
         <span class="block text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-red-400 to-amber-200">
-          REGALO SOLIDARIO 2026
+          REGALO SOLIDARIO 2027
         </span>
       </h1>
 
@@ -229,7 +229,7 @@
         </h3>
       </div>
       <p class="text-[11px] text-blue-200 mb-4">
-        Fecha esperada de entrega: <strong class="text-white">14 de Diciembre de 2026</strong> (09:00 - 15:00 h)
+        Fecha esperada de entrega: <strong class="text-white">14 de Diciembre de 2026</strong> (para celebrar el nuevo año 2027) (09:00 - 15:00 h)
       </p>
 
       <div class="grid grid-cols-4 gap-2 sm:gap-4 max-w-lg mx-auto">
@@ -328,7 +328,7 @@
             🎅 Radar Papá Noel: Laponia ➔ Sede Ineco ➔ Monforte del Cid
           </h2>
           <p class="text-xs text-blue-200 mt-0.5">
-            Salida en el Círculo Polar, escala prevista el 1 de Diciembre en la Sede Central de Ineco (Madrid) y llegada el 14 de Diciembre a Monforte del Cid.
+            Salida en el Círculo Polar (66°N), enlace transeuropeo, escala el 1 de Diciembre en la Sede Central de Ineco (Madrid) y entrega el 14 de Diciembre en la Base de Monforte del Cid.
           </p>
           <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/80 border border-slate-700/80 text-[11px] text-slate-300 font-mono">
             <span class="text-amber-400">📍 Coordenadas Base:</span>
@@ -337,40 +337,50 @@
           </div>
         </div>
 
-        <!-- Telemetría Dinámica -->
-        <div class="flex items-center gap-3 bg-slate-950/80 px-4 py-2.5 rounded-xl border border-blue-400/30">
-          <div>
-            <span class="text-[9px] uppercase font-bold text-slate-400 block">Tiempo de Viaje</span>
-            <span id="radar-distance" class="text-sm font-bold text-emerald-400 font-mono">Quedan 35 días</span>
+        <!-- Telemetría Dinámica Superior -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-950/90 p-3 rounded-2xl border border-blue-400/30 text-center">
+          <div class="px-2">
+            <span class="text-[9px] uppercase font-bold text-slate-400 block">Tiempo Restante</span>
+            <span id="radar-distance" class="text-xs sm:text-sm font-extrabold text-emerald-400 font-mono">35 días</span>
           </div>
-          <div class="h-8 w-px bg-slate-700"></div>
-          <div>
+          <div class="px-2 border-x border-slate-800">
             <span class="text-[9px] uppercase font-bold text-slate-400 block">Velocidad</span>
-            <span id="radar-speed" class="text-base font-black text-amber-400 font-mono">180 km/h</span>
+            <span id="radar-speed" class="text-xs sm:text-sm font-black text-amber-400 font-mono">180 km/h</span>
+          </div>
+          <div class="px-2 col-span-2 sm:col-span-1">
+            <span class="text-[9px] uppercase font-bold text-slate-400 block">Fecha Prevista</span>
+            <span id="radar-eta" class="text-xs sm:text-sm font-bold text-sky-300 font-mono">14 Diciembre</span>
           </div>
         </div>
       </div>
 
-      <!-- Selector Temporal de la Ruta -->
+      <!-- Selector de Hitos Rápidos -->
       <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1 text-xs">
-        <button id="map-btn-laponia" class="px-3 py-1.5 rounded-lg bg-blue-950/90 text-amber-300 font-bold border border-blue-500/40 hover:bg-blue-900 flex items-center gap-1.5 whitespace-nowrap">
-          <span>🎅 1. Hoy (Laponia • 35 días restantes)</span>
+        <button id="map-btn-laponia" class="px-3 py-1.5 rounded-lg bg-blue-950/90 text-amber-300 font-bold border border-blue-500/40 hover:bg-blue-900 flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition">
+          <span>🎅 1. Laponia (Hoy)</span>
         </button>
-        <button id="map-btn-madrid" class="px-3 py-1.5 rounded-lg bg-blue-950/90 text-blue-200 font-bold border border-blue-500/40 hover:bg-blue-900 flex items-center gap-1.5 whitespace-nowrap">
-          <span>🏢 2. Escala 1 Dic (Sede Ineco Madrid)</span>
+        <button id="map-btn-europe" class="px-3 py-1.5 rounded-lg bg-blue-950/90 text-indigo-300 font-bold border border-blue-500/40 hover:bg-blue-900 flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition">
+          <span>🇫🇷 2. Corredor Europeo (20 Nov)</span>
         </button>
-        <button id="map-btn-monforte" class="px-3 py-1.5 rounded-lg bg-red-950/90 text-red-300 font-bold border border-red-500/40 hover:bg-red-900 flex items-center gap-1.5 whitespace-nowrap">
-          <span>🚄 3. Llegada 14 Dic (Base Monforte del Cid)</span>
+        <button id="map-btn-madrid" class="px-3 py-1.5 rounded-lg bg-blue-950/90 text-blue-200 font-bold border border-blue-500/40 hover:bg-blue-900 flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition">
+          <span>🏢 3. Sede Ineco Madrid (1 Dic)</span>
+        </button>
+        <button id="map-btn-monforte" class="px-3 py-1.5 rounded-lg bg-red-950/90 text-red-300 font-bold border border-red-500/40 hover:bg-red-900 flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition">
+          <span>🚄 4. Base Monforte (14 Dic)</span>
         </button>
       </div>
 
-      <!-- Mapa SVG Continental: Laponia -> Madrid -> Monforte -->
-      <div class="relative bg-slate-950/90 rounded-2xl p-4 border border-slate-800 shadow-inner overflow-hidden">
-        <svg viewBox="0 0 520 370" class="w-full h-auto max-h-[420px] drop-shadow-md select-none" id="radar-svg-map">
+      <!-- Mapa SVG Continental: Laponia -> Europa -> Madrid -> Monforte -->
+      <div class="relative bg-slate-950/95 rounded-2xl p-4 border border-slate-800 shadow-inner overflow-hidden">
+        
+        <!-- Líneas de cuadrícula radar -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b15_1px,transparent_1px),linear-gradient(to_bottom,#1e293b15_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none"></div>
+
+        <svg viewBox="0 0 520 370" class="w-full h-auto max-h-[440px] drop-shadow-md select-none relative z-10" id="radar-svg-map">
           <defs>
             <linearGradient id="routeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#38BDF8"/>
-              <stop offset="45%" stop-color="#818CF8"/>
+              <stop offset="40%" stop-color="#818CF8"/>
               <stop offset="75%" stop-color="#FBBF24"/>
               <stop offset="100%" stop-color="#EF4444"/>
             </linearGradient>
@@ -378,17 +388,38 @@
               <feGaussianBlur stdDeviation="3.5" result="blur"/>
               <feComposite in="SourceGraphic" in2="blur" operator="over"/>
             </filter>
+            <radialGradient id="radarSweep" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.12"/>
+              <stop offset="100%" stop-color="#1E3A8A" stop-opacity="0"/>
+            </radialGradient>
           </defs>
 
-          <!-- Silueta esquemática de Europa Occidental y Escandinavia -->
-          <path d="M 360 20 Q 420 15 470 30 Q 450 90 410 110 Q 380 90 360 20 Z" fill="#0F172A" stroke="#1E293B" stroke-width="1.5" opacity="0.7"/>
-          <path d="M 230 110 Q 350 100 370 160 Q 320 200 240 190 Q 210 150 230 110 Z" fill="#0F172A" stroke="#1E293B" stroke-width="1.5" opacity="0.6"/>
-          <path d="M 80 190 Q 230 170 250 220 Q 330 250 310 340 Q 210 360 110 340 Q 60 280 80 190 Z" fill="#0F172A" stroke="#334155" stroke-width="2" opacity="0.85"/>
+          <!-- Círculos concéntricos de telemetría radar -->
+          <circle cx="285" cy="325" r="70" fill="url(#radarSweep)" stroke="#1E3A8A" stroke-width="0.75" stroke-dasharray="3,3"/>
+          <circle cx="285" cy="325" r="140" fill="none" stroke="#1E3A8A" stroke-width="0.5" stroke-dasharray="4,4"/>
+          <circle cx="285" cy="325" r="220" fill="none" stroke="#1E3A8A" stroke-width="0.5" stroke-dasharray="4,6" opacity="0.6"/>
 
-          <!-- Trazado Ferroviario -->
+          <!-- Silueta geográfica de Europa y Península Ibérica -->
+          <!-- Escandinavia / Laponia -->
+          <path d="M 350 15 Q 410 10 460 25 Q 470 65 440 95 Q 400 115 370 85 Q 355 45 350 15 Z" fill="#0A162B" stroke="#1E3A8A" stroke-width="1.5" opacity="0.85"/>
+          <!-- Europa Central y Francia -->
+          <path d="M 220 95 Q 340 85 360 145 Q 315 195 240 185 Q 200 145 220 95 Z" fill="#0A162B" stroke="#1E293B" stroke-width="1.5" opacity="0.7"/>
+          <!-- Península Ibérica -->
+          <path d="M 75 190 Q 225 170 245 215 Q 320 245 305 335 Q 215 355 115 335 Q 60 280 75 190 Z" fill="#081427" stroke="#334155" stroke-width="2" opacity="0.95"/>
+
+          <!-- Trazado Ferroviario Principal -->
           <path d="M 440 45 L 370 100 L 280 160" stroke="#38BDF8" stroke-width="3" stroke-dasharray="6,4" fill="none" opacity="0.8"/>
           <path d="M 280 160 L 230 200 L 180 245" stroke="#818CF8" stroke-width="3.5" stroke-dasharray="5,3" fill="none" opacity="0.9"/>
-          <path d="M 180 245 L 235 285 L 285 325" stroke="url(#routeGrad)" stroke-width="5" fill="none" stroke-linecap="round" filter="url(#glowEffect)"/>
+          
+          <!-- Tramo de Alta Velocidad Español (Madrid ➔ Cuenca ➔ Albacete ➔ Monforte del Cid) -->
+          <path d="M 180 245 L 210 268 L 240 292 L 285 325" stroke="url(#routeGrad)" stroke-width="5" fill="none" stroke-linecap="round" filter="url(#glowEffect)"/>
+
+          <!-- Estaciones intermedias en LAV -->
+          <circle cx="210" cy="268" r="3" fill="#FCD34D"/>
+          <text x="210" y="262" font-size="6" fill="#94A3B8" text-anchor="middle">Cuenca AV</text>
+          
+          <circle cx="240" cy="292" r="3.5" fill="#FCD34D"/>
+          <text x="252" y="295" font-size="6.5" fill="#CBD5E1" font-weight="bold">Albacete AV</text>
 
           <!-- HITO 1: LAPONIA (ORIGEN ÁRTICO) -->
           <g transform="translate(440, 45)">
@@ -398,7 +429,14 @@
             <text x="0" y="18" font-size="7" font-weight="bold" fill="#BAE6FD" text-anchor="middle">Taller de Papá Noel</text>
           </g>
 
-          <!-- HITO 2: SEDE CENTRAL INECO MADRID -->
+          <!-- HITO 2: CORREDOR EUROPEO -->
+          <g transform="translate(280, 160)">
+            <circle cx="0" cy="0" r="10" fill="#6366F1" opacity="0.3"/>
+            <circle cx="0" cy="0" r="5" fill="#818CF8" stroke="#FFFFFF" stroke-width="1.5"/>
+            <text x="0" y="-10" font-size="8" font-weight="bold" fill="#C7D2FE" text-anchor="middle">🇫🇷 Enlace Europeo</text>
+          </g>
+
+          <!-- HITO 3: SEDE CENTRAL INECO MADRID -->
           <g transform="translate(180, 245)">
             <circle cx="0" cy="0" r="16" fill="#1A4488" opacity="0.4"/>
             <circle cx="0" cy="0" r="7" fill="#F8FAFC" stroke="#1A4488" stroke-width="2.5"/>
@@ -406,10 +444,10 @@
             <text x="0" y="20" font-size="7" font-weight="bold" fill="#FCD34D" text-anchor="middle">Escala 1 de Diciembre</text>
           </g>
 
-          <!-- HITO 3: DESTINO BASE MONFORTE DEL CID -->
+          <!-- HITO 4: DESTINO BASE MONFORTE DEL CID -->
           <g transform="translate(285, 325)">
-            <circle cx="0" cy="0" r="24" fill="none" stroke="#CB1823" stroke-width="2" opacity="0.8">
-              <animate attributeName="r" values="8;30" dur="2s" repeatCount="indefinite"/>
+            <circle cx="0" cy="0" r="26" fill="none" stroke="#CB1823" stroke-width="2" opacity="0.8">
+              <animate attributeName="r" values="8;32" dur="2s" repeatCount="indefinite"/>
               <animate attributeName="opacity" values="0.9;0" dur="2s" repeatCount="indefinite"/>
             </circle>
             <circle cx="0" cy="0" r="11" fill="#CB1823" stroke="#FCD34D" stroke-width="2.5"/>
@@ -419,13 +457,32 @@
           </g>
 
           <!-- Marcador Dinámico del TREN AVE de Papá Noel -->
-          <g id="train-marker" transform="translate(425, 58)" class="train-marker-glow">
-            <circle cx="0" cy="0" r="14" fill="#F59E0B" opacity="0.45"/>
-            <polygon points="-9,-6 11,0 -9,6" fill="#CB1823" stroke="#FFFFFF" stroke-width="1.2"/>
-            <text x="-4" y="-8" font-size="14">🎅</text>
+          <g id="train-marker" transform="translate(425, 58)" class="train-marker-glow cursor-pointer">
+            <circle cx="0" cy="0" r="15" fill="#F59E0B" opacity="0.5"/>
+            <polygon points="-10,-7 12,0 -10,7" fill="#CB1823" stroke="#FFFFFF" stroke-width="1.4"/>
+            <text x="-5" y="-9" font-size="15">🎅</text>
           </g>
         </svg>
 
+        <!-- Control Deslizante de la Ruta (Scrubber Interactivo) -->
+        <div class="mt-4 px-2">
+          <div class="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-1.5">
+            <span class="flex items-center gap-1 text-amber-300">
+              <span>🎮</span> <span>Explorar Trayecto Polar en Vivo:</span>
+            </span>
+            <span id="radar-coords" class="font-mono text-emerald-400">65.1200°N, 22.8400°E</span>
+          </div>
+          <input type="range" id="radar-progress-slider" min="0" max="100" value="5" step="1" 
+                 class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-red-600 focus:outline-none">
+          <div class="flex justify-between text-[9px] text-slate-500 font-bold uppercase mt-1 px-1">
+            <span>Laponia (Día 0)</span>
+            <span>Pirineos</span>
+            <span>Madrid Ineco (1 Dic)</span>
+            <span class="text-red-400">Monforte (14 Dic)</span>
+          </div>
+        </div>
+
+        <!-- Telemetría Dinámica Inferior -->
         <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/90 rounded-xl p-3 border border-slate-700/80 text-xs">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
@@ -435,10 +492,10 @@
           </div>
 
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button id="radar-horn-btn" class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+            <button id="radar-horn-btn" class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 active:scale-95 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 transition">
               <span>📢 Silbato AVE</span>
             </button>
-            <button id="radar-boost-btn" class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
+            <button id="radar-boost-btn" class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
               <span>⚡ Acelerar a 350 km/h</span>
             </button>
           </div>
@@ -492,7 +549,7 @@
         <span class="font-bold text-slate-300">Ineco • Mantenimiento de Alta Velocidad</span>
       </div>
       <p class="text-[11px] text-slate-500">
-        Base de Mantenimiento de Monforte del Cid (Alicante) • L.A.V. Madrid - Levante • Detalle Solidario 2026
+        Base de Mantenimiento de Monforte del Cid (Alicante) • L.A.V. Madrid - Levante • Detalle Solidario 2027
       </p>
       <p class="text-[10px] text-slate-600">
         Diseñado con el Manual de Identidad Corporativa de Ineco (Pantone 7687 C / Pantone 485 C).

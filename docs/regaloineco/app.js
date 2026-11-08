@@ -1,10 +1,10 @@
 /**
- * REGALO SOLIDARIO INECO 2026 - CALENDARIO DE ADVIENTO
+ * REGALO SOLIDARIO INECO 2027 - CALENDARIO DE ADVIENTO
  * Ruta: Laponia (Círculo Polar) ➔ Sede Central Ineco (Madrid) ➔ Base de Monforte del Cid (Alicante)
  */
 
 // ==========================================
-// 1. DATOS OFICIALES DE LOS 9 REGALOS
+// 1. DATOS OFICIALES DE LOS 9 REGALOS (RELATO CONTINUO SIN APARTADOS)
 // ==========================================
 const GIFTS_DATA = [
   {
@@ -12,14 +12,8 @@ const GIFTS_DATA = [
     title: "Aceite de Oliva Virgen Extra (AOVE)",
     subtitle: "D.O. de Andalucía • Botella Vidrio 500 ml",
     badge: "Oro Líquido",
-    specs: {
-      denominacion: "Denominación de Origen de Andalucía",
-      envase: "Botella individual de vidrio oscuro de 500 ml",
-      calidad: "Extracción en frío, baja acidez, alto contenido en polifenoles",
-      conservacion: "Envasado individual con fecha de consumo preferente"
-    },
-    pairing: "Ideal para el pan tostado del desayuno o para regar en crudo un buen jamón ibérico en las cenas navideñas.",
     iconBg: "from-amber-600 to-yellow-500",
+    description: "Obtenido directamente de olivares andaluces bajo Denominación de Origen protegida, este Aceite de Oliva Virgen Extra de 500 ml representa la máxima excelencia del campo andaluz. Su elaboración mediante extracción en frío a partir de aceitunas seleccionadas en su punto óptimo de maduración garantiza una acidez excepcionalmente baja, un perfil aromático de frutado verde con recuerdos a hierba fresca y tomatera, y una riqueza sobresaliente en polifenoles y antioxidantes naturales. Presentado en una distinguida botella individual de vidrio oscuro que lo resguarda de la luz y el oxígeno para preservar intactas todas sus propiedades organolépticas, es el auténtico oro líquido de nuestra gastronomía: sublime tanto para regar en crudo unas rebanadas de pan tostado en los desayunos de invierno como para ensalzar los ibéricos, asados y ensaladas en estas fiestas familiares.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <defs>
         <linearGradient id="oilGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -53,14 +47,8 @@ const GIFTS_DATA = [
     title: "Tarro de Bonito del Norte en Aceite",
     subtitle: "Lomos Selectos del Cantábrico • 400 gramos",
     badge: "Cantábrico Seleccionado",
-    specs: {
-      origen: "Bonito del Norte (Thunnus alalunga) capturado a caña",
-      peso: "400 gramos neto en tarro de cristal hermético",
-      cobertura: "Bañado en aceite de oliva suave de primera prensa",
-      conservacion: "Envasado individual con fecha de consumo preferente"
-    },
-    pairing: "Perfecto para una ensalada gourmet de pimientos asados o servido directamente en tosta de pan rústico con sal en escamas.",
     iconBg: "from-sky-700 to-blue-500",
+    description: "Capturado de forma artesanal a caña uno a uno en aguas del Mar Cantábrico durante la costera estival tradicional, este tarro de cristal hermético de 400 gramos encierra los lomos más nobles, blancos y limpios del atún blanco (Thunnus alalunga). Su carne de tonalidad marfil, textura delicadamente hojaldrada y sabor limpio y marino reposa sumergida en un suave aceite de oliva de primera prensa que redondea su jugosidad sin enmascarar su frescura original. Una conserva artesanal de alta cuna que no precisa artificios: exquisita servida al natural con unas escamas de sal marina, sobre tostas crujientes de pan rústico o acompañada de pimientos asados templados en las celebraciones navideñas.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <defs>
         <linearGradient id="jarLid" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -91,14 +79,8 @@ const GIFTS_DATA = [
     title: "Tarro de Mermelada de Pimientos de Piquillo",
     subtitle: "Elaboración Artesanal • 120 gramos",
     badge: "Dulce & Especiado",
-    specs: {
-      ingredientes: "Pimientos del piquillo selectos caramelizados a fuego lento",
-      peso: "120 gramos en tarro de cristal gourmet",
-      maridaje: "Perfecto para tostas de queso curado, patés y carnes",
-      conservacion: "Elaboración artesanal con precinto hermético"
-    },
-    pairing: "Acompañamiento estrella para quesos de oveja curados manchegos o rulo de cabra caramelizado.",
     iconBg: "from-red-700 to-rose-500",
+    description: "Elaborada artesanalmente a fuego muy lento a partir de pimientos del piquillo cuidadosamente seleccionados en su punto dulce de maduración y caramelizados con azúcar de caña puro, esta mermelada gourmet de 120 gramos ofrece un equilibrio magistral entre la dulzura untuosa y las notas sutilmente ahumadas y especiadas características de este pimiento tradicional. Envasada en un tarro de cristal con precinto hermético de calidad, su textura sedosa y brillante la convierte en el maridaje idóneo para acompañar quesos curados de oveja manchegos, rulos de cabra pasados por la plancha, patés de caza y carnes a la brasa, aportando un toque festivo sofisticado y lleno de matices a cualquier mesa de fiesta.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <defs>
         <linearGradient id="pepperGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -125,14 +107,8 @@ const GIFTS_DATA = [
     title: "Trilogía de Mojo Canario (Pack 3)",
     subtitle: "Rojo Tradicional • Verde Cilantro • Mojo Picón (3x100g)",
     badge: "Sabor Canario",
-    specs: {
-      variedades: "Mojo Rojo suave, Mojo Verde aromático y Mojo Picón bravo",
-      formato: "TRES (3) tarros de cristal de 100g en pack expositor",
-      procedencia: "Receta tradicional de las Islas Canarias",
-      elaboracion: "Ingredientes naturales de primera calidad"
-    },
-    pairing: "Imprescindible con papas arrugadas, pescados a la plancha o carnes asadas en las comidas familiares de Navidad.",
     iconBg: "from-emerald-700 via-amber-600 to-red-600",
+    description: "Auténtica trilogía del sabor insular presentada en un exclusivo pack expositor con tres tarros de cristal de 100 gramos que rinden homenaje a la rica tradición culinaria de las Islas Canarias. El conjunto reúne el Mojo Rojo clásico elaborado con pimiento y pimentón dulce para un paladar suave y meloso, el fresco y aromático Mojo Verde a base de cilantro fresco y ajo ideal para acompañar pescados y mariscos, y el vibrante Mojo Picón para quienes buscan ese toque bravo y enérgico que despierta los sentidos. Preparados únicamente con ingredientes naturales de primera calidad y aceite vegetal refinado, son el alma indispensable para dar vida a unas tradicionales papas arrugadas o enriquecer las carnes asadas de los encuentros navideños.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <rect x="25" y="130" width="150" height="28" rx="6" fill="#1E293B" stroke="#D4AF37" stroke-width="1.8"/>
       <text x="100" y="148" font-size="8.5" font-weight="bold" fill="#F8FAFC" text-anchor="middle" font-family="Poppins">PACK MOJO CANARIO • INECO</text>
@@ -155,14 +131,8 @@ const GIFTS_DATA = [
     title: "Chocolate Artesanal en Caja de Madera",
     subtitle: "3 Tabletas con Almendras (Negro, Leche y Blanco) • 450g",
     badge: "Delicatessen Gourmet",
-    specs: {
-      presentacion: "Elegante caja de madera natural con tapa corredera",
-      variedades: "3 tabletas de 150g c/u: Chocolate Negro, con Leche y Blanco",
-      ingredientes: "Almendras enteras seleccionadas tostadas al punto",
-      elaboracion: "Artesanal y cortado a cuchillo por maestros chocolateros"
-    },
-    pairing: "Degustar junto a una copa de vino dulce Pedro Ximénez o un café arábica recién preparado.",
     iconBg: "from-amber-900 via-amber-800 to-amber-950",
+    description: "Una selecta colección de tres tabletas artesanales de 150 gramos cada una —Chocolate Negro de gran pureza e intensidad aromática, Chocolate con Leche de cuerpo cremoso y sedoso, y Chocolate Blanco delicadamente perfumado con manteca de cacao natural—, repletas de almendras enteras seleccionadas de la cuenca mediterránea tostadas a fuego lento hasta alcanzar un crujido inconfundible. Cortadas a cuchillo y elaboradas por maestros chocolateros siguiendo la receta tradicional, se presentan en un distinguido estuche de madera natural con tapa corredera grabado conmemorativamente, convirtiéndose en el postre gourmet imprescindible para compartir en la sobremesa junto a un buen café recién molido o una copa de licor dulce.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <rect x="42" y="55" width="116" height="105" rx="6" fill="#78350F" stroke="#92400E" stroke-width="3"/>
       <line x1="45" y1="75" x2="155" y2="75" stroke="#92400E" stroke-width="1.5" stroke-dasharray="25,5"/>
@@ -186,14 +156,8 @@ const GIFTS_DATA = [
     title: "Café 100% Arábica Natural",
     subtitle: "Paquete de 250 gramos • Tueste Natural Molido",
     badge: "Esencia Exclusiva",
-    specs: {
-      grano: "100% Arábica de altura seleccionado",
-      tueste: "Variedad natural, equilibrio aromático y cuerpo sedoso",
-      peso: "250 gramos de café recién molido",
-      envasado: "Bolsa termosellada con válvula unidireccional de frescura"
-    },
-    pairing: "Perfecto para cafetera italiana o de filtro, dejando un aroma inconfundible en las mañanas navideñas.",
     iconBg: "from-stone-800 to-amber-950",
+    description: "Selección exclusiva de granos 100% Arábica cosechados en cafetales de altura y sometidos a un proceso de tueste natural pausado que realza su cuerpo sedoso, sus elegantes notas florales y una acidez limpia y vivaz. Con un peso de 250 gramos y una molienda equilibrada apta para cafetera italiana tradicional o de goteo, se presenta en una bolsa termosellada con válvula de desgasificación unidireccional que aísla el grano del aire y la humedad exterior, garantizando que cada taza conserve intactos sus aceites aromáticos esenciales para inundar el hogar del inconfundible aroma a café tostado en las mañanas más entrañables del invierno.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <path d="M68 50 L132 50 L126 155 Q126 165 116 165 L84 165 Q74 165 74 155 Z" fill="#78350F" stroke="#92400E" stroke-width="2"/>
       <polygon points="68,50 132,50 128,38 72,38" fill="#5A240A" stroke="#B45309" stroke-width="1.5"/>
@@ -213,14 +177,8 @@ const GIFTS_DATA = [
     title: "Baraja Española Personalizada Ineco",
     subtitle: "40 Naipes de 61,5 x 95 mm • Barniz Acuoso Durabilidad",
     badge: "Edición Coleccionista",
-    specs: {
-      formato: "Baraja tradicional española de 40 cartas (61,5 x 95 mm)",
-      papel: "Laminado estucado de 310 g/m² bañado en barniz acuoso",
-      impresion: "Dorso personalizado a 4 tintas CMYK con diseño Ineco",
-      estuche: "Caja de cartón policromado y envoltura en celofán antihumedad"
-    },
-    pairing: "Compañera inseparable de los turrones y polvorones en las partidas familiares de Nochebuena y Año Nuevo.",
     iconBg: "from-blue-700 to-indigo-900",
+    description: "Edición conmemorativa de coleccionista de la clásica baraja española de 40 cartas (61,5 x 95 mm), fabricada sobre naipe estucado de 310 g/m² de fibra larga y recubierta con un barniz acuoso protector de alta densidad que le otorga un deslizamiento sedoso y una resistencia incomparable frente al uso continuado. Cada naipe luce un reverso ilustrado en exclusiva con los colores corporativos y la iconografía del ferrocarril de alta velocidad de Ineco, protegido dentro de su estuche policromado con envoltura de celofán antihumedad, pensado para avivar las tertulias, risas y tradicionales partidas familiares de naipes tras las cenas de fiesta con la mirada ilusionada puesta en el 2027.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <g transform="translate(60, 65) rotate(-15)">
         <rect x="0" y="0" width="48" height="74" rx="4" fill="#1A4488" stroke="#D4AF37" stroke-width="1.8"/>
@@ -231,7 +189,7 @@ const GIFTS_DATA = [
       <g transform="translate(95, 65) rotate(15)">
         <rect x="0" y="0" width="48" height="74" rx="4" fill="#CB1823" stroke="#D4AF37" stroke-width="1.8"/>
         <rect x="4" y="4" width="40" height="66" rx="2" fill="#991B1B" stroke="#FCA5A5" stroke-width="0.75"/>
-        <text x="24" y="40" font-size="7.5" font-weight="bold" fill="#FEF3C7" text-anchor="middle">2026</text>
+        <text x="24" y="40" font-size="7.5" font-weight="bold" fill="#FEF3C7" text-anchor="middle">2027</text>
       </g>
       <g transform="translate(76, 55)">
         <rect x="0" y="0" width="48" height="74" rx="4" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.8"/>
@@ -249,14 +207,8 @@ const GIFTS_DATA = [
     title: "Calcetines Técnicos Corporativos Ineco",
     subtitle: "Algodón ≥80% • Costura Plana Anti-Rozaduras • Puntera Reforzada",
     badge: "Confort Máximo",
-    specs: {
-      composicion: "Algodón premium mínimo 80% transpirable y cálido",
-      ergonomia: "Costura punto por punto sin relieves para prevenir rozaduras",
-      refuerzo: "Talones y punteras reforzados para máxima durabilidad",
-      ajuste: "Puño elástico con elastano que no aprieta ni desliza en movimiento"
-    },
-    pairing: "Perfectos para estar cómodos por casa en los días más fríos de diciembre junto al calor del hogar.",
     iconBg: "from-blue-800 to-red-700",
+    description: "Concebidos para brindar el máximo confort térmico y ergonomía durante la temporada invernal, estos calcetines corporativos de alta velocidad han sido confeccionados con más de un 80% de algodón peinado transpirable de fibra larga y elastano de memoria para un ajuste ceñido que no resbala ni oprime la pierna. Destacan por su remallado plano artesanal punto a punto sin relieves en la puntera para eliminar cualquier punto de fricción o rozadura, reforzando además la suela y el talón con acolchado amortiguador. Un detalle cálido y confortable con el sello de Ineco, pensado para relajarse en casa o disfrutar de los días festivos con la calidez del espíritu de equipo.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <path d="M72 45 L98 45 L98 105 Q98 135 125 135 L135 135 Q145 135 145 148 Q145 160 130 160 L90 160 Q68 160 68 135 L68 48 Q68 45 72 45 Z" fill="#1A4488" stroke="#3463AC" stroke-width="2.2"/>
       <rect x="68" y="42" width="30" height="12" rx="2" fill="#CB1823" stroke="#D4AF37" stroke-width="1.2"/>
@@ -272,17 +224,11 @@ const GIFTS_DATA = [
   },
   {
     day: 9,
-    title: "Tarjeta Navideña Solidaria Ineco 2026",
-    subtitle: "Formato A4 Doble Cara • Papel Offset Blanco 80g",
+    title: "Tarjeta Navideña Solidaria Ineco",
+    subtitle: "Formato A4 Doble Cara • Papel Offset Blanco 80g FSC",
     badge: "Compromiso Social",
-    specs: {
-      formato: "Formato A4 impreso a doble cara de máxima nitidez",
-      papel: "Papel offset blanco de 80 g/m² de fibra reciclada certificada FSC",
-      edicion: "Diseño institucional corporativo exclusivo de Ineco",
-      mensaje: "Agradecimiento a los profesionales de la compañía y proyectos solidarios"
-    },
-    pairing: "Para guardar de recuerdo junto a las felicitaciones más queridas o colocar en un lugar especial de la oficina.",
     iconBg: "from-red-800 to-amber-700",
+    description: "Impresa a doble cara en formato A4 plegado sobre papel offset blanco premium de 80 g/m² de tacto natural y fibra reciclada con certificación ecológica FSC, esta tarjeta conmemorativa transmite el mensaje institucional de felicitación y gratitud de Ineco hacia todos los profesionales de la Base de Mantenimiento de Monforte del Cid. En su interior se plasma no solo el reconocimiento a su compromiso diario con la seguridad y la alta velocidad ferroviaria, sino también el balance social y solidario de los proyectos y colectivos apoyados con la entrega de este detalle, constituyendo un recuerdo entrañable y un testimonio de unión para dar la bienvenida con ilusión al nuevo año 2027.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <rect x="45" y="45" width="110" height="120" rx="5" fill="#FFFFFF" stroke="#D4AF37" stroke-width="2.2"/>
       <line x1="100" y1="45" x2="100" y2="165" stroke="#E2E8F0" stroke-width="1.5" stroke-dasharray="3,3"/>
@@ -290,7 +236,7 @@ const GIFTS_DATA = [
       <text x="127" y="70" font-size="8.5" font-weight="bold" fill="#F8FAFC" text-anchor="middle" font-family="Poppins">ineco</text>
       <circle cx="127" cy="95" r="16" fill="none" stroke="#D4AF37" stroke-width="1.8"/>
       <polygon points="127,84 130,91 137,92 132,97 133,104 127,100 121,104 122,97 117,92 124,91" fill="#FCD34D"/>
-      <text x="127" y="125" font-size="5.5" font-weight="bold" fill="#FEF3C7" text-anchor="middle">FELIZ 2026</text>
+      <text x="127" y="125" font-size="5.5" font-weight="bold" fill="#FEF3C7" text-anchor="middle">FELIZ 2027</text>
       <text x="127" y="135" font-size="4" fill="#93C5FD" text-anchor="middle">Detalle Solidario</text>
       <line x1="52" y1="65" x2="92" y2="65" stroke="#94A3B8" stroke-width="1.5"/>
       <line x1="52" y1="75" x2="92" y2="75" stroke="#94A3B8" stroke-width="1.5"/>
@@ -302,95 +248,97 @@ const GIFTS_DATA = [
   }
 ];
 
+
 // ==========================================
-// 2. COMPAÑEROS DE LA OFICINA (ORDEN ALFABÉTICO)
+// 2. COMPAÑEROS DE LA OFICINA (ORDEN ALFABÉTICO ESTRICTO • DESEOS 2027)
 // ==========================================
 const COLLEAGUES = [
   {
-    name: "Ana",
-    role: "Ingeniería & Coordinación de Operaciones",
-    wish: "¡Que el 2026 traiga trazados despejados, máxima precisión en cada proyecto y momentos entrañables junto a los tuyos!",
-    ticketSeat: "Coche 01 • Asiento 01A (Club)",
-    loc: "LOC-ANA-2026-MDC"
+    "name": "Ana",
+    "role": "Ingeniería & Coordinación de Operaciones",
+    "wish": "¡Que el 2027 traiga trazados despejados, máxima precisión en cada proyecto y momentos entrañables junto a los tuyos!",
+    "ticketSeat": "Coche 01 • Asiento 01A (Club)",
+    "loc": "LOC-ANA-2027-MDC"
   },
   {
-    name: "Edu",
-    role: "Especialista en Mantenimiento de Infraestructura",
-    wish: "¡Fuerza, salud y que la catenaria de la vida siga transmitiendo la mejor energía en cada guardia y jornada compartida!",
-    ticketSeat: "Coche 01 • Asiento 02B (Club)",
-    loc: "LOC-EDU-2026-MDC"
+    "name": "Edu",
+    "role": "Especialista en Mantenimiento de Infraestructura",
+    "wish": "¡Fuerza, salud y que la catenaria de la vida siga transmitiendo la mejor energía en este 2027 en cada guardia y jornada compartida!",
+    "ticketSeat": "Coche 01 • Asiento 02B (Club)",
+    "loc": "LOC-EDU-2027-MDC"
   },
   {
-    name: "Ernesto",
-    role: "Supervisión Técnica de Vía y Desvíos",
-    wish: "¡Que la aguja de tu destino apunte siempre a la felicidad y que en 2026 celebremos muchos éxitos en equipo!",
-    ticketSeat: "Coche 02 • Asiento 03A (Preferente)",
-    loc: "LOC-ERN-2026-MDC"
+    "name": "Ernesto",
+    "role": "Supervisión Técnica de Vía y Desvíos",
+    "wish": "¡Que la aguja de tu destino apunte siempre a la felicidad y que en 2027 celebremos muchos éxitos en equipo!",
+    "ticketSeat": "Coche 02 • Asiento 03A (Preferente)",
+    "loc": "LOC-ERN-2027-MDC"
   },
   {
-    name: "Gloria",
-    role: "Gestión de Calidad & Seguridad Ferroviaria",
-    wish: "¡Brindamos por tu dedicación impecable! Que estas fiestas llenen tu hogar de paz, sonrisas y momentos dorados.",
-    ticketSeat: "Coche 02 • Asiento 04B (Preferente)",
-    loc: "LOC-GLO-2026-MDC"
+    "name": "Gloria",
+    "role": "Gestión de Calidad & Seguridad Ferroviaria",
+    "wish": "¡Brindamos por tu dedicación impecable! Que el 2027 llene tu hogar de paz, sonrisas y momentos dorados.",
+    "ticketSeat": "Coche 02 • Asiento 04B (Preferente)",
+    "loc": "LOC-GLO-2027-MDC"
   },
   {
-    name: "Irene",
-    role: "Planificación & Control de Gestión",
-    wish: "¡Que el cronograma de este 2026 venga repleto de alegrías cumplidas, tranquilidad y proyectos ilusionantes!",
-    ticketSeat: "Coche 03 • Asiento 05A (Turista Plus)",
-    loc: "LOC-IRE-2026-MDC"
+    "name": "Irene",
+    "role": "Planificación & Control de Gestión",
+    "wish": "¡Que el cronograma de este 2027 venga repleto de alegrías cumplidas, tranquilidad y proyectos ilusionantes!",
+    "ticketSeat": "Coche 03 • Asiento 05A (Turista Plus)",
+    "loc": "LOC-IRE-2027-MDC"
   },
   {
-    name: "Iván Álvarez",
-    role: "Especialista de Sistemas y Auscultación",
-    wish: "¡Velocidad de crucero a 300 km/h para tus metas y la mejor sintonía en cada reto del nuevo año!",
-    ticketSeat: "Coche 03 • Asiento 06B (Turista Plus)",
-    loc: "LOC-IVA-2026-MDC"
+    "name": "Iván Álvarez",
+    "role": "Especialista de Sistemas y Auscultación",
+    "wish": "¡Velocidad de crucero a 300 km/h para tus metas y la mejor sintonía en cada reto del nuevo año 2027!",
+    "ticketSeat": "Coche 03 • Asiento 06B (Turista Plus)",
+    "loc": "LOC-IVA-2027-MDC"
   },
   {
-    name: "Iván de la Paz",
-    role: "Responsable de Equipos & Innovación Tecnológica",
-    wish: "¡Gracias por liderar con entusiasmo y visión de futuro! Que el 2026 te devuelva multiplicado todo tu esfuerzo y compañerismo.",
-    ticketSeat: "Coche 01 • Asiento 01B (Cabina de Mando)",
-    loc: "LOC-IDP-2026-MDC"
+    "name": "Iván de la Paz",
+    "role": "Responsable de Equipos & Innovación Tecnológica",
+    "wish": "¡Gracias por liderar con entusiasmo y visión de futuro! Que el 2027 te devuelva multiplicado todo tu esfuerzo y compañerismo.",
+    "ticketSeat": "Coche 01 • Asiento 01B (Cabina de Mando)",
+    "loc": "LOC-IDP-2027-MDC"
   },
   {
-    name: "Jose Luis",
-    role: "Operaciones de Mantenimiento de Alta Velocidad",
-    wish: "¡Que no falte nunca el buen humor, la salud de hierro y el calor de los tuyos en estas fechas tan señaladas!",
-    ticketSeat: "Coche 04 • Asiento 07A (Turista)",
-    loc: "LOC-JOS-2026-MDC"
+    "name": "Jose Luis",
+    "role": "Operaciones de Mantenimiento de Alta Velocidad",
+    "wish": "¡Que en 2027 no falte nunca el buen humor, la salud de hierro y el calor de los tuyos en estas fechas tan señaladas!",
+    "ticketSeat": "Coche 04 • Asiento 07A (Turista)",
+    "loc": "LOC-JOS-2027-MDC"
   },
   {
-    name: "Manuel",
-    role: "Especialista en Instalaciones y Telecomunicaciones",
-    wish: "¡Conexión permanente con la felicidad y señal verde en todos los caminos que emprendas en 2026!",
-    ticketSeat: "Coche 04 • Asiento 08B (Turista)",
-    loc: "LOC-MAN-2026-MDC"
+    "name": "Manuel",
+    "role": "Especialista en Instalaciones y Telecomunicaciones",
+    "wish": "¡Conexión permanente con la felicidad y señal verde en todos los caminos que emprendas en 2027!",
+    "ticketSeat": "Coche 04 • Asiento 08B (Turista)",
+    "loc": "LOC-MAN-2027-MDC"
   },
   {
-    name: "Pascual",
-    role: "Coordinación de Seguridad y Salud en Obra",
-    wish: "¡Protección máxima y la mayor de las alegrías para ti y tu familia en esta Navidad y durante todo el año nuevo!",
-    ticketSeat: "Coche 05 • Asiento 09A (Turista)",
-    loc: "LOC-PAS-2026-MDC"
+    "name": "Pascual",
+    "role": "Coordinación de Seguridad y Salud en Obra",
+    "wish": "¡Protección máxima y la mayor de las alegrías para ti y tu familia en esta Navidad y con la vista puesta en 2027!",
+    "ticketSeat": "Coche 05 • Asiento 09A (Turista)",
+    "loc": "LOC-PAS-2027-MDC"
   },
   {
-    name: "Pepe",
-    role: "Técnico Especialista de Mantenimiento Integral",
-    wish: "¡Maestría, experiencia y compañerismo puro. Que disfrutes de esta merecidísima cesta solidaria con los que más quieres!",
-    ticketSeat: "Coche 05 • Asiento 10B (Turista)",
-    loc: "LOC-PEP-2026-MDC"
+    "name": "Pepe",
+    "role": "Técnico Especialista de Mantenimiento Integral",
+    "wish": "¡Maestría, experiencia y compañerismo puro. Que disfrutes de esta merecidísima cesta solidaria para dar la bienvenida al 2027 con los que más quieres!",
+    "ticketSeat": "Coche 05 • Asiento 10B (Turista)",
+    "loc": "LOC-PEP-2027-MDC"
   },
   {
-    name: "Raúl",
-    role: "Gestión de Activos y Logística Ferroviaria",
-    wish: "¡Distribución perfecta de salud, amor y prosperidad para el nuevo año 2026. ¡A disfrutar del detalle solidario!",
-    ticketSeat: "Coche 06 • Asiento 11A (Turista)",
-    loc: "LOC-RAU-2026-MDC"
+    "name": "Raúl",
+    "role": "Gestión de Activos y Logística Ferroviaria",
+    "wish": "¡Distribución perfecta de salud, amor y prosperidad para el nuevo año 2027. ¡A disfrutar del detalle solidario!",
+    "ticketSeat": "Coche 06 • Asiento 11A (Turista)",
+    "loc": "LOC-RAU-2027-MDC"
   }
 ];
+
 
 // ==========================================
 // 3. MOTOR DE AUDIO (Desactivado por defecto)
@@ -702,41 +650,111 @@ function initCountdown() {
   setInterval(update, 1000);
 }
 
+
 // ==========================================
-// 6. MAPA RADAR: RECORRIDO TEMPORAL REALISTA (35 DÍAS RESTANTES)
-// 8 Nov: Salida Laponia ➔ 1 Dic: Sede Ineco Madrid ➔ 14 Dic: Monforte del Cid
+// 6. RADAR FERROVIARIO DE PAPÁ NOEL (RUTA CONTINENTAL & LOCAL)
+// Laponia (66°N) ➔ Corredor Europeo ➔ Sede Ineco (Madrid) ➔ Base Monforte del Cid
 // ==========================================
 class SantaRailTracker {
   constructor() {
-    this.speed = 180;
-    // Progreso actual realista: quedan 35 días sobre 36 días totales de viaje (apenas 5-10% de avance)
-    this.currentMode = 'real'; // 'real', 'madrid', 'monforte', 'laponia'
     this.trainMarker = document.getElementById('train-marker');
     this.speedDisplay = document.getElementById('radar-speed');
     this.statusDisplay = document.getElementById('radar-status');
     this.distDisplay = document.getElementById('radar-distance');
+    this.coordsDisplay = document.getElementById('radar-coords');
+    this.etaDisplay = document.getElementById('radar-eta');
+    this.slider = document.getElementById('radar-progress-slider');
+    this.progressPct = 5; // Salida actual (quedan 35 días)
+    
+    // Puntos de la ruta en coordenadas SVG (Laponia a Monforte)
+    this.waypoints = [
+      { pct: 0, x: 440, y: 45, name: "Laponia (Círculo Polar 66°N)", coords: "66.5039°N, 25.7294°E", days: "36 días", dist: "3.850 km", speed: "180 km/h", eta: "8 Noviembre", status: "Taller Ártico de Papá Noel. Embarque de los lotes solidarios." },
+      { pct: 5, x: 425, y: 58, name: "Laponia - Golfo de Botnia", coords: "65.1200°N, 22.8400°E", days: "35 días", dist: "3.690 km", speed: "180 km/h", eta: "8 Noviembre (Hoy)", status: "8 Noviembre: En travesía polar desde Laponia. Velocidad de crucero ártica." },
+      { pct: 28, x: 370, y: 100, name: "Mar Báltico & Escandinavia Central", coords: "58.5900°N, 16.1800°E", days: "27 días", dist: "2.800 km", speed: "220 km/h", eta: "16 Noviembre", status: "Enlace ferroviario internacional por el corredor nórdico." },
+      { pct: 50, x: 280, y: 160, name: "Corredor Europeo (Francia / Pirineos)", coords: "48.8566°N, 2.3522°E", days: "20 días", dist: "1.950 km", speed: "260 km/h", eta: "23 Noviembre", status: "Tránsito por el corredor de alta velocidad europeo hacia la Península Ibérica." },
+      { pct: 75, x: 180, y: 245, name: "Sede Central Ineco (Madrid)", coords: "40.4532°N, -3.6883°W", days: "13 días", dist: "420 km", speed: "160 km/h", eta: "1 de Diciembre", status: "Escala técnica y felicitación institucional en Paseo de la Habana 138 (Madrid)." },
+      { pct: 88, x: 235, y: 285, name: "L.A.V. Madrid - Levante (Cuenca / Albacete)", coords: "39.4699°N, -1.6500°W", days: "5 días", dist: "180 km", speed: "300 km/h", eta: "9 de Diciembre", status: "Velocidad punta de alta velocidad en vía balastada y control ERTMS." },
+      { pct: 100, x: 285, y: 325, name: "Base de Mantenimiento de Monforte del Cid", coords: "38.406742°N, -0.694939°W", days: "0 días (Llegada)", dist: "0 km", speed: "0 km/h", eta: "14 de Diciembre", status: "¡Llegada y entrega oficial del Regalo Solidario en Monforte del Cid!" }
+    ];
+
     this.init();
   }
 
   init() {
-    this.setRealisticPosition();
+    if (this.slider) {
+      this.slider.addEventListener('input', (e) => {
+        this.setProgress(parseFloat(e.target.value));
+      });
+    }
+    this.setProgress(5);
   }
 
-  setRealisticPosition() {
-    // Coordenadas ruta:
-    // Laponia: (440, 45)
-    // Europa Central: (280, 160)
-    // Sede Central Ineco Madrid: (180, 245)
-    // Base Monforte del Cid: (285, 325)
-    // Hoy 8 de Noviembre: justo saliendo del Círculo Polar en Escandinavia (425, 58)
+  setProgress(pct) {
+    this.progressPct = Math.max(0, Math.min(100, pct));
+    if (this.slider && parseFloat(this.slider.value) !== this.progressPct) {
+      this.slider.value = this.progressPct;
+    }
+
+    // Interpolar coordenadas (x, y) entre los waypoints
+    let p0 = this.waypoints[0];
+    let p1 = this.waypoints[this.waypoints.length - 1];
+
+    for (let i = 0; i < this.waypoints.length - 1; i++) {
+      if (this.progressPct >= this.waypoints[i].pct && this.progressPct <= this.waypoints[i + 1].pct) {
+        p0 = this.waypoints[i];
+        p1 = this.waypoints[i + 1];
+        break;
+      }
+    }
+
+    const span = p1.pct - p0.pct;
+    const factor = span === 0 ? 0 : (this.progressPct - p0.pct) / span;
+
+    const currentX = p0.x + (p1.x - p0.x) * factor;
+    const currentY = p0.y + (p1.y - p0.y) * factor;
+
     if (this.trainMarker) {
-      this.trainMarker.setAttribute('transform', `translate(425, 58)`);
+      this.trainMarker.setAttribute('transform', `translate(${currentX.toFixed(1)}, ${currentY.toFixed(1)})`);
     }
-    if (this.distDisplay) this.distDisplay.innerText = "Quedan 35 días";
-    if (this.speedDisplay) this.speedDisplay.innerText = "180 km/h (Travesía Polar)";
-    if (this.statusDisplay) {
-      this.statusDisplay.innerText = "8 Noviembre: En travesía polar desde Laponia. Llegada prevista a Sede Ineco el 1 de Diciembre.";
-    }
+
+    // Calcular valores dinámicos
+    const currentWp = factor < 0.5 ? p0 : p1;
+    if (this.statusDisplay) this.statusDisplay.innerText = currentWp.status;
+    if (this.distDisplay) this.distDisplay.innerText = currentWp.days;
+    if (this.speedDisplay) this.speedDisplay.innerText = currentWp.speed;
+    if (this.coordsDisplay) this.coordsDisplay.innerText = currentWp.coords;
+    if (this.etaDisplay) this.etaDisplay.innerText = currentWp.eta;
+  }
+
+  jumpTo(stage) {
+    let targetPct = 5;
+    if (stage === 'laponia') targetPct = 0;
+    else if (stage === 'europe') targetPct = 50;
+    else if (stage === 'madrid') targetPct = 75;
+    else if (stage === 'monforte') targetPct = 100;
+
+    this.animateTo(targetPct);
+    sound.playBellChime();
+  }
+
+  animateTo(targetPct) {
+    const startPct = this.progressPct;
+    const diff = targetPct - startPct;
+    const duration = 600;
+    const startTime = performance.now();
+
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // Ease out cubic
+      const ease = 1 - Math.pow(1 - progress, 3);
+      this.setProgress(startPct + diff * ease);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+    requestAnimationFrame(step);
   }
 
   boostSpeed() {
@@ -744,31 +762,14 @@ class SantaRailTracker {
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     if (this.speedDisplay) this.speedDisplay.innerText = "350 km/h (Modo Trineo AVE)";
     setTimeout(() => {
-      if (this.speedDisplay) this.speedDisplay.innerText = "180 km/h (Travesía Polar)";
-    }, 4000);
-  }
-
-  jumpTo(stage) {
-    if (stage === 'laponia') {
-      if (this.trainMarker) this.trainMarker.setAttribute('transform', `translate(440, 45)`);
-      if (this.statusDisplay) this.statusDisplay.innerText = "8 Noviembre: Taller de Papá Noel (Laponia • 66°N). Iniciando el viaje.";
-      if (this.distDisplay) this.distDisplay.innerText = "35 días restantes";
-    } else if (stage === 'madrid') {
-      if (this.trainMarker) this.trainMarker.setAttribute('transform', `translate(180, 245)`);
-      if (this.statusDisplay) this.statusDisplay.innerText = "1 Diciembre: Escala técnica en Sede Central Ineco (Paseo de la Habana 138, Madrid).";
-      if (this.distDisplay) this.distDisplay.innerText = "13 días a Monforte";
-    } else if (stage === 'monforte') {
-      if (this.trainMarker) this.trainMarker.setAttribute('transform', `translate(285, 325)`);
-      if (this.statusDisplay) this.statusDisplay.innerText = "14 Diciembre: ¡Llegada final a la Base de Mantenimiento de Monforte del Cid!";
-      if (this.distDisplay) this.distDisplay.innerText = "¡Destino alcanzado!";
-    }
-    sound.playBellChime();
+      this.setProgress(this.progressPct);
+    }, 3500);
   }
 }
 
 // ==========================================
 // 7. GESTOR DEL CALENDARIO DE ADVIENTO
-// (SIN SPOILERS EN LA CARA FRONTAL)
+// (SIN SPOILERS EN LA CARA FRONTAL Y RELATO CONTINUO EN MODAL)
 // ==========================================
 class AdventCalendar {
   constructor() {
@@ -800,7 +801,7 @@ class AdventCalendar {
             <div class="gift-seal-badge w-20 h-20 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-amber-700 border-4 border-slate-900 shadow-2xl flex flex-col items-center justify-center p-2 red-pulse">
               <span class="text-[9px] uppercase font-black tracking-widest text-slate-950">DÍA</span>
               <span class="text-2xl font-black text-slate-950 font-poppins leading-none">${gift.day}</span>
-              <span class="text-[8px] font-extrabold text-slate-900">2026</span>
+              <span class="text-[8px] font-extrabold text-slate-900">2027</span>
             </div>
 
             <div class="flex justify-between items-center z-10">
@@ -827,7 +828,7 @@ class AdventCalendar {
               <span class="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full">
                 ✓ Día ${gift.day} Descubierto
               </span>
-              <span class="text-xs font-black text-red-400">INECO 2026</span>
+              <span class="text-xs font-black text-red-400">INECO 2027</span>
             </div>
 
             <div class="w-full h-32 my-1 flex items-center justify-center p-1">
@@ -838,7 +839,7 @@ class AdventCalendar {
               <h4 class="font-bold text-sm text-slate-100 line-clamp-1 font-poppins">${gift.title}</h4>
               <p class="text-[11px] text-amber-300 line-clamp-1 font-medium">${gift.subtitle}</p>
               <button class="mt-2.5 w-full py-2 px-3 rounded-lg bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 active:scale-95 text-white text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition">
-                <span>Inspeccionar Ficha</span>
+                <span>Leer Detalle Completo</span>
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
             </div>
@@ -912,7 +913,7 @@ class AdventCalendar {
   }
 
   // ==========================================
-  // APERTURA ESPECTACULAR: CAJA 3D DE LA QUE EMERGE EL REGALO
+  // APERTURA MODAL: RELATO CONTINUO SIN APARTADOS NI PESTAÑAS
   // ==========================================
   openGiftModal(day) {
     this.currentModalDay = day;
@@ -924,7 +925,7 @@ class AdventCalendar {
 
     modalContent.innerHTML = `
       <div class="relative">
-        <!-- Encabezado -->
+        <!-- Encabezado del Modal -->
         <div class="flex items-start justify-between gap-4 border-b border-slate-700/60 pb-3">
           <div>
             <div class="flex items-center gap-2 mb-1">
@@ -949,62 +950,38 @@ class AdventCalendar {
             <div class="sparkle-burst"></div>
             
             <div class="box-stage-3d">
-              <!-- Caja 3D de regalo -->
               <div class="gift-box-base flex items-center justify-center">
-                <span class="text-xs font-bold text-amber-300 tracking-wider">INECO 2026</span>
+                <span class="text-xs font-bold text-amber-300 tracking-wider">INECO 2027</span>
               </div>
-              <!-- Tapa abriéndose hacia arriba -->
               <div class="gift-box-lid"></div>
-              <!-- Regalo elevándose mágicamente -->
               <div class="gift-emerging-item">
                 ${gift.svg}
               </div>
             </div>
 
             <span class="mt-2 px-3 py-1 rounded-full bg-slate-800/90 text-amber-300 text-xs font-bold border border-slate-700 flex items-center gap-1.5 shadow">
-              <span>✨</span> <span>¡Regalo Descubierto!</span>
+              <span>✨</span> <span>¡Detalle Solidario Revelado!</span>
             </span>
           </div>
 
-          <!-- Detalles de Calidad y Degustación -->
-          <div class="space-y-4">
-            <!-- PESTAÑAS -->
-            <div class="flex items-center gap-2 border-b border-slate-800 pb-2 text-xs">
-              <button class="tab-btn active px-3.5 py-1.5 rounded-lg border border-transparent font-medium" data-tab="tab-specs">
-                📋 Ficha de Calidad
-              </button>
-              <button class="tab-btn px-3.5 py-1.5 rounded-lg border border-slate-700/60 text-slate-300 font-medium hover:bg-slate-800" data-tab="tab-pairing">
-                🍷 Maridaje & Degustación
-              </button>
+          <!-- RELATO EDITORIAL COMPLETO: TODO DE UNA, SIN APARTADOS NI PESTAÑAS -->
+          <div class="bg-gradient-to-br from-slate-900/95 via-blue-950/60 to-slate-900/95 rounded-2xl p-5 sm:p-6 border border-amber-400/30 shadow-2xl relative">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-base">✨</span>
+              <h4 class="text-xs uppercase font-extrabold tracking-wider text-amber-300">
+                Historia, Calidad y Nota de Degustación
+              </h4>
             </div>
+            
+            <p class="text-xs sm:text-sm text-slate-100 leading-relaxed font-normal text-justify">
+              ${gift.description}
+            </p>
 
-            <div id="tab-specs-content" class="tab-pane space-y-3">
-              <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
-                <h4 class="text-xs uppercase font-black text-blue-300 tracking-wider mb-2.5 flex items-center gap-1.5">
-                  <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                  Detalles del Producto
-                </h4>
-                <ul class="text-xs space-y-2 text-slate-200">
-                  ${Object.entries(gift.specs).map(([k, v]) => `
-                    <li class="flex items-start gap-2">
-                      <span class="text-amber-400 font-bold capitalize">• ${k}:</span>
-                      <span class="text-slate-300">${v}</span>
-                    </li>
-                  `).join('')}
-                </ul>
-              </div>
-            </div>
-
-            <div id="tab-pairing-content" class="tab-pane hidden space-y-3">
-              <div class="bg-amber-950/30 rounded-xl p-4 border border-amber-500/30">
-                <h4 class="text-xs uppercase font-black text-amber-300 tracking-wider mb-2 flex items-center gap-1.5">
-                  <span class="text-base">🍽️</span>
-                  Sugerencia de Degustación en Fiestas
-                </h4>
-                <p class="text-xs text-slate-200 leading-relaxed">
-                  ${gift.pairing}
-                </p>
-              </div>
+            <div class="mt-4 pt-3.5 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+              <span class="flex items-center gap-1.5 text-amber-300 font-semibold">
+                <span>🎁</span> Lote Solidario Ineco
+              </span>
+              <span class="font-mono text-slate-300">Base Monforte del Cid</span>
             </div>
           </div>
         </div>
@@ -1034,17 +1011,6 @@ class AdventCalendar {
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
-
-    modalContent.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        modalContent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const tab = btn.dataset.tab;
-        modalContent.querySelectorAll('.tab-pane').forEach(p => p.classList.add('hidden'));
-        const activePane = document.getElementById(`${tab}-content`);
-        if (activePane) activePane.classList.remove('hidden');
-      });
-    });
 
     const closeBtn = document.getElementById('close-modal-btn');
     const confirmBtn = document.getElementById('modal-confirm-btn');
@@ -1078,16 +1044,15 @@ class AdventCalendar {
       confetti({
         particleCount: 50,
         spread: 70,
-        origin: { x, y },
-        colors: ['#1A4488', '#CB1823', '#D4AF37', '#FFFFFF']
+        origin: { x, y: Math.max(0.2, y) }
       });
     }
   }
 }
 
 // ==========================================
-// 8. SECCIÓN "ABRIR TU REGALO" (OFICINA)
-// BILLETE DE ALTA VELOCIDAD PREMIUM & FOTO REAL DE LA CESTA
+// 8. GESTOR DE "ABRIR TU REGALO" (OFICINA MONFORTE)
+// ORDEN ALFABÉTICO ESTRICTO Y DESEOS 2027
 // ==========================================
 class ColleagueGiftBox {
   constructor() {
@@ -1146,7 +1111,7 @@ class ColleagueGiftBox {
 
     this.detailsCard.innerHTML = `
       <div class="space-y-6">
-        <!-- BILLETE DE ALTA VELOCIDAD PREMIUM V3 -->
+        <!-- BILLETE DE ALTA VELOCIDAD PREMIUM 2027 -->
         <div id="ticket-pass-element" class="ticket-boarding-pass p-5 sm:p-7 relative shadow-2xl">
           <div class="ticket-hologram-strip"></div>
 
@@ -1160,7 +1125,7 @@ class ColleagueGiftBox {
                 <span class="text-[10px] font-black tracking-widest uppercase text-blue-900 flex items-center gap-1.5">
                   <span>INECO ALTA VELOCIDAD</span>
                   <span class="text-amber-500">•</span>
-                  <span>BILLETE SOLIDARIO 2026</span>
+                  <span>BILLETE SOLIDARIO 2027</span>
                 </span>
                 <h3 class="text-2xl sm:text-3xl font-black text-slate-900 font-poppins">${colleague.name}</h3>
               </div>
@@ -1192,21 +1157,21 @@ class ColleagueGiftBox {
               <p class="text-[10px] text-slate-500">09:00 - 15:00 horas</p>
             </div>
             <div>
-              <span class="text-[10px] text-slate-500 uppercase font-bold">LOCALIZADOR:</span>
+              <span class="text-[10px] text-slate-500 uppercase font-bold">LOCALIZADOR 2027:</span>
               <p class="font-bold text-blue-900 font-mono">${colleague.loc}</p>
               <p class="text-[10px] text-emerald-700 font-semibold">Cesta Solidaria Completa</p>
             </div>
           </div>
 
-          <!-- Mensaje Personalizado Navideño -->
+          <!-- Mensaje Personalizado Navideño para 2027 -->
           <div class="bg-blue-50/90 rounded-xl p-4 border border-blue-200 text-xs text-slate-800 leading-relaxed my-2 ml-3">
-            <span class="font-bold text-blue-900">Dedicatoria para ${colleague.name} (${colleague.role}):</span>
+            <span class="font-bold text-blue-900">Deseo para el 2027 • ${colleague.name} (${colleague.role}):</span>
             <p class="italic mt-1 text-sm font-medium">"${colleague.wish}"</p>
           </div>
 
           <!-- Código de Barras / QR Simulado -->
           <div class="flex items-center justify-between pt-3 border-t border-dashed border-slate-300 text-[10px] text-slate-500 font-mono pl-3">
-            <span>RESGUARDO OFICIAL</span>
+            <span>RESGUARDO OFICIAL 2027</span>
             <span class="tracking-widest">|||||| | |||||||| ||| ||||||| | ||</span>
             <span>BASE MONFORTE DEL CID</span>
           </div>
@@ -1220,18 +1185,18 @@ class ColleagueGiftBox {
             🎁 Presentación Real del Empaquetado
           </span>
           <h4 class="text-xl md:text-3xl font-black text-white font-poppins">
-            La Cesta de Navidad de ${colleague.name}
+            La Gran Cesta de Navidad de ${colleague.name}
           </h4>
           <p class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto mt-1 mb-6">
-            Caja de cartón reciclado sostenible serigrafiada con motivos de Ineco, forrada con separadores troquelados a medida para proteger cada frasco y producto.
+            Caja de cartón reciclado sostenible serigrafiada con motivos de Ineco, acondicionada con separadores troquelados a medida para proteger cada frasco y producto en su viaje a Monforte.
           </p>
 
           <!-- IMAGEN REAL DE LA CESTA GENERADA SEGÚN ESPECIFICACIONES -->
           <div id="basket-render-box" class="w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-2xl mb-6 relative group">
-            <img src="assets/cesta_solidaria_real.jpg" alt="Cesta de Navidad Solidaria Ineco 2026" class="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-700">
+            <img src="assets/cesta_solidaria_real.jpg" alt="Cesta de Navidad Solidaria Ineco 2027" class="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-700">
             <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent p-4 flex items-center justify-between text-xs text-amber-300 font-bold">
               <span>📦 Acondicionamiento Interior Antichoque con 9 Artículos</span>
-              <span class="text-white bg-red-600/90 px-2.5 py-0.5 rounded-full text-[10px]">Edición 2026</span>
+              <span class="text-white bg-red-600/90 px-2.5 py-0.5 rounded-full text-[10px]">Horizonte 2027</span>
             </div>
           </div>
 
@@ -1241,7 +1206,7 @@ class ColleagueGiftBox {
               <span>🎉 ¡Celebrar y Abrir Mi Cesta!</span>
             </button>
             <button id="download-ticket-btn" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-blue-900 hover:bg-blue-800 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition border border-blue-400/40">
-              <span>🎟️ Descargar Mi Billete</span>
+              <span>🎟️ Descargar Mi Billete 2027</span>
             </button>
             <button id="share-whatsapp-btn" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.087-.179.182-.077.357.101.174.449.741.963 1.199.662.59 1.22.774 1.393.861.173.087.274.072.376-.044.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.072.043.419-.101.824z"/></svg>
@@ -1260,62 +1225,50 @@ class ColleagueGiftBox {
     if (unboxBtn) {
       unboxBtn.onclick = () => {
         sound.playConfettiFanfare();
-        if (navigator.vibrate) navigator.vibrate([100, 80, 150]);
+        if (typeof confetti === 'function') {
+          confetti({ particleCount: 100, spread: 90, origin: { y: 0.6 } });
+        }
         if (renderBox) {
           renderBox.classList.remove('animate-basket-reveal');
           void renderBox.offsetWidth;
           renderBox.classList.add('animate-basket-reveal');
-        }
-        if (typeof confetti === 'function') {
-          confetti({
-            particleCount: 140,
-            spread: 95,
-            origin: { y: 0.6 },
-            colors: ['#D4AF37', '#CB1823', '#1A4488', '#10B981', '#FFFFFF']
-          });
         }
       };
     }
 
     if (downloadBtn) {
       downloadBtn.onclick = () => {
-        this.generateTicketImage(colleague);
+        this.downloadTicketPass(colleague);
       };
     }
 
     if (shareBtn) {
       shareBtn.onclick = () => {
-        const text = `🎄 ¡Hola! He abierto la Cesta Solidaria Ineco 2026 de ${colleague.name} para la Base de Mantenimiento de Monforte del Cid: ${colleague.wish} 🚄 ¡Felices Fiestas!`;
-        const url = window.location.href;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+        const text = encodeURIComponent(`🚄 ¡Hola! Mira mi Billete de Alta Velocidad y el Regalo Solidario de Ineco para 2027 en la Base de Monforte del Cid: ${window.location.href}`);
+        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
       };
     }
   }
 
-  generateTicketImage(colleague) {
+  downloadTicketPass(colleague) {
     const canvas = document.createElement('canvas');
-    canvas.width = 820;
-    canvas.height = 430;
+    canvas.width = 900;
+    canvas.height = 420;
     const ctx = canvas.getContext('2d');
 
-    // Fondo oscuro exterior
-    ctx.fillStyle = '#040A16';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Tarjeta blanca
+    // Fondo tarjeta
     ctx.fillStyle = '#FFFFFF';
-    ctx.roundRect(35, 25, 750, 380, 24);
+    ctx.roundRect ? ctx.roundRect(10, 10, 880, 400, 24) : ctx.rect(10, 10, 880, 400);
     ctx.fill();
 
-    // Banda dorada exterior
+    // Borde dorado
     ctx.strokeStyle = '#D4AF37';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.stroke();
 
-    // Banda superior azul Ineco
+    // Banda superior Ineco
     ctx.fillStyle = '#1A4488';
-    ctx.roundRect(35, 25, 750, 85, [24, 24, 0, 0]);
-    ctx.fill();
+    ctx.fillRect(10, 10, 880, 100);
 
     // Tira holográfica a la izquierda
     ctx.fillStyle = '#CB1823';
@@ -1324,7 +1277,7 @@ class ColleagueGiftBox {
     // Textos cabecera
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 24px Poppins, sans-serif';
-    ctx.fillText('INECO • BILLETE SOLIDARIO 2026', 75, 75);
+    ctx.fillText('INECO • BILLETE SOLIDARIO 2027', 75, 75);
 
     ctx.fillStyle = '#FCD34D';
     ctx.font = 'bold 15px Poppins, sans-serif';
@@ -1343,7 +1296,7 @@ class ColleagueGiftBox {
     ctx.font = '15px Poppins, sans-serif';
     ctx.fillText(`Asiento: ${colleague.ticketSeat} | Entrega: 14 Diciembre 2026`, 75, 240);
 
-    // Dedicatoria
+    // Dedicatoria 2027
     ctx.fillStyle = '#1E293B';
     ctx.font = 'italic 15px Poppins, sans-serif';
     ctx.fillText(`"${colleague.wish}"`, 75, 290);
@@ -1354,7 +1307,7 @@ class ColleagueGiftBox {
     ctx.fillText(`BASE MONFORTE DEL CID  |||||||||| ||||| ||||||||  ${colleague.loc}`, 75, 360);
 
     const link = document.createElement('a');
-    link.download = `Billete_Solidario_Ineco_2026_${colleague.name.replace(/\s+/g, '_')}.png`;
+    link.download = `Billete_Solidario_Ineco_2027_${colleague.name.replace(/\s+/g, '_')}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
     sound.playBellChime();
@@ -1406,10 +1359,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const boostBtn = document.getElementById('radar-boost-btn');
 
   const btnGoLaponia = document.getElementById('map-btn-laponia');
+  const btnGoEurope = document.getElementById('map-btn-europe');
   const btnGoMadrid = document.getElementById('map-btn-madrid');
   const btnGoMonforte = document.getElementById('map-btn-monforte');
 
   if (btnGoLaponia) btnGoLaponia.onclick = () => santaRadar.jumpTo('laponia');
+  if (btnGoEurope) btnGoEurope.onclick = () => santaRadar.jumpTo('europe');
   if (btnGoMadrid) btnGoMadrid.onclick = () => santaRadar.jumpTo('madrid');
   if (btnGoMonforte) btnGoMonforte.onclick = () => santaRadar.jumpTo('monforte');
 
@@ -1446,3 +1401,4 @@ document.addEventListener('DOMContentLoaded', () => {
     sound.init();
   }, { once: true });
 });
+
