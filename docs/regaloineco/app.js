@@ -393,6 +393,32 @@ class SoundEngine {
     noise.start(now);
   }
 
+  playSuccessTone() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, idx) => {
+      setTimeout(() => this.playNote(freq, 0.22), idx * 80);
+    });
+  }
+
+  playFanfare() {
+    if (this.muted) return;
+    this.init();
+    if (!this.ctx) return;
+    const fanfare = [
+      { f: 523.25, d: 0.15, delay: 0 },
+      { f: 523.25, d: 0.15, delay: 150 },
+      { f: 523.25, d: 0.15, delay: 300 },
+      { f: 659.25, d: 0.35, delay: 450 },
+      { f: 783.99, d: 0.60, delay: 750 }
+    ];
+    fanfare.forEach(n => {
+      setTimeout(() => this.playNote(n.f, n.d), n.delay);
+    });
+  }
+
   playGameCollect() {
     this.playNote(880, 0.12);
     setTimeout(() => this.playNote(1174.66, 0.2), 80);
@@ -1566,28 +1592,221 @@ class ColleagueGiftBox {
 }
 
 // ==========================================
-// 9. PANTALLA INTRODUCCIÓN POLAR
+// 9. PANTALLA DE INICIO / TEASER GATE (1 DIC 12:00)
 // ==========================================
-function initIntroScreen() {
-  const intro = document.getElementById('intro-screen');
-  const skipBtn = document.getElementById('skip-intro-btn');
-  if (!intro) return;
+// Fecha y hora oficial de apertura: 1 de diciembre de 2026 a las 12:00:00 (Hora Peninsular)
+const TEASER_TARGET_DATE = new Date("2026-12-01T12:00:00+01:00").getTime();
+const TEASER_START_DATE = new Date("2026-11-01T00:00:00+01:00").getTime();
 
-  const finishIntro = () => {
-    intro.classList.add('fade-out');
-    setTimeout(() => {
-      intro.remove();
-    }, 850);
-  };
+let teaserTimerInterval = null;
+let isCreatorPreviewActive = false;
 
-  if (skipBtn) {
-    skipBtn.onclick = () => {
-      sound.init();
-      finishIntro();
+function initTeaserGate() {
+  const teaserScreen = document.getElementById('teaser-gate-screen');
+  const lockedView = document.getElementById('teaser-locked-view');
+  const unlockedView = document.getElementById('teaser-unlocked-view');
+  const adminBar = document.getElementById('creator-admin-bar');
+  const teaserVideo = document.getElementById('teaser-video');
+  const videoPlaceholder = document.getElementById('teaser-video-placeholder');
+  const unmuteBtn = document.getElementById('teaser-video-unmute-btn');
+  const muteIcon = document.getElementById('teaser-video-mute-icon');
+  const muteLabel = document.getElementById('teaser-video-mute-label');
+  const soundToggleBtn = document.getElementById('teaser-sound-toggle');
+  const soundToggleIcon = document.getElementById('teaser-sound-icon');
+  const logoWrapper = document.getElementById('teaser-logo-wrapper');
+  const creatorSecretBtn = document.getElementById('creator-secret-btn');
+  const creatorUnlockBtn = document.getElementById('creator-unlock-btn');
+  const enterAppBtn = document.getElementById('teaser-enter-app-btn');
+  const exitAdminBtn = document.getElementById('creator-exit-btn');
+  const testLockedBtn = document.getElementById('creator-test-locked');
+  const testUnlockedBtn = document.getElementById('creator-test-unlocked');
+
+  if (!teaserScreen) return;
+
+  // 1. Manejo del Vídeo con Autoplay
+  if (teaserVideo) {
+    teaserVideo.muted = true;
+    const playPromise = teaserVideo.play();
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        if (videoPlaceholder) {
+          // Si el vídeo carga y se reproduce con éxito, ocultamos el cartel de preparación
+          videoPlaceholder.classList.add('opacity-0');
+        }
+      }).catch(err => {
+        console.log("Autoplay de vídeo en espera de archivo definitivo o interacción:", err);
+      });
+    }
+
+    if (unmuteBtn) {
+      unmuteBtn.onclick = (e) => {
+        e.stopPropagation();
+        teaserVideo.muted = !teaserVideo.muted;
+        if (muteIcon) muteIcon.innerText = teaserVideo.muted ? "🔇" : "🔊";
+        if (muteLabel) muteLabel.innerText = teaserVideo.muted ? "Activar Sonido" : "Silenciar";
+      };
+    }
+  }
+
+  // 2. Comprobar si el creador tiene activa la previsualización
+  const urlParams = new URLSearchParams(window.location.search);
+  const hasUrlCreator = urlParams.has('creator') || urlParams.has('preview');
+  const hasStorageCreator = localStorage.getItem('ineco_creator_preview') === 'true';
+
+  if (hasUrlCreator || hasStorageCreator) {
+    enableCreatorMode(false);
+  } else {
+    evaluateTeaserState();
+  }
+
+  // 3. Evaluar estado temporal (Antes vs Después del 1 de Diciembre a las 12:00)
+  function evaluateTeaserState(forcedState = null) {
+    const now = Date.now();
+    const isUnlocked = forcedState !== null ? forcedState : (now >= TEASER_TARGET_DATE);
+
+    if (isUnlocked) {
+      // Estado Desbloqueado: "¡Por fin ya puedes ver qué sorpresas tenemos preparadas!"
+      if (lockedView) lockedView.classList.add('hidden');
+      if (unlockedView) unlockedView.classList.remove('hidden');
+      if (teaserTimerInterval) clearInterval(teaserTimerInterval);
+    } else {
+      // Estado Bloqueado: "Descubre el regalo solidario 2026 en el día 1 de diciembre a las 12:00"
+      if (lockedView) lockedView.classList.remove('hidden');
+      if (unlockedView) unlockedView.classList.add('hidden');
+      startTeaserCountdown();
+    }
+  }
+
+  // 4. Cuenta atrás en vivo para el Teaser
+  function startTeaserCountdown() {
+    if (teaserTimerInterval) clearInterval(teaserTimerInterval);
+
+    function update() {
+      const now = Date.now();
+      const diff = TEASER_TARGET_DATE - now;
+
+      if (diff <= 0) {
+        // En vivo se cumple el 1 de diciembre a las 12:00
+        evaluateTeaserState(true);
+        if (typeof sound !== 'undefined') sound.playFanfare();
+        if (typeof launchConfetti === 'function') launchConfetti();
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const dEl = document.getElementById('teaser-days');
+      const hEl = document.getElementById('teaser-hours');
+      const mEl = document.getElementById('teaser-minutes');
+      const sEl = document.getElementById('teaser-seconds');
+      const pctEl = document.getElementById('teaser-pct-label');
+      const barEl = document.getElementById('teaser-progress-bar');
+
+      if (dEl) dEl.innerText = days < 10 ? '0' + days : days;
+      if (hEl) hEl.innerText = hours < 10 ? '0' + hours : hours;
+      if (mEl) mEl.innerText = minutes < 10 ? '0' + minutes : minutes;
+      if (sEl) sEl.innerText = seconds < 10 ? '0' + seconds : seconds;
+
+      const totalSpan = TEASER_TARGET_DATE - TEASER_START_DATE;
+      const elapsed = now - TEASER_START_DATE;
+      const pct = Math.min(100, Math.max(0, Math.round((elapsed / totalSpan) * 100)));
+      if (pctEl) pctEl.innerText = pct + '%';
+      if (barEl) barEl.style.width = pct + '%';
+    }
+
+    update();
+    teaserTimerInterval = setInterval(update, 1000);
+  }
+
+  // 5. Botón Secreto y Mecanismos de Acceso del Creador
+  function enableCreatorMode(notify = true) {
+    isCreatorPreviewActive = true;
+    localStorage.setItem('ineco_creator_preview', 'true');
+    teaserScreen.classList.add('teaser-hidden');
+    if (adminBar) adminBar.classList.remove('hidden');
+
+    if (notify && typeof sound !== 'undefined') {
+      sound.playSuccessTone();
+    }
+  }
+
+  function disableCreatorMode() {
+    isCreatorPreviewActive = false;
+    localStorage.removeItem('ineco_creator_preview');
+    teaserScreen.classList.remove('teaser-hidden');
+    if (adminBar) adminBar.classList.add('hidden');
+    evaluateTeaserState();
+  }
+
+  if (creatorSecretBtn) creatorSecretBtn.onclick = () => enableCreatorMode(true);
+  if (creatorUnlockBtn) creatorUnlockBtn.onclick = () => enableCreatorMode(true);
+  if (exitAdminBtn) exitAdminBtn.onclick = () => disableCreatorMode();
+
+  // Atajos para el creador:
+  // a) Triple clic en el logo oficial
+  let logoClicks = 0;
+  let logoTimer = null;
+  if (logoWrapper) {
+    logoWrapper.onclick = () => {
+      logoClicks++;
+      clearTimeout(logoTimer);
+      if (logoClicks >= 3) {
+        logoClicks = 0;
+        enableCreatorMode(true);
+      } else {
+        logoTimer = setTimeout(() => { logoClicks = 0; }, 800);
+      }
     };
   }
 
-  setTimeout(finishIntro, 3300);
+  // b) Atajo de teclado: Alt+P o Ctrl+Shift+P
+  window.addEventListener('keydown', (e) => {
+    if ((e.altKey && (e.key === 'p' || e.key === 'P')) ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'P' || e.key === 'p'))) {
+      e.preventDefault();
+      if (isCreatorPreviewActive) {
+        disableCreatorMode();
+      } else {
+        enableCreatorMode(true);
+      }
+    }
+  });
+
+  // 6. Controles de simulación rápida para el creador
+  if (testLockedBtn) {
+    testLockedBtn.onclick = () => {
+      teaserScreen.classList.remove('teaser-hidden');
+      evaluateTeaserState(false);
+    };
+  }
+  if (testUnlockedBtn) {
+    testUnlockedBtn.onclick = () => {
+      teaserScreen.classList.remove('teaser-hidden');
+      evaluateTeaserState(true);
+    };
+  }
+
+  // 7. Entrada a la aplicación cuando se desbloquea el 1 de diciembre
+  if (enterAppBtn) {
+    enterAppBtn.onclick = () => {
+      if (typeof sound !== 'undefined') sound.playFanfare();
+      teaserScreen.classList.add('teaser-hidden');
+      if (typeof launchConfetti === 'function') launchConfetti();
+    };
+  }
+
+  // 8. Control de sonido en la pantalla de inicio
+  if (soundToggleBtn) {
+    soundToggleBtn.onclick = () => {
+      if (typeof sound !== 'undefined') {
+        sound.toggleMute();
+        if (soundToggleIcon) soundToggleIcon.innerText = sound.muted ? "🔇" : "🔔";
+      }
+    };
+  }
 }
 
 // ==========================================
@@ -2133,7 +2352,7 @@ class SolidaryDriverGame {
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   const snow = new Snowfall('snow-canvas');
-  initIntroScreen();
+  initTeaserGate();
   initCountdown();
   const advent = new AdventCalendar();
   window.adventInstance = advent;

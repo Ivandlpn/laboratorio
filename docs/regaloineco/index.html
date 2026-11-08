@@ -69,68 +69,271 @@
   <!-- CANVAS DE NIEVE FESTIVA -->
   <canvas id="snow-canvas"></canvas>
 
-  <!-- PANTALLA DE INTRODUCCIÓN ESPECTACULAR -->
-  <div id="intro-screen" role="dialog" aria-modal="true" aria-label="Introducción Polar">
-    <div class="aurora-bg"></div>
+  <!-- ======================================================== -->
+  <!-- PANTALLA DE INICIO / TEASER GATE (1 DE DICIEMBRE A LAS 12:00) -->
+  <!-- ======================================================== -->
+  <div id="teaser-gate-screen" class="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-b from-[#020612] via-[#051126] to-[#020612] flex flex-col justify-between p-4 sm:p-6 lg:p-8 select-none transition-opacity duration-700">
+    
+    <!-- Fondo Aurora Boreal & Luces de Ambiente -->
+    <div class="aurora-bg opacity-70 pointer-events-none"></div>
 
-    <div class="w-full max-w-2xl catenary-wire mb-6 flex justify-around relative z-10">
-      <div class="catenary-light bg-red-500 text-red-500" style="animation-delay: 0.1s"></div>
-      <div class="catenary-light bg-amber-400 text-amber-400" style="animation-delay: 0.4s"></div>
-      <div class="catenary-light bg-blue-400 text-blue-400" style="animation-delay: 0.7s"></div>
-      <div class="catenary-light bg-emerald-400 text-emerald-400" style="animation-delay: 0.3s"></div>
-      <div class="catenary-light bg-red-500 text-red-500" style="animation-delay: 0.9s"></div>
-      <div class="catenary-light bg-amber-400 text-amber-400" style="animation-delay: 0.2s"></div>
-    </div>
-
-    <div class="text-center max-w-lg w-full px-4 relative z-10">
-      <div class="relative inline-block mb-3">
-        <div class="bg-white/95 px-6 py-3 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_35px_rgba(26,68,136,0.9)] backdrop-blur-md">
-          <img src="assets/Logo-Ineco.png" alt="Logo Oficial Ineco" class="h-12 md:h-16 w-auto mx-auto object-contain">
+    <!-- Barra Superior: Logo Ineco, Badge y Acceso Secreto Creador -->
+    <header class="w-full max-w-7xl mx-auto flex items-center justify-between relative z-20 pb-4 border-b border-slate-800/80 shrink-0">
+      <div class="flex items-center gap-3">
+        <!-- Logo Oficial (Triple clic secreto como atajo alternativo) -->
+        <div id="teaser-logo-wrapper" class="bg-white/95 px-4 py-2 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(26,68,136,0.8)] backdrop-blur-md cursor-pointer hover:scale-105 transition active:scale-95" title="Ineco • Triple clic para acceso creador">
+          <img src="assets/Logo-Ineco.png" alt="Logo Ineco" class="h-9 sm:h-11 w-auto object-contain">
         </div>
-        <span class="absolute -top-7 -right-5 text-4xl transform rotate-12 drop-shadow-lg">🎅</span>
-      </div>
-
-      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-700 via-red-600 to-amber-600 text-white font-extrabold text-xs uppercase tracking-widest border border-amber-300 shadow-xl mb-3">
-        <span>✨ EXPEDICIÓN POLAR SOLIDARIA 2027</span>
-      </div>
-
-      <h1 class="text-2xl md:text-4xl font-black text-white font-poppins tracking-tight drop-shadow-md">
-        REGALO SOLIDARIO <span class="text-amber-400">2026</span>
-      </h1>
-      <p class="text-xs md:text-sm text-blue-200 mt-2 font-medium">
-        Ruta: <strong class="text-amber-300">Laponia</strong> ➔ <strong class="text-white">Sede Ineco (Madrid)</strong> ➔ <strong class="text-emerald-400">Base Monforte del Cid</strong>
-      </p>
-
-      <div class="intro-track border-b-2 border-slate-600/70 my-5 relative">
-        <div class="absolute bottom-0 w-full flex justify-between px-2">
-          <div class="w-3 h-1.5 bg-slate-300 rounded-xs"></div>
-          <div class="w-3 h-1.5 bg-slate-300 rounded-xs"></div>
-          <div class="w-3 h-1.5 bg-slate-300 rounded-xs"></div>
-          <div class="w-3 h-1.5 bg-slate-300 rounded-xs"></div>
-          <div class="w-3 h-1.5 bg-slate-300 rounded-xs"></div>
-          <div class="w-3 h-1.5 bg-slate-300 rounded-xs"></div>
-          <div class="w-3 h-1.5 bg-slate-300 rounded-xs"></div>
-          <div class="w-3 h-1.5 bg-slate-300 rounded-xs"></div>
-        </div>
-
-        <div class="intro-train bottom-2 flex items-center">
-          <div class="train-light-cone -left-20"></div>
-          <span class="text-4xl drop-shadow-[0_0_15px_#FCD34D]">🚄</span>
-          <span class="text-xs font-black bg-blue-900 text-white px-2.5 py-0.5 rounded-md ml-1.5 border border-amber-400 shadow-lg whitespace-nowrap">
-            AVE POLAR SOLIDARIO
+        <div class="hidden sm:block">
+          <span class="text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-red-600/30 text-red-300 border border-red-500/40">
+            Campaña Solidaria 2026
           </span>
+          <p class="text-xs text-blue-200 font-semibold mt-0.5">Expedición Alta Velocidad Polar</p>
         </div>
       </div>
 
-      <div class="flex items-center justify-center gap-4 mt-2">
-        <div class="flex items-center gap-2 text-xs text-amber-300 bg-slate-900/90 px-3.5 py-1.5 rounded-full border border-slate-700 shadow-inner">
-          <div class="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
-          <span>Iniciando en 3s...</span>
-        </div>
-        <button id="skip-intro-btn" class="px-5 py-2 rounded-full bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 active:scale-95 text-white text-xs font-black shadow-lg transition tracking-wide">
-          Subir al Tren ➔
+      <!-- Controles Superiores: Botón Secreto Creador y Sonido -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- Botón Secreto del Creador -->
+        <button id="creator-secret-btn" class="group flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-amber-500/20 text-slate-400 hover:text-amber-300 border border-slate-700/80 hover:border-amber-400/60 text-xs font-bold transition shadow-sm" title="Acceso exclusivo para el creador de la página (Atajo: Alt+P)">
+          <svg class="w-4 h-4 text-amber-400/70 group-hover:text-amber-300 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+          <span class="hidden md:inline text-[11px]">Acceso Creador</span>
+        </button>
+
+        <!-- Toggle Sonido Ambiental -->
+        <button id="teaser-sound-toggle" class="w-9 h-9 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-amber-300 border border-slate-700 flex items-center justify-center transition shadow-sm" title="Activar/Desactivar sonido">
+          <span id="teaser-sound-icon">🔇</span>
         </button>
       </div>
+    </header>
+
+    <!-- CUERPO PRINCIPAL: DUAL ESCRITORIO (IZQUIERDA: VÍDEO | DERECHA: MENSAJE IMPACTANTE + CUENTA ATRÁS) -->
+    <main class="w-full max-w-7xl mx-auto my-auto py-6 sm:py-8 lg:py-10 relative z-20">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        
+        <!-- ============================================== -->
+        <!-- COLUMNA IZQUIERDA (ESCRITORIO): VÍDEO CON AUTOPLAY -->
+        <!-- ============================================== -->
+        <div class="lg:col-span-7 flex flex-col justify-center">
+          <div class="relative rounded-3xl overflow-hidden border-2 border-amber-400/70 shadow-[0_0_50px_rgba(26,68,136,0.6)] bg-slate-950 group">
+            
+            <!-- Contenedor del Vídeo con Autoplay -->
+            <div class="relative w-full aspect-video min-h-[260px] sm:min-h-[360px] md:min-h-[420px] bg-slate-950 flex items-center justify-center overflow-hidden">
+              <video id="teaser-video" 
+                     autoplay 
+                     muted 
+                     loop 
+                     playsinline 
+                     preload="auto"
+                     poster="assets/cesta_solidaria_real.jpg"
+                     class="w-full h-full object-cover">
+                <source src="assets/teaser_trailer.mp4" type="video/mp4">
+              </video>
+
+              <!-- Placeholder/Fallback Cinemático si el archivo MP4 definitivo aún está en preparación -->
+              <div id="teaser-video-placeholder" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gradient-to-t from-slate-950 via-blue-950/40 to-transparent pointer-events-none transition-opacity duration-500">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-600/30 border-2 border-amber-400 flex items-center justify-center text-3xl sm:text-4xl shadow-[0_0_30px_rgba(203,24,35,0.8)] mb-4 animate-pulse">
+                  🎬
+                </div>
+                <span class="px-3.5 py-1 rounded-full bg-red-600/90 text-white font-black text-xs uppercase tracking-widest shadow-md border border-amber-300 mb-2">
+                  Tráiler Oficial en Preparación
+                </span>
+                <p class="text-xs sm:text-sm text-slate-300 max-w-md font-medium leading-relaxed drop-shadow">
+                  Vídeo conmemorativo de la Expedición Polar Solidaria Ineco 2026. Se reproducirá automáticamente al iniciar la web.
+                </p>
+              </div>
+
+              <!-- Indicador Live en Esquina Superior Izquierda -->
+              <div class="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-red-500/50 shadow-lg">
+                <div class="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></div>
+                <span class="text-[10px] sm:text-xs font-black text-white tracking-wider uppercase">VÍDEO OFICIAL</span>
+              </div>
+
+              <!-- Botón Unmute del Vídeo -->
+              <button id="teaser-video-unmute-btn" class="absolute bottom-4 right-4 z-10 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-amber-300 text-xs font-bold border border-amber-400/40 shadow-lg flex items-center gap-1.5 transition active:scale-95">
+                <span id="teaser-video-mute-icon">🔇</span>
+                <span id="teaser-video-mute-label">Activar Sonido</span>
+              </button>
+            </div>
+
+            <!-- Pie del marco del vídeo con detalle ferroviario -->
+            <div class="bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 px-5 py-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+              <div class="flex items-center gap-2">
+                <span class="text-amber-400">🚄</span>
+                <span class="font-bold text-slate-200">Alta Velocidad Ineco</span>
+                <span class="text-slate-600">•</span>
+                <span class="text-blue-300">Ruta Polar Monforte</span>
+              </div>
+              <span class="text-[11px] font-mono text-amber-400/80 font-semibold">1080p HD • 60 FPS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- COLUMNA DERECHA (ESCRITORIO): MENSAJE IMPACTANTE + CUENTA ATRÁS -->
+        <!-- ============================================== -->
+        <div class="lg:col-span-5 flex flex-col justify-center">
+          
+          <!-- ESTADO 1: ANTES DEL 1 DE DICIEMBRE A LAS 12:00 (BLOQUEADO) -->
+          <div id="teaser-locked-view" class="space-y-6">
+            
+            <!-- Badge Festivo Brillante -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-600/30 via-amber-500/20 to-blue-600/30 text-amber-300 border border-amber-400/50 shadow-[0_0_20px_rgba(212,175,55,0.25)] text-xs font-black tracking-wider uppercase">
+              <span class="animate-spin text-sm">✨</span>
+              <span>LANZAMIENTO EXCLUSIVO DE NAVIDAD</span>
+            </div>
+
+            <!-- TÍTULO ULTRA VISUAL E IMPACTANTE SOLICITADO -->
+            <div class="space-y-3">
+              <h1 class="text-3xl sm:text-4xl xl:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-amber-500 font-poppins leading-[1.15] drop-shadow-[0_10px_25px_rgba(212,175,55,0.35)] tracking-tight">
+                Descubre el <span class="text-red-500">Regalo Solidario 2026</span>
+              </h1>
+              
+              <!-- Cartela destacada de fecha y hora exacta -->
+              <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-red-950/80 via-blue-950/90 to-slate-900 border-2 border-amber-400/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 text-white flex items-center justify-center text-2xl shadow-md border border-amber-300 shrink-0">
+                    📅
+                  </div>
+                  <div>
+                    <span class="text-[10px] uppercase font-black text-amber-300 tracking-widest block">
+                      FECHA Y HORA OFICIAL DE APERTURA:
+                    </span>
+                    <p class="text-base sm:text-xl font-black text-white leading-tight">
+                      El día <span class="text-amber-300">1 de diciembre</span> a las <span class="text-amber-300">12:00</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Párrafo Descriptivo de Alta Legibilidad -->
+            <p class="text-sm sm:text-base text-slate-200 leading-relaxed font-normal">
+              Una cuidada selección de productos solidarios y deseos para el próximo 2027. La cuenta atrás está en marcha y todo el equipo de Ineco podrá acceder en el instante exacto.
+            </p>
+
+            <!-- CUENTA ATRÁS MUY VISUAL E IMPACTANTE -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs text-amber-300/90 font-bold px-1">
+                <span>TIEMPO RESTANTE PARA LA APERTURA:</span>
+                <span id="teaser-pct-label" class="font-mono text-white">0%</span>
+              </div>
+
+              <!-- Bloques de Cuenta Atrás -->
+              <div class="grid grid-cols-4 gap-2 sm:gap-3">
+                
+                <!-- DÍAS -->
+                <div class="bg-gradient-to-b from-slate-900/90 to-blue-950/90 rounded-2xl p-3 sm:p-4 border border-amber-400/40 text-center shadow-lg relative overflow-hidden group hover:border-amber-300 transition">
+                  <div class="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition"></div>
+                  <span id="teaser-days" class="text-2xl sm:text-3xl xl:text-4xl font-black text-white font-mono block drop-shadow leading-none">--</span>
+                  <span class="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-widest mt-1 block">DÍAS</span>
+                </div>
+
+                <!-- HORAS -->
+                <div class="bg-gradient-to-b from-slate-900/90 to-blue-950/90 rounded-2xl p-3 sm:p-4 border border-amber-400/40 text-center shadow-lg relative overflow-hidden group hover:border-amber-300 transition">
+                  <div class="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition"></div>
+                  <span id="teaser-hours" class="text-2xl sm:text-3xl xl:text-4xl font-black text-amber-300 font-mono block drop-shadow leading-none">--</span>
+                  <span class="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-widest mt-1 block">HORAS</span>
+                </div>
+
+                <!-- MINUTOS -->
+                <div class="bg-gradient-to-b from-slate-900/90 to-blue-950/90 rounded-2xl p-3 sm:p-4 border border-amber-400/40 text-center shadow-lg relative overflow-hidden group hover:border-amber-300 transition">
+                  <div class="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition"></div>
+                  <span id="teaser-minutes" class="text-2xl sm:text-3xl xl:text-4xl font-black text-white font-mono block drop-shadow leading-none">--</span>
+                  <span class="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-widest mt-1 block">MINUTOS</span>
+                </div>
+
+                <!-- SEGUNDOS -->
+                <div class="bg-gradient-to-b from-slate-900/90 to-blue-950/90 rounded-2xl p-3 sm:p-4 border border-amber-400/40 text-center shadow-lg relative overflow-hidden group hover:border-amber-300 transition">
+                  <div class="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition"></div>
+                  <span id="teaser-seconds" class="text-2xl sm:text-3xl xl:text-4xl font-black text-red-400 font-mono block drop-shadow leading-none animate-pulse">--</span>
+                  <span class="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-widest mt-1 block">SEGUNDOS</span>
+                </div>
+
+              </div>
+
+              <!-- Barra de Progreso Luminosa -->
+              <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-700/80 mt-2">
+                <div id="teaser-progress-bar" class="h-full bg-gradient-to-r from-blue-600 via-amber-400 to-red-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_#FCD34D]" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Botón Secreto Prominente para el Creador -->
+            <div class="pt-2 flex items-center justify-between border-t border-slate-800/80 text-xs">
+              <span class="text-slate-400 flex items-center gap-1.5">
+                <span>🔐</span> Página protegida hasta la fecha oficial
+              </span>
+              <button id="creator-unlock-btn" class="text-amber-400 hover:text-amber-300 font-bold underline underline-offset-4 flex items-center gap-1 transition">
+                <span>🔑 Modo Creador</span>
+              </button>
+            </div>
+
+          </div>
+
+          <!-- ESTADO 2: AL LLEGAR AL 1 DE DICIEMBRE A LAS 12:00 (DESBLOQUEADO) -->
+          <div id="teaser-unlocked-view" class="hidden space-y-6">
+            
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 shadow-[0_0_20px_rgba(52,211,153,0.3)] text-xs font-black tracking-wider uppercase animate-bounce">
+              <span>🎉</span>
+              <span>¡LLEGÓ EL MOMENTO ESPERADO!</span>
+            </div>
+
+            <!-- FRASE EXACTA SOLICITADA POR EL USUARIO -->
+            <div class="space-y-3">
+              <h1 class="text-3xl sm:text-4xl xl:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-amber-300 to-white font-poppins leading-[1.15] drop-shadow-[0_10px_30px_rgba(52,211,153,0.4)] tracking-tight">
+                ¡Por fin ya puedes ver qué sorpresas tenemos preparadas!
+              </h1>
+              <p class="text-sm sm:text-base text-slate-200 leading-relaxed font-normal">
+                El tren solidario de Ineco ha completado su viaje. Explora el Calendario de Adviento con los 9 productos artesanales, descarga tu Billete AVE de Alta Velocidad, descubre el despiece 3D y celebra con todo el equipo.
+              </p>
+            </div>
+
+            <!-- Botón Grande de Entrada a la Web -->
+            <div class="pt-2">
+              <button id="teaser-enter-app-btn" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 active:scale-95 text-white text-base font-black shadow-[0_0_35px_rgba(203,24,35,0.8)] border-2 border-amber-300 transition-all transform hover:scale-102 flex items-center justify-center gap-3 tracking-wide">
+                <span>🎁 Descubrir las Sorpresas del Lote</span>
+                <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Barra Inferior de la Pantalla de Inicio -->
+    <footer class="w-full max-w-7xl mx-auto pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 relative z-20 gap-2 shrink-0">
+      <div class="flex items-center gap-2">
+        <span>✨ Ineco 2026-2027</span>
+        <span>•</span>
+        <span>Mantenimiento Ferroviario y Compromiso Social</span>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        Apertura: 1 de Diciembre de 2026 • 12:00:00 h
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- BARRA FLOTANTE DEL MODO CREADOR -->
+  <div id="creator-admin-bar" class="hidden fixed top-0 inset-x-0 z-50 bg-amber-500 text-slate-950 px-4 py-2 text-xs font-black shadow-2xl flex flex-wrap items-center justify-between border-b-2 border-amber-300 backdrop-blur-md gap-2">
+    <div class="flex items-center gap-2">
+      <span class="text-base">🛠️</span>
+      <span>MODO CREADOR: Preparando la página antes del 1 Dic 12:00</span>
+      <span class="hidden sm:inline bg-slate-900 text-amber-300 px-2 py-0.5 rounded text-[10px] font-mono">Vista Previa</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="creator-test-locked" class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold transition">
+        Simular Antes 1 Dic
+      </button>
+      <button id="creator-test-unlocked" class="px-2.5 py-1 rounded bg-emerald-800 hover:bg-emerald-700 text-white text-[11px] font-bold transition">
+        Simular 1 Dic 12:00
+      </button>
+      <button id="creator-exit-btn" class="px-3 py-1 rounded bg-red-700 hover:bg-red-600 text-white text-[11px] font-black transition flex items-center gap-1 shadow">
+        <span>🔒 Volver al Bloqueo</span>
+      </button>
     </div>
   </div>
 
