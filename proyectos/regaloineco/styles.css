@@ -34,6 +34,7 @@ html, body {
   overflow-x: hidden;
   scroll-behavior: smooth;
   min-height: 100vh;
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
 .font-poppins {
@@ -199,38 +200,7 @@ html, body {
   box-shadow: 0 12px 30px -5px rgba(212, 175, 55, 0.3);
 }
 
-/* Cintas Navideñas con Brillo Especular */
-.gift-ribbon-horizontal {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 100%;
-  height: 24px;
-  transform: translateY(-50%);
-  background: linear-gradient(90deg, #A8141D, #CB1823 20%, #F87171 50%, #CB1823 80%, #A8141D);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
-  z-index: 2;
-}
-
-.gift-ribbon-vertical {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 24px;
-  height: 100%;
-  transform: translateX(-50%);
-  background: linear-gradient(180deg, #A8141D, #CB1823 20%, #F87171 50%, #CB1823 80%, #A8141D);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
-  z-index: 2;
-}
-
-.gift-seal-badge {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 4;
-}
+/* Cintas Navideñas y Sello de Lujo definidos en sección Premium */
 
 .foil-sheen {
   position: relative;
@@ -421,7 +391,7 @@ html, body {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-top: 1px solid rgba(107, 150, 207, 0.35);
-  padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+  padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
 }
 
 .tab-btn {
@@ -649,9 +619,17 @@ input[type="range"]::-moz-range-thumb {
   user-select: none;
 }
 .exploded-item-bubble:hover {
-  transform: scale(1.18) !important;
+  transform: scale(1.18);
   box-shadow: 0 15px 30px rgba(203, 24, 35, 0.6), 0 0 25px #FCD34D;
   z-index: 30;
+}
+.exploded-item-bubble.center-top-bubble {
+  top: 15%;
+  left: 50%;
+  margin-left: -34px;
+}
+.exploded-item-bubble.center-top-bubble:hover {
+  transform: scale(1.18);
 }
 .exploded-callout-line {
   position: absolute;
@@ -726,6 +704,11 @@ body.theme-mediterraneo .mobile-bottom-nav {
 .advent-card {
   min-height: 290px;
   height: 100%;
+}
+@media (max-width: 640px) {
+  .advent-card {
+    min-height: 235px !important;
+  }
 }
 .advent-front {
   justify-content: space-between;

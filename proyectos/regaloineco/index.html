@@ -29,7 +29,7 @@
   <meta name="twitter:description" content="Calendario de Adviento interactivo del Lote Solidario 2026 con deseos para 2027 en la Base de Monforte del Cid.">
   <meta name="twitter:image" content="https://ivandlpn.github.io/laboratorio/regaloineco/assets/cesta_solidaria_real.jpg">
 
-  <link rel="preconnect"link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap" rel="stylesheet">
   
@@ -199,8 +199,12 @@
           <span>🎮</span> <span class="hidden md:inline">Minijuego</span>
         </button>
 
-        <button id="toggle-sound-btn" class="h-9 px-2.5 sm:px-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700/80 transition flex items-center gap-1 shadow-sm active:scale-95">
-          <span>🔇</span> <span class="hidden xs:inline">Sonido</span>
+        <button id="toggle-snow-btn" class="h-9 px-2 sm:px-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs text-sky-300 font-semibold border border-slate-700/80 transition flex items-center gap-1 shadow-sm active:scale-95" title="Activar o pausar efecto de nieve">
+          <span class="snow-icon">❄️</span> <span class="snow-label hidden lg:inline">Nieve</span>
+        </button>
+
+        <button id="toggle-sound-btn" class="h-9 px-2.5 sm:px-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700/80 transition flex items-center gap-1 shadow-sm active:scale-95" title="Activar o desactivar sonido y villancicos">
+          <span class="sound-icon">🔇</span> <span class="sound-label hidden xs:inline">Sonido</span>
         </button>
 
         <a href="#seccion-mi-regalo" class="h-9 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-xs font-black text-white shadow-md transition flex items-center gap-1.5 active:scale-95">
@@ -301,6 +305,7 @@
             </div>
           </div>
 
+          <div id="cd-status-text" class="hidden text-xs text-amber-300 font-bold text-center my-1.5 p-1.5 rounded-xl bg-amber-500/10 border border-amber-400/30"></div>
           <div class="pt-2 mt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
             <span class="text-slate-300 font-medium">Entrega: <strong class="text-white">14 Dic</strong> (09:00 - 15:00 h)</span>
             <span class="font-mono text-emerald-400 font-bold">Horizonte 2027</span>
@@ -312,7 +317,9 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- SECCIÓN 2: CALENDARIO DE ADVIENTO<!-- SECCIÓN 2: CALENDARIO DE ADVIENTO (9 DÍAS) -->
+  <!-- ========================================== -->
+  <!-- SECCIÓN 2: CALENDARIO DE ADVIENTO (9 DÍAS) -->
+  <!-- ========================================== -->
   <!-- ========================================== -->
   <main class="max-w-6xl mx-auto px-4 py-12" id="seccion-calendario">
     <div class="text-center mb-8">
@@ -575,7 +582,7 @@
   <!-- ========================================== -->
   <!-- MODAL: DETALLES DEL REGALO                 -->
   <!-- ========================================== -->
-  <div id="gift-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 modal-backdrop">
+  <div id="gift-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 modal-backdrop" role="dialog" aria-modal="true" aria-label="Detalles del Regalo Solidario">
     <div class="bg-slate-900/98 border-2 border-amber-400/60 rounded-3xl w-[85vw] max-w-[85vw] p-5 sm:p-7 md:p-8 shadow-2xl max-h-[92vh] overflow-y-auto modal-dialog-responsive relative" id="gift-modal-dialog">
       <div id="gift-modal-body">
         <!-- Contenido inyectado por app.js -->
@@ -607,9 +614,13 @@
       <span class="text-base">🎮</span>
       <span class="text-[9px]">Juego</span>
     </button>
-    <button id="mobile-sound-btn" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-amber-300 active:scale-95 transition">
-      <span class="text-base">🔇</span>
-      <span class="text-[9px] font-semibold">Sonido</span>
+    <button id="mobile-snow-btn" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-sky-300 active:scale-95 transition" title="Nieve">
+      <span class="snow-icon text-base">❄️</span>
+      <span class="snow-label text-[9px] font-semibold">Nieve</span>
+    </button>
+    <button id="mobile-sound-btn" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-amber-300 active:scale-95 transition" title="Sonido">
+      <span class="sound-icon text-base">🔇</span>
+      <span class="sound-label text-[9px] font-semibold">Sonido</span>
     </button>
   </nav>
 
@@ -637,7 +648,7 @@
   <!-- ========================================== -->
   <!-- MODAL: VISOR 360° CABINA AVE EN MONFORTE    -->
   <!-- ========================================== -->
-  <div id="cab-modal" class="cab-modal hidden">
+  <div id="cab-modal" class="cab-modal hidden" role="dialog" aria-modal="true" aria-label="Cabina de Conducción AVE 360°">
     <div class="p-4 border-b border-slate-700 flex items-center justify-between bg-slate-950/80">
       <div class="flex items-center gap-2">
         <span class="text-xl">🚆</span>
@@ -747,7 +758,7 @@
   <!-- ========================================== -->
   <!-- MODAL: MINIJUEGO "EL MAQUINISTA SOLIDARIO"  -->
   <!-- ========================================== -->
-  <div id="game-modal" class="minigame-modal hidden">
+  <div id="game-modal" class="minigame-modal hidden" role="dialog" aria-modal="true" aria-label="Minijuego El Maquinista Solidario">
     <div class="w-full max-w-md flex items-center justify-between mb-3 text-white">
       <div class="flex items-center gap-2">
         <span class="text-2xl">🎮</span>

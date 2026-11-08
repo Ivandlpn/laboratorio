@@ -636,6 +636,7 @@ class Snowfall {
     this.ctx = this.canvas.getContext('2d');
     this.flakes = [];
     this.active = true;
+    this.theme = 'arctic'; // 'arctic' o 'mediterranean'
     this.maxFlakes = window.innerWidth < 640 ? 45 : 85;
     this.resize();
     this.initFlakes();
@@ -648,6 +649,11 @@ class Snowfall {
     this.canvas.height = window.innerHeight;
   }
 
+  setTheme(themeName) {
+    this.theme = themeName === 'mediterranean' ? 'mediterranean' : 'arctic';
+    this.initFlakes();
+  }
+
   initFlakes() {
     this.flakes = [];
     for (let i = 0; i < this.maxFlakes; i++) {
@@ -658,7 +664,8 @@ class Snowfall {
         d: Math.random() * this.maxFlakes,
         vx: Math.random() * 1 - 0.5,
         vy: Math.random() * 1.5 + 0.8,
-        opacity: Math.random() * 0.7 + 0.3
+        opacity: Math.random() * 0.7 + 0.3,
+        colorType: Math.floor(Math.random() * 3)
       });
     }
   }
@@ -672,13 +679,30 @@ class Snowfall {
   }
 
   animate() {
-    if (this.active) {
+    if (this.active && this.ctx) {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-      this.ctx.fillStyle = "rgba(248, 250, 252, 0.85)";
       this.flakes.forEach(f => {
         this.ctx.beginPath();
         this.ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-        this.ctx.fillStyle = `rgba(248, 250, 252, ${f.opacity})`;
+
+        if (this.theme === 'mediterranean') {
+          // Destellos dorados y ámbar mediterráneos al atardecer
+          if (f.colorType === 0) {
+            this.ctx.fillStyle = `rgba(252, 211, 77, ${f.opacity * 0.9})`; // Oro festivo
+          } else if (f.colorType === 1) {
+            this.ctx.fillStyle = `rgba(245, 158, 11, ${f.opacity * 0.8})`; // Ámbar cálido
+          } else {
+            this.ctx.fillStyle = `rgba(254, 243, 199, ${f.opacity})`; // Marfil luminoso
+          }
+        } else {
+          // Nieve pura polar ártica
+          if (f.colorType === 0) {
+            this.ctx.fillStyle = `rgba(186, 230, 253, ${f.opacity * 0.85})`; // Azul hielo
+          } else {
+            this.ctx.fillStyle = `rgba(248, 250, 252, ${f.opacity})`; // Blanco nieve
+          }
+        }
+
         this.ctx.fill();
 
         f.y += f.vy;
@@ -706,12 +730,21 @@ function initCountdown() {
     const now = new Date().getTime();
     const diff = targetDate - now;
 
+    const elDays = document.getElementById('cd-days');
+    const elHours = document.getElementById('cd-hours');
+    const elMins = document.getElementById('cd-mins');
+    const elSecs = document.getElementById('cd-secs');
+    const statusText = document.getElementById('cd-status-text');
+
     if (diff <= 0) {
-      document.getElementById('cd-days').innerText = "00";
-      document.getElementById('cd-hours').innerText = "00";
-      document.getElementById('cd-mins').innerText = "00";
-      document.getElementById('cd-secs').innerText = "00";
-      document.getElementById('cd-status-text').innerText = "¡Los detalles solidarios han llegado a la Base de Monforte del Cid!";
+      if (elDays) elDays.innerText = "00";
+      if (elHours) elHours.innerText = "00";
+      if (elMins) elMins.innerText = "00";
+      if (elSecs) elSecs.innerText = "00";
+      if (statusText) {
+        statusText.innerText = "¡Los detalles solidarios han llegado a la Base de Monforte del Cid!";
+        statusText.classList.remove('hidden');
+      }
       return;
     }
 
@@ -721,11 +754,6 @@ function initCountdown() {
     const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
     const pad = (n) => String(n).padStart(2, '0');
-
-    const elDays = document.getElementById('cd-days');
-    const elHours = document.getElementById('cd-hours');
-    const elMins = document.getElementById('cd-mins');
-    const elSecs = document.getElementById('cd-secs');
 
     if (elDays) elDays.innerText = pad(days);
     if (elHours) elHours.innerText = pad(hours);
@@ -1064,11 +1092,9 @@ class AdventCalendar {
   resetAll() {
     this.openedDays.clear();
     localStorage.removeItem('ineco_advent_2026');
-    GIFTS_DATA.forEach(g => {
-      const card = document.getElementById(`gift-card-${g.day}`);
-      if (card) card.classList.remove('opened');
-    });
-    this.updateProgress();
+    this.render();
+    sound.playBellChime();
+    haptics.chime();
   }
 
   // ==========================================
@@ -1284,6 +1310,11 @@ class ColleagueGiftBox {
           b.className = 'px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-left flex items-center justify-between gap-2 border select-none bg-slate-800/70 text-slate-300 border-slate-700/60 hover:bg-slate-700/70';
         });
         btn.className = 'px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all text-left flex items-center justify-between gap-2 border select-none bg-blue-800/95 text-white border-amber-400 shadow-md ring-2 ring-amber-400/40';
+
+        // En pantallas móviles, desplazar suavemente al billete para feedback inmediato
+        if (window.innerWidth < 768 && this.detailsCard) {
+          this.detailsCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
       });
 
       this.container.appendChild(btn);
@@ -1420,7 +1451,7 @@ class ColleagueGiftBox {
                 <img src="assets/products/P8_thumb.jpg" alt="Calcetines" class="w-9 h-9 object-cover rounded-full border border-indigo-400 mb-0.5">
                 <span class="text-[7.5px] font-bold text-indigo-300 leading-none">Calcetines</span>
               </div>
-              <div class="exploded-item-bubble" style="top: 45%; left: 50%; transform: translate(-50%, -150%);" data-day="9" title="Tarjeta Navideña 2027">
+              <div class="exploded-item-bubble center-top-bubble" data-day="9" title="Tarjeta Navideña 2027">
                 <img src="assets/products/P9_thumb.jpg" alt="Tarjeta" class="w-9 h-9 object-cover rounded-full border border-amber-300 mb-0.5">
                 <span class="text-[7.5px] font-bold text-amber-300 leading-none">Tarjeta</span>
               </div>
@@ -1694,12 +1725,14 @@ class ColleagueGiftBox {
 
 
   downloadTicketPass(colleague) {
+    // Renderizado en Alta Definición (Double Scale 1800x840) para nitidez absoluta
     const canvas = document.createElement('canvas');
-    canvas.width = 900;
-    canvas.height = 420;
+    canvas.width = 1800;
+    canvas.height = 840;
     const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
 
-    // Fondo tarjeta
+    // Fondo tarjeta con bordes redondeados
     ctx.fillStyle = '#FFFFFF';
     ctx.roundRect ? ctx.roundRect(10, 10, 880, 400, 24) : ctx.rect(10, 10, 880, 400);
     ctx.fill();
@@ -1713,7 +1746,7 @@ class ColleagueGiftBox {
     ctx.fillStyle = '#1A4488';
     ctx.fillRect(10, 10, 880, 100);
 
-    // Tira holográfica a la izquierda
+    // Tira decorativa roja a la izquierda
     ctx.fillStyle = '#CB1823';
     ctx.fillRect(35, 110, 12, 295);
 
@@ -1744,16 +1777,21 @@ class ColleagueGiftBox {
     ctx.font = 'italic 15px Poppins, sans-serif';
     ctx.fillText(`"${colleague.wish}"`, 75, 290);
 
-    // Código de barras
+    // Código de barras simulado y localizador
     ctx.fillStyle = '#0F172A';
     ctx.font = 'bold 14px monospace';
     ctx.fillText(`BASE MONFORTE DEL CID  |||||||||| ||||| ||||||||  ${colleague.loc}`, 75, 360);
 
-    const link = document.createElement('a');
-    link.download = `Billete_Solidario_Ineco_2026_${colleague.name.replace(/\s+/g, '_')}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-    sound.playBellChime();
+    try {
+      const link = document.createElement('a');
+      link.download = `Billete_Solidario_Ineco_2026_${colleague.name.replace(/\s+/g, '_')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      sound.playBellChime();
+      haptics.chime();
+    } catch (e) {
+      console.warn('Canvas export warning:', e);
+    }
   }
 }
 
@@ -1850,33 +1888,66 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnGoMonforte) btnGoMonforte.onclick = () => santaRadar.jumpTo('monforte');
 
   const updateSoundUI = (active) => {
-    const text = active ? '🔊 Sonido On' : '🔇 Sonido Off';
-    if (soundBtn) soundBtn.querySelector('span').innerText = text;
-    if (mobileSoundBtn) mobileSoundBtn.querySelector('span').innerText = active ? 'Sonido On' : 'Mudo';
+    const icon = active ? '🔊' : '🔇';
+    const label = active ? 'Sonido On' : 'Sonido Off';
+    if (soundBtn) {
+      const iconEl = soundBtn.querySelector('.sound-icon');
+      const labelEl = soundBtn.querySelector('.sound-label');
+      if (iconEl) iconEl.innerText = icon;
+      if (labelEl) labelEl.innerText = label;
+      soundBtn.classList.toggle('text-emerald-400', active);
+      soundBtn.classList.toggle('border-emerald-500/50', active);
+    }
+    if (mobileSoundBtn) {
+      const iconEl = mobileSoundBtn.querySelector('.sound-icon');
+      const labelEl = mobileSoundBtn.querySelector('.sound-label');
+      if (iconEl) iconEl.innerText = icon;
+      if (labelEl) labelEl.innerText = active ? 'Sonido On' : 'Sonido';
+      mobileSoundBtn.classList.toggle('text-emerald-400', active);
+    }
   };
 
   const handleToggleSound = () => {
     const active = sound.toggleMute();
     updateSoundUI(active);
-    if (navigator.vibrate) navigator.vibrate(30);
+    haptics.chime();
   };
 
   if (soundBtn) soundBtn.onclick = handleToggleSound;
   if (mobileSoundBtn) mobileSoundBtn.onclick = handleToggleSound;
 
-  if (snowBtn) {
-    snowBtn.onclick = () => {
-      const active = snow.toggle();
-      snowBtn.querySelector('span').innerText = active ? '❄️ Nieve On' : '❄️ Nieve Off';
-      if (navigator.vibrate) navigator.vibrate(30);
-    };
-  }
+  const mobileSnowBtn = document.getElementById('mobile-snow-btn');
+  const updateSnowUI = (active) => {
+    const icon = active ? '❄️' : '⏹️';
+    const label = active ? 'Nieve' : 'Sin Nieve';
+    [snowBtn, mobileSnowBtn].forEach(btn => {
+      if (!btn) return;
+      const iconEl = btn.querySelector('.snow-icon');
+      const labelEl = btn.querySelector('.snow-label');
+      if (iconEl) iconEl.innerText = icon;
+      if (labelEl) labelEl.innerText = label;
+      btn.classList.toggle('opacity-50', !active);
+    });
+  };
+
+  const handleToggleSnow = () => {
+    const active = snow.toggle();
+    updateSnowUI(active);
+    haptics.scratch();
+  };
+
+  if (snowBtn) snowBtn.onclick = handleToggleSnow;
+  if (mobileSnowBtn) mobileSnowBtn.onclick = handleToggleSnow;
 
   if (openAllBtn) openAllBtn.onclick = () => advent.openAll();
   if (resetBtn) resetBtn.onclick = () => advent.resetAll();
 
-  if (hornBtn) hornBtn.onclick = () => sound.playTrainHorn();
-    haptics.horn();
+  if (hornBtn) {
+    hornBtn.onclick = () => {
+      sound.playTrainHorn();
+      haptics.horn();
+    };
+  }
   if (boostBtn) boostBtn.onclick = () => santaRadar.boostSpeed();
 
   document.body.addEventListener('click', () => {
@@ -1975,15 +2046,30 @@ function setupCardScratch(cardElement, day, onReveal) {
   let scratchedStrokes = 0;
   let revealed = false;
 
+  const triggerReveal = () => {
+    if (revealed) return;
+    revealed = true;
+    sound.playIceCrack();
+    haptics.scratch();
+    canvas.classList.add('shattering');
+    setTimeout(() => {
+      canvas.remove();
+      onReveal();
+    }, 280);
+  };
+
   const scratch = (clientX, clientY) => {
     if (revealed) return;
     const b = canvas.getBoundingClientRect();
-    const x = clientX - b.left;
-    const y = clientY - b.top;
+    if (b.width === 0 || b.height === 0) return;
+    const scaleX = canvas.width / b.width;
+    const scaleY = canvas.height / b.height;
+    const x = (clientX - b.left) * scaleX;
+    const y = (clientY - b.top) * scaleY;
 
     ctx.globalCompositeOperation = 'destination-out';
     ctx.beginPath();
-    ctx.arc(x, y, 28, 0, Math.PI * 2);
+    ctx.arc(x, y, 28 * scaleX, 0, Math.PI * 2);
     ctx.fill();
 
     scratchedStrokes++;
@@ -1992,21 +2078,16 @@ function setupCardScratch(cardElement, day, onReveal) {
       haptics.scratch();
     }
 
-    if (scratchedStrokes >= 20) {
-      revealed = true;
-      canvas.remove();
-      onReveal();
+    if (scratchedStrokes >= 18) {
+      triggerReveal();
     }
   };
 
-  // Si el usuario simplemente hace clic o tap directo sin rascar
-  canvas.addEventListener('click', () => {
-    if (revealed) return;
-    revealed = true;
-    sound.playIceCrack();
-    haptics.scratch();
-    canvas.remove();
-    onReveal();
+  // Si el usuario simplemente hace clic o tap directo sin rascar (stopPropagation evita doble trigger)
+  canvas.addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    triggerReveal();
   });
 
   canvas.addEventListener('mousedown', () => isScratching = true);
@@ -2017,11 +2098,11 @@ function setupCardScratch(cardElement, day, onReveal) {
 
   canvas.addEventListener('touchstart', (e) => {
     isScratching = true;
-    if (e.touches[0]) scratch(e.touches[0].clientX, e.touches[0].clientY);
+    if (e.touches && e.touches[0]) scratch(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: true });
 
   canvas.addEventListener('touchmove', (e) => {
-    if (isScratching && e.touches[0]) scratch(e.touches[0].clientX, e.touches[0].clientY);
+    if (isScratching && e.touches && e.touches[0]) scratch(e.touches[0].clientX, e.touches[0].clientY);
   }, { passive: true });
 
   canvas.addEventListener('touchend', () => isScratching = false);
@@ -2153,6 +2234,11 @@ class Cab360Viewer {
     if (this.modal) {
       this.modal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';
+      // Centrar de forma garantizada en el parabrisas frontal hacia Monforte
+      this.panX = -33.3;
+      if (this.panoramicLayer) {
+        this.panoramicLayer.style.transform = 'translateX(-33.3%)';
+      }
       sound.playBellChime();
       haptics.trainJoint();
     }
@@ -2241,6 +2327,21 @@ class SolidaryDriverGame {
     }
     if (this.btnRight) {
       this.btnRight.onclick = () => this.moveRight();
+    }
+
+    // Gestos táctiles de deslizamiento (swipe) sobre el canvas
+    if (this.canvas) {
+      let touchStartX = 0;
+      this.canvas.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches[0]) touchStartX = e.touches[0].clientX;
+      }, { passive: true });
+      this.canvas.addEventListener('touchend', (e) => {
+        if (!this.isPlaying) return;
+        const touchEndX = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : touchStartX;
+        const diffX = touchEndX - touchStartX;
+        if (diffX < -30) this.moveLeft();
+        else if (diffX > 30) this.moveRight();
+      }, { passive: true });
     }
 
     window.addEventListener('keydown', (e) => {
@@ -2439,6 +2540,13 @@ class SolidaryDriverGame {
           this.collected++;
           sound.playGameCollect();
           haptics.chime();
+
+          // Victoria anticipada si completa los 9 regalos
+          if (this.collected >= 9) {
+            this.score += this.timeLeft * 30; // Bonus por entrega rápida
+            this.endGame();
+            return;
+          }
         } else {
           this.score = Math.max(0, this.score - 40);
           sound.playIceCrack();
