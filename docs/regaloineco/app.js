@@ -269,18 +269,18 @@ const COLLEAGUES = [
     loc: "LOC-IRE-2027-MDC"
   },
   {
-    name: "Iván A.",
+    name: "Iván Álvarez",
     role: "Especialista de Sistemas y Auscultación",
     wish: "¡Velocidad de crucero a 300 km/h para tus metas y la mejor sintonía en cada reto del nuevo año 2027!",
     ticketSeat: "Coche 03 • Asiento 06B (Turista Plus)",
     loc: "LOC-IVA-2027-MDC"
   },
   {
-    name: "Iván C.",
+    name: "Iván de la Paz",
     role: "Responsable de Equipos & Innovación Tecnológica",
     wish: "¡Gracias por liderar con entusiasmo y visión de futuro! Que el 2027 te devuelva multiplicado todo tu esfuerzo y compañerismo.",
     ticketSeat: "Coche 01 • Asiento 01B (Cabina de Mando)",
-    loc: "LOC-IVC-2027-MDC"
+    loc: "LOC-IDP-2027-MDC"
   },
   {
     name: "Jose Luis",
