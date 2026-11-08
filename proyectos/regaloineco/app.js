@@ -15,6 +15,7 @@ const GIFTS_DATA = [
     iconBg: "from-amber-600 to-yellow-500",
     realImage: "assets/products/P1.jpg",
     realThumb: "assets/products/P1_thumb.jpg",
+    video: "Videos/Dia1.mp4",
     intro: "Obtenido directamente de olivares andaluces bajo Denominación de Origen protegida, este Aceite de Oliva Virgen Extra de 500 ml representa la máxima excelencia del campo andaluz.",
     details: [
       { label: "Origen y Extracción", text: "Elaborado mediante primera extracción en frío a partir de aceitunas seleccionadas en su punto óptimo de maduración, garantizando una acidez excepcionalmente baja." },
@@ -1093,9 +1094,49 @@ class AdventCalendar {
         <!-- CUERPO PRINCIPAL: FOTOGRAFÍA LIMPIA + NARRATIVA EDITORIAL DE ALTA LEGIBILIDAD -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6 items-stretch">
           
-          <!-- COLUMNA IZQUIERDA: FOTOGRAFÍA REAL LIMPIA (SIN TEXTOS SUPERPUESTOS) -->
+          <!-- COLUMNA IZQUIERDA: VISOR MULTIMEDIA FOTO / VÍDEO OFICIAL -->
           <div class="lg:col-span-5 flex flex-col justify-center">
             <div class="relative rounded-2xl overflow-hidden border-2 border-amber-400/70 shadow-2xl bg-slate-950 group h-full min-h-[300px] flex items-center justify-center">
+              
+              ${gift.video ? `
+              <!-- VISOR MULTIMEDIA CONMUTABLE (FOTO / VÍDEO OFICIAL) -->
+              <div class="relative w-full h-[320px] sm:h-[380px] md:h-[440px] lg:h-[480px] flex items-center justify-center bg-slate-950 rounded-2xl overflow-hidden p-2">
+                <!-- Contenedor del Vídeo -->
+                <div id="modal-video-box" class="w-full h-full flex items-center justify-center relative">
+                  <video id="modal-product-video" 
+                         controls 
+                         autoplay 
+                         muted 
+                         loop 
+                         playsinline 
+                         preload="auto" 
+                         poster="assets/products/P${gift.day}.jpg" 
+                         class="w-full h-full object-contain rounded-xl shadow-2xl bg-black">
+                    <source src="${gift.video}" type="video/mp4">
+                    <source src="assets/products/Dia${gift.day}.mp4" type="video/mp4">
+                  </video>
+                </div>
+
+                <!-- Contenedor de la Fotografía (Alternable) -->
+                <div id="modal-photo-box" class="hidden w-full h-full flex items-center justify-center">
+                  <img src="assets/products/P${gift.day}.jpg" 
+                       alt="${gift.title}" 
+                       class="w-full h-full object-contain sm:object-cover rounded-xl shadow-2xl" 
+                       onerror="this.onerror=null; this.src='${gift.realImage || 'assets/cesta_solidaria_real.jpg'}';">
+                </div>
+              </div>
+
+              <!-- Pestañas de Alternancia Foto / Vídeo -->
+              <div class="absolute top-4 left-4 z-20 flex items-center gap-1.5 bg-slate-900/90 backdrop-blur-md p-1 rounded-xl border border-amber-400/50 shadow-lg">
+                <button id="modal-toggle-video" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-gradient-to-r from-red-600 to-amber-500 text-white shadow">
+                  <span>🎬</span> Vídeo
+                </button>
+                <button id="modal-toggle-photo" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 text-slate-300 hover:text-white">
+                  <span>📸</span> Foto
+                </button>
+              </div>
+              ` : `
+              <!-- VISOR DE FOTOGRAFÍA ESTÁNDAR -->
               <div class="relative w-full h-[320px] sm:h-[380px] md:h-[440px] lg:h-[480px] flex items-center justify-center bg-slate-950 rounded-2xl overflow-hidden p-2">
                 <img src="assets/products/P${gift.day}.jpg" 
                      alt="${gift.title}" 
@@ -1103,9 +1144,10 @@ class AdventCalendar {
                      loading="eager" 
                      onerror="this.onerror=null; this.src='${gift.realImage || 'assets/cesta_solidaria_real.jpg'}';">
               </div>
-              
+              `}
+
               <!-- Pie Limpio con Identidad Ineco (Sin Base Monforte ni LAV) -->
-              <div class="absolute bottom-3 right-3">
+              <div class="absolute bottom-3 right-3 z-10">
                 <span class="text-[10px] bg-red-600/90 text-white px-3 py-1 rounded-full font-black tracking-wider shadow border border-amber-300/40">
                   INECO 2026
                 </span>
@@ -1189,7 +1231,13 @@ class AdventCalendar {
     const prevBtn = document.getElementById('modal-prev-gift');
     const nextBtn = document.getElementById('modal-next-gift');
 
+    const stopModalVideo = () => {
+      const v = document.getElementById('modal-product-video');
+      if (v) v.pause();
+    };
+
     const closeModal = () => {
+      stopModalVideo();
       modal.classList.add('hidden');
       modal.classList.remove('flex');
       document.body.style.overflow = '';
@@ -1198,8 +1246,37 @@ class AdventCalendar {
     if (closeBtn) closeBtn.onclick = closeModal;
     if (confirmBtn) confirmBtn.onclick = closeModal;
 
-    if (prevBtn) prevBtn.onclick = () => this.openGiftModal(day - 1);
-    if (nextBtn) nextBtn.onclick = () => this.openGiftModal(day + 1);
+    if (prevBtn) prevBtn.onclick = () => {
+      stopModalVideo();
+      this.openGiftModal(day - 1);
+    };
+    if (nextBtn) nextBtn.onclick = () => {
+      stopModalVideo();
+      this.openGiftModal(day + 1);
+    };
+
+    // Conmutador interactivo Foto / Vídeo
+    const toggleVideoBtn = document.getElementById('modal-toggle-video');
+    const togglePhotoBtn = document.getElementById('modal-toggle-photo');
+    const videoBox = document.getElementById('modal-video-box');
+    const photoBox = document.getElementById('modal-photo-box');
+    if (toggleVideoBtn && togglePhotoBtn && videoBox && photoBox) {
+      toggleVideoBtn.onclick = () => {
+        videoBox.classList.remove('hidden');
+        photoBox.classList.add('hidden');
+        toggleVideoBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-gradient-to-r from-red-600 to-amber-500 text-white shadow";
+        togglePhotoBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 text-slate-300 hover:text-white";
+        const v = document.getElementById('modal-product-video');
+        if (v) v.play().catch(() => {});
+      };
+      togglePhotoBtn.onclick = () => {
+        videoBox.classList.add('hidden');
+        photoBox.classList.remove('hidden');
+        togglePhotoBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-gradient-to-r from-red-600 to-amber-500 text-white shadow";
+        toggleVideoBtn.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 text-slate-300 hover:text-white";
+        stopModalVideo();
+      };
+    }
 
     modal.onclick = (e) => {
       if (e.target === modal) closeModal();
