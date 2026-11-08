@@ -1175,14 +1175,17 @@ class ColleagueGiftBox {
       }`;
       btn.setAttribute('data-name', c.name);
 
+      const initials = c.name.split(' ').map(n => n[0]).join('').slice(0, 2);
       btn.innerHTML = `
-        <div class="flex items-center gap-2">
-          <span class="w-6 h-6 rounded-full bg-blue-950 text-amber-300 font-black flex items-center justify-center text-[10px] border border-blue-400/30">
-            ${idx + 1}
+        <div class="flex items-center gap-2 w-full overflow-hidden">
+          <span class="w-7 h-7 rounded-lg bg-blue-950 text-amber-300 font-black flex items-center justify-center text-[11px] border border-blue-400/40 shrink-0 shadow-inner">
+            ${initials}
           </span>
-          <span class="font-bold">${c.name}</span>
+          <div class="truncate">
+            <span class="font-bold text-xs block truncate">${c.name}</span>
+            <span class="text-[9px] text-slate-400 font-mono block">#${String(idx + 1).padStart(2, '0')}</span>
+          </div>
         </div>
-        <span class="text-xs">🎁</span>
       `;
 
       btn.addEventListener('click', () => {
@@ -1350,22 +1353,22 @@ class ColleagueGiftBox {
           </div>
 
           <!-- Botones de Acción -->
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button id="unbox-basket-btn" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 active:scale-95 text-white font-black text-xs shadow-xl flex items-center justify-center gap-1.5 transition">
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 max-w-4xl mx-auto">
+            <button id="unbox-basket-btn" class="px-3 py-3 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white font-black text-xs shadow-lg flex items-center justify-center gap-1.5 transition active:scale-95">
               <span>🎉 ¡Abrir Cesta!</span>
             </button>
-            <button id="toggle-exploded-btn" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-indigo-900/90 hover:bg-indigo-800 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 transition border border-indigo-400/40">
+            <button id="toggle-exploded-btn" class="px-3 py-3 rounded-xl bg-indigo-900/90 hover:bg-indigo-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition border border-indigo-400/40 active:scale-95">
               <span>🔍 Despiece 3D</span>
             </button>
-            <button id="download-story-btn" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 transition">
+            <button id="download-story-btn" class="px-3 py-3 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition active:scale-95">
               <span>📱 Story (9:16)</span>
             </button>
-            <button id="download-ticket-btn" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-blue-900 hover:bg-blue-800 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 transition border border-blue-400/40">
+            <button id="download-ticket-btn" class="px-3 py-3 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition border border-blue-400/40 active:scale-95">
               <span>🎟️ Billete 2027</span>
             </button>
-            <button id="share-whatsapp-btn" class="w-full sm:w-auto px-4 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-1.5 transition">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.087-.179.182-.077.357.101.174.449.741.963 1.199.662.59 1.22.774 1.393.861.173.087.274.072.376-.044.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.072.043.419-.101.824z"/></svg>
-              <span>Compartir en WhatsApp</span>
+            <button id="share-whatsapp-btn" class="col-span-2 sm:col-span-1 px-3 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition active:scale-95">
+              <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.087-.179.182-.077.357.101.174.449.741.963 1.199.662.59 1.22.774 1.393.861.173.087.274.072.376-.044.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.072.043.419-.101.824z"/></svg>
+              <span>WhatsApp</span>
             </button>
           </div>
         </div>

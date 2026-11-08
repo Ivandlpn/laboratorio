@@ -138,44 +138,53 @@
   <!-- ========================================== -->
   <!-- ENCABEZADO PRINCIPAL                        -->
   <!-- ========================================== -->
-  <header class="sticky top-0 z-30 bg-[#040A16]/90 backdrop-blur-md border-b border-blue-900/40 px-4 py-2.5">
+  <header class="sticky top-0 z-30 bg-[#040A16]/92 backdrop-blur-xl border-b border-blue-900/40 px-3 sm:px-6 py-2.5 transition-colors">
     <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Bloque Izquierdo: Identidad Ineco & Escudo Festivo -->
       <div class="flex items-center gap-3">
-        <a href="#" class="relative flex items-center group">
-          <div class="bg-white/95 px-3 py-1 rounded-xl border border-amber-400/50 shadow-sm group-hover:scale-105 transition-transform">
-            <img src="assets/Logo-Ineco.png" alt="Ineco" class="h-8 md:h-10 w-auto object-contain">
+        <a href="#" class="relative flex items-center group focus:outline-none">
+          <div class="bg-white/95 px-3 py-1.5 rounded-xl border border-amber-400/50 shadow-md group-hover:scale-105 transition-transform duration-200">
+            <img src="assets/Logo-Ineco.png" alt="Ineco" class="h-8 sm:h-9 w-auto object-contain">
           </div>
-          <span class="absolute -top-3 -right-2 text-xl">🎅</span>
+          <span class="absolute -top-3 -right-2 text-xl select-none">🎅</span>
         </a>
-        <div class="hidden sm:block">
-          <h2 class="text-xs font-black uppercase tracking-wider text-amber-400">Regalo Solidario 2027</h2>
-          <p class="text-[10px] text-blue-200">Base Mantenimiento Monforte del Cid (Alicante)</p>
+        <div class="hidden lg:block border-l border-slate-700/80 pl-3">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h2 class="text-xs font-black uppercase tracking-wider text-amber-400">Regalo Solidario 2027</h2>
+          </div>
+          <p class="text-[10px] text-blue-200 font-medium">Base Mantenimiento Monforte del Cid (Alicante)</p>
         </div>
       </div>
 
+      <!-- Bloque Central (Móvil / Tablet): Subtítulo sutil -->
+      <div class="hidden sm:flex lg:hidden items-center gap-2 px-3 py-1 rounded-full bg-blue-950/70 border border-blue-500/30 text-[11px] text-blue-200 font-medium">
+        <span class="text-amber-400 font-bold">LAV Monforte</span>
+        <span>•</span>
+        <span>Horizonte 2027</span>
+      </div>
+
+      <!-- Bloque Derecho: Dock de Botones de Acción Symmetrical -->
       <div class="flex items-center gap-1.5 sm:gap-2">
-        <button id="toggle-theme-btn" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700 transition flex items-center gap-1 shadow-sm" title="Alternar entre Noche Ártica y Atardecer Mediterráneo">
+        <button id="toggle-theme-btn" class="h-9 px-2.5 sm:px-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700/80 transition flex items-center gap-1.5 shadow-sm active:scale-95" title="Alternar entre Noche Ártica y Atardecer Mediterráneo">
           <span>🌓</span> <span class="hidden md:inline">Ambiente</span>
         </button>
 
-        <button id="open-cab-btn" class="hidden sm:flex px-2.5 sm:px-3 py-1.5 rounded-lg bg-blue-900/80 hover:bg-blue-800 text-xs text-blue-200 font-semibold border border-blue-500/40 transition items-center gap-1 shadow-sm">
-          <span>🚆</span> <span>Cabina 360°</span>
+        <button id="open-cab-btn" class="hidden sm:flex h-9 px-2.5 sm:px-3 rounded-xl bg-blue-900/80 hover:bg-blue-800 text-xs text-blue-100 font-semibold border border-blue-500/40 transition items-center gap-1.5 shadow-sm active:scale-95" title="Entrar a la Cabina 360°">
+          <span>🚆</span> <span class="hidden md:inline">Cabina 360°</span>
         </button>
 
-        <button id="open-game-btn" class="hidden sm:flex px-2.5 sm:px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-xs text-white font-bold transition items-center gap-1 shadow-sm">
-          <span>🎮</span> <span>Minijuego</span>
+        <button id="open-game-btn" class="hidden sm:flex h-9 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-500 hover:to-red-500 text-xs text-white font-bold transition items-center gap-1.5 shadow-sm active:scale-95" title="Jugar al Maquinista Solidario">
+          <span>🎮</span> <span class="hidden md:inline">Minijuego</span>
         </button>
 
-        <button id="toggle-sound-btn" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700 transition flex items-center gap-1 shadow-sm">
+        <button id="toggle-sound-btn" class="h-9 px-2.5 sm:px-3 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700/80 transition flex items-center gap-1 shadow-sm active:scale-95">
           <span>🔇</span> <span class="hidden xs:inline">Sonido</span>
         </button>
 
-        <button id="toggle-snow-btn" class="hidden lg:flex px-2.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-blue-200 font-medium border border-slate-700 transition items-center gap-1">
-          <span>❄️</span>
-        </button>
-
-        <a href="#seccion-mi-regalo" class="px-3 sm:px-4 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 text-xs font-bold text-white shadow-md transition flex items-center gap-1">
-          <span>🎁</span> <span class="hidden xs:inline">Mi Regalo</span>
+        <a href="#seccion-mi-regalo" class="h-9 px-3 sm:px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-xs font-black text-white shadow-md transition flex items-center gap-1.5 active:scale-95">
+          <span>🎁</span> <span>Mi Regalo</span>
         </a>
       </div>
     </div>
@@ -184,15 +193,15 @@
   <!-- ========================================== -->
   <!-- HERO BANNER: MANTENIMIENTO AV & NAVIDAD     -->
   <!-- ========================================== -->
-  <section class="relative px-4 pt-8 pb-10 overflow-hidden bg-radial from-[#153268] via-[#0A1938] to-[#040A16]">
+  <section class="relative px-4 pt-10 pb-8 overflow-hidden bg-radial from-[#153268] via-[#0A1938] to-[#040A16]">
     <div class="max-w-5xl mx-auto text-center relative z-10">
       
-      <!-- Insignia Festiva -->
+      <!-- Insignia Festiva Centrada -->
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/60 border border-blue-400/40 text-blue-200 text-xs font-semibold mb-4 shadow-lg backdrop-blur-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Detalle Navideño Solidario 2027</span>
+        <span>Detalle Navideño Solidario Ineco</span>
         <span class="text-blue-400">•</span>
-        <span class="text-amber-300">Base de Monforte del Cid</span>
+        <span class="text-amber-300 font-bold">Base de Monforte del Cid</span>
       </div>
 
       <h1 class="text-3xl sm:text-5xl md:text-6xl font-black text-white font-poppins tracking-tight leading-tight">
@@ -206,70 +215,84 @@
         Descubre día a día los <strong class="text-amber-300 font-semibold">9 regalos solidarios</strong> seleccionados con el espíritu y la dedicación del equipo de <span class="text-white font-semibold">Mantenimiento de Alta Velocidad en Monforte del Cid</span>.
       </p>
 
-      <!-- Barra de Progreso de Regalos Descubiertos -->
-      <div class="max-w-md mx-auto mt-6 bg-slate-900/80 rounded-2xl p-4 border border-blue-500/30 shadow-xl">
-        <div class="flex items-center justify-between text-xs font-bold text-slate-200 mb-2">
-          <span class="flex items-center gap-1.5">
-            <span class="text-base">🎄</span> Progreso del Calendario:
-          </span>
-          <span id="discovered-count" class="text-amber-400 text-sm font-extrabold font-mono">0 de 9</span>
+      <!-- CUADRO DE MANDO SIMÉTRICO: PROGRESO Y CUENTA ATRÁS PID -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto mt-8 text-left">
+        
+        <!-- Tarjeta Izquierda: Progreso del Calendario -->
+        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-5 border border-blue-500/30 shadow-2xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-xs font-bold text-slate-200 mb-2.5">
+              <span class="flex items-center gap-2">
+                <span class="text-base">🎄</span>
+                <span class="uppercase tracking-wider text-amber-300">Progreso del Calendario:</span>
+              </span>
+              <span id="discovered-count" class="text-amber-400 text-base font-black font-mono">0 de 9</span>
+            </div>
+            
+            <div class="w-full bg-slate-800 rounded-full h-3.5 overflow-hidden border border-slate-700/80 mb-2">
+              <div id="discovered-bar" class="bg-gradient-to-r from-red-600 via-amber-400 to-emerald-400 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+            </div>
+            
+            <p class="text-[11px] text-slate-400 mt-1">
+              Desvela los 9 regalos solidarios rascando la escarcha o tocando cada casilla.
+            </p>
+          </div>
+
+          <div class="flex justify-between items-center pt-3 mt-3 border-t border-slate-800 text-[11px] text-slate-400">
+            <button id="open-all-days-btn" class="hover:text-amber-300 transition underline font-semibold flex items-center gap-1">
+              <span>✨</span> <span>Abrir todas las puertas</span>
+            </button>
+            <button id="reset-advent-btn" class="hover:text-red-400 transition underline font-semibold flex items-center gap-1">
+              <span>🔄</span> <span>Reiniciar</span>
+            </button>
+          </div>
         </div>
-        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden border border-slate-700">
-          <div id="discovered-bar" class="bg-gradient-to-r from-red-600 via-amber-400 to-emerald-400 h-full rounded-full transition-all duration-700" style="width: 0%"></div>
+
+        <!-- Tarjeta Derecha: Cuenta Atrás Estilo PID Ferroviario -->
+        <div class="bg-gradient-to-br from-blue-950/90 via-slate-900/95 to-blue-950/90 backdrop-blur-md rounded-2xl p-5 border border-amber-400/40 shadow-2xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs uppercase font-extrabold tracking-widest text-amber-300 flex items-center gap-1.5">
+                <span>⏱️</span> <span>Llegada a Base Monforte</span>
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-600/30 text-red-300 border border-red-500/30 font-bold font-mono">
+                LAV MADRID-LEVANTE
+              </span>
+            </div>
+
+            <!-- Display de 4 Columnas Digitales -->
+            <div class="grid grid-cols-4 gap-2 text-center my-1.5">
+              <div class="bg-slate-950/90 rounded-xl p-2 border border-slate-800">
+                <span id="cd-days" class="block text-2xl font-black text-amber-400 font-mono leading-none">--</span>
+                <span class="text-[9px] uppercase font-bold text-slate-400 mt-1 block">Días</span>
+              </div>
+              <div class="bg-slate-950/90 rounded-xl p-2 border border-slate-800">
+                <span id="cd-hours" class="block text-2xl font-black text-white font-mono leading-none">--</span>
+                <span class="text-[9px] uppercase font-bold text-slate-400 mt-1 block">Horas</span>
+              </div>
+              <div class="bg-slate-950/90 rounded-xl p-2 border border-slate-800">
+                <span id="cd-mins" class="block text-2xl font-black text-white font-mono leading-none">--</span>
+                <span class="text-[9px] uppercase font-bold text-slate-400 mt-1 block">Min</span>
+              </div>
+              <div class="bg-slate-950/90 rounded-xl p-2 border border-slate-800">
+                <span id="cd-secs" class="block text-2xl font-black text-red-400 font-mono leading-none">--</span>
+                <span class="text-[9px] uppercase font-bold text-slate-400 mt-1 block">Seg</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 mt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+            <span class="text-slate-300 font-medium">Entrega: <strong class="text-white">14 Dic</strong> (09:00 - 15:00 h)</span>
+            <span class="font-mono text-emerald-400 font-bold">Horizonte 2027</span>
+          </div>
         </div>
-        <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-800 text-[11px] text-slate-400">
-          <button id="open-all-days-btn" class="hover:text-amber-300 transition underline font-semibold">
-            ✨ Abrir todos los días
-          </button>
-          <button id="reset-advent-btn" class="hover:text-red-400 transition underline font-semibold">
-            🔄 Reiniciar calendario
-          </button>
-        </div>
+
       </div>
     </div>
   </section>
 
   <!-- ========================================== -->
-  <!-- SECCIÓN 1: CUENTA ATRÁS OFICIAL             -->
-  <!-- ========================================== -->
-  <section class="max-w-4xl mx-auto px-4 -mt-4 relative z-20">
-    <div class="bg-gradient-to-r from-blue-950/90 via-slate-900/95 to-blue-950/90 rounded-2xl p-5 border-2 border-amber-400/40 shadow-2xl backdrop-blur-md text-center">
-      <div class="flex items-center justify-center gap-2 mb-2">
-        <span class="text-lg">⏱️</span>
-        <h3 class="text-xs uppercase font-extrabold tracking-widest text-amber-300">
-          CUENTA ATRÁS • ENTREGA EN BASE MONFORTE DEL CID
-        </h3>
-      </div>
-      <p class="text-[11px] text-blue-200 mb-4">
-        Fecha esperada de entrega: <strong class="text-white">14 de Diciembre de 2026</strong> (para celebrar el nuevo año 2027) (09:00 - 15:00 h)
-      </p>
-
-      <div class="grid grid-cols-4 gap-2 sm:gap-4 max-w-lg mx-auto">
-        <div class="bg-slate-950/80 rounded-xl p-2.5 sm:p-3 border border-blue-500/30">
-          <span id="cd-days" class="block text-2xl sm:text-4xl font-black text-amber-400 font-mono">--</span>
-          <span class="text-[9px] sm:text-xs uppercase font-bold text-slate-400">Días</span>
-        </div>
-        <div class="bg-slate-950/80 rounded-xl p-2.5 sm:p-3 border border-blue-500/30">
-          <span id="cd-hours" class="block text-2xl sm:text-4xl font-black text-white font-mono">--</span>
-          <span class="text-[9px] sm:text-xs uppercase font-bold text-slate-400">Horas</span>
-        </div>
-        <div class="bg-slate-950/80 rounded-xl p-2.5 sm:p-3 border border-blue-500/30">
-          <span id="cd-mins" class="block text-2xl sm:text-4xl font-black text-white font-mono">--</span>
-          <span class="text-[9px] sm:text-xs uppercase font-bold text-slate-400">Minutos</span>
-        </div>
-        <div class="bg-slate-950/80 rounded-xl p-2.5 sm:p-3 border border-blue-500/30">
-          <span id="cd-secs" class="block text-2xl sm:text-4xl font-black text-red-400 font-mono">--</span>
-          <span class="text-[9px] sm:text-xs uppercase font-bold text-slate-400">Segundos</span>
-        </div>
-      </div>
-      <p id="cd-status-text" class="text-[11px] text-slate-400 mt-3 font-medium">
-        Expedición en tránsito por la Red de Alta Velocidad hacia Alicante
-      </p>
-    </div>
-  </section>
-
-  <!-- ========================================== -->
-  <!-- SECCIÓN 2: CALENDARIO DE ADVIENTO (9 DÍAS) -->
+  <!-- SECCIÓN 2: CALENDARIO DE ADVIENTO<!-- SECCIÓN 2: CALENDARIO DE ADVIENTO (9 DÍAS) -->
   <!-- ========================================== -->
   <main class="max-w-6xl mx-auto px-4 py-12" id="seccion-calendario">
     <div class="text-center mb-8">
@@ -315,7 +338,7 @@
         <span class="text-[11px] text-slate-400">12 Integrantes</span>
       </div>
       
-      <div id="colleagues-selector" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5">
+      <div id="colleagues-selector" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
         <!-- Renderizado dinámicamente en estricto orden alfabético -->
       </div>
     </div>
@@ -350,29 +373,31 @@
         </div>
 
         <!-- Telemetría Dinámica Superior -->
-        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-950/90 p-3 rounded-2xl border border-blue-400/30 text-center">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-950/90 p-3 rounded-2xl border border-blue-400/30 text-center">
           <div class="px-2">
             <span class="text-[9px] uppercase font-bold text-slate-400 block">Tiempo Restante</span>
             <span id="radar-distance" class="text-xs sm:text-sm font-extrabold text-emerald-400 font-mono">35 días</span>
           </div>
-          <div class="px-2 border-x border-slate-800 flex flex-col items-center justify-center">
-            <span class="text-[9px] uppercase font-bold text-slate-400 block">Velocímetro AVE</span>
-            <!-- Tacómetro / Velocímetro Analógico Ferroviario -->
-            <div class="speedo-gauge-container w-16 h-12 relative overflow-hidden my-0.5">
+          <div class="px-2 border-l border-slate-800">
+            <span class="text-[9px] uppercase font-bold text-slate-400 block">Tacómetro AVE</span>
+            <div class="speedo-gauge-container w-16 h-10 relative overflow-hidden my-0.5 mx-auto">
               <svg viewBox="0 0 130 90" class="w-full h-auto">
                 <path d="M 20 75 A 50 50 0 0 1 110 75" fill="none" stroke="#1E293B" stroke-width="12" stroke-linecap="round"/>
                 <path d="M 20 75 A 50 50 0 0 1 85 30" fill="none" stroke="#10B981" stroke-width="10" stroke-linecap="round"/>
                 <path d="M 85 30 A 50 50 0 0 1 110 75" fill="none" stroke="#CB1823" stroke-width="10" stroke-linecap="round"/>
-                <!-- Aguja dinámica -->
                 <line id="speedo-needle-line" x1="65" y1="75" x2="65" y2="30" stroke="#FCD34D" stroke-width="3" stroke-linecap="round" class="speedo-needle" style="transform: rotate(-45deg);"/>
                 <circle cx="65" cy="75" r="6" fill="#FCD34D" stroke="#0F172A" stroke-width="2"/>
               </svg>
             </div>
-            <span id="radar-speed" class="text-xs font-black text-amber-400 font-mono leading-none">180 km/h</span>
+            <span id="radar-speed" class="text-xs font-black text-amber-400 font-mono leading-none block">180 km/h</span>
           </div>
-          <div class="px-2 col-span-2 sm:col-span-1">
+          <div class="px-2 border-l border-slate-800">
             <span class="text-[9px] uppercase font-bold text-slate-400 block">Fecha Prevista</span>
             <span id="radar-eta" class="text-xs sm:text-sm font-bold text-sky-300 font-mono">14 Diciembre</span>
+          </div>
+          <div class="px-2 border-l border-slate-800">
+            <span class="text-[9px] uppercase font-bold text-slate-400 block">Destino</span>
+            <span class="text-xs sm:text-sm font-bold text-amber-300 font-mono">Base Monforte</span>
           </div>
         </div>
       </div>
