@@ -1,0 +1,19 @@
+[
+  {
+    "id": "sensor-007",
+    "name": "Bonete",
+    "pk_location": "Pk 368+950",
+    "linea": 42,
+    "via": 1,
+    "location": [
+      38.90544444444445,
+      -1.3791388888888887
+    ],
+    "type": "Honeywell 470-12",
+    "maintenanceBase": "BM Monforte",
+    "associatedCamera": [
+      "6AA_P_3689_CF01",
+      "6AA_P_3689_CF02"
+    ]
+  }
+]

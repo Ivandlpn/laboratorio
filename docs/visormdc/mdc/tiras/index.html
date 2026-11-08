@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#060b19" />
+    <meta name="robots" content="noindex" />
+
+    <!-- La pantalla de inicio dura 2 s: su fondo y su tipografia tienen que estar ya aqui cuando arranca. -->
+    <link rel="preload" href="/laboratorio/visormdc/fondos/portada-anillos.png" as="image" />
+    <link rel="preload" href="/laboratorio/visormdc/fonts/Poppins-100.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/laboratorio/visormdc/fonts/Poppins-500.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/laboratorio/visormdc/fonts/Poppins-700.woff2" as="font" type="font/woff2" crossorigin />
+
+    <!-- Título de la Aplicación -->
+    <title>VISOR MDC</title>
+
+    <!-- Meta Descripción para Buscadores y Compartición -->
+    <meta
+      name="description"
+      content="VISOR MDC: base de mantenimiento de Monforte del Cid (Ineco). Mapa de activos, lista, clima y avisos, riesgos, tiras y entornos 3D del levantamiento."
+    />
+    <meta name="keywords" content="Monforte del Cid, Mantenimiento, Ineco, Mapa, Clima, Riesgos, 3D" />
+    <meta name="author" content="Ineco" />
+
+    <!-- PWA & Mobile Web App Capabilities -->
+    <link rel="manifest" href="/laboratorio/visormdc/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="VISOR MDC" />
+    <meta name="application-name" content="VISOR MDC" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-TileColor" content="#060b19" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- Favicon e Iconos de la Aplicación -->
+    <link rel="icon" type="image/svg+xml" href="/laboratorio/visormdc/favicon.svg" />
+    <link rel="alternate icon" href="/laboratorio/visormdc/favicon.svg" />
+    <link rel="apple-touch-icon" href="/laboratorio/visormdc/icon-maskable-192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/laboratorio/visormdc/icon-maskable-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/laboratorio/visormdc/icon-maskable-512.png" />
+
+    <!-- Metadatos Open Graph para Redes Sociales y Mensajería (WhatsApp, Telegram, Teams, LinkedIn).
+         `https://ivandlpn.github.io/laboratorio/visormdc/` lo sustituye el plugin de vite.config.ts por la direccion absoluta de la base publica
+         (Vite no reescribe los `content`). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="VISOR MDC" />
+    <meta property="og:title" content="VISOR MDC" />
+    <meta
+      property="og:description"
+      content="Base de mantenimiento de Monforte del Cid (Ineco): mapa de activos, clima y avisos, riesgos, tiras y entornos 3D."
+    />
+    <meta property="og:image" content="https://ivandlpn.github.io/laboratorio/visormdc/icon-512.png" />
+    <meta property="og:image:secure_url" content="https://ivandlpn.github.io/laboratorio/visormdc/icon-512.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="VISOR MDC" />
+
+    <!-- Metadatos Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="VISOR MDC" />
+    <meta
+      name="twitter:description"
+      content="Base de mantenimiento de Monforte del Cid (Ineco): mapa de activos, clima y avisos, riesgos, tiras y entornos 3D."
+    />
+    <meta name="twitter:image" content="https://ivandlpn.github.io/laboratorio/visormdc/icon-512.png" />
+    <script type="module" crossorigin src="/laboratorio/visormdc/assets/index-C0pyG67y.js"></script>
+    <link rel="modulepreload" crossorigin href="/laboratorio/visormdc/assets/vendor-preload-DeAfbK-x.js">
+    <link rel="modulepreload" crossorigin href="/laboratorio/visormdc/assets/vendor-react-D1q49hoc.js">
+    <link rel="modulepreload" crossorigin href="/laboratorio/visormdc/assets/vendor-icons-eA68GMnX.js">
+    <link rel="modulepreload" crossorigin href="/laboratorio/visormdc/assets/vendor-leaflet-DKw9fTod.js">
+    <link rel="stylesheet" crossorigin href="/laboratorio/visormdc/assets/vendor-leaflet-BTrKGrB8.css">
+    <link rel="stylesheet" crossorigin href="/laboratorio/visormdc/assets/index-B7CAIYeJ.css">
+  </head>
+    <!-- Sin color de texto ni de fondo aqui: los pone `@layer base` en index.css,
+       que si distingue claro de oscuro. Puestos como clase de utilidad ganaban
+       a esa regla, asi que TODO lo que no declarara su propio color heredaba
+       texto casi blanco; sobre las tarjetas claras de la seccion Mapa eso lo
+       dejaba ilegible. El portal y el arranque pintan su propio fondo oscuro. -->
+  <body class="antialiased selection:bg-sky-500 selection:text-white">
+    <div id="root"></div>
+  </body>
+</html>

@@ -1,0 +1,988 @@
+{
+ "id": "albali",
+ "nombre": "Albacete - Alicante · PK 364+000 a 486+000",
+ "linea": "042",
+ "bounds": [
+  [
+   38.343883,
+   -1.435
+  ],
+  [
+   38.917249,
+   -0.494903
+  ]
+ ],
+ "pkIni": 364000,
+ "pkFin": 486000,
+ "activos": true,
+ "cruces": true,
+ "crs": "EPSG:25830 (ETRS89 / UTM 30N)",
+ "cotaMin": -0.12,
+ "cotaMax": 936.79,
+ "grupos": [
+  {
+   "id": "via",
+   "nombre": "Vía"
+  },
+  {
+   "id": "plataforma",
+   "nombre": "Plataforma y drenaje"
+  },
+  {
+   "id": "catenaria",
+   "nombre": "Catenaria y señalización"
+  },
+  {
+   "id": "estructuras",
+   "nombre": "Estructuras"
+  },
+  {
+   "id": "edificios",
+   "nombre": "Edificios y naves"
+  },
+  {
+   "id": "viales",
+   "nombre": "Viales y límites"
+  },
+  {
+   "id": "entorno",
+   "nombre": "Entorno"
+  },
+  {
+   "id": "terreno",
+   "nombre": "Terreno"
+  }
+ ],
+ "bloques": {
+  "2211": "Señal vertical",
+  "2253": "Poste de catenaria",
+  "2402": "Poste de línea",
+  "2405": "Farola",
+  "2408": "Poste",
+  "2409": "Poste con foco o báculo",
+  "2414": "Arqueta",
+  "2415": "Arqueta",
+  "2416": "Semáforo",
+  "2422": "Torre metálica",
+  "2424": "Baliza",
+  "2504": "Árbol",
+  "2506": "Árbol",
+  "2621": "Pozo",
+  "2805": "Vértice geodésico",
+  "2807": "Vértice de la red de Adif",
+  "pk": "Hito de PK",
+  "BTS": "Estación base GSM-R (BTS)"
+ },
+ "capas": [
+  {
+   "id": "010002",
+   "nombre": "Punto de cota",
+   "grupo": "terreno",
+   "color": "#fcd34d",
+   "ancho": 1,
+   "relleno": false,
+   "n": 31742,
+   "fichero": "terreno"
+  },
+  {
+   "id": "010023",
+   "nombre": "Perfil terreno líneas ruptura",
+   "grupo": "terreno",
+   "color": "#b45309",
+   "ancho": 1,
+   "relleno": false,
+   "n": 5,
+   "fichero": "terreno"
+  },
+  {
+   "id": "010035",
+   "nombre": "Curva de depresión",
+   "grupo": "terreno",
+   "color": "#78350f",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 210,
+   "fichero": "terreno"
+  },
+  {
+   "id": "010040",
+   "nombre": "Curva de nivel",
+   "grupo": "terreno",
+   "color": "#a16207",
+   "ancho": 0.8,
+   "relleno": false,
+   "n": 18549,
+   "fichero": "terreno"
+  },
+  {
+   "id": "010042",
+   "nombre": "Curva de nivel directora",
+   "grupo": "terreno",
+   "color": "#ca8a04",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 4687,
+   "fichero": "terreno"
+  },
+  {
+   "id": "010045",
+   "nombre": "Curva de depresión directora",
+   "grupo": "terreno",
+   "color": "#78350f",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 57,
+   "fichero": "terreno"
+  },
+  {
+   "id": "010047",
+   "nombre": "Zanja",
+   "grupo": "plataforma",
+   "color": "#0891b2",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 83,
+   "fichero": "base"
+  },
+  {
+   "id": "010051",
+   "nombre": "Cabeza de talud",
+   "grupo": "plataforma",
+   "color": "#fb923c",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 1170,
+   "fichero": "base"
+  },
+  {
+   "id": "010057",
+   "nombre": "Piedras, canteras y roquedo",
+   "grupo": "entorno",
+   "color": "#a8a29e",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 35,
+   "fichero": "base"
+  },
+  {
+   "id": "010127",
+   "nombre": "Cuneta (obra de fábrica)",
+   "grupo": "plataforma",
+   "color": "#22d3ee",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 3842,
+   "fichero": "base"
+  },
+  {
+   "id": "010175",
+   "nombre": "Pie de talud",
+   "grupo": "plataforma",
+   "color": "#f97316",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 177,
+   "fichero": "base"
+  },
+  {
+   "id": "010205",
+   "nombre": "Vértice de la red de Adif",
+   "grupo": "via",
+   "color": "#fde047",
+   "ancho": 1,
+   "relleno": false,
+   "n": 2,
+   "fichero": "base"
+  },
+  {
+   "id": "010217",
+   "nombre": "Vértice geodésico",
+   "grupo": "via",
+   "color": "#fde047",
+   "ancho": 1,
+   "relleno": false,
+   "n": 2,
+   "fichero": "base"
+  },
+  {
+   "id": "020004",
+   "nombre": "Acequia",
+   "grupo": "entorno",
+   "color": "#38bdf8",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 429,
+   "fichero": "base"
+  },
+  {
+   "id": "020005",
+   "nombre": "Embalse",
+   "grupo": "entorno",
+   "color": "#0ea5e9",
+   "ancho": 1.4,
+   "relleno": true,
+   "n": 4,
+   "fichero": "base"
+  },
+  {
+   "id": "020121",
+   "nombre": "Pozo",
+   "grupo": "entorno",
+   "color": "#38bdf8",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 13,
+   "fichero": "base"
+  },
+  {
+   "id": "020123",
+   "nombre": "Río eje y texto",
+   "grupo": "entorno",
+   "color": "#0284c7",
+   "ancho": 2,
+   "relleno": false,
+   "n": 16,
+   "fichero": "base"
+  },
+  {
+   "id": "020132",
+   "nombre": "Río margen",
+   "grupo": "entorno",
+   "color": "#38bdf8",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 20,
+   "fichero": "base"
+  },
+  {
+   "id": "020135",
+   "nombre": "Fuentes estanques",
+   "grupo": "entorno",
+   "color": "#7dd3fc",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 3,
+   "fichero": "base"
+  },
+  {
+   "id": "020137",
+   "nombre": "Lago laguna charca balsa",
+   "grupo": "entorno",
+   "color": "#0ea5e9",
+   "ancho": 1.2,
+   "relleno": true,
+   "n": 88,
+   "fichero": "base"
+  },
+  {
+   "id": "020140",
+   "nombre": "Vaguada / arroyo",
+   "grupo": "entorno",
+   "color": "#38bdf8",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 304,
+   "fichero": "base"
+  },
+  {
+   "id": "020153",
+   "nombre": "Piscina",
+   "grupo": "entorno",
+   "color": "#67e8f9",
+   "ancho": 1,
+   "relleno": true,
+   "n": 136,
+   "fichero": "base"
+  },
+  {
+   "id": "020155",
+   "nombre": "Canal",
+   "grupo": "entorno",
+   "color": "#0ea5e9",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 336,
+   "fichero": "base"
+  },
+  {
+   "id": "030001",
+   "nombre": "Edificio contorno",
+   "grupo": "edificios",
+   "color": "#f472b6",
+   "ancho": 1.6,
+   "relleno": true,
+   "n": 850,
+   "fichero": "base"
+  },
+  {
+   "id": "030002",
+   "nombre": "Alambrada valla",
+   "grupo": "viales",
+   "color": "#84cc16",
+   "ancho": 1,
+   "relleno": false,
+   "n": 2454,
+   "fichero": "base"
+  },
+  {
+   "id": "030004",
+   "nombre": "División altura medianería",
+   "grupo": "edificios",
+   "color": "#fbcfe8",
+   "ancho": 1,
+   "relleno": false,
+   "n": 528,
+   "fichero": "base"
+  },
+  {
+   "id": "030020",
+   "nombre": "Alcantarilla",
+   "grupo": "estructuras",
+   "color": "#0ea5e9",
+   "ancho": 2,
+   "relleno": false,
+   "n": 1092,
+   "fichero": "base"
+  },
+  {
+   "id": "030025",
+   "nombre": "Sombrajos cobertizos casetas",
+   "grupo": "edificios",
+   "color": "#f0abfc",
+   "ancho": 1.4,
+   "relleno": true,
+   "n": 300,
+   "fichero": "base"
+  },
+  {
+   "id": "030031",
+   "nombre": "Edificio en construcción",
+   "grupo": "edificios",
+   "color": "#fbcfe8",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 2,
+   "fichero": "base"
+  },
+  {
+   "id": "030045",
+   "nombre": "Patios interiores",
+   "grupo": "edificios",
+   "color": "#e5e7eb",
+   "ancho": 1,
+   "relleno": false,
+   "n": 78,
+   "fichero": "base"
+  },
+  {
+   "id": "030051",
+   "nombre": "Marquesina",
+   "grupo": "edificios",
+   "color": "#c084fc",
+   "ancho": 1.4,
+   "relleno": true,
+   "n": 670,
+   "fichero": "base"
+  },
+  {
+   "id": "030067",
+   "nombre": "Otras edificaciones construcciones",
+   "grupo": "edificios",
+   "color": "#f9a8d4",
+   "ancho": 1.4,
+   "relleno": true,
+   "n": 225,
+   "fichero": "base"
+  },
+  {
+   "id": "030080",
+   "nombre": "Masas de árboles",
+   "grupo": "entorno",
+   "color": "#4ade80",
+   "ancho": 1.2,
+   "relleno": true,
+   "n": 7018,
+   "fichero": "base"
+  },
+  {
+   "id": "030085",
+   "nombre": "Zonas deportivas",
+   "grupo": "entorno",
+   "color": "#86efac",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 48,
+   "fichero": "base"
+  },
+  {
+   "id": "030092",
+   "nombre": "Zonas verdes",
+   "grupo": "entorno",
+   "color": "#4ade80",
+   "ancho": 1,
+   "relleno": true,
+   "n": 110,
+   "fichero": "base"
+  },
+  {
+   "id": "030129",
+   "nombre": "Ruinas",
+   "grupo": "edificios",
+   "color": "#9ca3af",
+   "ancho": 1.4,
+   "relleno": true,
+   "n": 77,
+   "fichero": "base"
+  },
+  {
+   "id": "030171",
+   "nombre": "Depósitos",
+   "grupo": "edificios",
+   "color": "#a1a1aa",
+   "ancho": 1.4,
+   "relleno": true,
+   "n": 59,
+   "fichero": "base"
+  },
+  {
+   "id": "030175",
+   "nombre": "Muro tapia",
+   "grupo": "viales",
+   "color": "#78716c",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 2121,
+   "fichero": "base"
+  },
+  {
+   "id": "030197",
+   "nombre": "Calle",
+   "grupo": "viales",
+   "color": "#e2e8f0",
+   "ancho": 1,
+   "relleno": false,
+   "n": 24,
+   "fichero": "base"
+  },
+  {
+   "id": "030203",
+   "nombre": "Muro de contención",
+   "grupo": "estructuras",
+   "color": "#d97706",
+   "ancho": 2.4,
+   "relleno": false,
+   "n": 1145,
+   "fichero": "base"
+  },
+  {
+   "id": "030205",
+   "nombre": "Acera bordillo",
+   "grupo": "viales",
+   "color": "#d6d3d1",
+   "ancho": 1,
+   "relleno": false,
+   "n": 552,
+   "fichero": "base"
+  },
+  {
+   "id": "030235",
+   "nombre": "Nave",
+   "grupo": "edificios",
+   "color": "#e879f9",
+   "ancho": 1.6,
+   "relleno": true,
+   "n": 79,
+   "fichero": "base"
+  },
+  {
+   "id": "030240",
+   "nombre": "Transformador",
+   "grupo": "estructuras",
+   "color": "#facc15",
+   "ancho": 1.8,
+   "relleno": true,
+   "n": 7,
+   "fichero": "base"
+  },
+  {
+   "id": "030253",
+   "nombre": "Cerramiento sin especificar",
+   "grupo": "viales",
+   "color": "#a3e635",
+   "ancho": 1,
+   "relleno": false,
+   "n": 1003,
+   "fichero": "base"
+  },
+  {
+   "id": "040001",
+   "nombre": "Carretera margen",
+   "grupo": "viales",
+   "color": "#cbd5e1",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 921,
+   "fichero": "base"
+  },
+  {
+   "id": "040002",
+   "nombre": "Camino margen",
+   "grupo": "viales",
+   "color": "#a8a29e",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 2814,
+   "fichero": "base"
+  },
+  {
+   "id": "040006",
+   "nombre": "Autovía margen",
+   "grupo": "viales",
+   "color": "#fca5a5",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 106,
+   "fichero": "base"
+  },
+  {
+   "id": "040011",
+   "nombre": "Puente en general",
+   "grupo": "estructuras",
+   "color": "#fbbf24",
+   "ancho": 2,
+   "relleno": false,
+   "n": 53,
+   "fichero": "base"
+  },
+  {
+   "id": "040023",
+   "nombre": "Torre metálica",
+   "grupo": "catenaria",
+   "color": "#fb7185",
+   "ancho": 1.8,
+   "relleno": true,
+   "n": 428,
+   "fichero": "base"
+  },
+  {
+   "id": "040031",
+   "nombre": "Autovía eje y texto",
+   "grupo": "viales",
+   "color": "#f87171",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 62,
+   "fichero": "base"
+  },
+  {
+   "id": "040047",
+   "nombre": "Senda",
+   "grupo": "viales",
+   "color": "#d6d3d1",
+   "ancho": 0.8,
+   "relleno": false,
+   "n": 1,
+   "fichero": "base"
+  },
+  {
+   "id": "040107",
+   "nombre": "Cortafuegos",
+   "grupo": "entorno",
+   "color": "#a3e635",
+   "ancho": 0.8,
+   "relleno": false,
+   "n": 3,
+   "fichero": "base"
+  },
+  {
+   "id": "040161",
+   "nombre": "Tubería conducciones superficiales",
+   "grupo": "entorno",
+   "color": "#60a5fa",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 1100,
+   "fichero": "base"
+  },
+  {
+   "id": "040191",
+   "nombre": "Farola",
+   "grupo": "viales",
+   "color": "#fef08a",
+   "ancho": 1,
+   "relleno": false,
+   "n": 374,
+   "fichero": "base"
+  },
+  {
+   "id": "040217",
+   "nombre": "Carretera eje y texto",
+   "grupo": "viales",
+   "color": "#e2e8f0",
+   "ancho": 1,
+   "relleno": false,
+   "n": 430,
+   "fichero": "base"
+  },
+  {
+   "id": "040230",
+   "nombre": "Línea eléctrica",
+   "grupo": "catenaria",
+   "color": "#fb7185",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 189,
+   "fichero": "base"
+  },
+  {
+   "id": "040235",
+   "nombre": "Señal vertical semáforo",
+   "grupo": "catenaria",
+   "color": "#4ade80",
+   "ancho": 1,
+   "relleno": false,
+   "n": 1158,
+   "fichero": "base"
+  },
+  {
+   "id": "040242",
+   "nombre": "Postes grales y catenaria",
+   "grupo": "catenaria",
+   "color": "#facc15",
+   "ancho": 1,
+   "relleno": false,
+   "n": 6368,
+   "fichero": "base"
+  },
+  {
+   "id": "040243",
+   "nombre": "Quiamiedos biondas",
+   "grupo": "catenaria",
+   "color": "#94a3b8",
+   "ancho": 2,
+   "relleno": false,
+   "n": 590,
+   "fichero": "base"
+  },
+  {
+   "id": "040245",
+   "nombre": "Señalización horizontal",
+   "grupo": "catenaria",
+   "color": "#e2e8f0",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 3024,
+   "fichero": "base"
+  },
+  {
+   "id": "050012",
+   "nombre": "Subestación",
+   "grupo": "estructuras",
+   "color": "#ef4444",
+   "ancho": 2,
+   "relleno": true,
+   "n": 5,
+   "fichero": "base"
+  },
+  {
+   "id": "050020",
+   "nombre": "Túnel de ferrocarril",
+   "grupo": "estructuras",
+   "color": "#f97316",
+   "ancho": 2,
+   "relleno": false,
+   "n": 108,
+   "fichero": "base"
+  },
+  {
+   "id": "050021",
+   "nombre": "Obra drenaje",
+   "grupo": "plataforma",
+   "color": "#06b6d4",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 1383,
+   "fichero": "base"
+  },
+  {
+   "id": "050023",
+   "nombre": "Varios plataforma",
+   "grupo": "plataforma",
+   "color": "#a1a1aa",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 5100,
+   "fichero": "base"
+  },
+  {
+   "id": "050025",
+   "nombre": "Viaducto",
+   "grupo": "estructuras",
+   "color": "#06b6d4",
+   "ancho": 2.4,
+   "relleno": false,
+   "n": 783,
+   "fichero": "base"
+  },
+  {
+   "id": "050035",
+   "nombre": "Armarios de vía",
+   "grupo": "catenaria",
+   "color": "#f472b6",
+   "ancho": 1,
+   "relleno": false,
+   "n": 242,
+   "fichero": "base"
+  },
+  {
+   "id": "050037",
+   "nombre": "Paso a nivel",
+   "grupo": "estructuras",
+   "color": "#dc2626",
+   "ancho": 2.4,
+   "relleno": false,
+   "n": 4,
+   "fichero": "base"
+  },
+  {
+   "id": "050055",
+   "nombre": "Cabeza de balasto",
+   "grupo": "plataforma",
+   "color": "#94a3b8",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 890,
+   "fichero": "base"
+  },
+  {
+   "id": "050059",
+   "nombre": "Eje plataforma",
+   "grupo": "via",
+   "color": "#a78bfa",
+   "ancho": 2,
+   "relleno": false,
+   "n": 111,
+   "fichero": "base"
+  },
+  {
+   "id": "050075",
+   "nombre": "BTS GSM-R (caseta y torre)",
+   "grupo": "estructuras",
+   "color": "#a78bfa",
+   "ancho": 1.8,
+   "relleno": false,
+   "n": 103,
+   "fichero": "base"
+  },
+  {
+   "id": "050117",
+   "nombre": "Eje vía alta velocidad",
+   "grupo": "via",
+   "color": "#38bdf8",
+   "ancho": 3,
+   "relleno": false,
+   "n": 315,
+   "fichero": "base"
+  },
+  {
+   "id": "050134",
+   "nombre": "Arqueta",
+   "grupo": "plataforma",
+   "color": "#f472b6",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 4987,
+   "fichero": "base"
+  },
+  {
+   "id": "050135",
+   "nombre": "Paso inferior",
+   "grupo": "estructuras",
+   "color": "#fbbf24",
+   "ancho": 2.2,
+   "relleno": false,
+   "n": 1587,
+   "fichero": "base"
+  },
+  {
+   "id": "050147",
+   "nombre": "Eje vía escapes desvíos",
+   "grupo": "via",
+   "color": "#fbbf24",
+   "ancho": 2.4,
+   "relleno": false,
+   "n": 147,
+   "fichero": "base"
+  },
+  {
+   "id": "050150",
+   "nombre": "Canalización canaleta",
+   "grupo": "plataforma",
+   "color": "#c084fc",
+   "ancho": 2,
+   "relleno": false,
+   "n": 3258,
+   "fichero": "base"
+  },
+  {
+   "id": "050155",
+   "nombre": "Elemento línea férrea",
+   "grupo": "via",
+   "color": "#fde047",
+   "ancho": 1,
+   "relleno": false,
+   "n": 1292,
+   "fichero": "base"
+  },
+  {
+   "id": "050165",
+   "nombre": "Pie de balasto",
+   "grupo": "plataforma",
+   "color": "#64748b",
+   "ancho": 1.2,
+   "relleno": false,
+   "n": 2221,
+   "fichero": "base"
+  },
+  {
+   "id": "050177",
+   "nombre": "Carril raíl hilo",
+   "grupo": "via",
+   "color": "#e2e8f0",
+   "ancho": 1.6,
+   "relleno": false,
+   "n": 982,
+   "fichero": "base"
+  },
+  {
+   "id": "050185",
+   "nombre": "Pantalla acústica",
+   "grupo": "estructuras",
+   "color": "#818cf8",
+   "ancho": 2.4,
+   "relleno": false,
+   "n": 115,
+   "fichero": "base"
+  },
+  {
+   "id": "050197",
+   "nombre": "Paso superior",
+   "grupo": "estructuras",
+   "color": "#f59e0b",
+   "ancho": 2.2,
+   "relleno": false,
+   "n": 2054,
+   "fichero": "base"
+  },
+  {
+   "id": "050207",
+   "nombre": "Eje vía convencional",
+   "grupo": "via",
+   "color": "#94a3b8",
+   "ancho": 2,
+   "relleno": false,
+   "n": 18,
+   "fichero": "base"
+  },
+  {
+   "id": "050215",
+   "nombre": "Puerta",
+   "grupo": "viales",
+   "color": "#22c55e",
+   "ancho": 2.6,
+   "relleno": false,
+   "n": 8,
+   "fichero": "base"
+  },
+  {
+   "id": "050235",
+   "nombre": "Puente",
+   "grupo": "estructuras",
+   "color": "#f59e0b",
+   "ancho": 2,
+   "relleno": false,
+   "n": 8,
+   "fichero": "base"
+  },
+  {
+   "id": "050247",
+   "nombre": "Baliza",
+   "grupo": "catenaria",
+   "color": "#f87171",
+   "ancho": 1,
+   "relleno": false,
+   "n": 1922,
+   "fichero": "base"
+  },
+  {
+   "id": "060047",
+   "nombre": "Varios cartografía",
+   "grupo": "entorno",
+   "color": "#cbd5e1",
+   "ancho": 1,
+   "relleno": false,
+   "n": 40,
+   "fichero": "base"
+  },
+  {
+   "id": "060120",
+   "nombre": "Lindes de parcela",
+   "grupo": "viales",
+   "color": "#fde68a",
+   "ancho": 0.8,
+   "relleno": false,
+   "n": 2849,
+   "fichero": "base"
+  },
+  {
+   "id": "060217",
+   "nombre": "Límites administrativos",
+   "grupo": "viales",
+   "color": "#c084fc",
+   "ancho": 1.4,
+   "relleno": false,
+   "n": 20,
+   "fichero": "base"
+  },
+  {
+   "id": "090092",
+   "nombre": "Tipo de cultivo",
+   "grupo": "entorno",
+   "color": "#86efac",
+   "ancho": 1,
+   "relleno": false,
+   "n": 3741,
+   "fichero": "base"
+  },
+  {
+   "id": "090135",
+   "nombre": "Cartotexto",
+   "grupo": "entorno",
+   "color": "#e2e8f0",
+   "ancho": 1,
+   "relleno": false,
+   "n": 327,
+   "fichero": "base"
+  },
+  {
+   "id": "090235",
+   "nombre": "Toponimia",
+   "grupo": "entorno",
+   "color": "#f8fafc",
+   "ancho": 1,
+   "relleno": false,
+   "n": 15,
+   "fichero": "base"
+  }
+ ],
+ "notas": [
+  "Hitos de PK: 1992 en el DXF (0 copias del mismo hito por solape de hojas). Forman 2 secuencia(s) continua(s): PK 322+000 a 486+100; PK 317+800 a 352+700.",
+  "050059 (eje de plataforma): la X venia en negativo y sin cota en el origen; se ha tomado en positivo y sin Z.",
+  "PK de cada elemento: proyeccion sobre la cadena de hitos «pk» del DXF (uno cada 100 m), densificada cada 2 m. Lado y distancia (`of`): al eje de via de alta velocidad mas cercano (las dos vias), + a la izquierda en sentido de PK creciente; no se da en los elementos de la segunda secuencia de hitos ni a mas de 1,5 km de la via.",
+  "Geometria simplificada (Douglas-Peucker): 2 cm en via, 5 cm en catenaria y estructuras, 10 cm en plataforma y edificios, 25-35 cm en viales y entorno, 50 cm en el terreno.",
+  "Recortado al ambito de la base de Monforte del Cid (km 364 a 485 de la L042) por el script de sincronizacion. Las notas anteriores describen el DXF completo; el numero de elementos de cada capa cuenta lo que queda en los km conservados (un elemento que cruza un km se cuenta en los dos)."
+ ],
+ "fuente": [
+  "Alb-Ali_Entidad-Descripción.dxf"
+ ]
+}

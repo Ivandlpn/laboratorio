@@ -1,0 +1,1338 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Elda · PK 447+000 a 449+000</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600&display=swap">
+<style>
+  /* Lienzo 3D a pantalla completa; panel flotante como cajetín de plano a la izquierda */
+  :root {
+    --bg: #f2f3ef; --panel: rgba(250, 251, 248, 0.94); --fg: #1e2422; --muted: #5d6662; --line: #cfd4cc; --accent: #c4561c;
+    --cielo: #dfe5e3; --cenit: #8fb5d6;
+    --sans: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141819; --panel: rgba(28, 33, 34, 0.94); --fg: #e6ebe7; --muted: #9aa49f;
+      --line: #36403d; --accent: #ee8a4f; --cielo: #1b2224; --cenit: #0e141b; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141819; --panel: rgba(28, 33, 34, 0.94); --fg: #e6ebe7; --muted: #9aa49f;
+    --line: #36403d; --accent: #ee8a4f; --cielo: #1b2224; --cenit: #0e141b; color-scheme: dark;
+  }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; overflow: hidden; }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.4 var(--sans); margin: 0; }
+  #lienzo { position: fixed; inset: 0; touch-action: none; }
+  #lienzo canvas { display: block; }
+  .etq {
+    font: 500 11px/1 var(--mono); color: var(--fg); background: var(--panel);
+    border: 1px solid var(--line); padding: 3px 6px; border-radius: 3px; white-space: nowrap; pointer-events: none;
+  }
+  .sin-etiquetas .etq { display: none; }
+  #panel {
+    position: fixed; z-index: 5;
+    top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px));
+    width: 272px; max-width: calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+    max-height: calc(100% - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    overflow-y: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    backdrop-filter: blur(6px); display: grid; gap: 14px; padding: 14px;
+  }
+  #panel header { display: grid; gap: 2px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+  #panel h1 { margin: 0; font: 600 22px/1.1 var(--sans); letter-spacing: 0.01em; text-wrap: balance; }
+  .sub { color: var(--muted); font: 400 12px/1.35 var(--mono); }
+  h2 { margin: 0 0 6px; font: 500 11px/1 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .lista { display: grid; gap: 2px; }
+  .lista label { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; }
+  .lista input { accent-color: var(--accent); margin: 0; }
+  .sw { width: 14px; height: 4px; border-radius: 1px; flex: none; }
+  .vistas { display: flex; flex-wrap: wrap; gap: 6px; }
+  button {
+    font: 500 13px/1 var(--sans); color: var(--fg); background: transparent; border: 1px solid var(--line);
+    border-radius: 4px; padding: 7px 10px; cursor: pointer;
+  }
+  button:hover { border-color: var(--muted); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ayuda { color: var(--muted); font-size: 12.5px; margin: 0; }
+  #ficha { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 4px; }
+  #ficha strong { font-weight: 600; }
+  #ficha p { margin: 0; font-size: 13.5px; }
+  #ficha .capa { font: 400 11px/1 var(--mono); color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
+  #abrir {
+    position: fixed; z-index: 6; display: none;
+    top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px));
+    background: var(--panel);
+  }
+  #brujula {
+    position: fixed; z-index: 4; right: calc(12px + env(safe-area-inset-right, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px;
+    display: flex; align-items: center; gap: 8px; font: 500 11px/1 var(--mono); color: var(--muted);
+  }
+  #flecha { width: 34px; height: 34px; }
+  #flecha path { fill: var(--accent); }
+  #flecha circle { fill: none; stroke: var(--line); }
+  #cruceta {
+    position: fixed; z-index: 4; left: 50%; transform: translateX(-50%);
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(2, 44px); gap: 4px;
+  }
+  #cruceta button { background: var(--panel); font-size: 18px; padding: 0; touch-action: none; }
+  #cruceta .arriba { grid-column: 2; }
+  #cruceta .izq { grid-column: 1; grid-row: 2; }
+  #cruceta .abajo { grid-column: 2; grid-row: 2; }
+  #cruceta .der { grid-column: 3; grid-row: 2; }
+  #error { position: fixed; inset: auto 12px 80px; z-index: 9; background: var(--panel); border: 1px solid var(--accent); padding: 10px; border-radius: 6px; }
+  #cargando { position: fixed; inset: 0; z-index: 8; display: grid; place-content: center; gap: 8px; text-align: center; background: var(--bg); font: 500 13px/1.4 var(--mono); color: var(--muted); }
+  #cargando b { font: 600 20px/1.1 var(--sans); color: var(--fg); }
+  #cab {
+    flex-wrap: wrap; justify-content: center;
+    position: fixed; z-index: 6; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 12px; background: var(--panel);
+    border: 1px solid var(--line); font: 500 12px/1.2 var(--mono); box-shadow: 0 10px 34px rgba(10,18,24,.3);
+  }
+  #cab b { color: var(--accent); }
+  @media (max-width: 640px) {
+    #panel.cerrado { display: none; }
+    #abrir { display: block; }
+    #panel { top: calc(56px + env(safe-area-inset-top, 0px)); max-height: calc(100% - 140px); }
+    #cab { top: calc(60px + env(safe-area-inset-top, 0px)); max-width: calc(100vw - 24px); }
+  }
+</style>
+<link rel="stylesheet" href="../comun/panel.css">
+<script src="../comun/rendimiento.js"></script>
+<script src="../comun/camara.js"></script>
+<script src="../comun/trenes.js"></script>
+<script src="../comun/carrusel.js"></script>
+<script src="../comun/panel.js" defer></script>
+</head>
+<body>
+<div id="lienzo"></div>
+<div id="cargando"><b>Elda</b><span>Cargando el levantamiento topográfico…</span></div>
+<button id="abrir" aria-controls="panel" aria-expanded="false">Capas y vistas</button>
+<aside id="panel">
+  <header>
+    <h1 id="titulo">Elda</h1>
+    <div class="sub" id="subtitulo"></div>
+  </header>
+  <section>
+    <h2>Vistas</h2>
+    <div class="vistas" id="vistas"></div>
+  </section>
+  <section>
+    <h2>Capas</h2>
+    <div class="lista" id="capas"></div>
+  </section>
+  <section>
+    <h2>Mostrar</h2>
+    <div class="lista">
+      <label><input type="checkbox" id="chkEtiquetas" checked> Etiquetas de PK</label>
+      <label><input type="checkbox" id="chkTrenes" checked> Trenes en circulación</label>
+      <label><input type="checkbox" id="chkSubsuelo"> Terreno semitransparente</label>
+    </div>
+  </section>
+  <p class="ayuda" id="ayuda">Arrastra para girar, rueda o pellizco para acercar. Toca un elemento para ver su ficha (PK, cota). Flechas del teclado: moverte (Mayús, más rápido; Re Pág y Av Pág, subir y bajar).</p>
+  <p class="ayuda" style="font-size:11px">Datos: levantamiento topográfico y ortofoto de detalle de Adif · Obra derivada de LiDAR-PNOA-cob3 2023 CC-BY 4.0 scne.es · MDT05 del IGN.</p>
+  <div id="ficha" hidden>
+    <span class="capa" id="fichaCapa"></span>
+    <strong id="fichaNombre"></strong>
+    <p id="fichaInfo"></p>
+  </div>
+</aside>
+<div id="cab" hidden><span><b>EN CABINA</b> · L042</span><span id="cabPk">PK —</span><span id="cabVel">—</span></div>
+<div id="brujula" aria-hidden="true">
+  <svg id="flecha" viewBox="-17 -17 34 34"><circle r="15"></circle><path d="M0 -12 L5 4 L0 1 L-5 4 Z"></path></svg>
+  <span id="brujulaTxt">PK ↑</span>
+</div>
+<div id="cruceta" hidden>
+  <button class="arriba" data-mov="w" aria-label="Avanzar">▲</button>
+  <button class="izq" data-mov="a" aria-label="Izquierda">◀</button>
+  <button class="abajo" data-mov="s" aria-label="Retroceder">▼</button>
+  <button class="der" data-mov="d" aria-label="Derecha">▶</button>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+if (window.Rend3D) window.Rend3D.init(THREE, mergeGeometries);
+if (window.Trenes3D) window.Trenes3D.init(THREE);
+
+// Entorno 3D construido con el levantamiento topográfico real (cartografía 3D de Adif, DXF convertido con scripts/importar-dxf.py).
+// Plano local: x a lo largo de la vía (PK creciente), y a la izquierda en el sentido del PK, z cota sobre `zBase`.
+const dato = new URLSearchParams(location.search).get('datos');      // ?datos=<id> prueba otro conjunto de datos del mismo tramo
+const RUTA = new URL('../../datos/levantamientos/', location.href).href + (dato && /^[\w-]+$/.test(dato) ? dato : 'elda-447-449');
+const token = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const P = (x, y, z) => new THREE.Vector3(x, z, -y);
+const cargando = document.getElementById('cargando');
+let meta, loc, ter, pai = null, lid = null, fus = null, colr = null, ort = null, texOrto = null;
+try {
+  const opc = n => fetch(`${RUTA}/${n}.json`).then(r => r.ok ? r.json() : null).catch(() => null);
+  [meta, loc, ter, pai, lid, fus, colr, ort] = await Promise.all([...['meta', 'local', 'terreno'].map(n => fetch(`${RUTA}/${n}.json`).then(r => { if (!r.ok) throw new Error(n + ' ' + r.status); return r.json(); })), opc('paisaje'), opc('lidar'), opc('terreno-fusion'), opc('color'), opc('ortofoto')]);
+} catch (err) {
+  cargando.innerHTML = '<b>No se pudo cargar el levantamiento</b><span>' + String(err.message || err) + '</span>';
+  throw err;
+}
+if (ort) texOrto = await new Promise(res => new THREE.TextureLoader().load(`${RUTA}/ortofoto.webp`, t => res(t), undefined, () => res(null)));
+document.getElementById('titulo').textContent = meta.nombre;
+const fmtPk = pk => { const m = Math.round(pk), km = Math.floor(m / 1000); return km + '+' + String(m - km * 1000).padStart(3, '0'); };
+document.getElementById('subtitulo').textContent = `L${meta.linea} · PK ${fmtPk(meta.pkIni)} a ${fmtPk(meta.pkFin)} · cotas ${meta.cotaMin.toFixed(0)}–${meta.cotaMax.toFixed(0)} m`;
+
+// --- Escena ---
+const cont = document.getElementById('lienzo');
+const escena = new THREE.Scene();
+const camara = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 9000);
+const render = new THREE.WebGLRenderer({ antialias: window.Rend3D ? window.Rend3D.antialias() : true });
+render.setPixelRatio(window.Rend3D ? window.Rend3D.pixelRatio() : Math.min(devicePixelRatio, 2));
+render.shadowMap.enabled = true;
+render.localClippingEnabled = true;
+render.shadowMap.type = THREE.PCFSoftShadowMap;
+render.toneMapping = THREE.ACESFilmicToneMapping;
+render.toneMappingExposure = 1.05;
+render.setSize(innerWidth, innerHeight);
+cont.appendChild(render.domElement);
+const renderEtq = new CSS2DRenderer();
+renderEtq.setSize(innerWidth, innerHeight);
+Object.assign(renderEtq.domElement.style, { position: 'absolute', top: '0', left: '0', pointerEvents: 'none' });
+cont.appendChild(renderEtq.domElement);
+
+function aplicarTema() {
+  const c = new THREE.Color(token('--cielo'));
+  const lienzo = document.createElement('canvas'); lienzo.width = 2; lienzo.height = 256;
+  const x = lienzo.getContext('2d'), grad = x.createLinearGradient(0, 0, 0, 256);
+  grad.addColorStop(0, token('--cenit')); grad.addColorStop(0.75, token('--cielo')); grad.addColorStop(1, token('--cielo'));
+  x.fillStyle = grad; x.fillRect(0, 0, 2, 256);
+  const t = new THREE.CanvasTexture(lienzo);
+  t.colorSpace = THREE.SRGBColorSpace;
+  escena.background = t;
+  escena.fog = new THREE.Fog(c, 420, 3200);
+}
+aplicarTema();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', aplicarTema);
+new MutationObserver(aplicarTema).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+escena.add(new THREE.HemisphereLight(0xe8f0ff, 0x7a6448, 0.95));
+const sol = new THREE.DirectionalLight(0xfff1dc, 2.3);
+const SOL_DESVIO = P(-70, -90, 150);
+sol.castShadow = true;
+Object.assign(sol.shadow.camera, { left: -120, right: 120, top: 120, bottom: -120, near: 5, far: 500 });
+{ const m = window.Rend3D ? window.Rend3D.sombra(2048) : 2048; sol.shadow.mapSize.set(m, m); }
+sol.shadow.bias = -0.0004;
+sol.shadow.normalBias = 0.04;
+escena.add(sol, sol.target);
+
+// --- Materiales y utilidades ---
+const cacheMat = new Map();
+function mat(color, opacidad = 1, extra = {}) {
+  const k = color + '|' + opacidad + '|' + JSON.stringify(extra);
+  if (!cacheMat.has(k)) {
+    const m = new THREE.MeshStandardMaterial({ color, roughness: 0.85, metalness: 0.05, side: THREE.DoubleSide, ...extra });
+    if (opacidad < 1) Object.assign(m, { transparent: true, opacity: opacidad, depthWrite: false });
+    cacheMat.set(k, m);
+  }
+  return cacheMat.get(k);
+}
+function etiqueta(texto, pos) {
+  const div = document.createElement('div');
+  div.className = 'etq'; div.textContent = texto;
+  const o = new CSS2DObject(div); o.position.copy(pos);
+  return o;
+}
+const rnd = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+
+// --- Malla fusionada: cada elemento anota su rango de triángulos para poder mostrar su ficha al pulsar ---
+class Malla {
+  constructor() { this.p = []; this.i = []; this.n = 0; this.rangos = []; }
+  v(x, y, z) { const w = P(x, y, z); this.p.push(w.x, w.y, w.z); return this.n++; }
+  q(a, b, c, d) { this.i.push(a, b, c, a, c, d); }
+  t(a, b, c) { this.i.push(a, b, c); }
+  marca(info) { this.rangos.push([this.i.length / 3, info]); }
+  vacia() { return this.i.length === 0; }
+  mesh(material, sombra = true) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(this.p, 3));
+    g.setIndex(this.n > 65535 ? new THREE.Uint32BufferAttribute(this.i, 1) : new THREE.Uint16BufferAttribute(this.i, 1));
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, material);
+    m.castShadow = sombra; m.receiveShadow = true;
+    m.userData = { rangos: this.rangos };
+    return m;
+  }
+}
+const normal = (pts, k) => {
+  const a = pts[Math.max(0, k - 1)], b = pts[Math.min(pts.length - 1, k + 1)];
+  let tx = b[0] - a[0], ty = b[1] - a[1]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+  return [-ty, tx, tx, ty];
+};
+/** Cinta plana sobre el suelo. */
+function cinta(m, pts, w, dz, info) {
+  if (info) m.marca(info);
+  let prev = null;
+  for (let k = 0; k < pts.length; k++) {
+    const [nx, ny] = normal(pts, k), [x, y, z0] = pts[k], z = z0 + dz;
+    const L = m.v(x + nx * w / 2, y + ny * w / 2, z), R = m.v(x - nx * w / 2, y - ny * w / 2, z);
+    if (prev) m.q(prev[0], prev[1], R, L);
+    prev = [L, R];
+  }
+}
+/** Prisma recto sobre una polilínea: cara superior y dos laterales (alturas relativas a la cota de cada punto). */
+function prisma(m, pts, w, zArr, zAbj, info) {
+  if (info) m.marca(info);
+  let pl = null;
+  for (let k = 0; k < pts.length; k++) {
+    const [nx, ny] = normal(pts, k), [x, y, z0] = pts[k];
+    const lx = x + nx * w / 2, ly = y + ny * w / 2, rx = x - nx * w / 2, ry = y - ny * w / 2, zt = z0 + zArr, zb = z0 + zAbj;
+    const cur = [m.v(lx, ly, zt), m.v(rx, ry, zt), m.v(lx, ly, zt), m.v(lx, ly, zb), m.v(rx, ry, zt), m.v(rx, ry, zb)];
+    if (pl) { m.q(pl[0], pl[1], cur[1], cur[0]); m.q(pl[2], pl[3], cur[3], cur[2]); m.q(pl[4], pl[5], cur[5], cur[4]); }
+    pl = cur;
+  }
+}
+/** Lámina vertical (vallas, pantallas). */
+function lamina(m, pts, h, dz, info) {
+  if (info) m.marca(info);
+  let pl = null;
+  for (let k = 0; k < pts.length; k++) {
+    const [x, y, z0] = pts[k];
+    const cur = [m.v(x, y, z0 + dz), m.v(x, y, z0 + dz + h)];
+    if (pl) m.q(pl[0], cur[0], cur[1], pl[1]);
+    pl = cur;
+  }
+}
+/** Polilínea con longitud acumulada: posición, tangente y proyección de puntos. */
+class Ruta {
+  constructor(pts) {
+    this.p = pts; this.c = [0];
+    for (let i = 1; i < pts.length; i++) this.c.push(this.c[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+    this.L = this.c[this.c.length - 1];
+  }
+  en(s) {
+    const p = this.p, c = this.c, n = p.length;
+    let i = 0;
+    if (s <= 0) i = 0; else if (s >= this.L) i = n - 2; else { let lo = 0, hi = n - 1; while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (c[mid] <= s) lo = mid; else hi = mid; } i = lo; }
+    const a = p[i], b = p[i + 1], seg = c[i + 1] - c[i] || 1, t = (s - c[i]) / seg;     // fuera de la ruta se prolonga en recta
+    return { x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, z: a[2] + (b[2] - a[2]) * t, tx: (b[0] - a[0]) / seg, ty: (b[1] - a[1]) / seg };
+  }
+  proy(x, y) {
+    let mejor = { d: 1e18 };
+    for (let i = 0; i < this.p.length - 1; i++) {
+      const a = this.p[i], b = this.p[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy || 1;
+      const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / L2)), qx = a[0] + t * dx, qy = a[1] + t * dy, d = Math.hypot(x - qx, y - qy);
+      if (d < mejor.d) mejor = { d, s: this.c[i] + t * Math.sqrt(L2), x: qx, y: qy, z: a[2] + (b[2] - a[2]) * t };
+    }
+    return mejor;
+  }
+}
+
+// --- Terreno: rejilla interpolada del levantamiento (curvas de nivel, cotas, taludes, viales, plataforma) ---
+const ZB = loc.origen.zBase;
+const decodificar = t => {
+  const bin = atob(t.z), u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  const v = new Uint16Array(u.buffer), f = new Float32Array(v.length);
+  for (let i = 0; i < v.length; i++) f[i] = (v[i] + t.zMinCm) / 100;
+  return f;
+};
+const { nx: NX, ny: NY, paso: PASO, x0: GX0, y0: GY0 } = ter;
+const fusionOk = fus && fus.fusionado && fus.nx === ter.nx && fus.ny === ter.ny;
+const Zg = decodificar(fusionOk ? fus : ter);
+function cotaTerreno(x, y) {
+  const fx = Math.max(0, Math.min(NX - 1.001, (x - GX0) / PASO)), fy = Math.max(0, Math.min(NY - 1.001, (y - GY0) / PASO));
+  const i = Math.floor(fx), j = Math.floor(fy), tx = fx - i, ty = fy - j;
+  const a = Zg[j * NX + i], b = Zg[j * NX + i + 1], c = Zg[(j + 1) * NX + i], d = Zg[(j + 1) * NX + i + 1];
+  return (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty;
+}
+const texGrano = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const x = c.getContext('2d'); x.fillStyle = 'rgb(236,236,236)'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 60; i++) { const v = 205 + rnd() * 45 | 0; x.fillStyle = `rgba(${v},${v},${v},0.35)`; x.beginPath(); x.arc(rnd() * 256, rnd() * 256, 6 + rnd() * 22, 0, 7); x.fill(); }
+  for (let i = 0; i < 9000; i++) { const v = 150 + rnd() * 105 | 0; x.fillStyle = `rgba(${v},${v},${v},0.6)`; x.fillRect(rnd() * 256, rnd() * 256, 1 + rnd() * 2, 1 + rnd() * 2); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+})();
+// La ortofoto de detalle (10 cm) se pinta sobre el terreno por su posición en el plano local; la boca del túnel se «excava»
+// descartando los fragmentos del terreno que caen dentro del perfil del túnel por detrás de su plano de emboquille.
+if (texOrto) { texOrto.colorSpace = THREE.SRGBColorSpace; texOrto.anisotropy = 8; }
+const uOrto = { uOrtoTex: { value: texOrto }, uOrtoCaja: { value: ort ? new THREE.Vector4(ort.x0, ort.y0, ort.ancho, ort.alto) : new THREE.Vector4() }, uOrtoOn: { value: texOrto ? 1 : 0 } };
+const uBoca = { uBocaC: { value: new THREE.Vector4() }, uBocaN: { value: new THREE.Vector4() }, uBocaPl: { value: new THREE.Vector4() } };
+const matTerreno = new THREE.MeshStandardMaterial({ vertexColors: true, map: texGrano, roughness: 1, side: THREE.DoubleSide });
+matTerreno.onBeforeCompile = sh => {
+  Object.assign(sh.uniforms, uOrto, uBoca);
+  sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vOP;')
+    .replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+varying vec3 vOP;
+uniform sampler2D uOrtoTex; uniform vec4 uOrtoCaja; uniform float uOrtoOn;
+uniform vec4 uBocaC; uniform vec4 uBocaN; uniform vec4 uBocaPl;`)
+    .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+  if (uBocaPl.w > 0.5) {
+    vec3 qL = vec3(vOP.x, -vOP.z, vOP.y);
+    vec2 dd = qL.xy - uBocaC.xy;
+    float cu = dot(dd, uBocaN.xy), cw = dot(dd, uBocaN.zw), cv = qL.z - uBocaC.z;
+    float fp = qL.x - (uBocaPl.x + uBocaPl.y * qL.y + uBocaPl.z * qL.z);
+    bool enPerfil = abs(cu) < uBocaC.w && cv > -0.5 && (cv < 2.0 || length(vec2(cu, cv - 2.0)) < uBocaC.w);
+    if (enPerfil && cw > -70.0 && fp < 0.15) discard;
+  }`)
+    .replace('#include <color_fragment>', `#include <color_fragment>
+  {
+    vec2 uvo = vec2((vOP.x - uOrtoCaja.x) / uOrtoCaja.z, (-vOP.z - uOrtoCaja.y) / uOrtoCaja.w);
+    vec4 oc = texture2D(uOrtoTex, clamp(uvo, 0.001, 0.999));
+    float dentro = step(0.0, uvo.x) * step(uvo.x, 1.0) * step(0.0, uvo.y) * step(uvo.y, 1.0) * uOrtoOn;
+    diffuseColor.rgb = mix(diffuseColor.rgb, oc.rgb * 0.62, oc.a * dentro);
+  }`);
+};
+const matsSuelo = [matTerreno];
+/** Malla de terreno a partir de una rejilla (detalle del levantamiento o paisaje del MDT), con color por pendiente y parcelas. */
+function mallaTerreno(g, Z, o) {
+  const { nx, ny, paso, x0, y0 } = g, pos = [], uv = [], col = [], idx = [];
+  const tonos = ['#b79a6e', '#a98b61', '#c2a77d', '#9d8a5a', '#8e9060'].map(c => new THREE.Color(c)), roca = new THREE.Color('#9a8e7b'), monte = new THREE.Color('#7d7e56'), pinar = new THREE.Color('#68704a');
+  const tmp = new THREE.Color();
+  const hash = (a, b) => { const h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return h - Math.floor(h); };
+  const color = (x, y, z, i, j) => {
+    const gx = (Z[j * nx + Math.min(nx - 1, i + 1)] - Z[j * nx + Math.max(0, i - 1)]) / (2 * paso), gy = (Z[Math.min(ny - 1, j + 1) * nx + i] - Z[Math.max(0, j - 1) * nx + i]) / (2 * paso);
+    const pend = Math.hypot(gx, gy), r = (Math.sin(x * 0.045) + Math.sin(y * 0.061 + 1) + Math.sin((x + y) * 0.027 + 2)) / 6 + 0.5;
+    // Parcelas: celdas de unos 70 m con tono propio (campos de secano y cultivos)
+    const parcela = hash(Math.floor((x + 0.4 * y) / 70), Math.floor((y - 0.3 * x) / 55));
+    tmp.copy(tonos[Math.min(4, Math.floor((r * 0.5 + parcela * 0.5) * 5))]);
+    if (pend > 0.3) tmp.lerp(roca, Math.min(1, (pend - 0.3) / 0.45));
+    else if (z > 8 && r > 0.55) tmp.lerp(monte, 0.35);
+    if (o.relieve && z > 60 && pend < 0.5) tmp.lerp(pinar, Math.min(0.6, (z - 60) / 200));
+    if (o.rgb) {
+      // Color real: RGB medio de los puntos de suelo del LiDAR coloreado (sRGB -> lineal), con un toque del tono procedural
+      const k = (j * nx + i) * 3, lin = v => Math.pow(v / 255, 2.2);
+      tmp.lerp(new THREE.Color(lin(o.rgb[k]) * 0.95, lin(o.rgb[k + 1]) * 0.95, lin(o.rgb[k + 2]) * 0.95), 0.82);
+    }
+    if (o.tinte) tmp.lerp(o.tinte, 0.6);              // el paisaje lejano toma el tono medio del color real
+    const sombra = 1 - Math.min(0.28, pend * 0.35);         // las laderas se oscurecen un poco para leer el relieve
+    return tmp.multiplyScalar(sombra);
+  };
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+    const x = x0 + i * paso, y = y0 + j * paso, z = Z[j * nx + i];
+    const w = P(x, y, z); pos.push(w.x, w.y, w.z); uv.push(x / 7, y / 7);
+    const c = color(x, y, z, i, j); col.push(c.r, c.g, c.b);
+  }
+  for (let j = 0; j < ny - 1; j++) for (let i = 0; i < nx - 1; i++) { const a = j * nx + i; idx.push(a, a + 1, a + nx, a + 1, a + nx + 1, a + nx); }
+  if (o.faldon) {
+    // El borde se prolonga en llano hasta el horizonte (la niebla lo funde)
+    const borde = [];
+    for (let i = 0; i < nx; i++) borde.push([i, 0, 0, -1]);
+    for (let j = 1; j < ny; j++) borde.push([nx - 1, j, 1, 0]);
+    for (let i = nx - 2; i >= 0; i--) borde.push([i, ny - 1, 0, 1]);
+    for (let j = ny - 2; j > 0; j--) borde.push([0, j, -1, 0]);
+    const base = pos.length / 3, D = o.faldon;
+    borde.forEach(([i, j, dx, dy]) => {
+      const x = x0 + i * paso, y = y0 + j * paso, z = Z[j * nx + i], sx = (i === 0 && j === 0) ? -1 : dx, sy = (i === 0 && j === 0) ? -1 : dy;
+      const w = P(x + sx * D, y + sy * D, z - 1); pos.push(w.x, w.y, w.z); uv.push((x + sx * D) / 7, (y + sy * D) / 7);
+      const c = color(x, y, z, i, j); col.push(c.r, c.g, c.b);
+    });
+    const nb = borde.length;
+    for (let k = 0; k < nb; k++) { const k2 = (k + 1) % nb, a = borde[k][1] * nx + borde[k][0], b = borde[k2][1] * nx + borde[k2][0]; idx.push(a, b, base + k, b, base + k2, base + k); }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  geo.setIndex(pos.length / 3 > 65535 ? new THREE.Uint32BufferAttribute(idx, 1) : new THREE.Uint16BufferAttribute(idx, 1));
+  geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, matTerreno);
+  m.receiveShadow = o.sombra !== false;
+  m.userData = { nombre: o.nombre, capa: 'Terreno', info: o.info };
+  escena.add(m);
+  return m;
+}
+const rgbLidar = colr && colr.nx === ter.nx && colr.ny === ter.ny ? Uint8Array.from(atob(colr.rgb), c => c.charCodeAt(0)) : null;
+const tinteLidar = rgbLidar ? (() => { let r = 0, g = 0, b = 0; const n = rgbLidar.length / 3; for (let i = 0; i < rgbLidar.length; i += 3) { r += rgbLidar[i]; g += rgbLidar[i + 1]; b += rgbLidar[i + 2]; } const lin = v => Math.pow(v / 255, 2.2) * 0.95; return new THREE.Color(lin(r / n), lin(g / n), lin(b / n)); })() : null;
+mallaTerreno(ter, Zg, {
+  rgb: rgbLidar,
+  nombre: 'Terreno del levantamiento',
+  faldon: pai ? 0 : 1400,
+  info: `Modelo digital interpolado de ${ter.puntos.toLocaleString('es-ES')} puntos del levantamiento (curvas de nivel cada 1 m, puntos de cota, taludes, cunetas y plataforma).${fusionOk ? ` A más de 30 m de la vía se sustituye por el terreno del LiDAR del IGN (${fus.puntos.toLocaleString('es-ES')} puntos de suelo).` : ''}${rgbLidar ? ' Color: media de los puntos de suelo del LiDAR coloreado. Obra derivada de LiDAR-PNOA-cob3 2022-2025 CC-BY 4.0 scne.es.' : ''}${pai ? '' : ' Fuera de la zona levantada el terreno se prolonga en llano.'}`,
+});
+if (pai) {
+  mallaTerreno(pai, decodificar(pai), {
+    nombre: 'Paisaje del entorno', faldon: 5000, relieve: true, sombra: false, tinte: tinteLidar,
+    info: 'Relieve del entorno a partir del Modelo Digital del Terreno de 5 m del IGN (PNOA-LiDAR), suavizado y fundido con el terreno del levantamiento. El servicio da cotas enteras: sirve para el paisaje, no para el detalle.',
+  });
+}
+
+// --- Datos por capa ---
+const capasMeta = Object.fromEntries(meta.capas.map(c => [c.id, c]));
+const porCapa = {};
+for (const e of loc.base) (porCapa[e.c] ||= []).push(e);
+const grupos = {};
+const grupoDe = id => { const c = capasMeta[id]; return grupos[c ? c.grupo : 'entorno'] ||= (() => { const g = new THREE.Group(); escena.add(g); return g; })(); };
+const textoLado = of => { const d = Math.abs(of); return d < 0.3 ? 'sobre el eje de la vía' : `a ${d.toFixed(1).replace('.', ',')} m a la ${of > 0 ? 'izquierda' : 'derecha'} del eje`; };
+/** Ficha de un elemento del levantamiento. */
+function fichaDe(e, extra = '', nombre) {
+  const c = capasMeta[e.c], z = e.p.map(q => q[2]).filter(v => v != null);
+  const partes = [];
+  if (z.length) { const a = Math.min(...z) + ZB, b = Math.max(...z) + ZB; partes.push(b - a < 0.05 ? `Cota ${a.toFixed(2).replace('.', ',')} m.` : `Cotas ${a.toFixed(2).replace('.', ',')} a ${b.toFixed(2).replace('.', ',')} m.`); }
+  if (e.pk != null) { const a = e.pkf != null ? Math.min(e.pk, e.pkf) : e.pk, b = e.pkf != null ? Math.max(e.pk, e.pkf) : e.pk; partes.push(`PK ${fmtPk(a)}${b !== a ? ' a ' + fmtPk(b) : ''}${e.of != null ? ', ' + textoLado(e.of) : ''}.`); }
+  if (extra) partes.push(extra);
+  return { capa: c ? c.nombre : e.c, nombre: nombre || (e.b && meta.bloques[e.b]) || (c ? c.nombre : e.c), info: partes.join(' ') };
+}
+function agrega(id, malla, color, opts = {}) {
+  if (malla.vacia()) return null;
+  const m = malla.mesh(mat(color, opts.opacidad ?? 1, opts.extra), opts.sombra !== false);
+  m.receiveShadow = opts.recibe !== false;
+  m.userData.capa = id;
+  grupoDe(id).add(m);
+  return m;
+}
+function instancias(id, geo, material, items) {
+  if (!items.length) return;
+  const im = new THREE.InstancedMesh(geo, material, items.length), o = new THREE.Object3D();
+  items.forEach((it, k) => {
+    o.position.copy(P(it.x, it.y, it.z)); o.rotation.set(0, it.yaw || 0, 0); o.scale.set(it.sx ?? 1, it.sy ?? 1, it.sz ?? 1); o.updateMatrix();
+    im.setMatrixAt(k, o.matrix);
+    if (it.color) im.setColorAt(k, new THREE.Color(it.color));
+  });
+  im.castShadow = true; im.receiveShadow = true;
+  im.userData = { items: items.map(i => i.info) };
+  grupoDe(id).add(im);
+  return im;
+}
+
+// ============ VÍA: balasto, traviesas y carriles ============
+const AXES_HSL = (porCapa['050117'] || []).map(e => e.p);
+const AXES = [...AXES_HSL, ...(porCapa['050147'] || []).map(e => e.p)];
+
+// ============ CADENAS DE VÍA, TRAZADO DEL TÚNEL Y PK ============
+// La vía levantada arranca ya dentro de la boca del túnel (PK 447+670): el túnel se traza con los hitos de PK anteriores,
+// que van sobre el eje de la vía 1, y con el contorno de la boca (050020) se deduce su plano de emboquille.
+const etqPk = [];
+const HITOS = (porCapa['050155'] || []).filter(e => e.b === 'pk' && e.pk != null).map(e => ({ pk: e.pk, x: e.p[0][0], y: e.p[0][1], z: e.p[0][2] })).sort((a, b) => a.pk - b.pk);
+function encadenar(piezas, tol = 4) {
+  const ps = piezas.map(p => p[0][0] > p.at(-1)[0] ? p.slice().reverse() : p.slice()), cerca = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]) < tol;
+  return ps.filter(p => !ps.some(q => q !== p && cerca(q.at(-1), p[0]))).map(ini => {
+    let cad = ini.slice(), actual = ini;
+    for (;;) { const sig = ps.find(q => q !== actual && cerca(actual.at(-1), q[0])); if (!sig) break; cad = cad.concat(sig.slice(1)); actual = sig; }
+    return cad;
+  });
+}
+/** Curva suave (Hermite con tangentes por diferencias) por puntos [x, y, z], con z lineal; `tgFin` fija la tangente del último punto. */
+function curva(pts, paso, tgFin) {
+  const tg = pts.map((p, i) => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; });
+  if (tgFin) tg[tg.length - 1] = tgFin;
+  const out = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.round(L / paso));
+    for (let k = 0; k < n; k++) {
+      const t = k / n, h00 = 2 * t ** 3 - 3 * t ** 2 + 1, h10 = t ** 3 - 2 * t ** 2 + t, h01 = -2 * t ** 3 + 3 * t ** 2, h11 = t ** 3 - t ** 2;
+      out.push([h00 * a[0] + h10 * L * tg[i][0] + h01 * b[0] + h11 * L * tg[i + 1][0], h00 * a[1] + h10 * L * tg[i][1] + h01 * b[1] + h11 * L * tg[i + 1][1], a[2] + (b[2] - a[2]) * t]);
+    }
+  }
+  out.push(pts.at(-1).slice());
+  return out;
+}
+const cadenas = encadenar(AXES_HSL).sort((a, b) => a[0][1] - b[0][1]);      // la de menor y es la vía 1 (a la derecha)
+const cadA = cadenas[0], cadB = cadenas[1] || cadenas[0];
+const dirDe = (c, k = 3) => { const a = c[0], b = c[Math.min(k, c.length - 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; };
+const tgA = dirDe(cadA), tgB = dirDe(cadB), nA = [-tgA[1], tgA[0]];
+const dB = (cadB[0][0] - cadA[0][0]) * nA[0] + (cadB[0][1] - cadA[0][1]) * nA[1];     // separación entre ejes de vía (izquierda positiva)
+const hs = HITOS.filter(h => (h.x - cadA[0][0]) * tgA[0] + (h.y - cadA[0][1]) * tgA[1] < -40).map(h => [h.x, h.y, h.z]);
+const caraPts = (porCapa['050020'] || []).flatMap(e => e.p);
+const hayTunel = hs.length >= 2 && caraPts.length > 5;
+if (hayTunel) {
+  const a = hs[0], b = hs[1], d = Math.hypot(b[0] - a[0], b[1] - a[1]);
+  hs.unshift([a[0] + (a[0] - b[0]) / d * 150, a[1] + (a[1] - b[1]) / d * 150, a[2] + (a[2] - b[2]) / d * 150]);     // el túnel sigue hacia el oeste, fuera del levantamiento
+}
+const tunelA = hayTunel ? curva([...hs, cadA[0]], 4, tgA) : [];
+const pathA = tunelA.slice(0, -1).concat(cadA);
+const tunelB = tunelA.slice(0, -1).map((p, i, arr) => {
+  const a = arr[Math.max(0, i - 1)], b = arr[Math.min(arr.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+  return [p[0] - dy / l * dB, p[1] + dx / l * dB, p[2]];
+}).filter(p => (p[0] - cadB[0][0]) * tgB[0] + (p[1] - cadB[0][1]) * tgB[1] < -1);
+const pathB = tunelB.concat(cadB);
+const viasTren = [new Ruta(pathA), new Ruta(pathB)];
+const sTunA = hayTunel ? new Ruta(tunelA).L : 0, sTunB = hayTunel ? new Ruta(tunelB.concat([cadB[0]])).L : 0;
+const rutaA = viasTren[0];
+const hitoS = HITOS.map(h => ({ pk: h.pk, s: rutaA.proy(h.x, h.y).s })).sort((a, b) => a.pk - b.pk);
+function pkDe(s) {
+  const a = hitoS;
+  if (s <= a[0].s) return a[0].pk + (s - a[0].s);
+  for (let i = 0; i < a.length - 1; i++) if (s <= a[i + 1].s) return a[i].pk + (a[i + 1].pk - a[i].pk) * (s - a[i].s) / (a[i + 1].s - a[i].s || 1);
+  return a.at(-1).pk + (s - a.at(-1).s);
+}
+function sDePk(pk) {
+  const a = hitoS;
+  if (pk <= a[0].pk) return a[0].s + (pk - a[0].pk);
+  for (let i = 0; i < a.length - 1; i++) if (pk <= a[i + 1].pk) return a[i].s + (a[i + 1].s - a[i].s) * (pk - a[i].pk) / (a[i + 1].pk - a[i].pk || 1);
+  return a.at(-1).s + (pk - a.at(-1).pk);
+}
+/** Plano x = a + b·y + c·z por mínimos cuadrados (el emboquille del túnel, a partir del contorno de su boca). */
+function ajustePlano(pts) {
+  const n = pts.length, mx = pts.reduce((t, q) => t + q[0], 0) / n, my = pts.reduce((t, q) => t + q[1], 0) / n, mz = pts.reduce((t, q) => t + q[2], 0) / n;
+  let syy = 0, syz = 0, szz = 0, sxy = 0, sxz = 0;
+  for (const [x, y, z] of pts) { const dx = x - mx, dy = y - my, dz = z - mz; syy += dy * dy; syz += dy * dz; szz += dz * dz; sxy += dx * dy; sxz += dx * dz; }
+  const D = syy * szz - syz * syz || 1, b = (sxy * szz - sxz * syz) / D, c = (sxz * syy - sxy * syz) / D;
+  return [mx - b * my - c * mz, b, c];
+}
+const plCara = hayTunel ? ajustePlano(caraPts) : [0, 0, 0];
+const fCara = (x, y, z) => x - (plCara[0] + plCara[1] * y + plCara[2] * z);          // negativo = por detrás de la boca, dentro del monte
+const ctr = s => { const p = rutaA.en(s); return { x: p.x - p.ty * dB / 2, y: p.y + p.tx * dB / 2, z: p.z, tx: p.tx, ty: p.ty }; };
+let sCara = 0;
+if (hayTunel) { for (let s = 0; s < rutaA.L; s += 0.5) { const c = ctr(s); if (fCara(c.x, c.y, c.z + 3) >= 0) { sCara = s; break; } } }
+const PK_BOCA = hayTunel ? pkDe(sCara) : 0;
+const planoCara = new THREE.Plane(new THREE.Vector3(-1, plCara[2], -plCara[1]).divideScalar(Math.hypot(1, plCara[1], plCara[2])), plCara[0] / Math.hypot(1, plCara[1], plCara[2]));
+if (hayTunel) {
+  const c = ctr(sCara);
+  uBoca.uBocaC.value.set(c.x, c.y, c.z, 6.5); uBoca.uBocaN.value.set(-c.ty, c.tx, c.tx, c.ty); uBoca.uBocaPl.value.set(plCara[0], plCara[1], plCara[2], 1);
+  document.getElementById('subtitulo').textContent = `L${meta.linea} · PK ${fmtPk(meta.pkIni)} a ${fmtPk(meta.pkFin)} · boca del túnel PK ${fmtPk(PK_BOCA)} · cotas ${meta.cotaMin.toFixed(0)}–${meta.cotaMax.toFixed(0)} m`;
+}
+const mBal = new Malla(), traviesas = [];
+for (const e of [...(porCapa['050117'] || []), ...(porCapa['050147'] || [])]) {
+  const r = new Ruta(e.p), info = fichaDe(e, 'El balasto y las traviesas se dibujan a partir del eje; su sección es la tipo (supuesta).', e.c === '050117' ? 'Eje de vía (ancho internacional)' : 'Eje de vía de escapes y desvíos');
+  mBal.marca(info);
+  let prev = null;
+  const paso = 1.5, n = Math.max(1, Math.ceil(r.L / paso));
+  for (let k = 0; k <= n; k++) {
+    const s = r.L * k / n, p = r.en(s), nx = -p.ty, ny = p.tx, zt = p.z - 0.2;
+    const cur = [mBal.v(p.x + nx * 1.85, p.y + ny * 1.85, zt), mBal.v(p.x - nx * 1.85, p.y - ny * 1.85, zt), mBal.v(p.x + nx * 1.85, p.y + ny * 1.85, zt), mBal.v(p.x + nx * 2.5, p.y + ny * 2.5, zt - 0.5), mBal.v(p.x - nx * 1.85, p.y - ny * 1.85, zt), mBal.v(p.x - nx * 2.5, p.y - ny * 2.5, zt - 0.5)];
+    if (prev) { mBal.q(prev[0], prev[1], cur[1], cur[0]); mBal.q(prev[2], prev[3], cur[3], cur[2]); mBal.q(prev[4], prev[5], cur[5], cur[4]); }
+    prev = cur;
+  }
+  for (let s = 0.3; s < r.L; s += 0.6) { const p = r.en(s); traviesas.push({ x: p.x, y: p.y, z: p.z - 0.3, yaw: Math.atan2(p.ty, p.tx) + Math.PI / 2, info }); }
+}
+agrega('050117', mBal, '#8d8a85');
+instancias('050117', new THREE.BoxGeometry(2.6, 0.2, 0.24), mat('#b9b6ae'), traviesas);
+const mCarril = new Malla();
+for (const e of porCapa['050177'] || []) {
+  const info = fichaDe(e, 'Carril de 60 kg/m (perfil dibujado a partir de la polilínea del levantamiento).', 'Carril');
+  mCarril.marca(info);
+  prisma(mCarril, e.p, 0.075, 0, -0.06); prisma(mCarril, e.p, 0.03, -0.06, -0.15); prisma(mCarril, e.p, 0.15, -0.15, -0.18);
+}
+agrega('050177', mCarril, '#c9ccd0', { extra: { metalness: 0.6, roughness: 0.4 } });
+
+// ============ TÚNEL ============
+if (hayTunel) {
+  const R = 6.5, H0 = 2.0, PISO = -0.5;                  // anchura y altura sacadas del contorno de la boca (13 m x 8,5 m sobre el carril)
+  const perfil = [[-R, PISO], [-R, H0]];
+  for (let i = 1; i < 18; i++) { const a = Math.PI - Math.PI * i / 18; perfil.push([R * Math.cos(a), H0 + R * Math.sin(a)]); }
+  perfil.push([R, H0], [R, PISO]);
+  const sFin = Math.min(rutaA.L, sCara + 30);
+  const tub = new Malla();
+  tub.marca({ capa: capasMeta['050020'].nombre, nombre: `Túnel (boca en el PK ${fmtPk(PK_BOCA)})`, info: `Trazado deducido de los hitos kilométricos del levantamiento (PK ${fmtPk(HITOS[0].pk)} a ${fmtPk(HITOS.find(h => h.pk > 447650)?.pk || 447700)}) y de la vía levantada; la anchura (13 m) y la altura (8,5 m sobre el carril) salen del contorno de la boca medido. Revestimiento, aceras, canal de cables y luminarias son esquemáticos: el levantamiento solo recoge la boca. El túnel continúa hacia el oeste fuera de la zona levantada.` });
+  let prev = null;
+  for (let s = 0; ; s += 4) {
+    const ss = Math.min(s, sFin), c = ctr(ss), nx = -c.ty, ny = c.tx;
+    const anillo = perfil.map(([u, v]) => tub.v(c.x + nx * u, c.y + ny * u, c.z + v));
+    if (prev) for (let i = 0; i < anillo.length; i++) { const j = (i + 1) % anillo.length; tub.q(prev[i], prev[j], anillo[j], anillo[i]); }
+    prev = anillo;
+    if (ss >= sFin) break;
+  }
+  const mTub = agrega('050020', tub, '#ffffff', { extra: { clippingPlanes: [planoCara], roughness: 0.95, emissive: '#55524b', emissiveIntensity: 0.55, vertexColors: true } });
+  if (mTub) {
+    const nR = perfil.length, col = new Float32Array(tub.n * 3), base = new THREE.Color('#b3b0a7');
+    for (let k = 0; k < tub.n; k++) {
+      const v = perfil[k % nR][1], f = (0.62 + 0.38 * (1 - Math.min(1, Math.max(0, (v - 1) / 7.5)))) * (Math.floor(k / nR) % 2 ? 0.95 : 1), c = base.clone().multiplyScalar(f);
+      col.set([c.r, c.g, c.b], k * 3);
+    }
+    mTub.geometry.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  }
+  const sDet = Math.max(10, sCara - 1);
+  const linea = (u, s0, s1, paso = 4) => { const o = []; for (let s = s0; s < s1 + paso; s += paso) { const c = ctr(Math.min(s, s1)); o.push([c.x - c.ty * u, c.y + c.tx * u, c.z]); } return o; };
+  const ac = new Malla(), cb = new Malla();
+  for (const lado of [-1, 1]) {
+    prisma(ac, linea(lado * 5.75, 0, sDet), 1.2, 0.45, -0.4, { capa: capasMeta['050020'].nombre, nombre: 'Acera de evacuación', info: 'Acera lateral del túnel: 1,2 m de ancho y 0,45 m sobre el carril (valores supuestos).' });
+    prisma(cb, linea(lado * 6.3, 0, sDet), 0.25, 1.15, 0.95, { capa: capasMeta['050020'].nombre, nombre: 'Canal de cables', info: 'Canal de cables de señalización y comunicaciones a lo largo del hastial (posición supuesta).' });
+  }
+  agrega('050020', ac, '#bdb9b0', { extra: { clippingPlanes: [planoCara] } });
+  agrega('050020', cb, '#7c8387', { extra: { clippingPlanes: [planoCara] } });
+  const luces = [];
+  for (let s = 6; s < sDet; s += 14) for (const lado of [-1, 1]) { const c = ctr(s); luces.push({ x: c.x - c.ty * lado * 6.12, y: c.y + c.tx * lado * 6.12, z: c.z + 3.3, yaw: Math.atan2(c.ty, c.tx), info: { capa: capasMeta['050020'].nombre, nombre: 'Luminaria del túnel', info: 'Luminaria lineal de alumbrado normal; separación y posición supuestas.' } }); }
+  instancias('050020', new THREE.BoxGeometry(1.3, 0.1, 0.16), mat('#fff6dc', 1, { emissive: '#fff0b8', emissiveIntensity: 1.3 }), luces);
+}
+
+// ============ PLATAFORMA Y DRENAJE ============
+{
+  const por = (id, color, w, dz, nombre, extra = '') => {
+    const m = new Malla();
+    for (const e of porCapa[id] || []) cinta(m, e.p, w, dz, fichaDe(e, extra, nombre));
+    agrega(id, m, color);
+  };
+  por('010127', '#6f7f86', 1.2, 0.04, 'Cuneta de obra de fábrica', 'Cuneta revestida; ancho supuesto de 1,2 m.');
+  por('050021', '#7a868c', 0.9, 0.05, 'Obra de drenaje');
+  por('050023', '#8e8d88', 0.4, 0.03, 'Elemento de plataforma');
+  por('020004', '#5f7e88', 1.1, 0.06, 'Acequia', 'Ancho supuesto de 1,1 m.');
+  const can = new Malla();
+  for (const e of porCapa['050150'] || []) prisma(can, e.p, 0.5, 0.0, -0.3, fichaDe(e, 'Canaleta prefabricada de hormigón con tapa; sección supuesta de 0,5 × 0.3 m.', 'Canalización / canaleta'));
+  agrega('050150', can, '#b9b5ac');
+  // Arquetas: tapa de 0,7 m en cada hito y polilíneas cerradas como losas
+  const aq = [];
+  for (const e of porCapa['050134'] || []) {
+    if (e.p.length === 1) aq.push({ x: e.p[0][0], y: e.p[0][1], z: e.p[0][2] + 0.04, yaw: ((e.g || 0) * Math.PI) / 180, info: fichaDe(e, 'Tapa de 0,7 m supuesta.', 'Arqueta') });
+  }
+  instancias('050134', new THREE.CylinderGeometry(0.4, 0.4, 0.1, 14), mat('#7c7a76'), aq);
+  const aqm = new Malla();
+  for (const e of (porCapa['050134'] || []).filter(e => e.p.length > 2)) {
+    const pts = e.p.slice(0, e.k ? -1 : undefined), tri = THREE.ShapeUtils.triangulateShape(pts.map(q => new THREE.Vector2(q[0], q[1])), []);
+    aqm.marca(fichaDe(e, 'Contorno de la arqueta del levantamiento.', 'Arqueta'));
+    const zz = Math.max(...pts.map(q => q[2])) + 0.06, base = aqm.n;
+    pts.forEach(q => aqm.v(q[0], q[1], zz));
+    for (const t of tri) aqm.t(base + t[0], base + t[1], base + t[2]);
+  }
+  agrega('050134', aqm, '#8a8782');
+}
+
+// ============ CATENARIA Y SEÑALIZACIÓN ============
+const mastiles = [];
+{
+  const H = 8.4, cat = lid && lid.catenaria, ALTO_HILO = cat && cat.contacto > 4.8 && cat.contacto < 6.3 ? cat.contacto : 5.3, ALTO_SUS = cat && cat.sustentador > ALTO_HILO + 0.4 && cat.sustentador < 8.5 ? cat.sustentador - ALTO_HILO : 1.1;
+  const rutasVia = AXES.map(a => new Ruta(a));
+  const pos = (porCapa['040242'] || []);
+  const postes = [], brazos = [], focos = [];
+  const porRuta = new Map();
+  pos.forEach((e, idx) => {
+    const [x, y, z] = e.p[0];
+    const hp = lid && lid.postes ? lid.postes[String(idx)] : null, hm = hp || H, sh = hm / H;
+    let mejor = null;
+    for (const r of rutasVia) { const q = r.proy(x, y); if (!mejor || q.d < mejor.q.d) mejor = { r, q }; }
+    const cerca = mejor && mejor.q.d < 12;
+    const info = fichaDe(e, (cerca ? 'Poste con ménsula hacia la vía. ' : 'Poste. ') + (hp ? `Altura medida con el LiDAR del IGN: ${hp.toFixed(1).replace('.', ',')} m.` : 'Altura (8,4 m) supuesta: el levantamiento solo da la posición.'));
+    if (e.b === '2409') {
+      postes.push({ x, y, z, sy: hp ? sh : 0.82, info });
+      focos.push({ x, y, z: z + (hp ? hp - 0.2 : 7.2), info });
+      return;
+    }
+    postes.push({ x, y, z, sy: sh, info });
+    if (cerca) {
+      const dx = mejor.q.x - x, dy = mejor.q.y - y, d = Math.hypot(dx, dy);
+      brazos.push({ x: x + dx / 2, y: y + dy / 2, z: z + hm - 1.2, yaw: Math.atan2(dy, dx), sx: d, info });
+      const lista = porRuta.get(mejor.r) || []; lista.push({ s: mejor.q.s, x, y }); porRuta.set(mejor.r, lista);
+      mastiles.push({ ruta: mejor.r, s: mejor.q.s });
+    }
+  });
+  instancias('040242', new THREE.BoxGeometry(0.34, H, 0.3).translate(0, H / 2, 0), mat('#7e8b88', 1, { metalness: 0.4 }), postes);
+  instancias('040242', new THREE.BoxGeometry(1, 0.12, 0.12), mat('#9aa3a6', 1, { metalness: 0.5 }), brazos);
+  instancias('040242', new THREE.SphereGeometry(0.28, 8, 6), mat('#fff6d8', 1, { emissive: '#fff0b0', emissiveIntensity: 0.9 }), focos);
+  // Hilo de contacto y sustentador entre postes consecutivos, siguiendo la vía
+  const seg = [], pend = [];
+  for (const [r, lista] of porRuta) {
+    lista.sort((a, b) => a.s - b.s);
+    for (let i = 0; i < lista.length - 1; i++) {
+      const s0 = lista[i].s, s1 = lista[i + 1].s;
+      if (s1 - s0 > 95 || s1 - s0 < 5) continue;
+      const n = Math.max(2, Math.round((s1 - s0) / 5));
+      let pa = null, pb = null;
+      for (let k = 0; k <= n; k++) {
+        const s = s0 + (s1 - s0) * k / n, p = r.en(s), zig = Math.sin(((s - s0) / (s1 - s0)) * Math.PI) * 0.0 + (i % 2 ? 0.15 : -0.15);
+        const nx = -p.ty, ny = p.tx, ca = P(p.x + nx * zig, p.y + ny * zig, p.z + ALTO_HILO), flecha = 1.2 * Math.sin(Math.PI * k / n) ** 2 * 0 + 0.5 * Math.sin(Math.PI * k / n);
+        const su = P(p.x + nx * zig, p.y + ny * zig, p.z + ALTO_HILO + ALTO_SUS - flecha);
+        if (pa) { seg.push(pa[0].x, pa[0].y, pa[0].z, ca.x, ca.y, ca.z); seg.push(pa[1].x, pa[1].y, pa[1].z, su.x, su.y, su.z); }
+        if (k > 0 && k < n) pend.push(ca.x, ca.y, ca.z, su.x, su.y, su.z);
+        pa = [ca, su];
+      }
+    }
+  }
+  // Catenaria dentro del túnel: hilo de contacto y sustentador hasta el primer poste de la zona levantada
+  if (hayTunel) viasTren.forEach((r, ir) => {
+    let sPrimero = (ir ? sTunB : sTunA) + 40;
+    for (const e of pos) { const q = r.proy(e.p[0][0], e.p[0][1]); if (q.d < 12 && q.s > sCara - 20) sPrimero = Math.min(sPrimero, q.s); }
+    let pa = null;
+    for (let s = 0; s <= sPrimero; s += 5) {
+      const q = r.en(Math.min(s, sPrimero)), ca = P(q.x, q.y, q.z + ALTO_HILO), su = P(q.x, q.y, q.z + ALTO_HILO + ALTO_SUS - 0.3);
+      if (pa) { seg.push(pa[0].x, pa[0].y, pa[0].z, ca.x, ca.y, ca.z); seg.push(pa[1].x, pa[1].y, pa[1].z, su.x, su.y, su.z); }
+      if (s > 0) pend.push(ca.x, ca.y, ca.z, su.x, su.y, su.z);
+      pa = [ca, su];
+    }
+  });
+  const lg = new THREE.BufferGeometry();
+  lg.setAttribute('position', new THREE.Float32BufferAttribute([...seg, ...pend], 3));
+  const hilos = new THREE.LineSegments(lg, new THREE.LineBasicMaterial({ color: '#2c3033' }));
+  hilos.userData = { nombre: 'Hilo de contacto y sustentador', capa: capasMeta['040242'].nombre, info: cat ? `Catenaria dibujada entre postes consecutivos: hilo de contacto a ${ALTO_HILO.toFixed(1).replace('.', ',')} m y sustentador a ${(ALTO_HILO + ALTO_SUS).toFixed(1).replace('.', ',')} m sobre el carril, alturas medidas con el LiDAR del IGN (picos de ${cat.n} retornos).` : 'Catenaria dibujada entre postes consecutivos a 5,3 m sobre el carril (altura típica; el levantamiento no incluye los hilos).' };
+  grupoDe('040242').add(hilos);
+  // Señales verticales de tráfico y balizas
+  const sen = [];
+  for (const e of porCapa['040235'] || []) {
+    const [x, y, z] = e.p[0], info = fichaDe(e, 'Señal con su poste; tipo y mensaje no figuran en el levantamiento.', e.b === '2416' ? 'Semáforo / señal luminosa' : 'Señal vertical');
+    sen.push({ x, y, z, info, yaw: ((e.g || 0) * Math.PI) / 180 });
+  }
+  instancias('040235', new THREE.CylinderGeometry(0.04, 0.04, 2.4, 6).translate(0, 1.2, 0), mat('#8d9395'), sen);
+  instancias('040235', new THREE.CylinderGeometry(0.32, 0.32, 0.03, 16).rotateX(Math.PI / 2).translate(0, 2.3, 0.04), mat('#e5e3dc', 1, { emissive: '#aa2020', emissiveIntensity: 0.25 }), sen);
+  const bal = [];
+  for (const e of porCapa['050247'] || []) {
+    const [x, y, z] = e.p[0]; bal.push({ x, y, z: z + 0.04, yaw: ((e.g || 0) * Math.PI) / 180, info: fichaDe(e, 'Baliza ERTMS/ASFA entre carriles; dibujada con su tamaño típico.', 'Baliza') });
+  }
+  instancias('050247', new THREE.BoxGeometry(0.5, 0.08, 0.25), mat('#f1cf2b', 1, { emissive: '#7a6200', emissiveIntensity: 0.3 }), bal);
+}
+
+// ============ ESTRUCTURAS ============
+{
+  const mu = new Malla();
+  for (const e of porCapa['030203'] || []) prisma(mu, e.p, 0.5, 0, -1.4, fichaDe(e, 'Muro de contención: la polilínea marca su coronación; el espesor (0,5 m) y la altura son supuestos.', 'Muro de contención'));
+  agrega('030203', mu, '#b4a58f', { recibe: false });
+  const pn = new Malla();
+  for (const e of porCapa['050185'] || []) lamina(pn, e.p, 3.0, 0, fichaDe(e, 'Altura supuesta de 3 m.', 'Pantalla acústica'));
+  agrega('050185', pn, '#6f87a8', { opacidad: 0.75, recibe: false, sombra: false });
+  const ps = new Malla();
+  for (const e of porCapa['050197'] || []) {
+    prisma(ps, e.p, 0.5, 0, -0.9, fichaDe(e, 'Elemento del paso superior (tablero, estribos, pretiles o muros): el levantamiento da solo sus aristas; las secciones son supuestas.', 'Paso superior'));
+  }
+  agrega('050197', ps, '#a8a39a');
+  const al = new Malla();
+  for (const e of porCapa['030020'] || []) prisma(al, e.p, 1.0, 0.1, -0.6, fichaDe(e, 'Obra de paso de agua: sección supuesta.', 'Alcantarilla'));
+  agrega('030020', al, '#8a8e92');
+}
+
+// ============ ELDA: paso inferior, torre de la BTS GSM-R, rocas y vaguadas ============
+{
+  const sobre = (pts, dz = 0.1) => pts.map(q => [q[0], q[1], Math.max(q[2], cotaTerreno(q[0], q[1])) + dz]);
+  const pi = new Malla();
+  for (const e of porCapa['050135'] || []) prisma(pi, e.p, 0.6, 0.1, -2.4, fichaDe(e, 'Contorno de un paso inferior del levantamiento: el muro se dibuja con 0,6 m de espesor y 2,5 m de alto (supuestos).', 'Paso inferior'));
+  agrega('050135', pi, '#b9b4a8', { recibe: false });
+  // Torre de la BTS: celosía de 4 montantes cuyo alto sale del LiDAR del IGN; antenas y plataforma esquemáticas
+  const lista = porCapa['050075'] || [], kb = lista.findIndex(e => e.b === 'BTS');
+  if (kb >= 0) {
+    const e = lista[kb], [bx, by, bz] = e.p[0], HTb = (lid && lid.postes && lid.postes[`bts:${kb}`]) || 30, med = !!(lid && lid.postes && lid.postes[`bts:${kb}`]);
+    const base = Math.min(bz, cotaTerreno(bx, by)), a0 = 1.5, a1 = 0.4, geos = [];
+    const cil = (p, q, r) => { const d = new THREE.Vector3().subVectors(q, p), L = d.length(), g = new THREE.CylinderGeometry(r, r, L, 5); g.applyMatrix4(new THREE.Matrix4().compose(p.clone().addScaledVector(d, 0.5), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()), new THREE.Vector3(1, 1, 1))); geos.push(g); };
+    const semi = h => a0 + (a1 - a0) * Math.min(1, h / (HTb - 3));
+    const esq = h => [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([i, j]) => P(bx + i * semi(h), by + j * semi(h), base + h));
+    const N = 11;
+    for (let k = 0; k < N; k++) {
+      const h0 = (HTb - 3) * k / N, h1 = (HTb - 3) * (k + 1) / N, c0 = esq(h0), c1 = esq(h1);
+      for (let i = 0; i < 4; i++) { cil(c0[i], c1[i], 0.09); cil(c1[i], c1[(i + 1) % 4], 0.05); cil(c0[i], c1[(i + 1) % 4], 0.035); }
+    }
+    const top = esq(HTb - 3);
+    for (let i = 0; i < 4; i++) cil(top[i], top[(i + 1) % 4], 0.06);
+    cil(P(bx, by, base + HTb - 3), P(bx, by, base + HTb + 2), 0.06);
+    const torre = new THREE.Mesh(mergeGeometries(geos), mat('#b8bdc0', 1, { metalness: 0.5, roughness: 0.5 }));
+    torre.castShadow = true; torre.receiveShadow = true;
+    torre.userData = { nombre: 'Torre de la estación base GSM-R (BTS)', capa: capasMeta['050075'].nombre, info: `Torre de celosía de ${HTb.toFixed(1).replace('.', ',')} m ${med ? 'de altura, medida con el LiDAR del IGN' : '(altura supuesta)'}; la celosía, la plataforma y las antenas son esquemáticas. Posición del bloque BTS del levantamiento (PK ${fmtPk(e.pk)}, ${textoLado(e.of)}).` };
+    grupoDe('050075').add(torre);
+    const ant = [];
+    for (const [i, j] of [[1, 0], [-0.5, 0.87], [-0.5, -0.87]]) ant.push({ x: bx + i * 1.2, y: by + j * 1.2, z: base + HTb - 1.8, yaw: Math.atan2(-j, i), info: { capa: capasMeta['050075'].nombre, nombre: 'Antena sectorial', info: 'Antena de la BTS (forma y número supuestos).' } });
+    instancias('050075', new THREE.BoxGeometry(0.15, 2.0, 0.4), mat('#e8e8e4'), ant);
+    const plat = new Malla();
+    plat.marca({ capa: capasMeta['050075'].nombre, nombre: 'Plataforma de la torre', info: 'Plataforma de trabajo en lo alto de la torre (esquemática).' });
+    cinta(plat, [[bx - 2.4, by, base + HTb - 3.1], [bx + 2.4, by, base + HTb - 3.1]], 4.2, 0);
+    agrega('050075', plat, '#8f979b');
+  }
+  // Roquedo y escollera junto a la plataforma: bloques repartidos sobre las polilíneas del levantamiento
+  const rocas = [];
+  for (const e of porCapa['010057'] || []) {
+    if (e.p.length < 2) continue;
+    const r = new Ruta(sobre(e.p, 0)), info = fichaDe(e, 'Bloques de piedra repartidos a lo largo del contorno del levantamiento (tamaño y forma genéricos).', 'Piedras, canteras y roquedo');
+    for (let s = 0; s < r.L; s += 1.1) { const p = r.en(s), t = 0.4 + rnd() * 0.6, x = p.x + (rnd() - 0.5) * 1.4, y = p.y + (rnd() - 0.5) * 1.4; rocas.push({ x, y, z: cotaTerreno(x, y) + t * 0.2, sx: t * (0.9 + rnd() * 0.6), sy: t * 0.75, sz: t * (0.9 + rnd() * 0.6), yaw: rnd() * 6.28, color: ['#8c8478', '#7d776d', '#9a9285'][Math.floor(rnd() * 3)], info }); }
+  }
+  instancias('010057', new THREE.IcosahedronGeometry(1, 0), mat('#ffffff'), rocas);
+  const vg = new Malla();
+  for (const e of porCapa['020140'] || []) cinta(vg, sobre(e.p, 0.12), 1.6, 0, fichaDe(e, 'Eje de la vaguada o arroyo del levantamiento; se dibuja como una franja de 1,6 m (ancho supuesto).', 'Vaguada / arroyo'));
+  agrega('020140', vg, '#7c6c52', { opacidad: 0.5, sombra: false, extra: { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 } });
+  const cu = new Malla(), ct = new Malla();
+  for (const e of porCapa['090092'] || []) if (e.p.length >= 2) cinta(cu, sobre(e.p, 0.1), 0.25, 0, fichaDe(e, 'Límite entre tipos de cultivo del levantamiento.', 'Tipo de cultivo'));
+  agrega('090092', cu, '#b3a36d', { opacidad: 0.5, sombra: false, extra: { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 } });
+  for (const e of porCapa['010051'] || []) if (e.p.length >= 2) cinta(ct, sobre(e.p, 0.12), 0.3, 0, fichaDe(e, 'Cabeza (arista superior) del talud, según el levantamiento.', 'Cabeza de talud'));
+  agrega('010051', ct, '#d8b86a', { opacidad: 0.7, sombra: false, extra: { polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 } });
+}
+
+// ============ EDIFICIOS ============
+{
+  const cfg = {
+    '030001': { h: 6, muro: '#d6cfc1', techo: '#9c6b55', nombre: 'Edificio' },
+    '030235': { h: 7.5, muro: '#c9ccc7', techo: '#8d9a9e', nombre: 'Nave' },
+    '030067': { h: 3.5, muro: '#cfc8b8', techo: '#8e7a6a', nombre: 'Otra edificación' },
+    '030025': { h: 3.0, muro: '#cfc8b8', techo: '#7d8386', nombre: 'Sombrajo, cobertizo o caseta' },
+    '030129': { h: 1.2, muro: '#a89f90', techo: null, nombre: 'Ruinas' },
+    '030004': { h: 5, muro: '#c6c0b4', techo: null, nombre: 'División de altura / medianería' },
+    '030051': { h: 4.2, muro: null, techo: '#9aa0a6', nombre: 'Marquesina' },
+    '050075': { h: 3.1, muro: '#dcdad4', techo: '#8e949a', nombre: 'Caseta de la BTS GSM-R' },
+    '050035': { h: 1.5, muro: '#8a9a8c', techo: '#6f7c72', nombre: 'Armario de vía' },
+  };
+  for (const [id, c] of Object.entries(cfg)) {
+    const paredes = new Malla(), tejados = new Malla(), postes = new Malla();
+    (porCapa[id] || []).forEach((e, ke) => {
+      if (e.p.length < 3) return;
+      const hl = lid && lid.alturas ? lid.alturas[`${id}:${ke}`] : null, tj = lid && lid.tejados ? lid.tejados[`${id}:${ke}`] : null;
+      const dosAguas = !!(tj && c.muro && tj.cumbrera - tj.alero > 0.8), hh = dosAguas ? tj.alero : hl || c.h;
+      const pts = e.p, cerrado = e.k || Math.hypot(pts[0][0] - pts.at(-1)[0], pts[0][1] - pts.at(-1)[1]) < 2.5;
+      const base = Math.min(...pts.map(q => q[2])), zb = Math.min(base, ...pts.map(q => cotaTerreno(q[0], q[1]))) - 0.2;
+      const info = fichaDe(e, dosAguas ? `Cubierta a dos aguas medida con el LiDAR del IGN: alero a ${tj.alero.toFixed(1).replace('.', ',')} m y cumbrera a ${tj.cumbrera.toFixed(1).replace('.', ',')} m.` : hl ? `Altura medida con el LiDAR del IGN: ${hl.toFixed(1).replace('.', ',')} m.` : `Altura supuesta de ${c.h} m: el levantamiento solo da la planta.`, c.nombre);
+      const ptsPared = pts.map(q => [q[0], q[1], zb]);
+      if (c.muro) { paredes.marca(info); lamina(paredes, cerrado && pts.length > 2 ? [...ptsPared, ptsPared[0]] : ptsPared, base + hh - zb, 0); }
+      if (dosAguas) {
+        // Cubierta a dos aguas sobre el rectangulo orientado de la huella, con la cumbrera a lo largo del lado largo
+        const a = tj.ang * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a), vx = -uy, vy = ux, cxm = tj.rect.reduce((t, q) => t + q[0], 0) / 4, cym = tj.rect.reduce((t, q) => t + q[1], 0) / 4;
+        const proy = (q, ex, ey) => (q[0] - cxm) * ex + (q[1] - cym) * ey;
+        const la = Math.max(...tj.rect.map(q => Math.abs(proy(q, ux, uy)))) + 0.3, lb = Math.max(...tj.rect.map(q => Math.abs(proy(q, vx, vy)))) + 0.3;
+        const pt = (i, j) => [cxm + ux * la * i + vx * lb * j, cym + uy * la * i + vy * lb * j];
+        const zE = base + tj.alero, zR = base + tj.cumbrera;
+        tejados.marca(info);
+        const v = (p, z) => tejados.v(p[0], p[1], z);
+        const e0 = v(pt(-1, -1), zE), e1 = v(pt(1, -1), zE), e2 = v(pt(1, 1), zE), e3 = v(pt(-1, 1), zE), r0 = v(pt(-1, 0), zR), r1 = v(pt(1, 0), zR);
+        tejados.q(e0, e1, r1, r0); tejados.q(e3, e2, r1, r0); tejados.t(e0, e3, r0); tejados.t(e1, e2, r1);
+      } else if (c.techo && cerrado && pts.length >= 3) {
+        const contorno = (e.k ? pts.slice(0, -1) : pts), tri = THREE.ShapeUtils.triangulateShape(contorno.map(q => new THREE.Vector2(q[0], q[1])), []);
+        tejados.marca(info);
+        const b0 = tejados.n, zt = base + hh;
+        contorno.forEach(q => tejados.v(q[0], q[1], zt));
+        for (const t of tri) tejados.t(b0 + t[0], b0 + t[1], b0 + t[2]);
+        if (id === '030051') contorno.forEach(q => { postes.marca(info); prisma(postes, [[q[0], q[1], zb], [q[0] + 0.01, q[1], zb]], 0.25, hh, 0); });
+      }
+    });
+    agrega(id, paredes, c.muro || '#ccc', { recibe: false });
+    agrega(id, tejados, c.techo || '#999');
+    agrega(id, postes, '#80878c');
+  }
+}
+
+// ============ VIALES Y LÍMITES ============
+{
+  const carr = new Malla();
+  for (const e of porCapa['040217'] || []) cinta(carr, e.p, 6.5, 0.05, fichaDe(e, 'Calzada de 6,5 m (ancho supuesto) dibujada sobre el eje de la carretera.', 'Carretera'));
+  agrega('040217', carr, '#4b4d50');
+  const mg = new Malla();
+  for (const e of porCapa['040001'] || []) cinta(mg, e.p, 0.35, 0.06, fichaDe(e, 'Margen de carretera.', 'Margen de carretera'));
+  agrega('040001', mg, '#d2d0c8');
+  const cm = new Malla();
+  for (const e of porCapa['040002'] || []) cinta(cm, e.p, 0.4, 0.04, fichaDe(e, 'Margen de camino.', 'Margen de camino'));
+  agrega('040002', cm, '#8c7a62');
+  const va = new Malla(), postesV = [];
+  for (const id of ['030002', '030253']) {
+    for (const e of porCapa[id] || []) {
+      lamina(va, e.p, 1.8, 0, fichaDe(e, 'Altura supuesta de 1,8 m.', id === '030002' ? 'Alambrada / valla' : 'Cerramiento'));
+      const r = new Ruta(e.p);
+      for (let s = 0; s <= r.L; s += 3) { const p = r.en(s); postesV.push({ x: p.x, y: p.y, z: p.z, info: fichaDe(e, '', 'Poste de valla') }); }
+    }
+  }
+  agrega('030002', va, '#9fb6a0', { opacidad: 0.32, recibe: false, sombra: false });
+  instancias('030002', new THREE.CylinderGeometry(0.035, 0.035, 1.9, 5).translate(0, 0.95, 0), mat('#6f7a70'), postesV);
+  const mt = new Malla();
+  for (const e of porCapa['030175'] || []) {
+    const cerca = Math.min(...e.p.map(q => Math.min(...viasTren.map(r => r.proy(q[0], q[1]).d)))) < 8;
+    prisma(mt, e.p, 0.3, cerca ? 0.45 : 2.0, -0.2, fichaDe(e, cerca ? 'Muro bajo junto a la vía (murete o bordillo): altura de 0,45 m supuesta.' : 'Muro o tapia: altura de 2 m supuesta.', cerca ? 'Muro bajo junto a la vía' : 'Muro / tapia'));
+  }
+  agrega('030175', mt, '#b8ad9b', { recibe: false });
+  const ac = new Malla();
+  for (const e of porCapa['030205'] || []) cinta(ac, e.p, 0.35, 0.08, fichaDe(e, '', 'Acera / bordillo'));
+  agrega('030205', ac, '#cfccc5');
+  const li = new Malla();
+  for (const e of porCapa['060120'] || []) cinta(li, e.p, 0.25, 0.02, fichaDe(e, '', 'Linde de parcela'));
+  agrega('060120', li, '#d6c27a', { opacidad: 0.55 });
+}
+
+// ============ ENTORNO: torres, línea eléctrica, tuberías, árboles ============
+{
+  const torre = new Malla();
+  const HT0 = 26, torresH = (porCapa['040023'] || []).map((_, k) => (lid && lid.postes && lid.postes[`torre:${k}`]) || null);
+  (porCapa['040023'] || []).forEach((e, kt) => {
+    const HT = torresH[kt] || HT0;
+    const pts = e.p.slice(0, -1), cx = pts.reduce((a, q) => a + q[0], 0) / pts.length, cy = pts.reduce((a, q) => a + q[1], 0) / pts.length, z = Math.min(...pts.map(q => q[2]));
+    const info = fichaDe(e, (torresH[kt] ? `Apoyo metálico: altura medida con el LiDAR del IGN, ${HT.toFixed(1).replace('.', ',')} m.` : `Apoyo metálico: altura supuesta (${HT} m).`), 'Torre metálica');
+    torre.marca(info);
+    const esq = pts.map(q => [q[0], q[1]]);
+    const cima = [[cx - 0.5, cy - 0.5], [cx + 0.5, cy - 0.5], [cx + 0.5, cy + 0.5], [cx - 0.5, cy + 0.5]];
+    for (let k = 0; k < 4; k++) {
+      const a = esq[k % esq.length], b = esq[(k + 1) % esq.length], ca = cima[k], cb = cima[(k + 1) % 4];
+      const v0 = torre.v(a[0], a[1], z), v1 = torre.v(b[0], b[1], z), v2 = torre.v(cb[0], cb[1], z + HT), v3 = torre.v(ca[0], ca[1], z + HT);
+      torre.q(v0, v1, v2, v3);
+    }
+    // Brazos de las crucetas
+    for (const hh of (HT < 15 ? [] : [HT - 3, HT - 7])) for (const s of [-1, 1]) {
+      const a = torre.v(cx, cy - 0.15, z + hh), b = torre.v(cx, cy + 0.15, z + hh), c = torre.v(cx, cy + 0.15 + s * 0, z + hh);
+      void a; void b; void c;
+      const q0 = torre.v(cx - 2.6 * s, cy - 0.1, z + hh), q1 = torre.v(cx - 2.6 * s, cy + 0.1, z + hh), q2 = torre.v(cx, cy + 0.1, z + hh), q3 = torre.v(cx, cy - 0.1, z + hh);
+      torre.q(q0, q1, q2, q3);
+    }
+  });
+  const HT = torresH.filter(Boolean).length ? torresH.filter(Boolean).reduce((a, v) => a + v, 0) / torresH.filter(Boolean).length : HT0;
+  agrega('040023', torre, '#9aa1a5', { opacidad: 0.8 });
+  const cab = [];
+  for (const e of porCapa['040230'] || []) {
+    for (let i = 0; i < e.p.length - 1; i++) {
+      const a = e.p[i], b = e.p[i + 1], n = 12;
+      for (const dz of [HT - 3, HT - 7]) for (let k = 0; k < n; k++) {
+        const t0 = k / n, t1 = (k + 1) / n, s = t => 1.8 * Math.sin(Math.PI * t);
+        const p0 = P(a[0] + (b[0] - a[0]) * t0, a[1] + (b[1] - a[1]) * t0, a[2] + (b[2] - a[2]) * t0 + dz - s(t0)), p1 = P(a[0] + (b[0] - a[0]) * t1, a[1] + (b[1] - a[1]) * t1, a[2] + (b[2] - a[2]) * t1 + dz - s(t1));
+        cab.push(p0.x, p0.y, p0.z, p1.x, p1.y, p1.z);
+      }
+    }
+  }
+  if (cab.length) {
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(cab, 3));
+    const l = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: '#30353a' }));
+    l.userData = { nombre: 'Línea eléctrica', capa: capasMeta['040230'].nombre, info: 'Conductores dibujados con flecha sobre la traza del levantamiento; altura y número de conductores supuestos.' };
+    grupoDe('040230').add(l);
+  }
+  const tu = new Malla();
+  for (const e of porCapa['040161'] || []) prisma(tu, e.p.map(q => [q[0], q[1], Math.max(q[2], cotaTerreno(q[0], q[1]))]), 0.5, 0.45, 0, fichaDe(e, 'Conducción superficial: diámetro supuesto.', 'Tubería'));
+  agrega('040161', tu, '#6f8fb8');
+  const ar = [], conLidar = lid && lid.arboles && lid.arboles.length;
+  if (conLidar) {
+    // Copas detectadas en el LiDAR del IGN (máximos del modelo de altura de copas, a 2 m): altura y tamaño reales
+    const info = h => ({ capa: capasMeta['030080'].nombre, nombre: 'Árbol (LiDAR)', info: `Copa detectada en el LiDAR del IGN: ${h.toFixed(1).replace('.', ',')} m de altura. La forma es genérica.` });
+    const verdes = ['#4b5a35', '#56663a', '#3f5030', '#62703f'];
+    const por = [[], [], [], []];
+    lid.arboles.forEach(([x, y, z, h, r], i) => por[i % 4].push({ x, y, z, sx: r, sy: h, sz: r, info: info(h) }));
+    por.forEach((lista, k) => {
+      instancias('030080', new THREE.CylinderGeometry(0.1, 0.18, 1, 5).translate(0, 0.5, 0), mat('#5a4632'), lista.map(a => ({ ...a, sx: 1, sz: 1, sy: a.sy * 0.45 })));
+      instancias('030080', new THREE.IcosahedronGeometry(1, 1).translate(0, 0.8, 0), mat(verdes[k]), lista.map(a => ({ ...a, sy: a.sy * 0.42 })));
+    });
+    if (lid.matorral && lid.matorral.length) {
+      const mt = lid.matorral.map(([x, y, z, h], i) => ({ x, y, z, sx: 0.7 + h * 0.4, sy: Math.max(0.35, h * 0.7), sz: 0.7 + h * 0.4, info: { capa: capasMeta['030080'].nombre, nombre: 'Matorral (LiDAR)', info: `Vegetación baja detectada en el LiDAR del IGN: ${h.toFixed(1).replace('.', ',')} m.` } }));
+      instancias('030080', new THREE.IcosahedronGeometry(1, 0).translate(0, 0.6, 0), mat('#7d8455'), mt);
+    }
+  } else {
+    for (const e of porCapa['030080'] || []) {
+      if (e.p.length !== 1) continue;
+      const [x, y, z] = e.p[0], h = 4 + rnd() * 2.5;
+      ar.push({ x, y, z, sx: 1, sy: h, sz: 1, info: fichaDe(e, 'Árbol dibujado genérico.', 'Árbol') });
+    }
+    instancias('030080', new THREE.CylinderGeometry(0.12, 0.2, 1, 5).translate(0, 0.5, 0), mat('#5a4632'), ar);
+    instancias('030080', new THREE.IcosahedronGeometry(1, 1).translate(0, 0.78, 0), mat('#4b5a35'), ar.map(a => ({ ...a, sx: a.sy * 0.34, sz: a.sy * 0.34, sy: a.sy * 0.42 })));
+  }
+}
+
+// ============ HITOS DE PK ============
+{
+  const hitos = (porCapa['050155'] || []).filter(e => e.b === 'pk' && e.pk != null);
+  const pk = [];
+  for (const e of hitos) {
+    const [x, y, z] = e.p[0], info = fichaDe(e, 'Hito kilométrico del levantamiento.', 'Hito de PK');
+    pk.push({ x, y, z, info });
+    if (z + 2.2 > cotaTerreno(x, y) - 1) { const o = etiqueta('PK ' + fmtPk(Math.round(e.pk / 100) * 100), P(x, y, z + 2.2)); etqPk.push(o); grupoDe('050155').add(o); }
+  }
+  instancias('050155', new THREE.BoxGeometry(0.12, 1.6, 0.4).translate(0, 0.8, 0), mat('#f5d32a', 1, { emissive: '#7a6500', emissiveIntensity: 0.3 }), pk);
+}
+
+// ============ CURVAS DE NIVEL (solo se cargan si se encienden) ============
+let curvasPedidas = false;
+async function cargarCurvas() {
+  if (curvasPedidas) return; curvasPedidas = true;
+  const { terreno } = await fetch(`${RUTA}/local.json`).then(r => r.json());
+  const nor = [], dir = [], cotas = [];
+  for (const e of terreno) {
+    if (e.c === '010002') { cotas.push(e); continue; }
+    const dest = e.c === '010042' ? dir : nor;
+    for (let i = 0; i < e.p.length - 1; i++) { const a = P(e.p[i][0], e.p[i][1], e.p[i][2] + 0.12), b = P(e.p[i + 1][0], e.p[i + 1][1], e.p[i + 1][2] + 0.12); dest.push(a.x, a.y, a.z, b.x, b.y, b.z); }
+  }
+  const mk = (arr, color) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3)); return new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color })); };
+  const g = grupoDe('010040');
+  g.add(mk(nor, '#8a5a1c'), mk(dir, '#f0b040'));
+  const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(cotas.flatMap(e => P(e.p[0][0], e.p[0][1], e.p[0][2] + 0.2).toArray()), 3));
+  g.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: '#ffe066', size: 3, sizeAttenuation: false })));
+}
+
+// ============ TRENES: siguen la vía real (curva y pendiente del levantamiento) ============
+const trenes = [];
+function loft(anillos, n = 28) {
+  const pos = [], idx = [];
+  for (const a of anillos) for (let i = 0; i < n; i++) {
+    const t = i / n * Math.PI * 2, c = Math.cos(t), s = Math.sin(t);
+    const y = a.w / 2 * Math.sign(c) * Math.abs(c) ** 0.35, z = a.z0 + a.h / 2 + a.h / 2 * Math.sign(s) * Math.abs(s) ** 0.35;
+    pos.push(a.x, z, -y);
+  }
+  for (let r = 0; r < anillos.length - 1; r++) for (let i = 0; i < n; i++) { const a = r * n + i, b = r * n + (i + 1) % n, c = a + n, d = b + n; idx.push(a, c, b, b, c, d); }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+function barra(a, b, r, material) {
+  const d = new THREE.Vector3().subVectors(b, a), L = d.length();
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, L, 6), material);
+  m.position.copy(a).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+  return m;
+}
+function construirTren(e) {
+  const mBlanco = new THREE.MeshStandardMaterial({ color: '#f2f3f4', roughness: 0.35, metalness: 0.2, side: THREE.DoubleSide });
+  const mBanda = mat(e.colorBanda), mVentana = new THREE.MeshStandardMaterial({ color: '#1f252c', roughness: 0.15, metalness: 0.4 });
+  const mBogie = mat('#2b2e31'), mRueda = mat('#55595c'), W = 2.9, H = 3.55, tren = new THREE.Group();
+  const caja = (x0, x1, y, z0, z1, dy, m) => { const b = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, z1 - z0, dy), m); b.position.set((x0 + x1) / 2, (z0 + z1) / 2, -y); tren.add(b); };
+  const bogie = x => {
+    caja(x - 1.4, x + 1.4, 0, -0.75, -0.2, 2.2, mBogie);
+    for (const dx of [-0.85, 0.85]) for (const dy of [-0.72, 0.72]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.14, 16), mRueda); r.rotation.x = Math.PI / 2; r.position.set(x + dx, -0.5, -dy); tren.add(r); }
+  };
+  const laterales = (x0, x1, ventanas) => { for (const s of [-1, 1]) { caja(x0, x1, s * (W / 2 + 0.005), 0.55, 0.85, 0.02, mBanda); if (ventanas) caja(x0, x1, s * (W / 2 + 0.005), 1.75, 2.45, 0.02, mVentana); } };
+  const cabeza = (x0, sentido) => {
+    const perfil = [[0, 0.3, 0.5, 0.35], [0.8, 1.2, 1.1, 0.2], [2.5, 2.2, 2.0, 0.05], [5, 2.75, 2.9, 0], [8, 2.9, 3.4, 0], [10, W, H, 0], [20, W, H, 0], [20.02, 0.01, 0.01, 1.7]];
+    tren.add(new THREE.Mesh(loft(perfil.map(([x, w, h, z0]) => ({ x: x0 + sentido * x, w, h, z0 }))), mBlanco));
+    const xa = x0 + sentido * 10, xb = x0 + sentido * 20; laterales(Math.min(xa, xb), Math.max(xa, xb), false);
+    const pb = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.04, 1.9), mVentana); pb.position.set(x0 + sentido * 6.3, 3.12, 0); pb.rotation.z = -sentido * 0.2; tren.add(pb);
+    const banda = new THREE.Mesh(new THREE.BoxGeometry(6, 0.3, W * 0.97), mBanda); banda.position.set(x0 + sentido * 7, 0.7, 0); tren.add(banda);
+    bogie(x0 + sentido * 5); bogie(x0 + sentido * 17);
+    const xp = x0 + sentido * 15, alto = e.alturaContacto;
+    caja(xp - 0.6, xp + 0.6, 0, H, H + 0.25, 1.2, mBogie);
+    const mp = mat('#8a8f93');
+    tren.add(barra(new THREE.Vector3(xp - 0.5, H + 0.25, 0), new THREE.Vector3(xp + 0.6, (H + alto) / 2, 0), 0.03, mp));
+    tren.add(barra(new THREE.Vector3(xp + 0.6, (H + alto) / 2, 0), new THREE.Vector3(xp, alto, 0), 0.03, mp));
+    caja(xp - 0.1, xp + 0.1, 0, alto - 0.04, alto, 1.8, mp);
+  };
+  let x = 20.5;
+  cabeza(0, 1);
+  for (let k = 0; k < e.coches; k++) {
+    const L = 18;
+    tren.add(new THREE.Mesh(loft([{ x, w: 0.01, h: 0.01, z0: 1.7 }, { x: x + 0.01, w: W, h: H, z0: 0 }, { x: x + L, w: W, h: H, z0: 0 }, { x: x + L + 0.01, w: 0.01, h: 0.01, z0: 1.7 }]), mBlanco));
+    laterales(x, x + L, true); bogie(x + L); x += L + 0.5;
+  }
+  cabeza(x + 20, -1);
+  const largo = x + 20;
+  if (e.marca) window.Trenes3D?.aplicar(tren, e.marca, { mBlanco, mBanda, coches: e.coches });
+  window.Rend3D?.fusionar(tren);
+  const g = new THREE.Group(); g.add(tren);
+  g.userData = { nombre: 'Tren de alta velocidad', capa: 'Tren en circulación', info: 'Tren de unos 200 m que recorre la vía del levantamiento a 250 km/h, siguiendo su curva y su pendiente reales. Modelo genérico con librea aproximada, sin logotipos.' };
+  const par = { tren: g, e, largo, t: e.desfase || 0, k: e.k0 || 0 };
+  trenes.push(par);
+  grupoTren.add(g);
+}
+const grupoTren = new THREE.Group(); escena.add(grupoTren);
+{
+  // Los trenes entran y salen de la zona levantada: la vía se prolonga 300 m por cada extremo (en recta, con la pendiente del extremo)
+  // para que no circulen en el aire. Es una prolongación supuesta, fuera del levantamiento.
+  {
+    const mE = new Malla(), carr = new Malla(), trE = [], info = { capa: capasMeta['050117'].nombre, nombre: 'Prolongación de la vía', info: 'Vía prolongada 300 m en recta por cada extremo de la zona levantada, solo para que los trenes entren y salgan sobre carril. No procede del levantamiento.' };
+    const infoT = { capa: capasMeta['050117'].nombre, nombre: 'Vía del túnel', info: 'Vía por el interior del túnel, trazada con los hitos kilométricos del levantamiento; el balasto y los carriles se dibujan con su sección tipo (supuesta). Al otro lado de la boca la vía es la levantada.' };
+    viasTren.forEach((r, ir) => {
+      for (const [s0, s1] of [...((ir ? sTunB : sTunA) > 1 ? [[0, ir ? sTunB : sTunA]] : []), [r.L, r.L + 300]]) {
+        const inf = s0 === 0 ? infoT : info; mE.marca(inf); carr.marca(inf);
+        const n = Math.ceil((s1 - s0) / 3), izq = [], der = [];
+        let prev = null;
+        for (let k = 0; k <= n; k++) {
+          const q = r.en(s0 + (s1 - s0) * k / n), nx = -q.ty, ny = q.tx, zt = q.z - 0.2;
+          izq.push([q.x + nx * 0.7175, q.y + ny * 0.7175, q.z]); der.push([q.x - nx * 0.7175, q.y - ny * 0.7175, q.z]);
+          const cur = [mE.v(q.x + nx * 1.85, q.y + ny * 1.85, zt), mE.v(q.x - nx * 1.85, q.y - ny * 1.85, zt), mE.v(q.x + nx * 1.85, q.y + ny * 1.85, zt), mE.v(q.x + nx * 2.5, q.y + ny * 2.5, zt - 0.5), mE.v(q.x - nx * 1.85, q.y - ny * 1.85, zt), mE.v(q.x - nx * 2.5, q.y - ny * 2.5, zt - 0.5)];
+          if (prev) { mE.q(prev[0], prev[1], cur[1], cur[0]); mE.q(prev[2], prev[3], cur[3], cur[2]); mE.q(prev[4], prev[5], cur[5], cur[4]); }
+          prev = cur;
+        }
+        for (let t = s0 + 0.3; t < s1; t += 0.6) { const q = r.en(t); trE.push({ x: q.x, y: q.y, z: q.z - 0.3, yaw: Math.atan2(q.ty, q.tx) + Math.PI / 2, info: inf }); }
+        for (const rail of [izq, der]) { prisma(carr, rail, 0.075, 0, -0.06); prisma(carr, rail, 0.03, -0.06, -0.15); prisma(carr, rail, 0.15, -0.15, -0.18); }
+      }
+    });
+    agrega('050117', mE, '#8d8a85');
+    instancias('050117', new THREE.BoxGeometry(2.6, 0.2, 0.24), mat('#b9b6ae'), trE);
+    agrega('050177', carr, '#c9ccd0', { extra: { metalness: 0.6, roughness: 0.4 } });
+  }
+  const L = Math.min(...viasTren.map(r => r.L));
+  const marcas = [['renfe', 0], ['ouigo', 1], ['iryo', 0], ['avlo', 1]];
+  marcas.forEach(([marca, k0], i) => {
+    construirTren({ coches: 8, velocidad: 28, pausa: 30, desfase: i * 11, alturaContacto: 4.3, colorBanda: '#5a2d82', marca, k0, x: [0, L], vias: viasTren.map((r, n) => ({ ruta: r, sentido: n % 2 ? -1 : 1 })) });
+  });
+  window.Trenes3D?.espaciar(trenes, 20);
+}
+function moverTrenes(dt) {
+  for (const tr of trenes) {
+    const { e, largo } = tr, recorrido = e.x[1] - e.x[0] + largo + 30, ciclo = recorrido / e.velocidad + e.pausa;
+    if (!reducido) tr.t += dt;
+    if (tr.t > ciclo) { tr.t -= ciclo; if (!tr.fijo) tr.k++; }
+    const via = e.vias[tr.k % e.vias.length], s = reducido ? recorrido * 0.45 : tr.t * e.velocidad;
+    tr.tren.visible = s < recorrido && trenesOn;
+    const sCab = via.sentido > 0 ? s - 15 : via.ruta.L - (s - 15), p = via.ruta.en(sCab);
+    tr.tren.position.copy(P(p.x, p.y, p.z + 0.96));
+    const th = Math.atan2(p.ty, p.tx) + (via.sentido > 0 ? 0 : Math.PI);
+    tr.tren.rotation.set(0, th + Math.PI, 0);
+    tr.cab = { x: p.x, y: p.y, z: p.z + 0.96, th };
+  }
+}
+let trenesOn = true;
+
+// ============ CAPAS (panel) ============
+const contCapas = document.getElementById('capas');
+const colorGrupo = g => (meta.capas.find(c => c.grupo === g) || {}).color || '#8a948f';
+const chkCapa = {};
+for (const g of meta.grupos) {
+  const grupo = grupos[g.id] ||= (() => { const o = new THREE.Group(); escena.add(o); return o; })();
+  const l = document.createElement('label'), chk = document.createElement('input');
+  chk.type = 'checkbox'; chk.id = 'capa-' + g.id;
+  const inicial = !['entorno', 'terreno'].includes(g.id);
+  chk.checked = inicial; grupo.visible = inicial;
+  chk.addEventListener('change', () => {
+    grupo.visible = chk.checked;
+    grupo.traverse(o => { if (o.isCSS2DObject) o.element.hidden = !chk.checked; });
+    if (g.id === 'terreno' && chk.checked) cargarCurvas();
+  });
+  const sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = colorGrupo(g.id);
+  l.append(chk, sw, document.createTextNode(g.nombre));
+  contCapas.appendChild(l); chkCapa[g.id] = chk;
+}
+// «Entorno» incluye árboles, tuberías y torres: se muestra de inicio por ser parte del paisaje
+chkCapa.entorno.checked = true; grupos.entorno.visible = true;
+document.getElementById('chkEtiquetas').addEventListener('change', e => renderEtq.domElement.classList.toggle('sin-etiquetas', !e.target.checked));
+document.getElementById('chkTrenes').addEventListener('change', e => { trenesOn = e.target.checked; grupoTren.visible = trenesOn; });
+const chkSub = document.getElementById('chkSubsuelo');
+chkSub.addEventListener('change', () => {
+  for (const m of matsSuelo) { Object.assign(m, { transparent: chkSub.checked, opacity: chkSub.checked ? 0.4 : 1, depthWrite: !chkSub.checked }); m.needsUpdate = true; }
+});
+escena.traverse(o => { if (o.isMesh && !o.isInstancedMesh) { /* sombras ya fijadas por capa */ } });
+
+// ============ VISTAS ============
+const orbita = new OrbitControls(camara, render.domElement);
+window.Camara3D?.configurar(THREE, orbita, { camara, escena, dom: render.domElement, limite: 1500 });
+orbita.enableDamping = true;
+orbita.maxPolarAngle = Math.PI * 0.495;
+orbita.maxDistance = 1600; orbita.minDistance = 0.8;
+const rutaV = viasTren[0];
+const en = (s, dy = 0) => { const p = rutaV.en(s); return [p.x, p.y + dy, p.z]; };
+const enN = (s, u = 0, dz = 0) => { const p = rutaV.en(s); return [p.x - p.ty * u, p.y + p.tx * u, p.z + dz]; };
+const cx = pts => { const f = k => pts.map(q => q[k]); return [(Math.min(...f(0)) + Math.max(...f(0))) / 2, (Math.min(...f(1)) + Math.max(...f(1))) / 2, Math.min(...f(2))]; };
+const pasos = (porCapa['050135'] || []).flatMap(e => e.p);
+const pasoA = cx(pasos.filter(q => q[0] > -400 && q[0] < -330)), pasoB = cx(pasos.filter(q => q[0] > 10 && q[0] < 70));
+const btsP = (porCapa['050075'] || []).find(e => e.b === 'BTS');
+const pkVista = c => fmtPk(Math.round(pkDe(rutaV.proy(c[0], c[1]).s) / 10) * 10);
+const vistas = {
+  general: { nombre: 'General', desde: [-420, -430, 300], hacia: [-420, 30, 10] },
+  ...(hayTunel ? {
+    boca: { nombre: `Boca del túnel PK ${fmtPk(PK_BOCA)}`, desde: enN(sCara + 75, -20, 15), hacia: enN(sCara - 4, 2.3, 4.5) },
+    tunel: { nombre: 'Dentro del túnel', desde: enN(sCara - 55, 2.3, 2.4), hacia: enN(sCara + 40, 2.3, 3.5) },
+    corte: { nombre: 'El túnel bajo el monte', subsuelo: true, desde: enN(sCara - 330, -170, 120), hacia: enN(sCara - 210, 0, 22) },
+  } : {}),
+  ...(pasoA ? { pasoA: { nombre: `Paso inferior PK ${pkVista(pasoA)}`, desde: [pasoA[0] - 35, pasoA[1] - 50, pasoA[2] + 24], hacia: [pasoA[0], pasoA[1], pasoA[2] + 3] } } : {}),
+  ...(pasoB ? { pasoB: { nombre: `Paso inferior PK ${pkVista(pasoB)}`, desde: [pasoB[0] - 40, pasoB[1] - 55, pasoB[2] + 24], hacia: [pasoB[0], pasoB[1], pasoB[2] + 3] } } : {}),
+  ...(btsP ? { bts: { nombre: 'BTS GSM-R', desde: [btsP.p[0][0] - 45, btsP.p[0][1] - 45, btsP.p[0][2] + 26], hacia: [btsP.p[0][0], btsP.p[0][1], btsP.p[0][2] + 14] } } : {}),
+  via: { nombre: 'La vía de cerca', desde: [en(sDePk(448300))[0] - 14, en(sDePk(448300))[1] - 7, en(sDePk(448300))[2] + 4], hacia: en(sDePk(448300) + 25) },
+  cabina: { nombre: 'En cabina', cabina: true },
+  pie: { nombre: 'Recorrido a pie' },
+};
+let modo = 'orbita', anim = null, subAuto = false;
+const btns = {};
+const contVistas = document.getElementById('vistas');
+for (const [id, v] of Object.entries(vistas)) {
+  const b = document.createElement('button');
+  b.textContent = v.nombre; b.id = 'vista-' + id;
+  b.addEventListener('click', () => irA(id));
+  contVistas.appendChild(b); btns[id] = b;
+}
+function marcar(id) { for (const [k, b] of Object.entries(btns)) b.setAttribute('aria-pressed', String(k === id)); }
+const ayuda = document.getElementById('ayuda'), textoOrbita = ayuda.textContent, cruceta = document.getElementById('cruceta'), cab = document.getElementById('cab');
+const iniPie = en(sDePk(448120), -9);
+const pie = { yaw: -Math.PI / 2, pitch: -0.08, x: iniPie[0], y: iniPie[1] };
+function irA(id, dur) {
+  marcar(id);
+  cab.hidden = id !== 'cabina';
+  if (id === 'cabina') { modo = 'cabina'; orbita.enabled = false; anim = null; cruceta.hidden = true; ayuda.textContent = 'Ves la vía desde el morro de un tren. Elige otra vista para salir.'; return; }
+  if (id === 'pie') {
+    modo = 'pie'; orbita.enabled = false; anim = null;
+    Object.assign(pie, { yaw: -Math.PI / 2, pitch: -0.08, x: iniPie[0], y: iniPie[1] });
+    cruceta.hidden = false;
+    ayuda.textContent = 'Arrastra para mirar. Muévete con W A S D, las flechas del teclado o los botones de abajo.';
+    return;
+  }
+  modo = 'orbita'; orbita.enabled = true; cruceta.hidden = true; ayuda.textContent = textoOrbita;
+  const v = vistas[id], fin = { p: P(...v.desde), t: P(...v.hacia) };
+  if (v.subsuelo && !chkSub.checked) { chkSub.checked = true; subAuto = true; chkSub.dispatchEvent(new Event('change')); }
+  else if (!v.subsuelo && subAuto) { chkSub.checked = false; subAuto = false; chkSub.dispatchEvent(new Event('change')); }
+  anim = null;
+  if (reducido || !dur) { camara.position.copy(fin.p); orbita.target.copy(fin.t); return; }
+  anim = { dur, t0: performance.now(), p0: camara.position.clone(), q0: orbita.target.clone(), ...fin };
+}
+camara.position.copy(P(...vistas.general.desde));
+orbita.target.copy(P(...vistas.general.hacia));
+marcar('general');
+
+const teclas = new Set();
+addEventListener('blur', () => teclas.clear());
+addEventListener('keydown', e => { if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'].includes(e.key)) e.preventDefault(); if (!e.target.closest('input')) teclas.add(e.key.toLowerCase()); });
+addEventListener('keyup', e => teclas.delete(e.key.toLowerCase()));
+for (const b of cruceta.querySelectorAll('button')) {
+  b.addEventListener('pointerdown', () => teclas.add(b.dataset.mov));
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, () => teclas.delete(b.dataset.mov));
+}
+let arrastre = null;
+render.domElement.addEventListener('pointerdown', e => { arrastre = { x: e.clientX, y: e.clientY, mov: 0 }; });
+addEventListener('pointerup', e => { if (arrastre && arrastre.mov < 5 && e.target === render.domElement) seleccionar(e); arrastre = null; });
+addEventListener('pointermove', e => {
+  if (!arrastre) return;
+  const dx = e.clientX - arrastre.x, dy = e.clientY - arrastre.y;
+  arrastre.mov += Math.abs(dx) + Math.abs(dy); arrastre.x = e.clientX; arrastre.y = e.clientY;
+  if (modo === 'pie') { pie.yaw -= dx * 0.004; pie.pitch = Math.max(-1.3, Math.min(1.3, pie.pitch - dy * 0.004)); }
+});
+
+// ============ FICHA ============
+const ray = new THREE.Raycaster(), ficha = document.getElementById('ficha');
+function rango(rangos, tri) { let lo = 0, hi = rangos.length - 1, r = null; while (lo <= hi) { const m = (lo + hi) >> 1; if (rangos[m][0] <= tri) { r = rangos[m][1]; lo = m + 1; } else hi = m - 1; } return r; }
+function seleccionar(e) {
+  const r = render.domElement.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1), camara);
+  const objetivos = [...Object.values(grupos).filter(g => g.visible), grupoTren, ...escena.children.filter(o => o.isMesh)];
+  const hit = ray.intersectObjects(objetivos, true).find(h => { for (let o = h.object; o; o = o.parent) if (!o.visible) return false; return true; });
+  if (!hit) { ficha.hidden = true; return; }
+  let datos = null;
+  const o = hit.object;
+  if (o.isInstancedMesh && o.userData.items) datos = o.userData.items[hit.instanceId];
+  else if (o.userData.rangos && hit.faceIndex != null) datos = rango(o.userData.rangos, hit.faceIndex);
+  if (!datos) { let q = o; while (q && !q.userData.nombre) q = q.parent; if (q) datos = { capa: q.userData.capa, nombre: q.userData.nombre, info: q.userData.info }; }
+  if (!datos) return;
+  document.getElementById('fichaCapa').textContent = datos.capa || '';
+  document.getElementById('fichaNombre').textContent = datos.nombre || '';
+  document.getElementById('fichaInfo').textContent = datos.info || '';
+  ficha.hidden = false;
+  panel.classList.remove('cerrado');
+}
+const panel = document.getElementById('panel'), abrir = document.getElementById('abrir');
+if (innerWidth <= 640) panel.classList.add('cerrado');
+abrir.addEventListener('click', () => { panel.classList.toggle('cerrado'); abrir.setAttribute('aria-expanded', String(!panel.classList.contains('cerrado'))); });
+
+// ============ BUCLE ============
+const flecha = document.querySelector('#flecha path'), reloj = new THREE.Clock();
+const [gxMin, gxMax, gyMin, gyMax] = [GX0 + 4, GX0 + (NX - 1) * PASO - 4, GY0 + 4, GY0 + (NY - 1) * PASO - 4];
+const DIN3D = [sol, sol.target, ...trenes.map(t => t.tren)];
+window.Rend3D?.congelar(escena, DIN3D);
+window.__env = { camara, orbita, irA, escena, render, pie, trenes, P, meta, cotaTerreno, viasTren, uBoca, sCara, pkDe, avanzar: dt => moverTrenes(dt) };
+window.Carrusel3D?.iniciar({ ids: Object.keys(vistas).filter(id => id !== 'pie'), irA, intervalo: 5000, duracion: 2600 });
+cargando.hidden = true;
+const cabPk = document.getElementById('cabPk'), cabVel = document.getElementById('cabVel'), brujulaTxt = document.getElementById('brujulaTxt');
+const tmpV = new THREE.Vector3();
+render.setAnimationLoop(() => {
+  const dt = Math.min(reloj.getDelta(), 0.1);
+  moverTrenes(dt);
+  for (const o of etqPk) o.visible = camara.position.distanceToSquared(o.position) < 202500;
+  // El sol acompaña a la cámara para que la sombra cubra siempre lo que se ve
+  sol.target.position.copy(orbita.target); sol.target.updateMatrixWorld();
+  sol.position.copy(orbita.target).add(SOL_DESVIO); sol.updateMatrixWorld();
+  if (modo === 'pie') {
+    const v = 3.2 * dt, fx = -Math.sin(pie.yaw), fz = -Math.cos(pie.yaw);
+    let mx = 0, mz = 0;
+    if (teclas.has('w') || teclas.has('arrowup')) { mx += fx; mz += fz; }
+    if (teclas.has('s') || teclas.has('arrowdown')) { mx -= fx; mz -= fz; }
+    if (teclas.has('d') || teclas.has('arrowright')) { mx -= fz; mz += fx; }
+    if (teclas.has('a') || teclas.has('arrowleft')) { mx += fz; mz -= fx; }
+    pie.x = Math.max(gxMin, Math.min(gxMax, pie.x + mx * v));
+    pie.y = Math.max(gyMin, Math.min(gyMax, pie.y - mz * v));
+    camara.position.copy(P(pie.x, pie.y, cotaTerreno(pie.x, pie.y) + 1.65));
+    camara.rotation.set(pie.pitch, pie.yaw, 0, 'YXZ');
+  } else if (modo === 'cabina') {
+    const tr = trenes.filter(t => t.tren.visible && t.cab).sort((a, b) => a.t - b.t)[0] || trenes.find(t => t.cab);
+    if (tr) {
+      const { x, y, z, th } = tr.cab, ad = tr.e.vias[tr.k % tr.e.vias.length].sentido > 0 ? 1 : -1; void ad;
+      camara.position.copy(P(x + Math.cos(th) * 6, y + Math.sin(th) * 6, z + 3.0));
+      camara.lookAt(P(x + Math.cos(th) * 60, y + Math.sin(th) * 60, z + 2.6));
+      const p = viasTren[0].proy(x, y);
+      cabPk.textContent = 'PK ' + fmtPk(pkDe(p.s)); cabVel.textContent = '250 km/h';
+    }
+  } else {
+    if (anim) {
+      const k = Math.min(1, (performance.now() - anim.t0) / (anim.dur || 900)), s = k * k * (3 - 2 * k);
+      camara.position.lerpVectors(anim.p0, anim.p, s); orbita.target.lerpVectors(anim.q0, anim.t, s);
+      if (k === 1) anim = null;
+    }
+    if (!anim && teclas.size) {
+      const dx = (teclas.has('arrowright') ? 1 : 0) - (teclas.has('arrowleft') ? 1 : 0), dz = (teclas.has('arrowup') ? 1 : 0) - (teclas.has('arrowdown') ? 1 : 0), dy = (teclas.has('pageup') ? 1 : 0) - (teclas.has('pagedown') ? 1 : 0);
+      if (dx || dz || dy) {
+        const dist = camara.position.distanceTo(orbita.target), v = Math.max(6, dist * 0.7) * (teclas.has('shift') ? 3 : 1) * dt;
+        const f = new THREE.Vector3(); camara.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-6) f.set(0, 0, -1); f.normalize();
+        const r = new THREE.Vector3(-f.z, 0, f.x), d = new THREE.Vector3().addScaledVector(f, dz * v).addScaledVector(r, dx * v); d.y = dy * v;
+        camara.position.add(d); orbita.target.add(d);
+      }
+    }
+    orbita.update();
+  }
+  // Brújula: hacia dónde crece el PK (+x)
+  if (modo === 'pie' || modo === 'cabina') flecha.setAttribute('transform', `rotate(${(modo === 'pie' ? Math.PI / 2 - pie.yaw : 0) * 180 / Math.PI})`);
+  else { const a = orbita.target.clone().project(camara), b = tmpV.copy(orbita.target).add(new THREE.Vector3(1, 0, 0)).project(camara); flecha.setAttribute('transform', `rotate(${Math.atan2(-(b.y - a.y), b.x - a.x) * 180 / Math.PI + 90})`); }
+  render.render(escena, camara);
+  renderEtq.render(escena, camara);
+});
+addEventListener('resize', () => { camara.aspect = innerWidth / innerHeight; camara.updateProjectionMatrix(); render.setSize(innerWidth, innerHeight); renderEtq.setSize(innerWidth, innerHeight); });
+</script>
+</body>
+</html>

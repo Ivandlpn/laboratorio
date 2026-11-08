@@ -1,0 +1,43 @@
+{
+  "id": "./",
+  "name": "VISOR MDC",
+  "short_name": "VISOR MDC",
+  "description": "Visor de apoyo al mantenimiento de la base de Monforte del Cid (Ineco): mapa de activos, lista, clima y avisos, riesgos, tiras y entornos 3D.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#060b19",
+  "theme_color": "#060b19",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["utilities", "productivity", "navigation", "transportation"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 256x256 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Clima y avisos",
+      "short_name": "Clima",
+      "description": "Meteorología en tiempo real y avisos oficiales",
+      "url": "./mdc/clima",
+      "icons": [{ "src": "favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Mapa de la base",
+      "short_name": "Mapa",
+      "description": "Cartografía interactiva y activos de la base",
+      "url": "./mdc/mapa",
+      "icons": [{ "src": "favicon.svg", "sizes": "any" }]
+    }
+  ]
+}
