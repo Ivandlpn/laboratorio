@@ -1673,6 +1673,264 @@ class ColleagueGiftBox {
 }
 
 // ==========================================
+// EFECTO ESPECTACULAR: REGALOS PERSONALIZADOS CAYENDO COMO COPOS DE NIEVE
+// Fondo de la pantalla inicial con regalos y nombres de los compañeros flotando
+// ==========================================
+class TeaserFallingGifts {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext('2d');
+    this.gifts = [];
+    this.sparkles = [];
+    this.active = true;
+    this.names = [
+      "Ana", "Edu", "Ernesto", "Gloria", "Irene",
+      "Iván Álvarez", "Iván de la Paz", "Jose Luis", "Manuel",
+      "Pascual", "Pepe", "Raúl"
+    ];
+    this.colorSchemes = [
+      { bodyTop: "#DC2626", bodyBottom: "#991B1B", ribbon: "#FCD34D", ribbonDark: "#D97706", text: "#FEF08A" }, // Rojo Ineco & Oro
+      { bodyTop: "#1A4488", bodyBottom: "#0D2246", ribbon: "#FCD34D", ribbonDark: "#D97706", text: "#FFFFFF" }, // Azul Ineco & Oro
+      { bodyTop: "#059669", bodyBottom: "#064E3B", ribbon: "#FEF08A", ribbonDark: "#EAB308", text: "#FFFFFF" }, // Verde Abeto & Oro
+      { bodyTop: "#D97706", bodyBottom: "#78350F", ribbon: "#FFFFFF", ribbonDark: "#E2E8F0", text: "#FEF3C7" }, // Oro Cálido & Blanco
+      { bodyTop: "#7C3AED", bodyBottom: "#4C1D95", ribbon: "#FDE047", ribbonDark: "#CA8A04", text: "#FFFFFF" }, // Púrpura Real & Oro
+      { bodyTop: "#BE123C", bodyBottom: "#881337", ribbon: "#FCD34D", ribbonDark: "#D97706", text: "#FFFFFF" }  // Granate Navideño & Oro
+    ];
+    this.maxGifts = window.innerWidth < 768 ? 16 : 28;
+    this.resize();
+    this.initGifts();
+    this.initSparkles();
+    window.addEventListener('resize', () => this.resize());
+    this.animate = this.animate.bind(this);
+    this.animId = requestAnimationFrame(this.animate);
+  }
+
+  resize() {
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+    this.canvas.width = this.width;
+    this.canvas.height = this.height;
+  }
+
+  initGifts() {
+    this.gifts = [];
+    for (let i = 0; i < this.maxGifts; i++) {
+      this.gifts.push(this.createGift(Math.random() * (this.height || 800)));
+    }
+  }
+
+  createGift(startY) {
+    const nameIndex = Math.floor(Math.random() * this.names.length);
+    const scheme = this.colorSchemes[Math.floor(Math.random() * this.colorSchemes.length)];
+    const depth = Math.random(); // 0 (lejos) a 1 (primer plano)
+    const size = 46 + depth * 34; // de 46px a 80px de ancho
+
+    return {
+      name: this.names[nameIndex],
+      scheme: scheme,
+      x: Math.random() * (this.width || 800),
+      y: startY !== undefined ? startY : -85 - Math.random() * 120,
+      width: size,
+      height: size * 0.88,
+      speedY: 0.7 + depth * 1.3, // velocidad de caída suave a modo de copo
+      swayAmp: 1.2 + depth * 2.2,
+      swayFreq: 0.012 + Math.random() * 0.015,
+      swayOffset: Math.random() * Math.PI * 2,
+      tiltAmp: 0.16 + Math.random() * 0.12,
+      tiltFreq: 0.015 + Math.random() * 0.012,
+      tiltOffset: Math.random() * Math.PI * 2,
+      spinYFreq: 0.01 + Math.random() * 0.01,
+      spinYOffset: Math.random() * Math.PI * 2,
+      depth: depth,
+      opacity: 0.6 + depth * 0.38,
+      t: Math.random() * 600
+    };
+  }
+
+  initSparkles() {
+    this.sparkles = [];
+    for (let i = 0; i < 45; i++) {
+      this.sparkles.push({
+        x: Math.random() * (this.width || 800),
+        y: Math.random() * (this.height || 600),
+        size: Math.random() * 2.5 + 0.8,
+        alpha: Math.random(),
+        speed: 0.02 + Math.random() * 0.03,
+        vy: 0.4 + Math.random() * 0.6
+      });
+    }
+  }
+
+  animate() {
+    if (!this.active) {
+      this.animId = requestAnimationFrame(this.animate);
+      return;
+    }
+
+    this.ctx.clearRect(0, 0, this.width, this.height);
+
+    // 1. Chispas de nieve y estrellas flotantes
+    this.drawSparkles();
+
+    // 2. Regalos cayendo suavemente
+    for (let i = 0; i < this.gifts.length; i++) {
+      const g = this.gifts[i];
+      g.t += 1;
+
+      g.y += g.speedY;
+      g.x += Math.sin(g.t * g.swayFreq + g.swayOffset) * g.swayAmp;
+
+      const tilt = Math.sin(g.t * g.tiltFreq + g.tiltOffset) * g.tiltAmp;
+      const spinScaleX = 0.82 + Math.cos(g.t * g.spinYFreq + g.spinYOffset) * 0.18;
+
+      if (g.y > this.height + 80) {
+        Object.assign(g, this.createGift(-80));
+      }
+
+      this.drawGiftBox(g, tilt, spinScaleX);
+    }
+
+    this.animId = requestAnimationFrame(this.animate);
+  }
+
+  drawSparkles() {
+    const ctx = this.ctx;
+    ctx.save();
+    for (let s of this.sparkles) {
+      s.y += s.vy;
+      s.alpha += s.speed;
+      if (s.y > this.height) s.y = -10;
+      const currentAlpha = 0.25 + Math.sin(s.alpha) * 0.35;
+
+      ctx.fillStyle = `rgba(254, 240, 138, ${Math.max(0, currentAlpha)})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  drawGiftBox(g, tilt, spinScaleX) {
+    const ctx = this.ctx;
+    ctx.save();
+
+    ctx.translate(g.x, g.y);
+    ctx.rotate(tilt);
+    ctx.scale(spinScaleX, 1);
+    ctx.globalAlpha = g.opacity;
+
+    const w = g.width;
+    const h = g.height;
+    const radius = 8;
+    const ribbonW = Math.max(6, w * 0.18);
+
+    // Sombra proyectada 3D
+    ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+    ctx.shadowBlur = 12 * g.depth + 6;
+    ctx.shadowOffsetY = 6 * g.depth + 4;
+
+    // 1. Caja de Regalo
+    const grad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+    grad.addColorStop(0, g.scheme.bodyTop);
+    grad.addColorStop(1, g.scheme.bodyBottom);
+
+    ctx.fillStyle = grad;
+    this.drawRoundedRect(ctx, -w / 2, -h / 2, w, h, radius);
+    ctx.fill();
+
+    // Borde brillante fino
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.shadowColor = "transparent";
+
+    // 2. Cinta Vertical
+    const ribbonGrad = ctx.createLinearGradient(-ribbonW / 2, 0, ribbonW / 2, 0);
+    ribbonGrad.addColorStop(0, g.scheme.ribbonDark);
+    ribbonGrad.addColorStop(0.5, g.scheme.ribbon);
+    ribbonGrad.addColorStop(1, g.scheme.ribbonDark);
+
+    ctx.fillStyle = ribbonGrad;
+    ctx.fillRect(-ribbonW / 2, -h / 2, ribbonW, h);
+
+    // 3. Cinta Horizontal
+    ctx.fillStyle = ribbonGrad;
+    ctx.fillRect(-w / 2, -ribbonW / 2, w, ribbonW);
+
+    // 4. Lazo Tridimensional Superior (Bow)
+    const bowSize = ribbonW * 1.5;
+    const bowY = -h / 2;
+
+    ctx.fillStyle = g.scheme.ribbon;
+    ctx.beginPath();
+    ctx.ellipse(-bowSize * 0.55, bowY - 4, bowSize * 0.65, bowSize * 0.4, -0.4, 0, Math.PI * 2);
+    ctx.ellipse(bowSize * 0.55, bowY - 4, bowSize * 0.65, bowSize * 0.4, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = g.scheme.ribbonDark;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Nudo central del lazo
+    ctx.fillStyle = "#FFFBEB";
+    ctx.beginPath();
+    ctx.arc(0, bowY - 2, ribbonW * 0.45, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 5. Placa con el Nombre de la Persona
+    const tagH = Math.max(17, h * 0.38);
+    const tagW = w * 0.88;
+    const tagY = h * 0.12;
+
+    ctx.fillStyle = "rgba(6, 12, 26, 0.92)";
+    this.drawRoundedRect(ctx, -tagW / 2, tagY - tagH / 2, tagW, tagH, 5);
+    ctx.fill();
+
+    ctx.strokeStyle = g.scheme.ribbon;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Ajuste dinámico del tamaño de fuente según la longitud del nombre
+    const maxChars = Math.max(g.name.length, 5);
+    const fontSize = Math.max(8, Math.min(13, Math.floor((tagW - 8) / (maxChars * 0.65))));
+
+    ctx.font = `900 ${fontSize}px Poppins, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillStyle = g.scheme.text;
+    ctx.shadowColor = "rgba(252, 211, 77, 0.7)";
+    ctx.shadowBlur = 4;
+    ctx.fillText(g.name, 0, tagY + 0.5);
+
+    ctx.restore();
+  }
+
+  drawRoundedRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y, x + radius, y - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
+  }
+
+  pause() {
+    this.active = false;
+  }
+
+  resume() {
+    this.active = true;
+  }
+}
+
+// ==========================================
 // 9. PANTALLA DE INICIO / TEASER GATE (1 DIC 12:00)
 // ==========================================
 // Fecha y hora oficial de apertura: 1 de diciembre de 2026 a las 12:00:00 (Hora Peninsular)
@@ -1703,6 +1961,9 @@ function initTeaserGate() {
   const testUnlockedBtn = document.getElementById('creator-test-unlocked');
 
   if (!teaserScreen) return;
+
+  // Inicializar efecto espectacular de regalos cayendo con los nombres de las personas
+  window.teaserGiftsBlizzard = new TeaserFallingGifts('teaser-gifts-canvas');
 
   // 1. Manejo del Vídeo con Autoplay
   if (teaserVideo) {
@@ -1862,6 +2123,7 @@ function initTeaserGate() {
     localStorage.setItem('ineco_creator_preview', 'true');
     teaserScreen.classList.add('teaser-hidden');
     if (adminBar) adminBar.classList.remove('hidden');
+    if (window.teaserGiftsBlizzard) window.teaserGiftsBlizzard.pause();
 
     if (notify && typeof sound !== 'undefined') {
       sound.playSuccessTone();
@@ -1873,6 +2135,7 @@ function initTeaserGate() {
     localStorage.removeItem('ineco_creator_preview');
     teaserScreen.classList.remove('teaser-hidden');
     if (adminBar) adminBar.classList.add('hidden');
+    if (window.teaserGiftsBlizzard) window.teaserGiftsBlizzard.resume();
     evaluateTeaserState();
   }
 
@@ -1914,12 +2177,14 @@ function initTeaserGate() {
   if (testLockedBtn) {
     testLockedBtn.onclick = () => {
       teaserScreen.classList.remove('teaser-hidden');
+      if (window.teaserGiftsBlizzard) window.teaserGiftsBlizzard.resume();
       evaluateTeaserState(false);
     };
   }
   if (testUnlockedBtn) {
     testUnlockedBtn.onclick = () => {
       teaserScreen.classList.remove('teaser-hidden');
+      if (window.teaserGiftsBlizzard) window.teaserGiftsBlizzard.resume();
       evaluateTeaserState(true);
     };
   }
@@ -1929,6 +2194,7 @@ function initTeaserGate() {
     enterAppBtn.onclick = () => {
       if (typeof sound !== 'undefined') sound.playFanfare();
       teaserScreen.classList.add('teaser-hidden');
+      if (window.teaserGiftsBlizzard) window.teaserGiftsBlizzard.pause();
       if (typeof launchConfetti === 'function') launchConfetti();
     };
   }
