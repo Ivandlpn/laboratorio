@@ -1,4 +1,4 @@
-/* Estilos Corporativos INECO & Regalo Solidario 2026
+/* Estilos Corporativos INECO & Regalo Solidario 2026 - V2 Espectacular
    Manual de Marca: Poppins / Visby Bold
    Colores: Azul Ineco (#1A4488), Rojo Ineco (#CB1823), Azul Secundario (#3463AC, #6B96CF)
    Temática: Navidad + Ferrocarril & Mantenimiento Alta Velocidad
@@ -29,28 +29,34 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #071226;
+  background-color: #050E1D;
   color: #F8FAFC;
   overflow-x: hidden;
   scroll-behavior: smooth;
   min-height: 100vh;
 }
 
-/* Tipografía Poppins */
 .font-poppins {
   font-family: 'Poppins', sans-serif;
 }
 
-/* Fondos temáticos */
-.bg-ineco-navy {
-  background: radial-gradient(circle at 50% 20%, #153268 0%, #0A1938 60%, #050C1B 100%);
+/* Aurora Boreal Ártica en Fondo */
+.aurora-bg {
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 20% 0%, rgba(16, 185, 129, 0.25) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 10%, rgba(56, 189, 248, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 25%, rgba(139, 92, 246, 0.18) 0%, transparent 65%);
+  animation: auroraShift 12s infinite alternate ease-in-out;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.bg-railway-mesh {
-  background-image: 
-    radial-gradient(rgba(107, 150, 207, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(7, 18, 38, 0.8), rgba(7, 18, 38, 0.98));
-  background-size: 24px 24px, 100% 100%;
+@keyframes auroraShift {
+  0% { transform: scale(1) translateY(0); filter: hue-rotate(0deg); }
+  50% { transform: scale(1.1) translateY(-10px); filter: hue-rotate(35deg); }
+  100% { transform: scale(1.05) translateY(5px); filter: hue-rotate(-25deg); }
 }
 
 /* Canvas de Nieve */
@@ -68,35 +74,36 @@ html, body {
 .catenary-wire {
   position: relative;
   width: 100%;
-  height: 24px;
+  height: 28px;
   border-bottom: 2px dashed rgba(148, 163, 184, 0.35);
 }
 
 .catenary-light {
   position: absolute;
-  width: 8px;
-  height: 12px;
+  width: 9px;
+  height: 14px;
   border-radius: 50% 50% 30% 30%;
   animation: twinkleLight 1.8s infinite ease-in-out alternate;
 }
 
 @keyframes twinkleLight {
-  0% { opacity: 0.3; transform: scale(0.85); filter: drop-shadow(0 0 1px currentColor); }
-  100% { opacity: 1; transform: scale(1.15); filter: drop-shadow(0 0 8px currentColor); }
+  0% { opacity: 0.3; transform: scale(0.85); filter: drop-shadow(0 0 2px currentColor); }
+  100% { opacity: 1; transform: scale(1.2); filter: drop-shadow(0 0 10px currentColor); }
 }
 
-/* Pantalla de Introducción (3 segundos) */
+/* PANTALLA DE INTRODUCCIÓN ESPECTACULAR V2 */
 #intro-screen {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: radial-gradient(circle at center, #132D5E 0%, #08142A 70%, #02060F 100%);
+  background: radial-gradient(circle at center, #0B1E42 0%, #061126 65%, #02060F 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
   transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+  overflow: hidden;
 }
 
 #intro-screen.fade-out {
@@ -105,30 +112,40 @@ html, body {
   pointer-events: none;
 }
 
-/* Vía de Alta Velocidad en la Intro */
+/* Faros del tren y cono de luz en la intro */
+.train-light-cone {
+  position: absolute;
+  width: 250px;
+  height: 60px;
+  background: linear-gradient(90deg, rgba(254, 240, 138, 0.7) 0%, rgba(253, 224, 71, 0.3) 50%, transparent 100%);
+  clip-path: polygon(0 40%, 100% 0%, 100% 100%, 0 60%);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
 .intro-track {
   position: relative;
   width: 100%;
-  max-width: 600px;
-  height: 80px;
+  max-width: 650px;
+  height: 90px;
   overflow: hidden;
-  margin: 1.5rem 0;
+  margin: 1.25rem 0;
 }
 
 .intro-train {
   position: absolute;
-  left: -200px;
-  animation: introTrainDrive 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  left: -240px;
+  animation: introTrainDrive 3.2s cubic-bezier(0.2, 0.85, 0.4, 1) forwards;
 }
 
 @keyframes introTrainDrive {
-  0% { transform: translateX(0) scale(0.9); opacity: 0; }
-  20% { opacity: 1; }
-  60% { transform: translateX(380px) scale(1); }
-  100% { transform: translateX(850px) scale(1.05); opacity: 0.95; }
+  0% { transform: translateX(0) scale(0.85); opacity: 0; }
+  15% { opacity: 1; }
+  55% { transform: translateX(450px) scale(1); }
+  100% { transform: translateX(960px) scale(1.08); opacity: 0.95; }
 }
 
-/* Puertas del Calendario de Adviento (3D Flip & Touch) */
+/* TARJETAS DEL CALENDARIO DE ADVIENTO ULTRA-TÁCTILES V2 */
 .advent-card-wrapper {
   perspective: 1200px;
   transform-style: preserve-3d;
@@ -137,8 +154,8 @@ html, body {
 .advent-card {
   position: relative;
   width: 100%;
-  min-height: 250px;
-  transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+  min-height: 270px;
+  transition: transform 0.75s cubic-bezier(0.34, 1.45, 0.64, 1), box-shadow 0.3s ease;
   transform-style: preserve-3d;
   cursor: pointer;
 }
@@ -152,7 +169,7 @@ html, body {
   inset: 0;
   width: 100%;
   height: 100%;
-  border-radius: 1.25rem;
+  border-radius: 1.35rem;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
   display: flex;
@@ -160,34 +177,40 @@ html, body {
   overflow: hidden;
 }
 
+/* Frontal de lujo con textura y brillo dorado */
 .advent-front {
-  background: linear-gradient(145deg, #1A4488 0%, #102C5E 60%, #0A1B3B 100%);
-  border: 2px solid rgba(107, 150, 207, 0.35);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  background: 
+    radial-gradient(circle at 85% 15%, rgba(107, 150, 207, 0.2) 0%, transparent 45%),
+    linear-gradient(145deg, #1A4488 0%, #112F66 50%, #0A1B3B 100%);
+  border: 2px solid rgba(107, 150, 207, 0.4);
+  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.25);
 }
 
 .advent-front:hover {
   border-color: #D4AF37;
-  box-shadow: 0 14px 32px -4px rgba(212, 175, 55, 0.3), 0 0 15px rgba(26, 68, 136, 0.4);
+  transform: translateY(-4px) scale(1.015);
+  box-shadow: 0 18px 36px -4px rgba(212, 175, 55, 0.35), 0 0 20px rgba(26, 68, 136, 0.5);
 }
 
 .advent-back {
-  background: linear-gradient(145deg, #0E2248 0%, #07152F 100%);
+  background: 
+    radial-gradient(circle at 15% 85%, rgba(203, 24, 35, 0.15) 0%, transparent 50%),
+    linear-gradient(145deg, #0E2248 0%, #07152F 100%);
   border: 2px solid #D4AF37;
   transform: rotateY(180deg);
-  box-shadow: 0 10px 25px -5px rgba(212, 175, 55, 0.25);
+  box-shadow: 0 12px 30px -5px rgba(212, 175, 55, 0.3);
 }
 
-/* Lazo Navideño Corporativo en Puertas */
+/* Cintas Navideñas con Brillo Especular */
 .gift-ribbon-horizontal {
   position: absolute;
   top: 50%;
   left: 0;
   width: 100%;
-  height: 22px;
+  height: 24px;
   transform: translateY(-50%);
-  background: linear-gradient(90deg, #CB1823, #E52E39, #CB1823);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(90deg, #A8141D, #CB1823 20%, #F87171 50%, #CB1823 80%, #A8141D);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
   z-index: 2;
 }
 
@@ -195,11 +218,11 @@ html, body {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 22px;
+  width: 24px;
   height: 100%;
   transform: translateX(-50%);
-  background: linear-gradient(180deg, #CB1823, #E52E39, #CB1823);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(180deg, #A8141D, #CB1823 20%, #F87171 50%, #CB1823 80%, #A8141D);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
   z-index: 2;
 }
 
@@ -209,6 +232,30 @@ html, body {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 4;
+}
+
+/* Efecto Foil Sheen */
+.foil-sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.foil-sheen::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(60deg, transparent 40%, rgba(255, 255, 255, 0.15) 50%, transparent 60%);
+  transform: rotate(25deg);
+  animation: foilShine 4s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes foilShine {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  25%, 100% { transform: translateX(100%) rotate(25deg); }
 }
 
 /* Pulso y brillo dorado */
@@ -221,48 +268,40 @@ html, body {
 }
 
 @keyframes pulseRed {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(203, 24, 35, 0.5); }
-  50% { box-shadow: 0 0 0 12px rgba(203, 24, 35, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(203, 24, 35, 0.6); }
+  50% { box-shadow: 0 0 0 14px rgba(203, 24, 35, 0); }
 }
 
 /* Billete de Alta Velocidad (Boarding Pass) */
 .ticket-boarding-pass {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%);
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 60%, #EEF2F6 100%);
   color: #0F172A;
-  border-radius: 1.25rem;
+  border-radius: 1.35rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.65);
 }
 
 .ticket-boarding-pass::before,
 .ticket-boarding-pass::after {
   content: '';
   position: absolute;
-  width: 28px;
-  height: 28px;
-  background-color: #071226;
+  width: 32px;
+  height: 32px;
+  background-color: #050E1D;
   border-radius: 50%;
-  top: 65%;
+  top: 68%;
   z-index: 10;
 }
 
-.ticket-boarding-pass::before { left: -14px; }
-.ticket-boarding-pass::after { right: -14px; }
-
-.ticket-notch-line {
-  border-top: 2px dashed #94A3B8;
-  position: absolute;
-  top: calc(65% + 14px);
-  left: 20px;
-  right: 20px;
-}
+.ticket-boarding-pass::before { left: -16px; }
+.ticket-boarding-pass::after { right: -16px; }
 
 /* Modal personalizado */
 .modal-backdrop {
-  background: rgba(4, 10, 22, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(3, 8, 18, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 /* Animación de apertura de la Gran Cesta */
@@ -276,35 +315,39 @@ html, body {
   animation: basketReveal 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* Tren en el Mapa de España */
+/* Tren en el Mapa de España y Laponia */
 @keyframes trainGlow {
-  0%, 100% { filter: drop-shadow(0 0 6px #FCD34D) drop-shadow(0 0 14px #CB1823); }
-  50% { filter: drop-shadow(0 0 12px #FCD34D) drop-shadow(0 0 24px #CB1823); }
+  0%, 100% { filter: drop-shadow(0 0 8px #FCD34D) drop-shadow(0 0 16px #CB1823); }
+  50% { filter: drop-shadow(0 0 14px #FCD34D) drop-shadow(0 0 28px #CB1823); }
 }
 
 .train-marker-glow {
   animation: trainGlow 1.8s infinite alternate;
 }
 
-/* Barra inferior móvil pegajosa */
+/* Barra inferior móvil */
 .mobile-bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 45;
-  background: rgba(13, 34, 70, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: 1px solid rgba(107, 150, 207, 0.3);
+  background: rgba(10, 26, 56, 0.95);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(107, 150, 207, 0.35);
   padding-bottom: env(safe-area-inset-bottom, 0.5rem);
 }
 
-/* Efecto de Nieve en botón */
-.snow-badge {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* Pestañas del Modal */
+.tab-btn {
+  transition: all 0.25s ease;
+}
+.tab-btn.active {
+  background: #1A4488;
+  color: #FFFFFF;
+  border-color: #D4AF37;
+  font-weight: 700;
 }
 
 /* Scrollbar estilizada */
@@ -313,7 +356,7 @@ html, body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #08152B;
+  background: #050E1D;
 }
 ::-webkit-scrollbar-thumb {
   background: #1A4488;
@@ -323,15 +366,15 @@ html, body {
   background: #3463AC;
 }
 
-/* Adaptaciones Mobile First Específicas */
+/* Adaptaciones Mobile First */
 @media (max-width: 640px) {
   .advent-card {
-    min-height: 220px;
+    min-height: 235px;
   }
   .modal-dialog-responsive {
     margin: 0;
     width: 100%;
-    max-height: 90vh;
+    max-height: 92vh;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }
