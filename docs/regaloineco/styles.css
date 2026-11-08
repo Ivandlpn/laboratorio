@@ -860,3 +860,24 @@ body.theme-mediterraneo .mobile-bottom-nav {
   border: 1px solid rgba(253, 224, 71, 0.5);
   box-shadow: 0 2px 8px rgba(203, 24, 35, 0.5);
 }
+
+
+/* Garantizar interactividad instantánea al abrir tarjetas y pulsar 'Leer Detalle Completo' */
+.advent-card.opened .advent-front {
+  pointer-events: none !important;
+  visibility: hidden;
+}
+
+.advent-card.opened .advent-back {
+  pointer-events: auto !important;
+  visibility: visible;
+  z-index: 10;
+}
+
+.open-gift-detail-btn {
+  position: relative;
+  z-index: 25 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  touch-action: manipulation;
+}

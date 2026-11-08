@@ -222,8 +222,8 @@ const GIFTS_DATA = [
     subtitle: "Algodón ≥80% • Costura Plana Anti-Rozaduras • Puntera Reforzada",
     badge: "Confort Máximo",
     iconBg: "from-blue-800 to-red-700",
-    realImage: null,
-    realThumb: null,
+    realImage: "assets/products/P8.jpg",
+    realThumb: "assets/products/P8_thumb.jpg",
     description: "Concebidos para brindar el máximo confort térmico y ergonomía durante la temporada invernal, estos calcetines corporativos de alta velocidad han sido confeccionados con más de un 80% de algodón peinado transpirable de fibra larga y elastano de memoria para un ajuste ceñido que no resbala ni oprime la pierna. Destacan por su remallado plano artesanal punto a punto sin relieves en la puntera para eliminar cualquier punto de fricción o rozadura, reforzando además la suela y el talón con acolchado amortiguador. Un detalle cálido y confortable con el sello de Ineco, pensado para relajarse en casa o disfrutar de los días festivos con la calidez del espíritu de equipo.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <path d="M72 45 L98 45 L98 105 Q98 135 125 135 L135 135 Q145 135 145 148 Q145 160 130 160 L90 160 Q68 160 68 135 L68 48 Q68 45 72 45 Z" fill="#1A4488" stroke="#3463AC" stroke-width="2.2"/>
@@ -244,8 +244,8 @@ const GIFTS_DATA = [
     subtitle: "Formato A4 Doble Cara • Papel Offset Blanco 80g FSC",
     badge: "Compromiso Social",
     iconBg: "from-red-800 to-amber-700",
-    realImage: null,
-    realThumb: null,
+    realImage: "assets/products/P9.jpg",
+    realThumb: "assets/products/P9_thumb.jpg",
     description: "Impresa a doble cara en formato A4 plegado sobre papel offset blanco premium de 80 g/m² de tacto natural y fibra reciclada con certificación ecológica FSC, esta tarjeta conmemorativa transmite el mensaje institucional de felicitación y gratitud de Ineco hacia todos los profesionales de la Base de Mantenimiento de Monforte del Cid. En su interior se plasma no solo el reconocimiento a su compromiso diario con la seguridad y la alta velocidad ferroviaria, sino también el balance social y solidario de los proyectos y colectivos apoyados con la entrega de este detalle, constituyendo un recuerdo entrañable y un testimonio de unión para dar la bienvenida con ilusión al nuevo año 2027.",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <rect x="45" y="45" width="110" height="120" rx="5" fill="#FFFFFF" stroke="#D4AF37" stroke-width="2.2"/>
@@ -977,9 +977,10 @@ class AdventCalendar {
             <div class="text-center mt-auto">
               <h4 class="font-bold text-sm text-slate-100 line-clamp-1 font-poppins">${gift.title}</h4>
               <p class="text-[11px] text-amber-300 line-clamp-1 font-medium">${gift.subtitle}</p>
-              <button class="mt-2.5 w-full py-2 px-3 rounded-lg bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 active:scale-95 text-white text-xs font-bold shadow-md flex items-center justify-center gap-1.5 transition">
+              <button type="button" class="open-gift-detail-btn mt-2.5 w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 active:scale-95 text-white text-xs font-black shadow-lg flex items-center justify-center gap-2 transition cursor-pointer border border-blue-400/40 hover:border-amber-400" data-day="${gift.day}">
+                <span>📖</span>
                 <span>Leer Detalle Completo</span>
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
               </button>
             </div>
           </div>
@@ -987,9 +988,22 @@ class AdventCalendar {
       `;
 
       const card = col.querySelector('.advent-card');
-      card.addEventListener('click', () => {
+      card.addEventListener('click', (e) => {
+        // Si el click fue en el botón específico de leer detalle, ya lo gestiona su propio handler
+        if (e.target.closest('.open-gift-detail-btn')) return;
         this.handleCardClick(gift.day);
       });
+
+      // Listener directo, garantizado y prioritario para el botón 'Leer Detalle Completo'
+      const detailBtn = col.querySelector('.open-gift-detail-btn');
+      if (detailBtn) {
+        detailBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          sound.playBellChime();
+          this.openGiftModal(gift.day);
+        });
+      }
 
       // Efecto rascar la escarcha en casillas aún no abiertas (MEJORA 2)
       if (!isOpened) {
@@ -1100,13 +1114,13 @@ class AdventCalendar {
           <!-- COLUMNA IZQUIERDA (5 COLS): FOTOGRAFÍA REAL DE ALTA DEFINICIÓN -->
           <div class="lg:col-span-5 flex flex-col justify-center">
             <div class="relative rounded-2xl overflow-hidden border-2 border-amber-400/70 shadow-2xl bg-slate-950 group h-full min-h-[300px] flex items-center justify-center">
-              ${gift.realImage ? `
-                <img src="${gift.realImage}" alt="${gift.title}" class="w-full h-[320px] sm:h-[380px] md:h-[440px] lg:h-[480px] object-cover transform group-hover:scale-103 transition-transform duration-700" onerror="this.parentElement.innerHTML = '${gift.svg.replace(chr(10), ' ').replace(chr(39), '\'')}';">
-              ` : `
-                <div class="w-full h-[320px] sm:h-[380px] md:h-[440px] lg:h-[480px] flex items-center justify-center p-6 bg-gradient-to-b from-slate-900 to-blue-950">
-                  ${gift.svg}
-                </div>
-              `}
+              <div class="relative w-full h-[320px] sm:h-[380px] md:h-[440px] lg:h-[480px] flex items-center justify-center bg-slate-950 rounded-2xl overflow-hidden p-2">
+                <img src="assets/products/P${gift.day}.jpg" 
+                     alt="${gift.title}" 
+                     class="w-full h-full object-contain sm:object-cover rounded-xl transform group-hover:scale-103 transition-transform duration-700 shadow-2xl" 
+                     loading="eager" 
+                     onerror="this.onerror=null; this.src='${gift.realImage || 'assets/cesta_solidaria_real.jpg'}';">
+              </div>
               
               <!-- Insignia Superior sobre la Foto -->
               <div class="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md px-3 py-1 rounded-full border border-amber-400/60 text-xs font-black text-amber-300 shadow flex items-center gap-1.5">
@@ -1116,7 +1130,7 @@ class AdventCalendar {
               <!-- Pie sobre la Foto con Identidad Ineco -->
               <div class="absolute bottom-3 inset-x-3 bg-gradient-to-t from-slate-950/95 via-slate-950/80 to-transparent p-3 rounded-xl flex items-center justify-between text-xs text-white">
                 <span class="font-bold text-amber-300 text-[11px] truncate mr-2">Base Monforte del Cid</span>
-                <span class="text-[10px] bg-red-600 text-white px-2.5 py-0.5 rounded-full font-black tracking-wider shrink-0 shadow">INECO 2027</span>
+                <span class="text-[10px] bg-red-600 text-white px-2.5 py-0.5 rounded-full font-black tracking-wider shrink-0 shadow">INECO 2026</span>
               </div>
             </div>
           </div>
