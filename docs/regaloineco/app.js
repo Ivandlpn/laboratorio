@@ -1626,17 +1626,48 @@ function initTeaserGate() {
   // 1. Manejo del Vídeo con Autoplay
   if (teaserVideo) {
     teaserVideo.muted = true;
-    const playPromise = teaserVideo.play();
-    if (playPromise !== undefined) {
-      playPromise.then(() => {
-        if (videoPlaceholder) {
-          // Si el vídeo carga y se reproduce con éxito, ocultamos el cartel de preparación
-          videoPlaceholder.classList.add('opacity-0');
-        }
-      }).catch(err => {
-        console.log("Autoplay de vídeo en espera de archivo definitivo o interacción:", err);
-      });
-    }
+
+    const hidePlaceholder = () => {
+      if (videoPlaceholder) {
+        videoPlaceholder.style.opacity = '0';
+        videoPlaceholder.style.pointerEvents = 'none';
+        setTimeout(() => {
+          if (videoPlaceholder) videoPlaceholder.style.display = 'none';
+        }, 500);
+      }
+    };
+
+    teaserVideo.addEventListener('playing', hidePlaceholder);
+    teaserVideo.addEventListener('loadeddata', hidePlaceholder);
+    teaserVideo.addEventListener('canplay', hidePlaceholder);
+    teaserVideo.addEventListener('timeupdate', () => {
+      if (teaserVideo.currentTime > 0.05) hidePlaceholder();
+    });
+
+    const tryPlay = () => {
+      teaserVideo.muted = true;
+      const playPromise = teaserVideo.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          hidePlaceholder();
+        }).catch(err => {
+          console.log("Autoplay de vídeo en espera de interacción del usuario:", err);
+        });
+      }
+    };
+
+    tryPlay();
+    // Reintentar si hubo restricciones de carga inicial
+    setTimeout(tryPlay, 400);
+
+    // Clic en el vídeo para alternar pausa/reproducción
+    teaserVideo.addEventListener('click', () => {
+      if (teaserVideo.paused) {
+        teaserVideo.play();
+      } else {
+        teaserVideo.pause();
+      }
+    });
 
     if (unmuteBtn) {
       unmuteBtn.onclick = (e) => {
@@ -1644,6 +1675,9 @@ function initTeaserGate() {
         teaserVideo.muted = !teaserVideo.muted;
         if (muteIcon) muteIcon.innerText = teaserVideo.muted ? "🔇" : "🔊";
         if (muteLabel) muteLabel.innerText = teaserVideo.muted ? "Activar Sonido" : "Silenciar";
+        if (!teaserVideo.muted && teaserVideo.paused) {
+          teaserVideo.play();
+        }
       };
     }
   }
