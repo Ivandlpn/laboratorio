@@ -733,3 +733,19 @@ body.theme-mediterraneo .mobile-bottom-nav {
 .gift-seal-badge {
   box-shadow: 0 0 25px rgba(212, 175, 55, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6);
 }
+
+/* Modal de Detalle al 85% de Ancho de Pantalla */
+#gift-modal-dialog {
+  width: 85vw !important;
+  max-width: 85vw !important;
+}
+
+@media (max-width: 640px) {
+  #gift-modal-dialog {
+    width: 92vw !important;
+    max-width: 92vw !important;
+    padding: 1.25rem !important;
+    max-height: 94vh !important;
+    border-radius: 1.5rem !important;
+  }
+}

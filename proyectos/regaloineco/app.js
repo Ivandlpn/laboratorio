@@ -984,16 +984,15 @@ class AdventCalendar {
 
     if (!isAlreadyOpened) {
       sound.playUnwrap();
-      setTimeout(() => sound.playBellChime(), 180);
       card.classList.add('opened');
       this.openedDays.add(day);
       localStorage.setItem('ineco_advent_2026', JSON.stringify([...this.openedDays]));
       this.updateProgress();
       this.triggerConfettiAt(card);
 
-      setTimeout(() => {
-        this.openGiftModal(day);
-      }, 700);
+      // Apertura instantánea sin esperas innecesarias
+      this.openGiftModal(day);
+      setTimeout(() => sound.playBellChime(), 120);
     } else {
       sound.playBellChime();
       this.openGiftModal(day);
@@ -1043,88 +1042,105 @@ class AdventCalendar {
 
     modalContent.innerHTML = `
       <div class="relative">
-        <!-- Encabezado del Modal -->
-        <div class="flex items-start justify-between gap-4 border-b border-slate-700/60 pb-3">
-          <div>
-            <div class="flex items-center gap-2 mb-1">
-              <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
-                Día ${gift.day} de Adviento
-              </span>
-              <span class="px-2.5 py-0.5 rounded-full bg-blue-900/60 text-blue-200 text-xs font-medium border border-blue-500/30">
-                ${gift.badge}
-              </span>
+        <!-- Encabezado del Modal con Mayor Jerarquía -->
+        <div class="flex items-center justify-between gap-4 border-b border-slate-700/80 pb-4">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 text-white font-black flex items-center justify-center text-lg shadow-md border border-amber-300">
+              ${gift.day}
+            </span>
+            <div>
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[11px] font-bold uppercase tracking-wider">
+                  Día ${gift.day} de Adviento
+                </span>
+                <span class="px-2.5 py-0.5 rounded-full bg-blue-900/70 text-blue-200 text-[11px] font-semibold border border-blue-500/30">
+                  ${gift.badge}
+                </span>
+              </div>
+              <h3 class="text-xl sm:text-2xl md:text-3xl font-black text-white font-poppins leading-tight">${gift.title}</h3>
+              <p class="text-xs sm:text-sm text-amber-300 font-semibold">${gift.subtitle}</p>
             </div>
-            <h3 class="text-xl md:text-2xl font-black text-white font-poppins">${gift.title}</h3>
-            <p class="text-xs sm:text-sm text-amber-300 font-semibold">${gift.subtitle}</p>
           </div>
-          <button id="close-modal-btn" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition shadow" aria-label="Cerrar">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          <button id="close-modal-btn" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition shadow-lg shrink-0 border border-slate-700 active:scale-95" aria-label="Cerrar">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-4 items-center">
-          <!-- ESCENARIO 3D: EL REGALO SALE MÁGICAMENTE DE LA CAJA NAVIDEÑA -->
-          <div class="bg-gradient-to-b from-blue-950/70 via-slate-900 to-slate-950 rounded-2xl p-5 border border-amber-500/30 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
-            <div class="sparkle-burst"></div>
-            
-            <div class="box-stage-3d">
-              <div class="gift-box-base flex items-center justify-center">
-                <span class="text-xs font-bold text-amber-300 tracking-wider">INECO 2027</span>
-              </div>
-              <div class="gift-box-lid"></div>
-              <div class="gift-emerging-item flex items-center justify-center">
-                ${gift.realImage ? `
-                  <div class="w-32 h-32 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-2xl bg-slate-900 relative">
-                    <img src="${gift.realImage}" alt="${gift.title}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML = '${gift.svg.replace(chr(10), ' ').replace(chr(39), '\'')}';">
-                  </div>
-                ` : `
+        <!-- CUERPO PRINCIPAL AL 85% DE ANCHO: ILUSTRACIÓN REAL PROTAGONISTA + RELATO EDITORIAL -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 my-6 items-stretch">
+          
+          <!-- COLUMNA IZQUIERDA (5 COLS): FOTOGRAFÍA REAL DE ALTA DEFINICIÓN -->
+          <div class="lg:col-span-5 flex flex-col justify-center">
+            <div class="relative rounded-2xl overflow-hidden border-2 border-amber-400/70 shadow-2xl bg-slate-950 group h-full min-h-[300px] flex items-center justify-center">
+              ${gift.realImage ? `
+                <img src="${gift.realImage}" alt="${gift.title}" class="w-full h-[320px] sm:h-[380px] md:h-[440px] lg:h-[480px] object-cover transform group-hover:scale-103 transition-transform duration-700" onerror="this.parentElement.innerHTML = '${gift.svg.replace(chr(10), ' ').replace(chr(39), '\'')}';">
+              ` : `
+                <div class="w-full h-[320px] sm:h-[380px] md:h-[440px] lg:h-[480px] flex items-center justify-center p-6 bg-gradient-to-b from-slate-900 to-blue-950">
                   ${gift.svg}
-                `}
+                </div>
+              `}
+              
+              <!-- Insignia Superior sobre la Foto -->
+              <div class="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md px-3 py-1 rounded-full border border-amber-400/60 text-xs font-black text-amber-300 shadow flex items-center gap-1.5">
+                <span>📸</span> <span>Fotografía Oficial del Lote</span>
+              </div>
+              
+              <!-- Pie sobre la Foto con Identidad Ineco -->
+              <div class="absolute bottom-3 inset-x-3 bg-gradient-to-t from-slate-950/95 via-slate-950/80 to-transparent p-3 rounded-xl flex items-center justify-between text-xs text-white">
+                <span class="font-bold text-amber-300 text-[11px] truncate mr-2">Base Monforte del Cid</span>
+                <span class="text-[10px] bg-red-600 text-white px-2.5 py-0.5 rounded-full font-black tracking-wider shrink-0 shadow">INECO 2027</span>
               </div>
             </div>
-
-            <span class="mt-2 px-3 py-1 rounded-full bg-slate-800/90 text-amber-300 text-xs font-bold border border-slate-700 flex items-center gap-1.5 shadow">
-              <span>✨</span> <span>¡Detalle Solidario Revelado!</span>
-            </span>
           </div>
 
-          <!-- RELATO EDITORIAL COMPLETO: TODO DE UNA, SIN APARTADOS NI PESTAÑAS -->
-          <div class="bg-gradient-to-br from-slate-900/95 via-blue-950/60 to-slate-900/95 rounded-2xl p-5 sm:p-6 border border-amber-400/30 shadow-2xl relative">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="text-base">✨</span>
-              <h4 class="text-xs uppercase font-extrabold tracking-wider text-amber-300">
-                Historia, Calidad y Nota de Degustación
-              </h4>
-            </div>
-            
-            <p class="text-xs sm:text-sm text-slate-100 leading-relaxed font-normal text-justify">
-              ${gift.description}
-            </p>
+          <!-- COLUMNA DERECHA (7 COLS): NARRATIVA EDITORIAL CONTINUA -->
+          <div class="lg:col-span-7 flex flex-col justify-between">
+            <div class="bg-gradient-to-br from-slate-900/95 via-blue-950/70 to-slate-900/95 rounded-2xl p-6 sm:p-8 border border-amber-400/30 shadow-2xl relative flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center gap-2 mb-3.5">
+                  <span class="text-xl">✨</span>
+                  <h4 class="text-xs sm:text-sm uppercase font-extrabold tracking-wider text-amber-300">
+                    Historia, Calidad y Nota de Degustación
+                  </h4>
+                </div>
+                
+                <p class="text-sm sm:text-base text-slate-100 leading-relaxed font-normal text-justify">
+                  ${gift.description}
+                </p>
+              </div>
 
-            <div class="mt-4 pt-3.5 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
-              <span class="flex items-center gap-1.5 text-amber-300 font-semibold">
-                <span>🎁</span> Lote Solidario Ineco
-              </span>
-              <span class="font-mono text-slate-300">Base Monforte del Cid</span>
+              <!-- Sellos de Calidad y Compromiso al Pie de la Narrativa -->
+              <div class="mt-6 pt-4 border-t border-slate-700/70 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="px-3 py-1 rounded-lg bg-blue-900/70 text-blue-200 border border-blue-400/30 font-bold text-[11px] flex items-center gap-1">
+                    <span>📦</span> Lote Solidario
+                  </span>
+                  <span class="px-3 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold text-[11px] flex items-center gap-1">
+                    <span>⭐</span> Calidad Gourmet
+                  </span>
+                </div>
+                <span class="font-mono text-slate-300 text-xs font-semibold">L.A.V. Madrid - Levante</span>
+              </div>
             </div>
           </div>
+
         </div>
 
         <!-- Barra Inferior de Navegación del Modal -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-700/60">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-700/80">
           <div class="flex items-center gap-2">
-            <button id="modal-prev-gift" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-medium transition ${day === 1 ? 'opacity-40 pointer-events-none' : ''}">
+            <button id="modal-prev-gift" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-bold transition ${day === 1 ? 'opacity-40 pointer-events-none' : ''}">
               ◀ Día Anterior
             </button>
-            <button id="modal-next-gift" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-medium transition ${day === 9 ? 'opacity-40 pointer-events-none' : ''}">
+            <button id="modal-next-gift" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-bold transition ${day === 9 ? 'opacity-40 pointer-events-none' : ''}">
               Día Siguiente ▶
             </button>
           </div>
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button id="modal-sound-btn" class="flex-1 sm:flex-none px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 transition flex items-center justify-center gap-1.5">
+            <button id="modal-sound-btn" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-amber-300 transition flex items-center justify-center gap-1.5 border border-slate-700">
               <span>🔔 Campanada</span>
             </button>
-            <button id="modal-confirm-btn" class="flex-1 sm:flex-none px-5 py-2 rounded-lg bg-gradient-to-r from-blue-700 to-red-600 hover:from-blue-600 hover:to-red-500 text-white text-xs font-bold shadow-md transition">
+            <button id="modal-confirm-btn" class="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-700 to-red-600 hover:from-blue-600 hover:to-red-500 text-white text-xs font-black shadow-md transition active:scale-95">
               Listo
             </button>
           </div>
@@ -1921,13 +1937,10 @@ function setupCardScratch(cardElement, day, onReveal) {
       haptics.scratch();
     }
 
-    if (scratchedStrokes >= 24) {
+    if (scratchedStrokes >= 20) {
       revealed = true;
-      canvas.classList.add('shattering');
-      setTimeout(() => {
-        canvas.remove();
-        onReveal();
-      }, 450);
+      canvas.remove();
+      onReveal();
     }
   };
 
@@ -1937,11 +1950,8 @@ function setupCardScratch(cardElement, day, onReveal) {
     revealed = true;
     sound.playIceCrack();
     haptics.scratch();
-    canvas.classList.add('shattering');
-    setTimeout(() => {
-      canvas.remove();
-      onReveal();
-    }, 320);
+    canvas.remove();
+    onReveal();
   });
 
   canvas.addEventListener('mousedown', () => isScratching = true);
