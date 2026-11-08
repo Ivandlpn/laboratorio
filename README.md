@@ -13,6 +13,7 @@ Pequeñas herramientas y pruebas web. Cada proyecto tiene su código en `proyect
 | [VisorRack](proyectos/visorrack) | [/visorrack](https://ivandlpn.github.io/laboratorio/visorrack/) | Visor de racks y equipos de red de la línea Albacete-Alicante, en copia de solo lectura (mapa, racks por unidades, puertos, inventario e historial). |
 | [PauseBox Pro](proyectos/pausebox) | [/pausebox](https://ivandlpn.github.io/laboratorio/pausebox/) | Entrenador biomecánico en tiempo real para sentadillas con pausa (Pause Squats) con visión por IA, guía sonora y Coach IA con Gemini. |
 | [Arenales Clima](proyectos/arenalesclima) | [/arenalesclima](https://ivandlpn.github.io/laboratorio/arenalesclima/) | Visualización climatológica y marítima interactiva de Arenales del Sol (Elche). Observación, gráfica 48h, radar de tormentas y estado de la playa. |
+| [Regalo Solidario Ineco 2026](proyectos/regaloineco) | [/regaloineco](https://ivandlpn.github.io/laboratorio/regaloineco/) | Calendario de Adviento interactivo y visual del lote solidario de Ineco para el equipo de la Base de Mantenimiento de Alta Velocidad de Monforte del Cid (Alicante) con 9 regalos, sonidos, telemetría y cesta personalizada. |
 
 ## Cómo está organizado
 
