@@ -1,5 +1,5 @@
 /**
- * REGALO SOLIDARIO INECO 2026 • DESEOS PARA EL PRÓXIMO 2027
+ * REGALO SOLIDARIO INECO 2026 • NUESTROS MEJORES DESEOS PARA EL NUEVO AÑO
  * Ruta: Laponia (66°N) ➔ Sede Central Ineco (Madrid) ➔ Base de Monforte del Cid (Alicante)
  */
 
@@ -764,13 +764,14 @@ class SantaRailTracker {
 
     // Coordenadas calibradas sobre el mapa GIS profesional (460x330)
     this.waypoints = [
-      { pct: 0, x: 410, y: 45, name: "Laponia (Círculo Polar 66°N)", coords: "66.5039°N, 25.7294°E", days: "36 días", speed: "180 km/h", status: "Taller Ártico de Papá Noel. Embarque de los lotes solidarios." },
-      { pct: 5, x: 395, y: 58, name: "Laponia - Golfo de Botnia", coords: "65.1200°N, 22.8400°E", days: "35 días", speed: "180 km/h", status: "8 Noviembre: En travesía polar desde Laponia. Velocidad de crucero ártica." },
-      { pct: 28, x: 350, y: 100, name: "Mar Báltico & Escandinavia Central", coords: "58.5900°N, 16.1800°E", days: "27 días", speed: "220 km/h", status: "Enlace ferroviario internacional por el corredor nórdico." },
-      { pct: 50, x: 265, y: 160, name: "Corredor Europeo (Francia / Pirineos)", coords: "48.8566°N, 2.3522°E", days: "20 días", speed: "260 km/h", status: "Tránsito por el corredor de alta velocidad europeo hacia la Península Ibérica." },
-      { pct: 75, x: 170, y: 245, name: "Sede Central Ineco (Madrid)", coords: "40.4532°N, -3.6883°W", days: "13 días", speed: "160 km/h", status: "Escala técnica y felicitación institucional en Paseo de la Habana 138 (Madrid)." },
-      { pct: 88, x: 228, y: 288, name: "Alta Velocidad Española (Cuenca / Albacete)", coords: "39.4699°N, -1.6500°W", days: "5 días", speed: "300 km/h", status: "Velocidad punta de alta velocidad en vía balastada y control ERTMS." },
-      { pct: 100, x: 270, y: 318, name: "Base de Mantenimiento de Monforte del Cid", coords: "38.406742°N, -0.694939°W", days: "0 días (Llegada)", speed: "0 km/h", status: "¡Llegada y entrega oficial del Regalo Solidario en Monforte del Cid!" }
+      { pct: 0, x: 380, y: 40, angle: 120, name: "Laponia (Círculo Polar 66° 33'N)", coords: "66.5039°N, 25.7294°E", days: "36 días", speed: "180 km/h", status: "Taller Ártico de Laponia. Embarque de los lotes solidarios y salida por la red polar." },
+      { pct: 15, x: 355, y: 85, angle: 145, name: "Golfo de Botnia & Báltico Norte", coords: "63.8258°N, 20.2630°E", days: "32 días", speed: "200 km/h", status: "Travesía por el corredor nórdico hacia Escandinavia central." },
+      { pct: 30, x: 315, y: 140, angle: 155, name: "Escandinavia Sur (Estocolmo / Malmö)", coords: "59.3293°N, 18.0686°E", days: "27 días", speed: "230 km/h", status: "Enlace internacional por el corredor transfronterizo hacia Europa Central." },
+      { pct: 50, x: 235, y: 195, angle: 145, name: "Corredor Europeo TEN-T (París)", coords: "48.8566°N, 2.3522°E", days: "20 días", speed: "270 km/h", status: "Tránsito por el corredor de alta velocidad europeo hacia el eje atlántico." },
+      { pct: 65, x: 185, y: 242, angle: 160, name: "Paso Pirenaico (Burdeos / Hendaya)", coords: "43.3584°N, -1.7760°W", days: "16 días", speed: "220 km/h", status: "Paso fronterizo e interoperabilidad ferroviaria hacia la red española." },
+      { pct: 75, x: 162, y: 288, angle: 125, name: "Sede Central Ineco (Madrid)", coords: "40.4532°N, -3.6883°W", days: "13 días", speed: "160 km/h", status: "Escala técnica y felicitación institucional en Paseo de la Habana 138 (Madrid)." },
+      { pct: 88, x: 185, y: 304, angle: 125, name: "Línea de Alta Velocidad (Cuenca / Albacete)", coords: "39.4699°N, -1.6500°W", days: "5 días", speed: "300 km/h", status: "Velocidad de crucero 300 km/h con señalización ERTMS Nivel 2." },
+      { pct: 100, x: 202, y: 318, angle: 125, name: "Base de Mantenimiento de Monforte del Cid", coords: "38.4067°N, -0.6949°W", days: "0 días (Llegada)", speed: "0 km/h", status: "¡Llegada y entrega oficial del Regalo Solidario en Monforte del Cid!" }
     ];
 
     this.init();
@@ -808,8 +809,10 @@ class SantaRailTracker {
     const currentX = p0.x + (p1.x - p0.x) * factor;
     const currentY = p0.y + (p1.y - p0.y) * factor;
 
+    const currentAngle = p0.angle + (p1.angle - p0.angle) * factor;
+
     if (this.trainMarker) {
-      this.trainMarker.setAttribute('transform', `translate(${currentX.toFixed(1)}, ${currentY.toFixed(1)})`);
+      this.trainMarker.setAttribute('transform', `translate(${currentX.toFixed(1)}, ${currentY.toFixed(1)}) rotate(${currentAngle.toFixed(1)})`);
     }
 
     const currentWp = factor < 0.5 ? p0 : p1;
@@ -1104,6 +1107,7 @@ class AdventCalendar {
                 <!-- Contenedor del Vídeo -->
                 <div id="modal-video-box" class="w-full h-full flex items-center justify-center relative">
                   <video id="modal-product-video" 
+                         src="${gift.video || 'Videos/Dia1.mp4'}"
                          controls 
                          autoplay 
                          muted 
@@ -1112,7 +1116,7 @@ class AdventCalendar {
                          preload="auto" 
                          poster="assets/products/P${gift.day}.jpg" 
                          class="w-full h-full object-contain rounded-xl shadow-2xl bg-black">
-                    <source src="${gift.video}" type="video/mp4">
+                    <source src="${gift.video || 'Videos/Dia1.mp4'}" type="video/mp4">
                     <source src="assets/products/Dia${gift.day}.mp4" type="video/mp4">
                   </video>
                 </div>
@@ -1196,7 +1200,7 @@ class AdventCalendar {
                     <span>⭐</span> Calidad Gourmet
                   </span>
                 </div>
-                <span class="font-mono text-amber-300 text-xs font-semibold">Deseos para 2027</span>
+                <span class="font-mono text-amber-300 text-xs font-semibold">Nuestros Mejores Deseos</span>
               </div>
             </div>
           </div>
@@ -1417,7 +1421,7 @@ class ColleagueGiftBox {
 
           <!-- Mensaje Personalizado Navideño para 2027 -->
           <div class="bg-white/90 rounded-xl p-4 border border-blue-200 text-xs text-slate-800 leading-relaxed my-2 ml-3 shadow-inner">
-            <span class="font-bold text-blue-900">Deseo para el próximo 2027 • ${colleague.name} (${colleague.role}):</span>
+            <span class="font-bold text-blue-900">Mensaje de Felicitación y Buenos Deseos • ${colleague.name} (${colleague.role}):</span>
             <p class="italic mt-1 text-sm font-medium">"${colleague.wish}"</p>
           </div>
 
@@ -1776,15 +1780,35 @@ function initTeaserGate() {
     const isUnlocked = forcedState !== null ? forcedState : (now >= TEASER_TARGET_DATE);
 
     if (isUnlocked) {
-      // Estado Desbloqueado: "¡Por fin ya puedes ver qué sorpresas tenemos preparadas!"
+      // Estado Desbloqueado: Día 1 de diciembre alcanzado
       if (lockedView) lockedView.classList.add('hidden');
       if (unlockedView) unlockedView.classList.remove('hidden');
       if (teaserTimerInterval) clearInterval(teaserTimerInterval);
+
+      // Reproducir el vídeo oficial del Día 1: Videos/Dia1.mp4
+      if (teaserVideo) {
+        const currentSrc = teaserVideo.currentSrc || teaserVideo.src || '';
+        if (!currentSrc.includes('Dia1.mp4')) {
+          teaserVideo.src = 'Videos/Dia1.mp4';
+          teaserVideo.load();
+          teaserVideo.play().catch(e => console.log('Autoplay Dia1:', e));
+        }
+      }
     } else {
-      // Estado Bloqueado: "Descubre el regalo solidario 2026 en el día 1 de diciembre a las 12:00"
+      // Estado Bloqueado: Antes del 1 de diciembre
       if (lockedView) lockedView.classList.remove('hidden');
       if (unlockedView) unlockedView.classList.add('hidden');
       startTeaserCountdown();
+
+      // Reproducir el vídeo del tráiler introductorio: Videos/Video1.mp4
+      if (teaserVideo) {
+        const currentSrc = teaserVideo.currentSrc || teaserVideo.src || '';
+        if (!currentSrc.includes('Video1.mp4')) {
+          teaserVideo.src = 'Videos/Video1.mp4';
+          teaserVideo.load();
+          teaserVideo.play().catch(e => console.log('Autoplay Video1:', e));
+        }
+      }
     }
   }
 
