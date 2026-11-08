@@ -46,7 +46,7 @@
   <!-- Estilos Personalizados -->
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-[#050E1D] text-slate-100 font-poppins selection:bg-red-600 selection:text-white pb-24 md:pb-12 relative">
+<body class="bg-[#040A16] text-slate-100 font-poppins selection:bg-red-600 selection:text-white pb-24 md:pb-12 relative">
 
   <!-- ========================================== -->
   <!-- CANVAS DE NIEVE FESTIVA                      -->
@@ -54,13 +54,11 @@
   <canvas id="snow-canvas"></canvas>
 
   <!-- ========================================== -->
-  <!-- PANTALLA DE INTRODUCCIÓN ESPECTACULAR V2     -->
+  <!-- PANTALLA DE INTRODUCCIÓN ESPECTACULAR        -->
   <!-- ========================================== -->
   <div id="intro-screen" role="dialog" aria-modal="true">
-    <!-- Aurora Boreal Ártica en Fondo -->
     <div class="aurora-bg"></div>
 
-    <!-- Catenaria con Luces parpadeantes en la intro -->
     <div class="w-full max-w-2xl catenary-wire mb-6 flex justify-around relative z-10">
       <div class="catenary-light bg-red-500 text-red-500" style="animation-delay: 0.1s"></div>
       <div class="catenary-light bg-amber-400 text-amber-400" style="animation-delay: 0.4s"></div>
@@ -70,14 +68,11 @@
       <div class="catenary-light bg-amber-400 text-amber-400" style="animation-delay: 0.2s"></div>
     </div>
 
-    <!-- Contenedor Central con Logo Oficial Ineco -->
     <div class="text-center max-w-lg w-full px-4 relative z-10">
       <div class="relative inline-block mb-3">
-        <!-- Logo Ineco Oficial en Alta Resolución -->
         <div class="bg-white/95 px-6 py-3 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_35px_rgba(26,68,136,0.9)] backdrop-blur-md">
           <img src="assets/Logo-Ineco.png" alt="Logo Oficial Ineco" class="h-12 md:h-16 w-auto mx-auto object-contain">
         </div>
-        <!-- Gorrito navideño 3D -->
         <span class="absolute -top-7 -right-5 text-4xl transform rotate-12 drop-shadow-lg">🎅</span>
       </div>
 
@@ -89,10 +84,9 @@
         REGALO SOLIDARIO <span class="text-amber-400">2026</span>
       </h1>
       <p class="text-xs md:text-sm text-blue-200 mt-2 font-medium">
-        Ruta Ártica: <strong class="text-amber-300">Laponia</strong> ➔ <strong class="text-white">Sede Ineco (Madrid)</strong> ➔ <strong class="text-emerald-400">Base Monforte del Cid</strong>
+        Ruta: <strong class="text-amber-300">Laponia</strong> ➔ <strong class="text-white">Sede Ineco (Madrid)</strong> ➔ <strong class="text-emerald-400">Base Monforte del Cid</strong>
       </p>
 
-      <!-- Vía y Tren AVE con Cono de Luz Iluminando la Nieve -->
       <div class="intro-track border-b-2 border-slate-600/70 my-5 relative">
         <div class="absolute bottom-0 w-full flex justify-between px-2">
           <div class="w-3 h-1.5 bg-slate-300 rounded-xs"></div>
@@ -114,7 +108,6 @@
         </div>
       </div>
 
-      <!-- Temporizador Circular de 3 segundos + Botón Saltar -->
       <div class="flex items-center justify-center gap-4 mt-2">
         <div class="flex items-center gap-2 text-xs text-amber-300 bg-slate-900/90 px-3.5 py-1.5 rounded-full border border-slate-700 shadow-inner">
           <div class="w-2 h-2 rounded-full bg-red-500 animate-ping"></div>
@@ -145,9 +138,8 @@
   <!-- ========================================== -->
   <!-- ENCABEZADO PRINCIPAL                        -->
   <!-- ========================================== -->
-  <header class="sticky top-0 z-30 bg-[#050E1D]/90 backdrop-blur-md border-b border-blue-900/40 px-4 py-2.5">
+  <header class="sticky top-0 z-30 bg-[#040A16]/90 backdrop-blur-md border-b border-blue-900/40 px-4 py-2.5">
     <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
-      <!-- Logo Oficial Ineco -->
       <div class="flex items-center gap-3">
         <a href="#" class="relative flex items-center group">
           <div class="bg-white/95 px-3 py-1 rounded-xl border border-amber-400/50 shadow-sm group-hover:scale-105 transition-transform">
@@ -161,7 +153,6 @@
         </div>
       </div>
 
-      <!-- Acciones de Cabecera (DESACTIVADO POR DEFECTO) -->
       <div class="flex items-center gap-2">
         <button id="toggle-sound-btn" class="px-3.5 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700 transition flex items-center gap-1.5 shadow-sm">
           <span>🔇 Sonido Off</span>
@@ -181,16 +172,15 @@
   <!-- ========================================== -->
   <!-- HERO BANNER: MANTENIMIENTO AV & NAVIDAD     -->
   <!-- ========================================== -->
-  <section class="relative px-4 pt-8 pb-10 overflow-hidden bg-radial from-[#153268] via-[#0A1938] to-[#050E1D]">
+  <section class="relative px-4 pt-8 pb-10 overflow-hidden bg-radial from-[#153268] via-[#0A1938] to-[#040A16]">
     <div class="max-w-5xl mx-auto text-center relative z-10">
       
-      <!-- Insignia Oficial de Licitación -->
-      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-900/60 border border-blue-400/40 text-blue-200 text-xs font-semibold mb-4 shadow-lg backdrop-blur-sm">
+      <!-- Insignia Festiva -->
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-900/60 border border-blue-400/40 text-blue-200 text-xs font-semibold mb-4 shadow-lg backdrop-blur-sm">
         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Expediente nº 20260923-00341</span>
+        <span>Detalle Navideño Solidario 2026</span>
         <span class="text-blue-400">•</span>
-        <span class="text-amber-300">7.000 Lotes Solidarios</span>
-        <button id="view-tender-btn" class="underline text-amber-400 hover:text-white ml-1 font-bold">Ver Pliego</button>
+        <span class="text-amber-300">Base de Monforte del Cid</span>
       </div>
 
       <h1 class="text-3xl sm:text-5xl md:text-6xl font-black text-white font-poppins tracking-tight leading-tight">
@@ -201,7 +191,7 @@
       </h1>
 
       <p class="max-w-2xl mx-auto mt-4 text-xs sm:text-sm md:text-base text-blue-100/90 leading-relaxed font-normal">
-        Descubre día a día los <strong class="text-amber-300 font-semibold">9 productos oficiales</strong> seleccionados por Ineco en su compromiso social, con el espíritu y la dedicación del equipo de <span class="text-white font-semibold">Mantenimiento de Alta Velocidad en Monforte del Cid</span>.
+        Descubre día a día los <strong class="text-amber-300 font-semibold">9 regalos solidarios</strong> seleccionados con el espíritu y la dedicación del equipo de <span class="text-white font-semibold">Mantenimiento de Alta Velocidad en Monforte del Cid</span>.
       </p>
 
       <!-- Barra de Progreso de Regalos Descubiertos -->
@@ -235,11 +225,11 @@
       <div class="flex items-center justify-center gap-2 mb-2">
         <span class="text-lg">⏱️</span>
         <h3 class="text-xs uppercase font-extrabold tracking-widest text-amber-300">
-          CUENTA ATRÁS OFICIAL • ENTREGA EN DESTINO
+          CUENTA ATRÁS • ENTREGA EN BASE MONFORTE DEL CID
         </h3>
       </div>
       <p class="text-[11px] text-blue-200 mb-4">
-        Ventana de entrega oficial según pliego: <strong class="text-white">14 al 18 de Diciembre de 2026</strong> (09:00 - 15:00 h)
+        Fecha esperada de entrega: <strong class="text-white">14 de Diciembre de 2026</strong> (09:00 - 15:00 h)
       </p>
 
       <div class="grid grid-cols-4 gap-2 sm:gap-4 max-w-lg mx-auto">
@@ -261,7 +251,7 @@
         </div>
       </div>
       <p id="cd-status-text" class="text-[11px] text-slate-400 mt-3 font-medium">
-        Expediciones en tránsito controlado por Adif / Ineco Alta Velocidad
+        Expedición en tránsito por la Red de Alta Velocidad hacia Alicante
       </p>
     </div>
   </section>
@@ -278,11 +268,11 @@
         Los 9 Regalos del Lote Solidario
       </h2>
       <p class="text-xs text-blue-200 mt-1 max-w-xl mx-auto">
-        Cada día representa uno de los artículos del expediente oficial con sus especificaciones técnicas de calidad y notas de cata.
+        Cada día desvela una sorpresa navideña con su propia animación 3D y notas de cata exclusivas.
       </p>
     </div>
 
-    <!-- Rejilla Responsive de 9 Puertas -->
+    <!-- Rejilla Responsive de 9 Puertas (Completamente Secretas) -->
     <div id="advent-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6">
       <!-- Generado dinámicamente por app.js -->
     </div>
@@ -300,7 +290,7 @@
         🎁 Abrir Tu Regalo Solidario
       </h2>
       <p class="text-xs sm:text-sm text-blue-200 mt-1 max-w-xl mx-auto">
-        Selecciona tu nombre de la lista de compañeros para ver tu Billete de Alta Velocidad y desempaquetar la Gran Cesta Completa en la Base de Monforte del Cid.
+        Selecciona tu nombre de la lista de compañeros para ver tu Billete de Alta Velocidad y descubrir la Gran Cesta de Navidad en la Base de Monforte del Cid.
       </p>
     </div>
 
@@ -313,20 +303,18 @@
         <span class="text-[11px] text-slate-400">12 Integrantes</span>
       </div>
       
-      <!-- Rejilla de Botones de Compañeros -->
       <div id="colleagues-selector" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-2.5">
         <!-- Renderizado dinámicamente en estricto orden alfabético -->
       </div>
     </div>
 
-    <!-- Detalle Personalizado y Cesta 3D -->
     <div id="colleague-card-details">
       <!-- Renderizado reactivamente al seleccionar un compañero -->
     </div>
   </section>
 
   <!-- ========================================== -->
-  <!-- SECCIÓN 4: RADAR PAPÁ NOEL: LAPONIA ➔ MADRID ➔ MONFORTE -->
+  <!-- SECCIÓN 4: RADAR PAPÁ NOEL (RUTA 35 DÍAS)   -->
   <!-- ========================================== -->
   <section class="max-w-5xl mx-auto px-4 py-12 scroll-mt-20" id="seccion-radar">
     <div class="bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-5 sm:p-8 border-2 border-blue-500/30 shadow-2xl relative overflow-hidden">
@@ -334,13 +322,13 @@
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-700/60 pb-5 mb-6">
         <div>
           <span class="px-3 py-1 rounded-full bg-red-600/20 text-red-400 border border-red-500/40 text-xs font-bold uppercase tracking-wider">
-            Ruta Ártico - Peninsular en Alta Velocidad
+            Ruta Polar en Curso • Quedan 35 Días
           </span>
           <h2 class="text-xl sm:text-3xl font-black text-white font-poppins mt-1">
             🎅 Radar Papá Noel: Laponia ➔ Sede Ineco ➔ Monforte del Cid
           </h2>
           <p class="text-xs text-blue-200 mt-0.5">
-            Origen en el Círculo Polar, escala técnica obligatoria en la Sede Central de Ineco en Madrid y entrega final en la Base de Monforte del Cid.
+            Salida en el Círculo Polar, escala prevista el 1 de Diciembre en la Sede Central de Ineco (Madrid) y llegada el 14 de Diciembre a Monforte del Cid.
           </p>
           <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/80 border border-slate-700/80 text-[11px] text-slate-300 font-mono">
             <span class="text-amber-400">📍 Coordenadas Base:</span>
@@ -352,27 +340,27 @@
         <!-- Telemetría Dinámica -->
         <div class="flex items-center gap-3 bg-slate-950/80 px-4 py-2.5 rounded-xl border border-blue-400/30">
           <div>
-            <span class="text-[9px] uppercase font-bold text-slate-400 block">Velocidad AVE</span>
-            <span id="radar-speed" class="text-lg font-black text-amber-400 font-mono">320 km/h</span>
+            <span class="text-[9px] uppercase font-bold text-slate-400 block">Tiempo de Viaje</span>
+            <span id="radar-distance" class="text-sm font-bold text-emerald-400 font-mono">Quedan 35 días</span>
           </div>
           <div class="h-8 w-px bg-slate-700"></div>
           <div>
-            <span class="text-[9px] uppercase font-bold text-slate-400 block">Distancia</span>
-            <span id="radar-distance" class="text-sm font-bold text-emerald-400 font-mono">Aproximando</span>
+            <span class="text-[9px] uppercase font-bold text-slate-400 block">Velocidad</span>
+            <span id="radar-speed" class="text-base font-black text-amber-400 font-mono">180 km/h</span>
           </div>
         </div>
       </div>
 
-      <!-- Selector de Hitos de la Ruta -->
+      <!-- Selector Temporal de la Ruta -->
       <div class="flex items-center gap-2 mb-4 overflow-x-auto pb-1 text-xs">
         <button id="map-btn-laponia" class="px-3 py-1.5 rounded-lg bg-blue-950/90 text-amber-300 font-bold border border-blue-500/40 hover:bg-blue-900 flex items-center gap-1.5 whitespace-nowrap">
-          <span>🎅 1. Laponia (Origen)</span>
+          <span>🎅 1. Hoy (Laponia • 35 días restantes)</span>
         </button>
         <button id="map-btn-madrid" class="px-3 py-1.5 rounded-lg bg-blue-950/90 text-blue-200 font-bold border border-blue-500/40 hover:bg-blue-900 flex items-center gap-1.5 whitespace-nowrap">
-          <span>🏢 2. Sede Ineco Madrid</span>
+          <span>🏢 2. Escala 1 Dic (Sede Ineco Madrid)</span>
         </button>
         <button id="map-btn-monforte" class="px-3 py-1.5 rounded-lg bg-red-950/90 text-red-300 font-bold border border-red-500/40 hover:bg-red-900 flex items-center gap-1.5 whitespace-nowrap">
-          <span>🚄 3. Base Monforte (Destino)</span>
+          <span>🚄 3. Llegada 14 Dic (Base Monforte del Cid)</span>
         </button>
       </div>
 
@@ -393,28 +381,14 @@
           </defs>
 
           <!-- Silueta esquemática de Europa Occidental y Escandinavia -->
-          <!-- Escandinavia / Laponia -->
           <path d="M 360 20 Q 420 15 470 30 Q 450 90 410 110 Q 380 90 360 20 Z" fill="#0F172A" stroke="#1E293B" stroke-width="1.5" opacity="0.7"/>
-          
-          <!-- Europa Central y Francia -->
           <path d="M 230 110 Q 350 100 370 160 Q 320 200 240 190 Q 210 150 230 110 Z" fill="#0F172A" stroke="#1E293B" stroke-width="1.5" opacity="0.6"/>
-
-          <!-- Península Ibérica -->
           <path d="M 80 190 Q 230 170 250 220 Q 330 250 310 340 Q 210 360 110 340 Q 60 280 80 190 Z" fill="#0F172A" stroke="#334155" stroke-width="2" opacity="0.85"/>
 
-          <!-- Trazado Ferroviario Transcontinental -->
-          <!-- Tramo 1: Laponia (440, 45) -> Paso Transeuropeo (280, 160) -->
+          <!-- Trazado Ferroviario -->
           <path d="M 440 45 L 370 100 L 280 160" stroke="#38BDF8" stroke-width="3" stroke-dasharray="6,4" fill="none" opacity="0.8"/>
-
-          <!-- Tramo 2: Paso Transeuropeo (280, 160) -> Sede Ineco Madrid (180, 245) -->
           <path d="M 280 160 L 230 200 L 180 245" stroke="#818CF8" stroke-width="3.5" stroke-dasharray="5,3" fill="none" opacity="0.9"/>
-
-          <!-- Tramo 3: Sede Ineco Madrid (180, 245) -> Base Monforte del Cid (285, 325) [LAV Madrid-Levante] -->
           <path d="M 180 245 L 235 285 L 285 325" stroke="url(#routeGrad)" stroke-width="5" fill="none" stroke-linecap="round" filter="url(#glowEffect)"/>
-
-          <!-- Continuación hacia Alicante / Murcia -->
-          <path d="M 285 325 L 320 330" stroke="#64748B" stroke-width="2.5" stroke-dasharray="3,3" fill="none"/>
-          <path d="M 285 325 L 265 350" stroke="#64748B" stroke-width="2.5" stroke-dasharray="3,3" fill="none"/>
 
           <!-- HITO 1: LAPONIA (ORIGEN ÁRTICO) -->
           <g transform="translate(440, 45)">
@@ -429,7 +403,7 @@
             <circle cx="0" cy="0" r="16" fill="#1A4488" opacity="0.4"/>
             <circle cx="0" cy="0" r="7" fill="#F8FAFC" stroke="#1A4488" stroke-width="2.5"/>
             <text x="0" y="-12" font-size="9.5" font-weight="900" fill="#F8FAFC" text-anchor="middle">🏢 SEDE INECO (MADRID)</text>
-            <text x="0" y="20" font-size="7" font-weight="bold" fill="#FCD34D" text-anchor="middle">Pº Habana 138 • Carga Lotes</text>
+            <text x="0" y="20" font-size="7" font-weight="bold" fill="#FCD34D" text-anchor="middle">Escala 1 de Diciembre</text>
           </g>
 
           <!-- HITO 3: DESTINO BASE MONFORTE DEL CID -->
@@ -441,23 +415,22 @@
             <circle cx="0" cy="0" r="11" fill="#CB1823" stroke="#FCD34D" stroke-width="2.5"/>
             <text x="0" y="-18" font-size="10.5" font-weight="900" fill="#FCD34D" text-anchor="middle" font-family="Poppins">BASE MONFORTE DEL CID</text>
             <text x="0" y="22" font-size="7.5" font-weight="bold" fill="#F8FAFC" text-anchor="middle">38.4067°N, -0.6949°W</text>
-            <text x="0" y="32" font-size="6.5" fill="#93C5FD" text-anchor="middle">P.K. 420 LAV Levante</text>
+            <text x="0" y="32" font-size="6.5" fill="#93C5FD" text-anchor="middle">Llegada 14 de Diciembre</text>
           </g>
 
           <!-- Marcador Dinámico del TREN AVE de Papá Noel -->
-          <g id="train-marker" transform="translate(245, 295)" class="train-marker-glow">
+          <g id="train-marker" transform="translate(425, 58)" class="train-marker-glow">
             <circle cx="0" cy="0" r="14" fill="#F59E0B" opacity="0.45"/>
             <polygon points="-9,-6 11,0 -9,6" fill="#CB1823" stroke="#FFFFFF" stroke-width="1.2"/>
             <text x="-4" y="-8" font-size="14">🎅</text>
           </g>
         </svg>
 
-        <!-- Indicador de Estado y Acciones Rápidas -->
         <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/90 rounded-xl p-3 border border-slate-700/80 text-xs">
           <div class="flex items-center gap-2">
             <span class="w-3 h-3 rounded-full bg-emerald-400 animate-ping"></span>
             <span id="radar-status" class="font-bold text-slate-200">
-              Sede Ineco Madrid ➔ Base Monforte del Cid (LAV Levante)
+              8 Noviembre: En travesía polar desde Laponia. Llegada prevista a Sede Ineco el 1 de Diciembre.
             </span>
           </div>
 
@@ -475,53 +448,12 @@
   </section>
 
   <!-- ========================================== -->
-  <!-- MODAL: FICHA TÉCNICA DEL REGALO             -->
+  <!-- MODAL: DETALLES DEL REGALO                 -->
   <!-- ========================================== -->
   <div id="gift-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 modal-backdrop">
     <div class="bg-slate-900/95 border-2 border-amber-400/50 rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto modal-dialog-responsive relative" id="gift-modal-dialog">
       <div id="gift-modal-body">
         <!-- Contenido inyectado por app.js -->
-      </div>
-    </div>
-  </div>
-
-  <!-- ========================================== -->
-  <!-- MODAL: TRANSPARENCIA LICITACIÓN / PLIEGO    -->
-  <!-- ========================================== -->
-  <div id="tender-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 modal-backdrop">
-    <div class="bg-slate-900/95 border-2 border-blue-400/50 rounded-2xl max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto relative">
-      <div class="flex items-start justify-between pb-4 border-b border-slate-700">
-        <div>
-          <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Ineco • Dirección de Personas y Comunicación</span>
-          <h3 class="text-xl font-bold text-white font-poppins">Cuadro de Características del Detalle Solidario</h3>
-          <p class="text-xs text-blue-200">Expediente nº 20260923-00341</p>
-        </div>
-        <button id="close-tender-btn" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 flex items-center justify-center">
-          ✕
-        </button>
-      </div>
-
-      <div class="my-4 space-y-3 text-xs text-slate-300 leading-relaxed">
-        <div class="bg-blue-950/60 p-3 rounded-xl border border-blue-500/30">
-          <h4 class="font-bold text-amber-300 mb-1">Presupuesto Máximo de Licitación</h4>
-          <p>Presupuesto Base de Licitación (con IVA): <strong class="text-white">439.925,00 €</strong> (Base Imponible: 392.500,00 € + IVAs reducidos aplicables: 21%, 10% y 4%).</p>
-        </div>
-
-        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700">
-          <h4 class="font-bold text-blue-300 mb-1">Volumen & Alcance</h4>
-          <p>Suministro de <strong class="text-white">7.000 unidades</strong> de cada uno de los 9 productos que integran la cesta para la totalidad de la plantilla de Ineco a nivel nacional e insular.</p>
-        </div>
-
-        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700">
-          <h4 class="font-bold text-blue-300 mb-1">Fechas y Logística</h4>
-          <p>• <strong>03 Diciembre 2026:</strong> Información de distribución y puntos de entrega.</p>
-          <p>• <strong>14 al 18 Diciembre 2026:</strong> Distribución en Península (incluyendo Base de Monforte del Cid en Alicante).</p>
-        </div>
-
-        <div class="bg-emerald-950/40 p-3 rounded-xl border border-emerald-500/30">
-          <h4 class="font-bold text-emerald-300 mb-1">Compromiso Social y Sostenibilidad</h4>
-          <p>Caja final en cartón reciclado sostenible serigrafiada con tintas al agua, con protecciones interiores troqueladas a medida para proteger cada frasco frente a vibraciones del transporte.</p>
-        </div>
       </div>
     </div>
   </div>
@@ -563,7 +495,7 @@
         Base de Mantenimiento de Monforte del Cid (Alicante) • L.A.V. Madrid - Levante • Detalle Solidario 2026
       </p>
       <p class="text-[10px] text-slate-600">
-        Diseñado con el Manual de Identidad Corporativa de Ineco (Pantone 7687 C / Pantone 485 C) y especificaciones técnicas de licitación.
+        Diseñado con el Manual de Identidad Corporativa de Ineco (Pantone 7687 C / Pantone 485 C).
       </p>
     </div>
   </footer>

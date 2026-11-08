@@ -1,25 +1,22 @@
 /**
- * REGALO SOLIDARIO INECO 2026 - CALENDARIO DE ADVIENTO FERROVIARIO
+ * REGALO SOLIDARIO INECO 2026 - CALENDARIO DE ADVIENTO
  * Ruta: Laponia (Círculo Polar) ➔ Sede Central Ineco (Madrid) ➔ Base de Monforte del Cid (Alicante)
- * Licitación Oficial: Expediente 20260923-00341
  */
 
 // ==========================================
-// 1. DATOS OFICIALES DE LOS 9 REGALOS (PLIEGO)
+// 1. DATOS OFICIALES DE LOS 9 REGALOS
 // ==========================================
 const GIFTS_DATA = [
   {
     day: 1,
     title: "Aceite de Oliva Virgen Extra (AOVE)",
     subtitle: "D.O. de Andalucía • Botella Vidrio 500 ml",
-    badge: "Producto 1 • Oro Líquido",
-    price: "4,50 € / ud (PBL: 31.500 € + IVA)",
+    badge: "Oro Líquido",
     specs: {
       denominacion: "Denominación de Origen de Andalucía",
       envase: "Botella individual de vidrio oscuro de 500 ml",
-      unidades: "7.000 unidades en lote solidario nacional",
       calidad: "Extracción en frío, baja acidez, alto contenido en polifenoles",
-      caducidad: "Etiquetado reglamentario con composición y fecha de consumo"
+      conservacion: "Envasado individual con fecha de consumo preferente"
     },
     pairing: "Ideal para el pan tostado del desayuno o para regar en crudo un buen jamón ibérico en las cenas navideñas.",
     iconBg: "from-amber-600 to-yellow-500",
@@ -37,19 +34,14 @@ const GIFTS_DATA = [
           <stop offset="100%" stop-color="#022C22" stop-opacity="0.95"/>
         </linearGradient>
       </defs>
-      <!-- Botella -->
       <path d="M92 25 L108 25 L108 45 L118 65 L124 165 Q124 175 114 175 L86 175 Q76 175 76 165 L82 65 L92 45 Z" fill="url(#glassGrad)" stroke="#34D399" stroke-width="1.8"/>
-      <!-- Nivel de Aceite interno -->
       <path d="M84 75 Q100 80 116 75 L122 165 Q122 173 114 173 L86 173 Q78 173 78 165 Z" fill="url(#oilGrad)" opacity="0.9"/>
-      <!-- Etiqueta Ineco Dorada -->
       <rect x="80" y="95" width="40" height="50" rx="4" fill="#1A4488" stroke="#D4AF37" stroke-width="1.8"/>
       <text x="100" y="112" font-size="8.5" font-weight="bold" fill="#F8FAFC" text-anchor="middle" font-family="Poppins">ineco</text>
       <text x="100" y="123" font-size="6.5" fill="#D4AF37" text-anchor="middle" font-weight="600">AOVE 500ml</text>
       <text x="100" y="133" font-size="5" fill="#E2E8F0" text-anchor="middle">D.O. Andalucía</text>
-      <!-- Cuello y Tapón dorado -->
       <rect x="91" y="20" width="18" height="12" rx="3" fill="#D4AF37" stroke="#F59E0B" stroke-width="1.5"/>
       <line x1="91" y1="26" x2="109" y2="26" stroke="#B45309" stroke-width="1.2"/>
-      <!-- Ramita de Olivo y Aceitunas -->
       <circle cx="140" cy="145" r="9" fill="#4D7C0F"/>
       <ellipse cx="142" cy="143" rx="3" ry="2" fill="#BEF264" opacity="0.6"/>
       <path d="M130 155 Q138 140 150 135" stroke="#15803D" stroke-width="2.5" fill="none" stroke-linecap="round"/>
@@ -60,13 +52,11 @@ const GIFTS_DATA = [
     day: 2,
     title: "Tarro de Bonito del Norte en Aceite",
     subtitle: "Lomos Selectos del Cantábrico • 400 gramos",
-    badge: "Producto 2 • Cantábrico Seleccionado",
-    price: "8,00 € / ud (PBL: 56.000 € + IVA)",
+    badge: "Cantábrico Seleccionado",
     specs: {
       origen: "Bonito del Norte (Thunnus alalunga) capturado a caña",
       peso: "400 gramos neto en tarro de cristal hermético",
       cobertura: "Bañado en aceite de oliva suave de primera prensa",
-      unidades: "7.000 tarros producidos y paletizados",
       conservacion: "Envasado individual con fecha de consumo preferente"
     },
     pairing: "Perfecto para una ensalada gourmet de pimientos asados o servido directamente en tosta de pan rústico con sal en escamas.",
@@ -84,18 +74,13 @@ const GIFTS_DATA = [
           <stop offset="100%" stop-color="#EA580C"/>
         </linearGradient>
       </defs>
-      <!-- Tarro de Cristal -->
       <rect x="62" y="65" width="76" height="95" rx="14" fill="#E0F2FE" opacity="0.4" stroke="#93C5FD" stroke-width="2"/>
-      <!-- Lomos de bonito en aceite -->
       <rect x="66" y="75" width="68" height="80" rx="10" fill="url(#tunaGrad)" opacity="0.95"/>
-      <!-- Vetas de los lomos -->
       <path d="M72 90 Q100 85 128 90 M70 110 Q100 105 130 110 M72 130 Q100 125 128 130" stroke="#FFF7ED" stroke-width="2" opacity="0.75" stroke-dasharray="3,2"/>
-      <!-- Etiqueta corporativa -->
       <rect x="60" y="98" width="80" height="36" rx="4" fill="#0D2246" stroke="#D4AF37" stroke-width="1.8"/>
       <text x="100" y="112" font-size="8.5" font-weight="bold" fill="#F8FAFC" text-anchor="middle" font-family="Poppins">ineco</text>
       <text x="100" y="122" font-size="6.5" font-weight="bold" fill="#FBBF24" text-anchor="middle">BONITO DEL NORTE</text>
       <text x="100" y="130" font-size="5" fill="#93C5FD" text-anchor="middle">En Aceite de Oliva • 400g</text>
-      <!-- Tapa metálica dorada -->
       <rect x="58" y="52" width="84" height="15" rx="3" fill="url(#jarLid)" stroke="#F59E0B" stroke-width="1.8"/>
       <line x1="60" y1="59" x2="140" y2="59" stroke="#78350F" stroke-width="1.2"/>
       <path d="M92 48 L100 35 L108 48 L104 60 L96 60 Z" fill="#CB1823"/>
@@ -105,14 +90,12 @@ const GIFTS_DATA = [
     day: 3,
     title: "Tarro de Mermelada de Pimientos de Piquillo",
     subtitle: "Elaboración Artesanal • 120 gramos",
-    badge: "Producto 3 • Dulce & Especiado",
-    price: "3,00 € / ud (PBL: 21.000 € + IVA)",
+    badge: "Dulce & Especiado",
     specs: {
       ingredientes: "Pimientos del piquillo selectos caramelizados a fuego lento",
       peso: "120 gramos en tarro de cristal gourmet",
       maridaje: "Perfecto para tostas de queso curado, patés y carnes",
-      unidades: "7.000 tarros suministrados individualmente",
-      caducidad: "Etiqueta identificativa con trazabilidad completa"
+      conservacion: "Elaboración artesanal con precinto hermético"
     },
     pairing: "Acompañamiento estrella para quesos de oveja curados manchegos o rulo de cabra caramelizado.",
     iconBg: "from-red-700 to-rose-500",
@@ -141,31 +124,26 @@ const GIFTS_DATA = [
     day: 4,
     title: "Trilogía de Mojo Canario (Pack 3)",
     subtitle: "Rojo Tradicional • Verde Cilantro • Mojo Picón (3x100g)",
-    badge: "Producto 4 • Sabor Canario",
-    price: "6,00 € / pack (PBL: 42.000 € + IVA)",
+    badge: "Sabor Canario",
     specs: {
       variedades: "Mojo Rojo suave, Mojo Verde aromático y Mojo Picón bravo",
-      formato: "TRES (3) tarros de cristal de 100g aprox. en pack expositor",
+      formato: "TRES (3) tarros de cristal de 100g en pack expositor",
       procedencia: "Receta tradicional de las Islas Canarias",
-      unidades: "7.000 packs (21.000 tarritos en total)",
-      etiquetado: "Identificación visible de composición y procedencia"
+      elaboracion: "Ingredientes naturales de primera calidad"
     },
     pairing: "Imprescindible con papas arrugadas, pescados a la plancha o carnes asadas en las comidas familiares de Navidad.",
     iconBg: "from-emerald-700 via-amber-600 to-red-600",
     svg: `<svg viewBox="0 0 200 200" class="w-full h-full drop-shadow-2xl">
       <rect x="25" y="130" width="150" height="28" rx="6" fill="#1E293B" stroke="#D4AF37" stroke-width="1.8"/>
       <text x="100" y="148" font-size="8.5" font-weight="bold" fill="#F8FAFC" text-anchor="middle" font-family="Poppins">PACK MOJO CANARIO • INECO</text>
-      <!-- Tarro 1: Rojo -->
       <rect x="36" y="80" width="36" height="52" rx="6" fill="#DC2626" stroke="#991B1B" stroke-width="1.5"/>
       <rect x="34" y="74" width="40" height="9" rx="2" fill="#FCD34D" stroke="#B45309" stroke-width="1"/>
       <text x="54" y="105" font-size="5.5" font-weight="bold" fill="#FEF2F2" text-anchor="middle">MOJO</text>
       <text x="54" y="113" font-size="5.5" font-weight="bold" fill="#FEF2F2" text-anchor="middle">ROJO</text>
-      <!-- Tarro 2: Verde -->
       <rect x="82" y="80" width="36" height="52" rx="6" fill="#16A34A" stroke="#14532D" stroke-width="1.5"/>
       <rect x="80" y="74" width="40" height="9" rx="2" fill="#FCD34D" stroke="#B45309" stroke-width="1"/>
       <text x="100" y="105" font-size="5.5" font-weight="bold" fill="#F0FDF4" text-anchor="middle">MOJO</text>
       <text x="100" y="113" font-size="5.5" font-weight="bold" fill="#F0FDF4" text-anchor="middle">VERDE</text>
-      <!-- Tarro 3: Picón -->
       <rect x="128" y="80" width="36" height="52" rx="6" fill="#EA580C" stroke="#9A3412" stroke-width="1.5"/>
       <rect x="126" y="74" width="40" height="9" rx="2" fill="#FCD34D" stroke="#B45309" stroke-width="1"/>
       <text x="146" y="105" font-size="5.5" font-weight="bold" fill="#FFF7ED" text-anchor="middle">MOJO</text>
@@ -176,14 +154,12 @@ const GIFTS_DATA = [
     day: 5,
     title: "Chocolate Artesanal en Caja de Madera",
     subtitle: "3 Tabletas con Almendras (Negro, Leche y Blanco) • 450g",
-    badge: "Producto 5 • Delicatessen Gourmet",
-    price: "14,00 € / ud (PBL: 98.000 € + IVA)",
+    badge: "Delicatessen Gourmet",
     specs: {
-      presentacion: "Elegante caja de madera serigrafiada con tapa corredera",
+      presentacion: "Elegante caja de madera natural con tapa corredera",
       variedades: "3 tabletas de 150g c/u: Chocolate Negro, con Leche y Blanco",
       ingredientes: "Almendras enteras seleccionadas tostadas al punto",
-      elaboracion: "Artesanal y cortado a cuchillo por maestros chocolateros",
-      unidades: "7.000 cajas de madera certificada sostenible"
+      elaboracion: "Artesanal y cortado a cuchillo por maestros chocolateros"
     },
     pairing: "Degustar junto a una copa de vino dulce Pedro Ximénez o un café arábica recién preparado.",
     iconBg: "from-amber-900 via-amber-800 to-amber-950",
@@ -209,14 +185,12 @@ const GIFTS_DATA = [
     day: 6,
     title: "Café 100% Arábica Natural",
     subtitle: "Paquete de 250 gramos • Tueste Natural Molido",
-    badge: "Producto 6 • Esencia Exclusiva",
-    price: "7,50 € / ud (PBL: 52.500 € + IVA)",
+    badge: "Esencia Exclusiva",
     specs: {
       grano: "100% Arábica de altura seleccionado",
       tueste: "Variedad natural, equilibrio aromático y cuerpo sedoso",
       peso: "250 gramos de café recién molido",
-      envasado: "Bolsa termosellada con válvula unidireccional de frescura",
-      unidades: "7.000 paquetes distribuidos a nivel nacional"
+      envasado: "Bolsa termosellada con válvula unidireccional de frescura"
     },
     pairing: "Perfecto para cafetera italiana o de filtro, dejando un aroma inconfundible en las mañanas navideñas.",
     iconBg: "from-stone-800 to-amber-950",
@@ -238,14 +212,12 @@ const GIFTS_DATA = [
     day: 7,
     title: "Baraja Española Personalizada Ineco",
     subtitle: "40 Naipes de 61,5 x 95 mm • Barniz Acuoso Durabilidad",
-    badge: "Producto 7 • Edición Coleccionista",
-    price: "2,50 € / ud (PBL: 17.500 € + IVA)",
+    badge: "Edición Coleccionista",
     specs: {
       formato: "Baraja tradicional española de 40 cartas (61,5 x 95 mm)",
-      papel: "Laminado estucado de 310 g/m² bañado en barniz acuoso de alta resistencia",
-      impresion: "Dorso personalizado a 4 tintas CMYK con diseño exclusivo Ineco",
-      estuche: "Caja de cartón policromado y envoltura en celofán antihumedad",
-      unidades: "7.000 barajas diseñadas para Ineco"
+      papel: "Laminado estucado de 310 g/m² bañado en barniz acuoso",
+      impresion: "Dorso personalizado a 4 tintas CMYK con diseño Ineco",
+      estuche: "Caja de cartón policromado y envoltura en celofán antihumedad"
     },
     pairing: "Compañera inseparable de los turrones y polvorones en las partidas familiares de Nochebuena y Año Nuevo.",
     iconBg: "from-blue-700 to-indigo-900",
@@ -276,14 +248,12 @@ const GIFTS_DATA = [
     day: 8,
     title: "Calcetines Técnicos Corporativos Ineco",
     subtitle: "Algodón ≥80% • Costura Plana Anti-Rozaduras • Puntera Reforzada",
-    badge: "Producto 8 • Confort Máximo",
-    price: "4,00 € / par (PBL: 28.000 € + IVA)",
+    badge: "Confort Máximo",
     specs: {
       composicion: "Algodón premium mínimo 80% transpirable y cálido",
       ergonomia: "Costura punto por punto sin relieves para prevenir rozaduras",
       refuerzo: "Talones y punteras reforzados para máxima durabilidad",
-      ajuste: "Puño elástico con elastano que no aprieta ni desliza en movimiento",
-      diseno: "Diseño corporativo exclusivo facilitado por Ineco"
+      ajuste: "Puño elástico con elastano que no aprieta ni desliza en movimiento"
     },
     pairing: "Perfectos para estar cómodos por casa en los días más fríos de diciembre junto al calor del hogar.",
     iconBg: "from-blue-800 to-red-700",
@@ -304,14 +274,12 @@ const GIFTS_DATA = [
     day: 9,
     title: "Tarjeta Navideña Solidaria Ineco 2026",
     subtitle: "Formato A4 Doble Cara • Papel Offset Blanco 80g",
-    badge: "Producto 9 • Compromiso Social",
-    price: "0,70 € / ud (PBL: 4.900 € + IVA)",
+    badge: "Compromiso Social",
     specs: {
       formato: "Formato A4 impreso a doble cara de máxima nitidez",
       papel: "Papel offset blanco de 80 g/m² de fibra reciclada certificada FSC",
-      edicion: "Dos diseños institucionales aprobados por Ineco",
-      mensaje: "Agradecimiento a los profesionales de la compañía y proyectos solidarios",
-      unidades: "7.000 tarjetas personalizadas para cada integrante"
+      edicion: "Diseño institucional corporativo exclusivo de Ineco",
+      mensaje: "Agradecimiento a los profesionales de la compañía y proyectos solidarios"
     },
     pairing: "Para guardar de recuerdo junto a las felicitaciones más queridas o colocar en un lugar especial de la oficina.",
     iconBg: "from-red-800 to-amber-700",
@@ -425,13 +393,12 @@ const COLLEAGUES = [
 ];
 
 // ==========================================
-// 3. MOTOR DE AUDIO SINTETIZADO (Web Audio API)
-// SONIDO DESACTIVADO POR DEFECTO
+// 3. MOTOR DE AUDIO (Desactivado por defecto)
 // ==========================================
 class SoundEngine {
   constructor() {
     this.ctx = null;
-    this.muted = true; // DESACTIVADO POR DEFECTO
+    this.muted = true;
     this.bgMelodyPlaying = false;
     this.melodyTimer = null;
   }
@@ -469,8 +436,8 @@ class SoundEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(1046.5, t); // C6
-    osc.frequency.exponentialRampToValueAtTime(2093, t + 0.08); // C7
+    osc.frequency.setValueAtTime(1046.5, t);
+    osc.frequency.exponentialRampToValueAtTime(2093, t + 0.08);
     osc.frequency.exponentialRampToValueAtTime(1046.5, t + 0.3);
 
     gain.gain.setValueAtTime(0.35, t);
@@ -709,7 +676,7 @@ function initCountdown() {
       document.getElementById('cd-hours').innerText = "00";
       document.getElementById('cd-mins').innerText = "00";
       document.getElementById('cd-secs').innerText = "00";
-      document.getElementById('cd-status-text').innerText = "¡Los lotes solidarios han llegado a destino!";
+      document.getElementById('cd-status-text').innerText = "¡Los detalles solidarios han llegado a la Base de Monforte del Cid!";
       return;
     }
 
@@ -736,12 +703,14 @@ function initCountdown() {
 }
 
 // ==========================================
-// 6. MAPA RADAR: LAPONIA ➔ SEDE INECO ➔ BASE MONFORTE DEL CID
+// 6. MAPA RADAR: RECORRIDO TEMPORAL REALISTA (35 DÍAS RESTANTES)
+// 8 Nov: Salida Laponia ➔ 1 Dic: Sede Ineco Madrid ➔ 14 Dic: Monforte del Cid
 // ==========================================
 class SantaRailTracker {
   constructor() {
-    this.speed = 320; // km/h
-    this.stageProgress = 0.65; 
+    this.speed = 180;
+    // Progreso actual realista: quedan 35 días sobre 36 días totales de viaje (apenas 5-10% de avance)
+    this.currentMode = 'real'; // 'real', 'madrid', 'monforte', 'laponia'
     this.trainMarker = document.getElementById('train-marker');
     this.speedDisplay = document.getElementById('radar-speed');
     this.statusDisplay = document.getElementById('radar-status');
@@ -750,68 +719,48 @@ class SantaRailTracker {
   }
 
   init() {
-    this.animateTrain();
+    this.setRealisticPosition();
   }
 
-  animateTrain() {
-    setInterval(() => {
-      this.stageProgress += 0.002 * (this.speed / 300);
-      if (this.stageProgress > 0.98) {
-        this.stageProgress = 0.98;
-      }
-
-      // Waypoints:
-      // Laponia: (440, 45)
-      // Europa Central / Pirineos: (280, 160)
-      // Sede Central Ineco Madrid (Pº Habana): (180, 245)
-      // Base Monforte del Cid (Alicante): (285, 325)
-      const pStart = { x: 180, y: 245 };
-      const pEnd = { x: 285, y: 325 };
-      const curX = pStart.x + (pEnd.x - pStart.x) * this.stageProgress;
-      const curY = pStart.y + (pEnd.y - pStart.y) * this.stageProgress;
-
-      if (this.trainMarker) {
-        this.trainMarker.setAttribute('transform', `translate(${curX}, ${curY})`);
-      }
-
-      const kmRestantes = Math.max(0, Math.round((1 - this.stageProgress) * 420));
-      if (this.distDisplay) this.distDisplay.innerText = `${kmRestantes} km a destino`;
-      if (this.speedDisplay) this.speedDisplay.innerText = `${this.speed} km/h`;
-
-      if (this.statusDisplay) {
-        if (kmRestantes === 0) {
-          this.statusDisplay.innerText = "¡LLEGADA A BASE DE MONFORTE DEL CID!";
-        } else if (kmRestantes < 60) {
-          this.statusDisplay.innerText = "Aproximación por Bifurcación Monforte (P.K. 420)";
-        } else {
-          this.statusDisplay.innerText = "Sede Ineco Madrid ➔ Base Monforte del Cid (LAV Levante)";
-        }
-      }
-    }, 150);
+  setRealisticPosition() {
+    // Coordenadas ruta:
+    // Laponia: (440, 45)
+    // Europa Central: (280, 160)
+    // Sede Central Ineco Madrid: (180, 245)
+    // Base Monforte del Cid: (285, 325)
+    // Hoy 8 de Noviembre: justo saliendo del Círculo Polar en Escandinavia (425, 58)
+    if (this.trainMarker) {
+      this.trainMarker.setAttribute('transform', `translate(425, 58)`);
+    }
+    if (this.distDisplay) this.distDisplay.innerText = "Quedan 35 días";
+    if (this.speedDisplay) this.speedDisplay.innerText = "180 km/h (Travesía Polar)";
+    if (this.statusDisplay) {
+      this.statusDisplay.innerText = "8 Noviembre: En travesía polar desde Laponia. Llegada prevista a Sede Ineco el 1 de Diciembre.";
+    }
   }
 
   boostSpeed() {
-    this.speed = 350;
     sound.playTrainHorn();
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    if (this.speedDisplay) this.speedDisplay.innerText = "350 km/h (Modo Trineo AVE)";
     setTimeout(() => {
-      this.speed = 320;
+      if (this.speedDisplay) this.speedDisplay.innerText = "180 km/h (Travesía Polar)";
     }, 4000);
   }
 
   jumpTo(stage) {
     if (stage === 'laponia') {
       if (this.trainMarker) this.trainMarker.setAttribute('transform', `translate(440, 45)`);
-      if (this.statusDisplay) this.statusDisplay.innerText = "Origen Ártico: Taller de Papá Noel (Laponia • 66°N)";
-      if (this.distDisplay) this.distDisplay.innerText = "3.850 km a destino";
+      if (this.statusDisplay) this.statusDisplay.innerText = "8 Noviembre: Taller de Papá Noel (Laponia • 66°N). Iniciando el viaje.";
+      if (this.distDisplay) this.distDisplay.innerText = "35 días restantes";
     } else if (stage === 'madrid') {
       if (this.trainMarker) this.trainMarker.setAttribute('transform', `translate(180, 245)`);
-      if (this.statusDisplay) this.statusDisplay.innerText = "Parada Oficial: Sede Ineco (Paseo de la Habana 138, Madrid)";
-      if (this.distDisplay) this.distDisplay.innerText = "420 km a destino";
+      if (this.statusDisplay) this.statusDisplay.innerText = "1 Diciembre: Escala técnica en Sede Central Ineco (Paseo de la Habana 138, Madrid).";
+      if (this.distDisplay) this.distDisplay.innerText = "13 días a Monforte";
     } else if (stage === 'monforte') {
       if (this.trainMarker) this.trainMarker.setAttribute('transform', `translate(285, 325)`);
-      if (this.statusDisplay) this.statusDisplay.innerText = "Destino Final: Base de Mantenimiento de Monforte del Cid";
-      if (this.distDisplay) this.distDisplay.innerText = "0 km (¡Llegada!)";
+      if (this.statusDisplay) this.statusDisplay.innerText = "14 Diciembre: ¡Llegada final a la Base de Mantenimiento de Monforte del Cid!";
+      if (this.distDisplay) this.distDisplay.innerText = "¡Destino alcanzado!";
     }
     sound.playBellChime();
   }
@@ -819,6 +768,7 @@ class SantaRailTracker {
 
 // ==========================================
 // 7. GESTOR DEL CALENDARIO DE ADVIENTO
+// (SIN SPOILERS EN LA CARA FRONTAL)
 // ==========================================
 class AdventCalendar {
   constructor() {
@@ -842,7 +792,7 @@ class AdventCalendar {
 
       col.innerHTML = `
         <div class="advent-card ${isOpened ? 'opened' : ''}" data-day="${gift.day}" id="gift-card-${gift.day}">
-          <!-- CARA FRONTAL (Cerrada / Regalo Misterioso con Lazos 3D y Foil Dorado) -->
+          <!-- CARA FRONTAL: MISTERIO TOTAL (SIN SPOILER DE LO QUE HAY DENTRO) -->
           <div class="advent-front p-5 flex flex-col justify-between select-none foil-sheen">
             <div class="gift-ribbon-horizontal"></div>
             <div class="gift-ribbon-vertical"></div>
@@ -862,8 +812,11 @@ class AdventCalendar {
               </span>
             </div>
 
+            <!-- PIE DE LA PUERTA: ENIGMA / SIN SPOILER DEL PRODUCTO -->
             <div class="z-10 mt-auto pt-2 flex items-center justify-between text-xs text-slate-300 border-t border-blue-400/20">
-              <span class="font-bold text-[11px] truncate max-w-[140px] text-blue-200">${gift.title.split(' ')[0]} ${gift.title.split(' ')[1] || ''}</span>
+              <span class="font-bold text-[11px] text-amber-300 flex items-center gap-1">
+                <span>✨</span> <span>Sorpresa Navideña</span>
+              </span>
               <span class="text-[10px] bg-red-700 text-white px-2.5 py-0.5 rounded-full font-black tracking-wider shadow">INECO</span>
             </div>
           </div>
@@ -958,6 +911,9 @@ class AdventCalendar {
     this.updateProgress();
   }
 
+  // ==========================================
+  // APERTURA ESPECTACULAR: CAJA 3D DE LA QUE EMERGE EL REGALO
+  // ==========================================
   openGiftModal(day) {
     this.currentModalDay = day;
     const gift = GIFTS_DATA.find(g => g.day === day);
@@ -969,7 +925,7 @@ class AdventCalendar {
     modalContent.innerHTML = `
       <div class="relative">
         <!-- Encabezado -->
-        <div class="flex items-start justify-between gap-4 border-b border-slate-700/60 pb-4">
+        <div class="flex items-start justify-between gap-4 border-b border-slate-700/60 pb-3">
           <div>
             <div class="flex items-center gap-2 mb-1">
               <span class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold">
@@ -987,35 +943,46 @@ class AdventCalendar {
           </button>
         </div>
 
-        <!-- Pestañas Interactivas -->
-        <div class="flex items-center gap-2 mt-4 border-b border-slate-800 pb-2 overflow-x-auto text-xs">
-          <button class="tab-btn active px-3.5 py-1.5 rounded-lg border border-transparent font-medium" data-tab="tab-specs">
-            📋 Ficha Oficial del Pliego
-          </button>
-          <button class="tab-btn px-3.5 py-1.5 rounded-lg border border-slate-700/60 text-slate-300 font-medium hover:bg-slate-800" data-tab="tab-pairing">
-            🍷 Maridaje & Degustación
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-5 items-center">
-          <!-- Ilustración en grande -->
-          <div class="bg-gradient-to-b from-blue-950/70 to-slate-900 rounded-2xl p-6 border border-blue-500/20 flex flex-col items-center justify-center relative overflow-hidden">
-            <div class="w-48 h-48 drop-shadow-2xl">
-              ${gift.svg}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-4 items-center">
+          <!-- ESCENARIO 3D: EL REGALO SALE MÁGICAMENTE DE LA CAJA NAVIDEÑA -->
+          <div class="bg-gradient-to-b from-blue-950/70 via-slate-900 to-slate-950 rounded-2xl p-5 border border-amber-500/30 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
+            <div class="sparkle-burst"></div>
+            
+            <div class="box-stage-3d">
+              <!-- Caja 3D de regalo -->
+              <div class="gift-box-base flex items-center justify-center">
+                <span class="text-xs font-bold text-amber-300 tracking-wider">INECO 2026</span>
+              </div>
+              <!-- Tapa abriéndose hacia arriba -->
+              <div class="gift-box-lid"></div>
+              <!-- Regalo elevándose mágicamente -->
+              <div class="gift-emerging-item">
+                ${gift.svg}
+              </div>
             </div>
-            <span class="mt-3 px-3.5 py-1 rounded-full bg-slate-800/90 text-amber-300 text-[11px] font-mono border border-slate-700">
-              PBL Oficial: ${gift.price}
+
+            <span class="mt-2 px-3 py-1 rounded-full bg-slate-800/90 text-amber-300 text-xs font-bold border border-slate-700 flex items-center gap-1.5 shadow">
+              <span>✨</span> <span>¡Regalo Descubierto!</span>
             </span>
           </div>
 
-          <!-- Contenidos según pestaña -->
+          <!-- Detalles de Calidad y Degustación -->
           <div class="space-y-4">
-            <!-- PESTAÑA 1: ESPECIFICACIONES -->
+            <!-- PESTAÑAS -->
+            <div class="flex items-center gap-2 border-b border-slate-800 pb-2 text-xs">
+              <button class="tab-btn active px-3.5 py-1.5 rounded-lg border border-transparent font-medium" data-tab="tab-specs">
+                📋 Ficha de Calidad
+              </button>
+              <button class="tab-btn px-3.5 py-1.5 rounded-lg border border-slate-700/60 text-slate-300 font-medium hover:bg-slate-800" data-tab="tab-pairing">
+                🍷 Maridaje & Degustación
+              </button>
+            </div>
+
             <div id="tab-specs-content" class="tab-pane space-y-3">
               <div class="bg-slate-800/60 rounded-xl p-4 border border-slate-700/50">
                 <h4 class="text-xs uppercase font-black text-blue-300 tracking-wider mb-2.5 flex items-center gap-1.5">
                   <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                  Pliego Oficial Exp. 20260923-00341
+                  Detalles del Producto
                 </h4>
                 <ul class="text-xs space-y-2 text-slate-200">
                   ${Object.entries(gift.specs).map(([k, v]) => `
@@ -1028,7 +995,6 @@ class AdventCalendar {
               </div>
             </div>
 
-            <!-- PESTAÑA 2: MARIDAJE NAVIDEÑO -->
             <div id="tab-pairing-content" class="tab-pane hidden space-y-3">
               <div class="bg-amber-950/30 rounded-xl p-4 border border-amber-500/30">
                 <h4 class="text-xs uppercase font-black text-amber-300 tracking-wider mb-2 flex items-center gap-1.5">
@@ -1121,6 +1087,7 @@ class AdventCalendar {
 
 // ==========================================
 // 8. SECCIÓN "ABRIR TU REGALO" (OFICINA)
+// BILLETE DE ALTA VELOCIDAD PREMIUM & FOTO REAL DE LA CESTA
 // ==========================================
 class ColleagueGiftBox {
   constructor() {
@@ -1179,29 +1146,35 @@ class ColleagueGiftBox {
 
     this.detailsCard.innerHTML = `
       <div class="space-y-6">
-        <!-- Billete de Alta Velocidad (Boarding Pass Personalizado V2) -->
-        <div id="ticket-pass-element" class="ticket-boarding-pass p-5 md:p-7 border-2 border-amber-400/50 shadow-2xl relative">
+        <!-- BILLETE DE ALTA VELOCIDAD PREMIUM V3 -->
+        <div id="ticket-pass-element" class="ticket-boarding-pass p-5 sm:p-7 relative shadow-2xl">
+          <div class="ticket-hologram-strip"></div>
+
           <!-- Cabecera del Billete -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-300">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-300 pl-3">
             <div class="flex items-center gap-3">
-              <div class="w-12 h-12 rounded-2xl bg-blue-900 text-white flex items-center justify-center font-bold text-2xl shadow-md border border-amber-400">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-900 to-indigo-950 text-white flex items-center justify-center font-bold text-2xl shadow-md border-2 border-amber-400">
                 🚄
               </div>
               <div>
-                <span class="text-[10px] font-black tracking-widest uppercase text-blue-900">BILLETE DE ALTA VELOCIDAD • REGALO SOLIDARIO 2026</span>
-                <h3 class="text-2xl font-black text-slate-900 font-poppins">${colleague.name}</h3>
+                <span class="text-[10px] font-black tracking-widest uppercase text-blue-900 flex items-center gap-1.5">
+                  <span>INECO ALTA VELOCIDAD</span>
+                  <span class="text-amber-500">•</span>
+                  <span>BILLETE SOLIDARIO 2026</span>
+                </span>
+                <h3 class="text-2xl sm:text-3xl font-black text-slate-900 font-poppins">${colleague.name}</h3>
               </div>
             </div>
             <div class="text-right">
               <span class="inline-block px-3 py-1 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-wider shadow">
-                LAV MADRID - LEVANTE
+                LAV MADRID - ALICANTE
               </span>
-              <p class="text-[11px] font-mono text-slate-700 font-bold mt-1">${colleague.ticketSeat}</p>
+              <p class="text-[11px] font-mono text-slate-800 font-bold mt-1">${colleague.ticketSeat}</p>
             </div>
           </div>
 
-          <!-- Datos de Ruta y Base -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 py-4 text-xs">
+          <!-- Datos de Ruta y Base de Monforte -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 py-4 text-xs pl-3">
             <div>
               <span class="text-[10px] text-slate-500 uppercase font-bold">ORIGEN:</span>
               <p class="font-bold text-slate-900">Sede Ineco Central</p>
@@ -1210,8 +1183,8 @@ class ColleagueGiftBox {
             <div>
               <span class="text-[10px] text-slate-500 uppercase font-bold">DESTINO PRIORITARIO:</span>
               <p class="font-bold text-red-600">Base Monforte del Cid</p>
-              <p class="text-[10px] text-slate-500 font-mono">38.40674°N, -0.69494°W</p>
-              <a href="https://www.google.com/maps?q=38.406741739956495,-0.6949394856139979" target="_blank" rel="noopener" class="inline-block text-[10px] text-blue-700 hover:text-blue-900 underline font-semibold mt-0.5">📍 Ver Ubicación en Maps ↗</a>
+              <p class="text-[10px] text-slate-600 font-mono font-bold">38.40674°N, -0.69494°W</p>
+              <a href="https://www.google.com/maps?q=38.406741739956495,-0.6949394856139979" target="_blank" rel="noopener" class="inline-block text-[10px] text-blue-700 hover:text-blue-900 underline font-bold mt-0.5">📍 Ver Ubicación en Maps ↗</a>
             </div>
             <div>
               <span class="text-[10px] text-slate-500 uppercase font-bold">FECHA ENTREGA:</span>
@@ -1221,63 +1194,54 @@ class ColleagueGiftBox {
             <div>
               <span class="text-[10px] text-slate-500 uppercase font-bold">LOCALIZADOR:</span>
               <p class="font-bold text-blue-900 font-mono">${colleague.loc}</p>
-              <p class="text-[10px] text-slate-500">Lote Solidario Completo</p>
+              <p class="text-[10px] text-emerald-700 font-semibold">Cesta Solidaria Completa</p>
             </div>
           </div>
 
           <!-- Mensaje Personalizado Navideño -->
-          <div class="bg-blue-50/90 rounded-xl p-4 border border-blue-200 text-xs text-slate-800 leading-relaxed my-2">
+          <div class="bg-blue-50/90 rounded-xl p-4 border border-blue-200 text-xs text-slate-800 leading-relaxed my-2 ml-3">
             <span class="font-bold text-blue-900">Dedicatoria para ${colleague.name} (${colleague.role}):</span>
             <p class="italic mt-1 text-sm font-medium">"${colleague.wish}"</p>
           </div>
 
           <!-- Código de Barras / QR Simulado -->
-          <div class="flex items-center justify-between pt-3 border-t border-dashed border-slate-300 text-[10px] text-slate-500 font-mono">
-            <span>EXPEDIENTE: 20260923-00341</span>
+          <div class="flex items-center justify-between pt-3 border-t border-dashed border-slate-300 text-[10px] text-slate-500 font-mono pl-3">
+            <span>RESGUARDO OFICIAL</span>
             <span class="tracking-widest">|||||| | |||||||| ||| ||||||| | ||</span>
             <span>BASE MONFORTE DEL CID</span>
           </div>
         </div>
 
-        <!-- Muestra 3D de la Cesta de Navidad Completa -->
-        <div class="bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 rounded-2xl p-6 border-2 border-blue-500/30 text-center relative overflow-hidden shadow-2xl">
+        <!-- MUESTRA DE LA CESTA DE NAVIDAD REALISTA -->
+        <div class="bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-6 sm:p-8 border-2 border-blue-500/30 text-center relative overflow-hidden shadow-2xl">
           <div class="absolute -top-12 -right-12 w-44 h-44 bg-amber-500/10 rounded-full blur-2xl"></div>
           
           <span class="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold mb-3">
-            🎁 Gran Cesta Solidaria Ineco 2026
+            🎁 Presentación Real del Empaquetado
           </span>
-          <h4 class="text-xl md:text-2xl font-black text-white font-poppins">
+          <h4 class="text-xl md:text-3xl font-black text-white font-poppins">
             La Cesta de Navidad de ${colleague.name}
           </h4>
-          <p class="text-xs text-slate-300 max-w-lg mx-auto mt-1 mb-5">
-            Caja de cartón reciclado sostenible serigrafiada a color, equipada con acondicionamiento interior troquelado resistente a impactos y vibraciones del transporte ferroviario.
+          <p class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto mt-1 mb-6">
+            Caja de cartón reciclado sostenible serigrafiada con motivos de Ineco, forrada con separadores troquelados a medida para proteger cada frasco y producto.
           </p>
 
-          <!-- Render de la Cesta con los 9 Artículos juntos -->
-          <div id="basket-render-box" class="w-full max-w-md mx-auto bg-slate-950/70 rounded-2xl p-5 border border-amber-500/40 shadow-inner mb-6 transition-all duration-500">
-            <div class="grid grid-cols-3 gap-2.5 items-center">
-              ${GIFTS_DATA.map(g => `
-                <div class="bg-slate-800/80 rounded-xl p-2 border border-slate-700/60 flex flex-col items-center hover:scale-105 transition-transform" title="${g.title}">
-                  <div class="w-12 h-12">
-                    ${g.svg}
-                  </div>
-                  <span class="text-[9px] font-bold text-slate-200 truncate w-full mt-1 text-center">${g.title.split(' ')[0]}</span>
-                </div>
-              `).join('')}
-            </div>
-            <div class="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between text-[11px] text-amber-300 font-bold px-2">
-              <span>Incluye los 9 Productos Oficiales</span>
-              <span>7.000 Lotes Nacional</span>
+          <!-- IMAGEN REAL DE LA CESTA GENERADA SEGÚN ESPECIFICACIONES -->
+          <div id="basket-render-box" class="w-full max-w-2xl mx-auto rounded-2xl overflow-hidden border-2 border-amber-500/50 shadow-2xl mb-6 relative group">
+            <img src="assets/cesta_solidaria_real.jpg" alt="Cesta de Navidad Solidaria Ineco 2026" class="w-full h-auto object-cover transform group-hover:scale-102 transition-transform duration-700">
+            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/90 via-slate-950/60 to-transparent p-4 flex items-center justify-between text-xs text-amber-300 font-bold">
+              <span>📦 Acondicionamiento Interior Antichoque con 9 Artículos</span>
+              <span class="text-white bg-red-600/90 px-2.5 py-0.5 rounded-full text-[10px]">Edición 2026</span>
             </div>
           </div>
 
           <!-- Botones de Acción -->
           <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button id="unbox-basket-btn" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 active:scale-95 text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition duration-300">
-              <span>🎉 ¡Desempaquetar y Celebrar!</span>
+              <span>🎉 ¡Celebrar y Abrir Mi Cesta!</span>
             </button>
             <button id="download-ticket-btn" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-blue-900 hover:bg-blue-800 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition border border-blue-400/40">
-              <span>🎟️ Descargar Billete</span>
+              <span>🎟️ Descargar Mi Billete</span>
             </button>
             <button id="share-whatsapp-btn" class="w-full sm:w-auto px-5 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 active:scale-95 text-white font-bold text-xs shadow-lg flex items-center justify-center gap-2 transition">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.087-.179.182-.077.357.101.174.449.741.963 1.199.662.59 1.22.774 1.393.861.173.087.274.072.376-.044.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.072.043.419-.101.824z"/></svg>
@@ -1304,8 +1268,8 @@ class ColleagueGiftBox {
         }
         if (typeof confetti === 'function') {
           confetti({
-            particleCount: 120,
-            spread: 90,
+            particleCount: 140,
+            spread: 95,
             origin: { y: 0.6 },
             colors: ['#D4AF37', '#CB1823', '#1A4488', '#10B981', '#FFFFFF']
           });
@@ -1330,48 +1294,64 @@ class ColleagueGiftBox {
 
   generateTicketImage(colleague) {
     const canvas = document.createElement('canvas');
-    canvas.width = 800;
-    canvas.height = 420;
+    canvas.width = 820;
+    canvas.height = 430;
     const ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = '#050E1D';
+    // Fondo oscuro exterior
+    ctx.fillStyle = '#040A16';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Tarjeta blanca
     ctx.fillStyle = '#FFFFFF';
-    ctx.roundRect(40, 30, 720, 360, 20);
+    ctx.roundRect(35, 25, 750, 380, 24);
     ctx.fill();
 
+    // Banda dorada exterior
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Banda superior azul Ineco
     ctx.fillStyle = '#1A4488';
-    ctx.roundRect(40, 30, 720, 80, [20, 20, 0, 0]);
+    ctx.roundRect(35, 25, 750, 85, [24, 24, 0, 0]);
     ctx.fill();
 
+    // Tira holográfica a la izquierda
+    ctx.fillStyle = '#CB1823';
+    ctx.fillRect(35, 110, 12, 295);
+
+    // Textos cabecera
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 24px Poppins, sans-serif';
-    ctx.fillText('INECO • BILLETE SOLIDARIO 2026', 70, 75);
+    ctx.fillText('INECO • BILLETE SOLIDARIO 2026', 75, 75);
 
     ctx.fillStyle = '#FCD34D';
     ctx.font = 'bold 15px Poppins, sans-serif';
-    ctx.fillText('MONFORTE (38.4067°N, -0.6949°W)', 430, 75);
+    ctx.fillText('BASE MONFORTE (38.4067°N, -0.6949°W)', 430, 75);
 
+    // Nombre y detalles
     ctx.fillStyle = '#0D2246';
-    ctx.font = '900 32px Poppins, sans-serif';
-    ctx.fillText(colleague.name, 70, 160);
+    ctx.font = '900 34px Poppins, sans-serif';
+    ctx.fillText(colleague.name, 75, 160);
 
     ctx.fillStyle = '#CB1823';
     ctx.font = 'bold 18px Poppins, sans-serif';
-    ctx.fillText(colleague.role, 70, 195);
+    ctx.fillText(colleague.role, 75, 195);
 
     ctx.fillStyle = '#334155';
-    ctx.font = '16px Poppins, sans-serif';
-    ctx.fillText(`Asiento: ${colleague.ticketSeat} | Entrega: 14 Diciembre 2026`, 70, 240);
+    ctx.font = '15px Poppins, sans-serif';
+    ctx.fillText(`Asiento: ${colleague.ticketSeat} | Entrega: 14 Diciembre 2026`, 75, 240);
 
+    // Dedicatoria
     ctx.fillStyle = '#1E293B';
     ctx.font = 'italic 15px Poppins, sans-serif';
-    ctx.fillText(`"${colleague.wish}"`, 70, 290);
+    ctx.fillText(`"${colleague.wish}"`, 75, 290);
 
+    // Código de barras
     ctx.fillStyle = '#0F172A';
     ctx.font = 'bold 14px monospace';
-    ctx.fillText(`EXP: 20260923-00341  |||||||||| ||||| ||||||||  ${colleague.loc}`, 70, 350);
+    ctx.fillText(`BASE MONFORTE DEL CID  |||||||||| ||||| ||||||||  ${colleague.loc}`, 75, 360);
 
     const link = document.createElement('a');
     link.download = `Billete_Solidario_Ineco_2026_${colleague.name.replace(/\s+/g, '_')}.png`;
@@ -1461,32 +1441,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (hornBtn) hornBtn.onclick = () => sound.playTrainHorn();
   if (boostBtn) boostBtn.onclick = () => santaRadar.boostSpeed();
-
-  // Modal Pliego
-  const tenderBtn = document.getElementById('view-tender-btn');
-  const tenderModal = document.getElementById('tender-modal');
-  const closeTenderBtn = document.getElementById('close-tender-btn');
-
-  if (tenderBtn && tenderModal) {
-    tenderBtn.onclick = () => {
-      tenderModal.classList.remove('hidden');
-      tenderModal.classList.add('flex');
-    };
-  }
-  if (closeTenderBtn && tenderModal) {
-    closeTenderBtn.onclick = () => {
-      tenderModal.classList.add('hidden');
-      tenderModal.classList.remove('flex');
-    };
-  }
-  if (tenderModal) {
-    tenderModal.onclick = (e) => {
-      if (e.target === tenderModal) {
-        tenderModal.classList.add('hidden');
-        tenderModal.classList.remove('flex');
-      }
-    };
-  }
 
   document.body.addEventListener('click', () => {
     sound.init();
