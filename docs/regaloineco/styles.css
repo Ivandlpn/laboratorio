@@ -482,7 +482,11 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 1.5rem;
   z-index: 25;
   touch-action: none;
-  cursor: crosshair;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cfilter id='s'%3E%3CfeDropShadow dx='0' dy='1' stdDeviation='1.5' flood-color='%23000' flood-opacity='0.85'/%3E%3C/filter%3E%3Cg filter='url(%23s)' stroke='%2338BDF8' stroke-width='2' stroke-linecap='round'%3E%3Cline x1='16' y1='3' x2='16' y2='29' stroke='%23FFFFFF'/%3E%3Cline x1='3' y1='16' x2='29' y2='16' stroke='%23FFFFFF'/%3E%3Cline x1='6.8' y1='6.8' x2='25.2' y2='25.2' stroke='%23BAE6FD'/%3E%3Cline x1='6.8' y1='25.2' x2='25.2' y2='6.8' stroke='%23BAE6FD'/%3E%3Cpath d='M12 7 L16 10 L20 7 M12 25 L16 22 L20 25 M7 12 L10 16 L7 20 M25 12 L22 16 L25 20' stroke='%2338BDF8' fill='none'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%2338BDF8' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") 16 16, crosshair;
+}
+
+.frost-scratch-canvas:active {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cfilter id='s'%3E%3CfeDropShadow dx='0' dy='1' stdDeviation='1.5' flood-color='%23000' flood-opacity='0.85'/%3E%3C/filter%3E%3Cg filter='url(%23s)' stroke='%23FCD34D' stroke-width='2' stroke-linecap='round'%3E%3Cline x1='16' y1='3' x2='16' y2='29' stroke='%23FEF08A'/%3E%3Cline x1='3' y1='16' x2='29' y2='16' stroke='%23FEF08A'/%3E%3Cline x1='6.8' y1='6.8' x2='25.2' y2='25.2' stroke='%23FDE047'/%3E%3Cline x1='6.8' y1='25.2' x2='25.2' y2='6.8' stroke='%23FDE047'/%3E%3Cpath d='M12 7 L16 10 L20 7 M12 25 L16 22 L20 25 M7 12 L10 16 L7 20 M25 12 L22 16 L25 20' stroke='%23F59E0B' fill='none'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%23FCD34D' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") 16 16, crosshair;
   transition: opacity 0.5s ease;
 }
 .frost-scratch-canvas.shattering {

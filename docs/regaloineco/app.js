@@ -15,7 +15,6 @@ const GIFTS_DATA = [
     iconBg: "from-amber-600 to-yellow-500",
     realImage: "assets/products/P1.jpg",
     realThumb: "assets/products/P1_thumb.jpg",
-    video: "Videos/Dia1.mp4",
     intro: "Obtenido directamente de olivares andaluces bajo Denominación de Origen protegida, este Aceite de Oliva Virgen Extra de 500 ml representa la máxima excelencia del campo andaluz.",
     details: [
       { label: "Origen y Extracción", text: "Elaborado mediante primera extracción en frío a partir de aceitunas seleccionadas en su punto óptimo de maduración, garantizando una acidez excepcionalmente baja." },
@@ -764,14 +763,14 @@ class SantaRailTracker {
 
     // Coordenadas calibradas sobre el mapa GIS profesional (460x330)
     this.waypoints = [
-      { pct: 0, x: 380, y: 40, angle: 120, name: "Laponia (Círculo Polar 66° 33'N)", coords: "66.5039°N, 25.7294°E", days: "36 días", speed: "180 km/h", status: "Taller Ártico de Laponia. Embarque de los lotes solidarios y salida por la red polar." },
-      { pct: 15, x: 355, y: 85, angle: 145, name: "Golfo de Botnia & Báltico Norte", coords: "63.8258°N, 20.2630°E", days: "32 días", speed: "200 km/h", status: "Travesía por el corredor nórdico hacia Escandinavia central." },
-      { pct: 30, x: 315, y: 140, angle: 155, name: "Escandinavia Sur (Estocolmo / Malmö)", coords: "59.3293°N, 18.0686°E", days: "27 días", speed: "230 km/h", status: "Enlace internacional por el corredor transfronterizo hacia Europa Central." },
-      { pct: 50, x: 235, y: 195, angle: 145, name: "Corredor Europeo TEN-T (París)", coords: "48.8566°N, 2.3522°E", days: "20 días", speed: "270 km/h", status: "Tránsito por el corredor de alta velocidad europeo hacia el eje atlántico." },
-      { pct: 65, x: 185, y: 242, angle: 160, name: "Paso Pirenaico (Burdeos / Hendaya)", coords: "43.3584°N, -1.7760°W", days: "16 días", speed: "220 km/h", status: "Paso fronterizo e interoperabilidad ferroviaria hacia la red española." },
-      { pct: 75, x: 162, y: 288, angle: 125, name: "Sede Central Ineco (Madrid)", coords: "40.4532°N, -3.6883°W", days: "13 días", speed: "160 km/h", status: "Escala técnica y felicitación institucional en Paseo de la Habana 138 (Madrid)." },
-      { pct: 88, x: 185, y: 304, angle: 125, name: "Línea de Alta Velocidad (Cuenca / Albacete)", coords: "39.4699°N, -1.6500°W", days: "5 días", speed: "300 km/h", status: "Velocidad de crucero 300 km/h con señalización ERTMS Nivel 2." },
-      { pct: 100, x: 202, y: 318, angle: 125, name: "Base de Mantenimiento de Monforte del Cid", coords: "38.4067°N, -0.6949°W", days: "0 días (Llegada)", speed: "0 km/h", status: "¡Llegada y entrega oficial del Regalo Solidario en Monforte del Cid!" }
+      { pct: 0, x: 400, y: 35, angle: 124, name: "Laponia (Círculo Polar 66° 33'N)", coords: "66.5039°N, 25.7294°E", days: "36 días", speed: "180 km/h", status: "Taller Ártico de Laponia. Embarque de los lotes solidarios y salida por la red polar." },
+      { pct: 15, x: 370, y: 80, angle: 145, name: "Golfo de Botnia & Báltico Norte", coords: "63.8258°N, 20.2630°E", days: "32 días", speed: "200 km/h", status: "Travesía por el corredor nórdico hacia Escandinavia central." },
+      { pct: 30, x: 340, y: 130, angle: 150, name: "Escandinavia Sur (Estocolmo / Malmö)", coords: "59.3293°N, 18.0686°E", days: "27 días", speed: "230 km/h", status: "Enlace internacional por el corredor transfronterizo hacia Europa Central." },
+      { pct: 50, x: 245, y: 195, angle: 145, name: "Corredor Europeo TEN-T (París)", coords: "48.8566°N, 2.3522°E", days: "20 días", speed: "270 km/h", status: "Tránsito por el corredor de alta velocidad europeo hacia el eje atlántico." },
+      { pct: 65, x: 195, y: 245, angle: 155, name: "Paso Pirenaico (Burdeos / Hendaya)", coords: "43.3584°N, -1.7760°W", days: "16 días", speed: "220 km/h", status: "Paso fronterizo e interoperabilidad ferroviaria hacia la red española." },
+      { pct: 75, x: 168, y: 285, angle: 125, name: "Sede Central Ineco (Madrid)", coords: "40.4532°N, -3.6883°W", days: "13 días", speed: "160 km/h", status: "Escala técnica y felicitación institucional en Paseo de la Habana 138 (Madrid)." },
+      { pct: 88, x: 195, y: 305, angle: 125, name: "Línea de Alta Velocidad (Cuenca / Albacete)", coords: "39.4699°N, -1.6500°W", days: "5 días", speed: "300 km/h", status: "Velocidad de crucero 300 km/h con señalización ERTMS Nivel 2." },
+      { pct: 100, x: 218, y: 320, angle: 125, name: "Base de Mantenimiento de Monforte del Cid", coords: "38.4067°N, -0.6949°W", days: "0 días (Llegada)", speed: "0 km/h", status: "¡Llegada y entrega oficial del Regalo Solidario en Monforte del Cid!" }
     ];
 
     this.init();
@@ -1208,10 +1207,10 @@ class AdventCalendar {
         <!-- Barra Inferior de Navegación del Modal (Sin botón Campanada) -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-700/80">
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button id="modal-prev-gift" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-bold transition ${day === 1 ? 'opacity-40 pointer-events-none' : ''}">
+            <button id="modal-prev-gift" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-bold transition ${(day > 1 && this.openedDays.has(day - 1)) ? '' : 'hidden'}">
               ◀ Anterior
             </button>
-            <button id="modal-next-gift" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-bold transition ${day === 9 ? 'opacity-40 pointer-events-none' : ''}">
+            <button id="modal-next-gift" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 font-bold transition ${(day < 9 && this.openedDays.has(day + 1)) ? '' : 'hidden'}">
               Siguiente ▶
             </button>
           </div>
@@ -2393,7 +2392,7 @@ function setupCardScratch(cardElement, day, onReveal) {
   canvas.addEventListener('click', (e) => {
     e.stopPropagation();
     e.preventDefault();
-    triggerReveal();
+    scratch(e.clientX, e.clientY);
   });
 
   canvas.addEventListener('mousedown', () => isScratching = true);
