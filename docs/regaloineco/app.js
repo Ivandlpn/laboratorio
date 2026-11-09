@@ -1298,9 +1298,8 @@ class AdventCalendar {
 }
 
 // ==========================================
-// 8. GESTOR DE "ABRIR TU REGALO" (OFICINA MONFORTE)
+// 8. GESTOR DE BILLETE CONMEMORATIVO AVE Y LOTE SOLIDARIO
 // BILLETE OFICIAL: ORIGEN LAPONIA ➔ PARADA INTERMEDIA SEDE INECO ➔ DESTINO MONFORTE
-// DESPIECE 3D PROFESIONAL MEJORADO
 // ==========================================
 class ColleagueGiftBox {
   constructor() {
@@ -1361,9 +1360,15 @@ class ColleagueGiftBox {
     this.selectedColleague = colleague;
     if (!this.detailsCard) return;
 
+    const currentIndex = COLLEAGUES.findIndex(c => c.name === colleague.name);
+    const prevColleague = COLLEAGUES[(currentIndex - 1 + COLLEAGUES.length) % COLLEAGUES.length];
+    const nextColleague = COLLEAGUES[(currentIndex + 1) % COLLEAGUES.length];
+
     this.detailsCard.innerHTML = `
       <div class="space-y-6">
-        <!-- BILLETE DE ALTA VELOCIDAD: LAPONIA ➔ SEDE INECO ➔ MONFORTE -->
+        <!-- ============================================== -->
+        <!-- BILLETE OFICIAL DE ALTA VELOCIDAD AVE INECO    -->
+        <!-- ============================================== -->
         <div id="ticket-pass-element" class="ticket-boarding-pass p-5 sm:p-7 relative shadow-2xl">
           <div class="ticket-hologram-strip"></div>
 
@@ -1418,7 +1423,7 @@ class ColleagueGiftBox {
           <!-- Mensaje Personalizado Navideño para 2027 -->
           <div class="bg-white/90 rounded-xl p-4 border border-blue-200 text-xs text-slate-800 leading-relaxed my-2 ml-3 shadow-inner">
             <span class="font-bold text-blue-900">Mensaje de Felicitación y Buenos Deseos • ${colleague.name} (${colleague.role}):</span>
-            <p class="italic mt-1 text-sm font-medium">"${colleague.wish}"</p>
+            <p id="ticket-wish-text" class="italic mt-1 text-sm font-medium">"${colleague.wish}"</p>
           </div>
 
           <!-- Código de Barras / QR y Localizador -->
@@ -1429,231 +1434,208 @@ class ColleagueGiftBox {
           </div>
         </div>
 
-        <!-- MUESTRA DE LA CESTA Y DESPIECE 3D PROFESIONAL -->
-        <div class="bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-5 sm:p-7 border-2 border-blue-500/30 text-center relative overflow-hidden shadow-2xl">
-          <span class="inline-block px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold mb-3">
-            🎁 Presentación Real del Empaquetado
-          </span>
-          <h4 class="text-xl md:text-3xl font-black text-white font-poppins">
-            La Gran Cesta de Navidad de ${colleague.name}
-          </h4>
-          <p class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto mt-1 mb-6">
-            Caja de cartón kraft reciclado con acondicionamiento interior antichoque y separadores a medida para proteger cada frasco en su viaje.
-          </p>
-
-          <!-- DESPIECE 3D PROFESIONAL MEJORADO -->
-          <div id="exploded-view-container" class="hidden mb-6 relative">
-            <div class="exploded-container py-6 relative">
-              <!-- Cesta Núcleo Central -->
-              <div class="relative z-10 text-center">
-                <img src="assets/cesta_solidaria_real.jpg" alt="Cesta Núcleo" class="exploded-basket-core mx-auto">
-                <span class="inline-block mt-2 px-3 py-0.5 rounded-full bg-slate-900/90 text-amber-300 text-[10px] font-bold border border-amber-400/50 shadow">
-                  📦 Lote Solidario Completo
-                </span>
-              </div>
-
-              <!-- 9 Fichas de Producto Orbitales con Cota Visual -->
-              <div class="exploded-item-bubble" style="top: 8px; left: 12%;" data-day="1" title="AOVE 500ml D.O. Andalucía">
-                <span class="bubble-day-badge">1</span>
-                <img src="assets/products/P1_thumb.jpg" alt="AOVE" class="w-8 h-8 object-cover rounded-full border border-amber-400 mb-0.5">
-                <span class="text-[8px] font-bold text-amber-300 leading-none">AOVE</span>
-              </div>
-              <div class="exploded-item-bubble" style="top: 8px; right: 12%;" data-day="2" title="Bonito del Norte 400g">
-                <span class="bubble-day-badge">2</span>
-                <img src="assets/products/P2_thumb.jpg" alt="Bonito" class="w-8 h-8 object-cover rounded-full border border-sky-400 mb-0.5">
-                <span class="text-[8px] font-bold text-sky-300 leading-none">Bonito</span>
-              </div>
-              <div class="exploded-item-bubble" style="top: 130px; left: 2%;" data-day="3" title="Mermelada Piquillo 120g">
-                <span class="bubble-day-badge">3</span>
-                <img src="assets/products/P3_thumb.jpg" alt="Piquillo" class="w-8 h-8 object-cover rounded-full border border-red-400 mb-0.5">
-                <span class="text-[8px] font-bold text-red-300 leading-none">Piquillo</span>
-              </div>
-              <div class="exploded-item-bubble" style="top: 130px; right: 2%;" data-day="4" title="Trilogía Mojos Canarios">
-                <span class="bubble-day-badge">4</span>
-                <img src="assets/products/P4_thumb.jpg" alt="Mojos" class="w-8 h-8 object-cover rounded-full border border-emerald-400 mb-0.5">
-                <span class="text-[8px] font-bold text-emerald-300 leading-none">Mojos</span>
-              </div>
-              <div class="exploded-item-bubble" style="bottom: 110px; left: 4%;" data-day="5" title="Chocolates Artesanales en Caja Madera">
-                <span class="bubble-day-badge">5</span>
-                <img src="assets/products/P5_thumb.jpg" alt="Chocolate" class="w-8 h-8 object-cover rounded-full border border-amber-600 mb-0.5">
-                <span class="text-[8px] font-bold text-amber-400 leading-none">Chocolate</span>
-              </div>
-              <div class="exploded-item-bubble" style="bottom: 110px; right: 4%;" data-day="6" title="Café Arábica Natural 250g">
-                <span class="bubble-day-badge">6</span>
-                <img src="assets/products/P6_thumb.jpg" alt="Café" class="w-8 h-8 object-cover rounded-full border border-amber-300 mb-0.5">
-                <span class="text-[8px] font-bold text-amber-200 leading-none">Café</span>
-              </div>
-              <div class="exploded-item-bubble" style="bottom: 15px; left: 16%;" data-day="7" title="Baraja Española Ineco">
-                <span class="bubble-day-badge">7</span>
-                <img src="assets/products/P7_thumb.jpg" alt="Baraja" class="w-8 h-8 object-cover rounded-full border border-blue-400 mb-0.5">
-                <span class="text-[8px] font-bold text-blue-300 leading-none">Baraja</span>
-              </div>
-              <div class="exploded-item-bubble" style="bottom: 15px; right: 16%;" data-day="8" title="Calcetines Técnicos Ineco">
-                <span class="bubble-day-badge">8</span>
-                <img src="assets/products/P8_thumb.jpg" alt="Calcetines" class="w-8 h-8 object-cover rounded-full border border-indigo-400 mb-0.5">
-                <span class="text-[8px] font-bold text-indigo-300 leading-none">Calcetines</span>
-              </div>
-              <div class="exploded-item-bubble center-top-bubble" data-day="9" title="Tarjeta Navideña 2027">
-                <span class="bubble-day-badge">9</span>
-                <img src="assets/products/P9_thumb.jpg" alt="Tarjeta" class="w-8 h-8 object-cover rounded-full border border-amber-300 mb-0.5">
-                <span class="text-[8px] font-bold text-amber-300 leading-none">Tarjeta</span>
-              </div>
-            </div>
-            <p class="text-[11px] text-amber-300 font-semibold mt-2">
-              💡 Haz clic en cualquier producto para abrir su ficha detallada
-            </p>
+        <!-- ============================================== -->
+        <!-- BARRA DE ACCIONES EJECUTIVA DEL BILLETE        -->
+        <!-- ============================================== -->
+        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 border border-slate-700/80 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+          
+          <!-- Selector rápido entre compañeros -->
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button id="ticket-prev-colleague-btn" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-600/50 transition flex items-center justify-center gap-1.5 active:scale-95" title="Ver billete de ${prevColleague.name}">
+              <span>◀</span>
+              <span>${prevColleague.name}</span>
+            </button>
+            <button id="ticket-next-colleague-btn" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-600/50 transition flex items-center justify-center gap-1.5 active:scale-95" title="Ver billete de ${nextColleague.name}">
+              <span>${nextColleague.name}</span>
+              <span>▶</span>
+            </button>
           </div>
 
-          <!-- IMAGEN REAL DE LA CESTA -->
-          <div id="basket-render-box" class="w-full max-w-2xl mx-auto rounded-3xl overflow-hidden border-2 border-amber-400/70 shadow-[0_0_40px_rgba(212,175,55,0.35)] mb-6 relative group bg-slate-950">
-            <div class="relative overflow-hidden">
-              <img src="assets/cesta_solidaria_real.jpg" alt="Gran Cesta de Navidad Solidaria Ineco 2026" class="w-full h-auto max-h-[480px] object-cover transform group-hover:scale-103 transition-transform duration-700">
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-transparent to-black/20 pointer-events-none"></div>
-            </div>
-            
-            <div class="absolute top-4 left-4 bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-amber-400/60 text-xs font-black text-amber-300 shadow flex items-center gap-2">
-              <span>🎁</span> <span>Lote Solidario Completo (9 Artículos)</span>
-            </div>
+          <!-- Acciones principales: Guardar y Copiar -->
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button id="ticket-copy-btn" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-300 border border-amber-400/40 transition flex items-center justify-center gap-2 active:scale-95">
+              <span id="ticket-copy-icon">📋</span>
+              <span id="ticket-copy-label">Copiar Deseos</span>
+            </button>
+            <button id="ticket-download-hd-btn" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-700 to-red-600 hover:from-blue-600 hover:to-red-500 text-xs font-black text-white shadow-lg border border-amber-400/50 transition flex items-center justify-center gap-2 active:scale-95">
+              <span>📥</span>
+              <span>Guardar Billete HD</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- PRESENTACIÓN LIMPIA DE LA GRAN CESTA DE NAVIDAD-->
+        <!-- ============================================== -->
+        <div class="bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 rounded-3xl p-5 sm:p-7 border-2 border-amber-400/40 text-center relative overflow-hidden shadow-2xl">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold mb-3">
+            <span>🎁</span>
+            <span>Lote Solidario Completo (9 Especialidades)</span>
+          </div>
+
+          <h4 class="text-xl md:text-2xl font-black text-white font-poppins mb-2">
+            La Gran Cesta Navideña de ${colleague.name}
+          </h4>
+
+          <p class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto mb-6 leading-relaxed">
+            Caja kraft con acondicionamiento interior reforzado y separadores protectores para la custodia de cada artículo en su travesía por alta velocidad.
+          </p>
+
+          <!-- Imagen Oficial de la Cesta de Navidad -->
+          <div class="w-full max-w-2xl mx-auto rounded-3xl overflow-hidden border-2 border-amber-400/70 shadow-[0_0_40px_rgba(212,175,55,0.25)] relative group bg-slate-950 mb-6">
+            <img src="assets/cesta_solidaria_real.jpg" alt="Gran Cesta de Navidad Solidaria Ineco 2026" class="w-full h-auto max-h-[460px] object-cover transform group-hover:scale-102 transition-transform duration-700">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-black/20 pointer-events-none"></div>
 
             <div class="absolute bottom-0 inset-x-0 p-4 flex items-center justify-between text-xs">
-              <span class="text-amber-300 font-extrabold text-xs">Acondicionamiento Interior Antichoque</span>
+              <span class="text-amber-300 font-extrabold text-xs">Acondicionamiento Antichoque</span>
               <span class="text-white bg-red-600/95 px-3 py-1 rounded-full text-xs font-black tracking-wider shadow">
-                Llegada 14 Dic 2026
+                Llegada 14 Dic • Base Monforte
               </span>
             </div>
           </div>
 
-          <!-- Botones de Acción -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-w-2xl mx-auto">
-            <button id="unbox-basket-btn" class="px-3 py-3 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white font-black text-xs shadow-lg flex items-center justify-center gap-1.5 transition active:scale-95">
-              <span>🎉 ¡Abrir Cesta!</span>
-            </button>
-            <button id="toggle-exploded-btn" class="px-3 py-3 rounded-xl bg-indigo-900/90 hover:bg-indigo-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition border border-indigo-400/40 active:scale-95">
-              <span>🔍 Despiece 3D</span>
-            </button>
-            <button id="download-ticket-btn" class="px-3 py-3 rounded-xl bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition border border-blue-400/40 active:scale-95">
-              <span>🎟️ Billete 2026</span>
-            </button>
-            <button id="share-whatsapp-btn" class="px-3 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs shadow-md flex items-center justify-center gap-1.5 transition active:scale-95">
-              <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.299.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.087-.179.182-.077.357.101.174.449.741.963 1.199.662.59 1.22.774 1.393.861.173.087.274.072.376-.044.101-.116.433-.506.549-.68.116-.174.231-.145.39-.087s1.011.477 1.184.564.289.13.332.203c.043.072.043.419-.101.824z"/></svg>
-              <span>WhatsApp</span>
+          <!-- Botón de Enlace al Calendario de Adviento -->
+          <div class="flex justify-center">
+            <button id="go-to-advent-btn" class="px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-900 hover:from-blue-800 hover:to-indigo-800 text-amber-300 hover:text-white font-bold text-xs border border-amber-400/50 shadow-lg flex items-center gap-2 transition active:scale-95">
+              <span>❄️</span>
+              <span>Explorar los 9 Productos en el Calendario de Adviento</span>
+              <span>⬆</span>
             </button>
           </div>
         </div>
       </div>
     `;
 
-    const unboxBtn = document.getElementById('unbox-basket-btn');
-    const downloadBtn = document.getElementById('download-ticket-btn');
-    const toggleExplodedBtn = document.getElementById('toggle-exploded-btn');
-    const shareBtn = document.getElementById('share-whatsapp-btn');
-    const renderBox = document.getElementById('basket-render-box');
-    const explodedBox = document.getElementById('exploded-view-container');
-
-    if (toggleExplodedBtn && explodedBox && renderBox) {
-      toggleExplodedBtn.onclick = () => {
-        const isExploded = !explodedBox.classList.contains('hidden');
-        if (isExploded) {
-          explodedBox.classList.add('hidden');
-          renderBox.classList.remove('hidden');
-          toggleExplodedBtn.innerHTML = '<span>🔍 Despiece 3D</span>';
-        } else {
-          renderBox.classList.add('hidden');
-          explodedBox.classList.remove('hidden');
-          toggleExplodedBtn.innerHTML = '<span>📦 Vista Empaque</span>';
-          sound.playChime();
-          haptics.chime();
-        }
-      };
-
-      explodedBox.querySelectorAll('.exploded-item-bubble').forEach(b => {
-        b.onclick = () => {
-          const day = parseInt(b.dataset.day, 10);
-          sound.playChime();
-          haptics.scratch();
-          if (window.adventInstance) {
-            window.adventInstance.openGiftModal(day);
-          }
-        };
-      });
-    }
-
-    if (unboxBtn) {
-      unboxBtn.onclick = () => {
-        sound.playConfettiFanfare();
-        if (typeof confetti === 'function') {
-          confetti({ particleCount: 100, spread: 90, origin: { y: 0.6 } });
-        }
-        if (renderBox) {
-          renderBox.classList.remove('animate-basket-reveal');
-          void renderBox.offsetWidth;
-          renderBox.classList.add('animate-basket-reveal');
-        }
-      };
-    }
-
+    // Manejador del botón Descargar Billete HD
+    const downloadBtn = document.getElementById('ticket-download-hd-btn');
     if (downloadBtn) {
       downloadBtn.onclick = () => {
         this.downloadTicketPass(colleague);
       };
     }
 
-    if (shareBtn) {
-      shareBtn.onclick = () => {
-        const text = encodeURIComponent(`🚄 ¡Hola! Mira mi Billete AVE y el Regalo Solidario de Ineco (Laponia ➔ Sede Ineco ➔ Monforte del Cid): ${window.location.href}`);
-        window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    // Manejador del botón Copiar Deseos
+    const copyBtn = document.getElementById('ticket-copy-btn');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        const textToCopy = `🚄 Billete Solidario Ineco 2026 • ${colleague.name} (${colleague.role})\n"${colleague.wish}"\n📍 Trayecto: Laponia ➔ Sede Ineco ➔ Base Monforte del Cid`;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+          const icon = document.getElementById('ticket-copy-icon');
+          const label = document.getElementById('ticket-copy-label');
+          if (icon) icon.innerText = '✅';
+          if (label) label.innerText = '¡Copiado!';
+          sound.playChime();
+          haptics.chime();
+          setTimeout(() => {
+            if (icon) icon.innerText = '📋';
+            if (label) label.innerText = 'Copiar Deseos';
+          }, 2500);
+        }).catch(() => {
+          sound.playChime();
+        });
+      };
+    }
+
+    // Navegación entre compañeros
+    const prevBtn = document.getElementById('ticket-prev-colleague-btn');
+    if (prevBtn) {
+      prevBtn.onclick = () => {
+        sound.playChime();
+        this.select(prevColleague);
+        this.updateActiveSelectorButton(prevColleague.name);
+      };
+    }
+
+    const nextBtn = document.getElementById('ticket-next-colleague-btn');
+    if (nextBtn) {
+      nextBtn.onclick = () => {
+        sound.playChime();
+        this.select(nextColleague);
+        this.updateActiveSelectorButton(nextColleague.name);
+      };
+    }
+
+    // Enlace al calendario de adviento
+    const toAdventBtn = document.getElementById('go-to-advent-btn');
+    if (toAdventBtn) {
+      toAdventBtn.onclick = () => {
+        sound.playChime();
+        const adventSec = document.getElementById('seccion-calendario');
+        if (adventSec) {
+          adventSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       };
     }
   }
 
+  updateActiveSelectorButton(colleagueName) {
+    if (!this.container) return;
+    this.container.querySelectorAll('button').forEach(b => {
+      if (b.getAttribute('data-name') === colleagueName) {
+        b.className = 'px-3 py-2 rounded-xl text-xs font-medium transition-all text-left flex items-center justify-between gap-2 border select-none bg-blue-800/95 text-white border-amber-400 shadow-md ring-2 ring-amber-400/40';
+      } else {
+        b.className = 'px-3 py-2 rounded-xl text-xs font-medium transition-all text-left flex items-center justify-between gap-2 border select-none bg-slate-800/70 text-slate-300 border-slate-700/60 hover:bg-slate-700/70';
+      }
+    });
+  }
+
   downloadTicketPass(colleague) {
     const canvas = document.createElement('canvas');
-    canvas.width = 1800;
-    canvas.height = 840;
+    canvas.width = 1920;
+    canvas.height = 960;
     const ctx = canvas.getContext('2d');
     ctx.scale(2, 2);
 
+    // Fondo Blanco con Bisel Dorado
     ctx.fillStyle = '#FFFFFF';
-    ctx.roundRect ? ctx.roundRect(10, 10, 880, 400, 24) : ctx.rect(10, 10, 880, 400);
+    ctx.roundRect ? ctx.roundRect(10, 10, 940, 460, 24) : ctx.rect(10, 10, 940, 460);
     ctx.fill();
 
     ctx.strokeStyle = '#D4AF37';
     ctx.lineWidth = 4;
     ctx.stroke();
 
+    // Cabecera Azul Corporativo Ineco
     ctx.fillStyle = '#1A4488';
-    ctx.fillRect(10, 10, 880, 100);
+    ctx.fillRect(10, 10, 940, 110);
 
+    // Banda Roja Decorativa Lateral
     ctx.fillStyle = '#CB1823';
-    ctx.fillRect(35, 110, 12, 295);
+    ctx.fillRect(35, 120, 12, 335);
 
+    // Tipografía de Cabecera
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 24px Poppins, sans-serif';
-    ctx.fillText('INECO • BILLETE SOLIDARIO 2026', 75, 75);
+    ctx.fillText('INECO • BILLETE SOLIDARIO 2026', 75, 80);
 
     ctx.fillStyle = '#FCD34D';
-    ctx.font = 'bold 15px Poppins, sans-serif';
-    ctx.fillText('RUTA: LAPONIA ➔ SEDE INECO ➔ MONFORTE', 480, 75);
+    ctx.font = 'bold 14px Poppins, sans-serif';
+    ctx.fillText('RUTA: LAPONIA ➔ SEDE INECO ➔ MONFORTE', 520, 80);
 
+    // Nombre del Pasajero
     ctx.fillStyle = '#0D2246';
-    ctx.font = '900 34px Poppins, sans-serif';
-    ctx.fillText(colleague.name, 75, 160);
+    ctx.font = '900 36px Poppins, sans-serif';
+    ctx.fillText(colleague.name, 75, 175);
 
+    // Rol y Asiento
     ctx.fillStyle = '#CB1823';
     ctx.font = 'bold 18px Poppins, sans-serif';
-    ctx.fillText(colleague.role, 75, 195);
+    ctx.fillText(`${colleague.role} • ${colleague.ticketSeat}`, 75, 215);
 
+    // Trayecto Detallado
     ctx.fillStyle = '#334155';
     ctx.font = '15px Poppins, sans-serif';
-    ctx.fillText(`Origen: Laponia (66°N) | Parada: Sede Ineco | Destino: Base Monforte (14 Dic)`, 75, 240);
+    ctx.fillText('Origen: Laponia (66°N) | Parada: Sede Ineco | Destino: Base Monforte (14 Dic)', 75, 265);
 
+    // Mensaje Personalizado
     ctx.fillStyle = '#1E293B';
-    ctx.font = 'italic 15px Poppins, sans-serif';
-    ctx.fillText(`"${colleague.wish}"`, 75, 290);
+    ctx.font = 'italic 16px Poppins, sans-serif';
+    ctx.fillText(`"${colleague.wish}"`, 75, 320);
 
+    // Pie con Código de Barras y Localizador
     ctx.fillStyle = '#0F172A';
     ctx.font = 'bold 14px monospace';
-    ctx.fillText(`BASE MONFORTE DEL CID  |||||||||| ||||| ||||||||  ${colleague.loc}`, 75, 360);
+    ctx.fillText(`BASE MONFORTE DEL CID  |||||||||| ||||| ||||||||  ${colleague.loc}`, 75, 415);
 
     try {
       const link = document.createElement('a');
