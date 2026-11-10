@@ -110,16 +110,12 @@
 
         /* CABECERA CORPORATIVA COMPACTA */
         .header {
-            background: linear-gradient(135deg, #071732 0%, #0d264e 35%, #153c75 75%, #0b2247 100%);
-            border-radius: 16px;
-            padding: 0.8rem 1.35rem;
-            color: white;
-            box-shadow: 0 10px 30px rgba(7, 23, 50, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1.2rem;
-            position: relative;
+            position: sticky;
+            top: 0.5rem;
+            z-index: 100;
+            background: linear-gradient(135deg, rgba(7, 23, 50, 0.96) 0%, rgba(13, 38, 78, 0.96) 35%, rgba(21, 60, 117, 0.96) 75%, rgba(11, 34, 71, 0.96) 100%);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.12);
         }
@@ -1087,7 +1083,9 @@
             </div>
 
             <div class="toolbar-group">
-                <span class="legend-pill holiday" title="Días no laborables por Festivo Nacional en España">⭐ Festivo Nacional</span>
+                <span class="legend-pill nacional" title="Festivo Nacional oficial">⭐ Nacional</span>
+                <span class="legend-pill autonomico" title="Festivo Autonómico (ej. San Juan, San José, 9 d'Octubre)">🔷 Autonómico</span>
+                <span class="legend-pill local" title="Festivo Local (ej. Santa Faz en Alicante, fiestas patronales)">🟣 Local</span>
                 <span class="legend-pill weekend" title="Sábados y Domingos">Fin de semana</span>
                 <div id="overlapBadge" class="overlap-badge" style="display:none;" title="Días con más de 1 técnico de vacaciones simultáneamente">
                     ⚠️ <span id="overlapText">0 solapes</span>
@@ -1127,8 +1125,34 @@
                 <button id="closeDayModalBtn" class="modal-close-btn" aria-label="Cerrar">✕</button>
             </div>
             <div class="modal-body">
+                <!-- GESTIÓN DE FESTIVOS (NACIONAL, AUTONÓMICO, LOCAL O LABORABLE) -->
+                <div class="modal-section-card">
+                    <div class="modal-section-title">
+                        <span>Configurar Festivo en este día:</span>
+                        <span id="currentHolidayBadge" style="font-size:0.75rem;font-weight:700;">Laborable</span>
+                    </div>
+                    <div class="holiday-type-selector" id="holidayTypeSelector">
+                        <button type="button" class="holiday-type-pill active" data-type="none">Laborable</button>
+                        <button type="button" class="holiday-type-pill type-nacional" data-type="nacional">⭐ Nacional</button>
+                        <button type="button" class="holiday-type-pill type-autonomico" data-type="autonomico">🔷 Autonómico</button>
+                        <button type="button" class="holiday-type-pill type-local" data-type="local">🟣 Local</button>
+                    </div>
+                    <div id="holidayNameGroup" class="holiday-name-input-group" style="display:none;">
+                        <input type="text" id="holidayNameInput" placeholder="Nombre del festivo (ej. San José, Santa Faz, San Juan...)" />
+                        <div class="quick-tags-container" id="holidayQuickTags">
+                            <span class="quick-tag" data-name="San José" data-type="autonomico">San José</span>
+                            <span class="quick-tag" data-name="Lunes de Pascua" data-type="autonomico">Lunes Pascua</span>
+                            <span class="quick-tag" data-name="Santa Faz" data-type="local">Santa Faz</span>
+                            <span class="quick-tag" data-name="San Juan" data-type="autonomico">San Juan</span>
+                            <span class="quick-tag" data-name="Día Comunitat Valenciana" data-type="autonomico">9 d'Octubre</span>
+                            <span class="quick-tag" data-name="San Isidro" data-type="local">San Isidro</span>
+                            <span class="quick-tag" data-name="Santiago" data-type="autonomico">Santiago</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div>
-                    <span class="toolbar-label" style="display:block;margin-bottom:0.6rem;">Técnicos ausentes en esta fecha:</span>
+                    <span class="toolbar-label" style="display:block;margin-bottom:0.6rem;">Técnicos de vacaciones en esta fecha:</span>
                     <div class="modal-people-grid">
                         <!-- Samuel -->
                         <div class="modal-person-toggle" data-person-id="samuel" style="--tech-color: var(--color-samuel); --tech-bg: var(--bg-samuel);">
@@ -1514,57 +1538,106 @@
 
     const DAY_NAMES = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
-    // CÁLCULO DE FESTIVOS NACIONALES DE ESPAÑA (EXCLUSIVAMENTE FESTIVOS NACIONALES FIJOS Y VIERNES SANTO, SIN TRASLADOS NI PUENTES)
-    const holidaysCache = {};
+    // GESTIÓN DE FESTIVOS EDITABLES (NACIONALES, AUTONÓMICOS Y LOCALES)
+    // Estructura por año: holidaysByYear[year][dateStr] = { type: 'nacional'|'autonomico'|'local', name: '...' }
+    const holidaysByYear = {};
 
-    function getSpanishNationalHolidays(year) {
-        if (holidaysCache[year]) return holidaysCache[year];
+    // Obtener festivos de un año con soporte de edición y persistencia (localStorage + Firestore)
+    function getYearHolidays(year) {
+        const yStr = String(year);
+        if (!holidaysByYear[yStr]) {
+            holidaysByYear[yStr] = {};
 
-        const holidays = {};
+            // 1. Cargar desde LocalStorage
+            const local = localStorage.getItem('festivos_data_' + yStr);
+            let loaded = false;
+            if (local) {
+                try {
+                    holidaysByYear[yStr] = JSON.parse(local);
+                    loaded = true;
+                } catch(e) {}
+            }
 
-        function addHoliday(m, d, name) {
-            holidays[formatDate(year, m - 1, d)] = name;
+            // 2. Si no hay datos guardados, inicializar con los Festivos Nacionales por defecto
+            if (!loaded) {
+                initDefaultHolidays(year);
+            }
+        }
+        return holidaysByYear[yStr];
+    }
+
+    function initDefaultHolidays(year) {
+        const yStr = String(year);
+        const map = {};
+
+        function add(m, d, name, type = 'nacional') {
+            map[formatDate(year, m - 1, d)] = { type, name };
         }
 
-        // 1. Festivos Fijos Nacionales de España (en su día natural estricto, sin trasladar a lunes ni puentes)
-        addHoliday(1, 1, 'Año Nuevo');
-        addHoliday(1, 6, 'Epifanía del Señor (Reyes)');
-        addHoliday(5, 1, 'Fiesta del Trabajo');
-        addHoliday(8, 15, 'Asunción de la Virgen');
-        addHoliday(10, 12, 'Fiesta Nacional de España');
-        addHoliday(11, 1, 'Todos los Santos');
-        addHoliday(12, 6, 'Día de la Constitución Española');
-        addHoliday(12, 8, 'Inmaculada Concepción');
-        addHoliday(12, 25, 'Natividad del Señor (Navidad)');
+        // Festivos Nacionales estrictos (fijos y Viernes Santo)
+        add(1, 1, 'Año Nuevo', 'nacional');
+        add(1, 6, 'Epifanía del Señor (Reyes)', 'nacional');
+        add(5, 1, 'Fiesta del Trabajo', 'nacional');
+        add(8, 15, 'Asunción de la Virgen', 'nacional');
+        add(10, 12, 'Fiesta Nacional de España', 'nacional');
+        add(11, 1, 'Todos los Santos', 'nacional');
+        add(12, 6, 'Día de la Constitución Española', 'nacional');
+        add(12, 8, 'Inmaculada Concepción', 'nacional');
+        add(12, 25, 'Natividad del Señor (Navidad)', 'nacional');
 
-        // 2. Semana Santa: Únicamente Viernes Santo (festivo nacional común no sustituible en toda España)
-        const a = year % 19;
-        const b = Math.floor(year / 100);
-        const c = year % 100;
-        const d = Math.floor(b / 4);
-        const e = b % 4;
-        const f = Math.floor((b + 8) / 25);
-        const g = Math.floor((b - f + 1) / 3);
-        const h = (19 * a + b - d - g + 15) % 30;
-        const i = Math.floor(c / 4);
-        const k = c % 4;
-        const l = (32 + 2 * e + 2 * i - h - k) % 7;
+        // Viernes Santo móvil por Computus
+        const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+        const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
         const m = Math.floor((a + 11 * h + 22 * l) / 451);
         const easterMonth = Math.floor((h + l - 7 * m + 114) / 31) - 1;
         const easterDay = ((h + l - 7 * m + 114) % 31) + 1;
         const easterDate = new Date(year, easterMonth, easterDay);
-
         const viernesSanto = new Date(easterDate.getTime() - 2 * 24 * 60 * 60 * 1000);
-        holidays[formatDate(viernesSanto.getFullYear(), viernesSanto.getMonth(), viernesSanto.getDate())] = 'Viernes Santo';
+        map[formatDate(viernesSanto.getFullYear(), viernesSanto.getMonth(), viernesSanto.getDate())] = { type: 'nacional', name: 'Viernes Santo' };
 
-        holidaysCache[year] = holidays;
-        return holidays;
+        // Añadir festivos autonómicos/locales conocidos de la LAV Este si es 2024, 2025 o 2026
+        if (year === 2026) {
+            add(3, 19, 'San José', 'autonomico');
+            add(6, 24, 'San Juan', 'autonomico');
+            add(10, 9, 'Día de la Comunitat Valenciana', 'autonomico');
+        } else if (year === 2024) {
+            add(3, 19, 'San José', 'autonomico');
+            add(4, 1, 'Lunes de Pascua', 'autonomico');
+            add(4, 11, 'Santa Faz', 'local');
+            add(6, 24, 'San Juan', 'autonomico');
+            add(10, 9, 'Día de la Comunitat Valenciana', 'autonomico');
+        }
+
+        holidaysByYear[yStr] = map;
     }
 
-    function getHolidayName(dateStr) {
+    function getHolidayInfo(dateStr) {
         const y = parseInt(dateStr.split('-')[0]);
-        const hMap = getSpanishNationalHolidays(y);
+        const hMap = getYearHolidays(y);
         return hMap[dateStr] || null;
+    }
+
+    function setHoliday(dateStr, type, name) {
+        const y = parseInt(dateStr.split('-')[0]);
+        const yStr = String(y);
+        const hMap = getYearHolidays(y);
+
+        if (!type || type === 'none') {
+            delete hMap[dateStr];
+        } else {
+            hMap[dateStr] = { type, name: name.trim() || getDefaultHolidayTypeName(type) };
+        }
+        hasUnsavedChanges = true;
+        updateSaveButtonState();
+    }
+
+    function getDefaultHolidayTypeName(type) {
+        if (type === 'nacional') return 'Festivo Nacional';
+        if (type === 'autonomico') return 'Festivo Autonómico';
+        if (type === 'local') return 'Festivo Local';
+        return 'Festivo';
     }
 
 
@@ -1665,12 +1738,16 @@
             try {
                 const docSnap = await db.collection('vacaciones_teleco').doc(String(currentYear)).get();
                 if (docSnap.exists) {
-                    const fbData = docSnap.data().vacations;
-                    if (fbData) {
+                    const fbDoc = docSnap.data();
+                    if (fbDoc.vacations) {
                         const yData = getYearData(currentYear);
                         TEAM.forEach(p => {
-                            yData[p.id] = new Set(fbData[p.id] || []);
+                            yData[p.id] = new Set(fbDoc.vacations[p.id] || []);
                         });
+                    }
+                    if (fbDoc.holidays) {
+                        holidaysByYear[String(currentYear)] = fbDoc.holidays;
+                        localStorage.setItem('festivos_data_' + currentYear, JSON.stringify(fbDoc.holidays));
                     }
                 }
             } catch(e) {}
@@ -1789,8 +1866,11 @@
                 const dayDate = new Date(item.year, item.month, d);
                 const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                const holiday = getHolidayName(dateStr);
-                tableHTML += `<th class="matrix-header-day ${isWeekend ? 'is-weekend' : ''} ${holiday ? 'is-holiday' : ''}" title="${holiday ? 'Festivo Nacional: ' + holiday : ''}">${DAY_NAMES[dayOfWeek]}</th>`;
+                const hol = getHolidayInfo(dateStr);
+                const holClass = hol ? ('is-holiday-' + hol.type) : '';
+                const holTitle = hol ? (getHolidayTypeLabel(hol.type) + ': ' + hol.name) : '';
+
+                tableHTML += `<th class="matrix-header-day ${isWeekend ? 'is-weekend' : ''} ${holClass}" title="${holTitle}">${DAY_NAMES[dayOfWeek]}</th>`;
             }
             tableHTML += `</tr><tr><th class="col-tech-label">Día del mes</th>`;
 
@@ -1800,8 +1880,12 @@
                 const dayDate = new Date(item.year, item.month, d);
                 const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                const holiday = getHolidayName(dateStr);
-                tableHTML += `<th class="matrix-header-num ${isWeekend ? 'is-weekend' : ''} ${holiday ? 'is-holiday' : ''}" title="${holiday ? 'Festivo Nacional: ' + holiday : ''}">${d}${holiday ? '⭐' : ''}</th>`;
+                const hol = getHolidayInfo(dateStr);
+                const holClass = hol ? ('is-holiday-' + hol.type) : '';
+                const holIcon = hol ? getHolidayTypeIcon(hol.type) : '';
+                const holTitle = hol ? (getHolidayTypeLabel(hol.type) + ': ' + hol.name) : '';
+
+                tableHTML += `<th class="matrix-header-num ${isWeekend ? 'is-weekend' : ''} ${holClass}" data-date="${dateStr}" title="${holTitle}">${d}${holIcon}</th>`;
             }
             tableHTML += `</tr></thead><tbody>`;
 
@@ -1817,18 +1901,20 @@
                     const dayDate = new Date(item.year, item.month, d);
                     const dayOfWeek = dayDate.getDay();
                     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                    const holiday = getHolidayName(dateStr);
+                    const hol = getHolidayInfo(dateStr);
                     const isVac = isVacation(person.id, dateStr);
 
                     let titleStr = person.name + ' - ' + d + ' de ' + MONTH_NAMES[item.month] + ' ' + item.year;
-                    if (holiday) titleStr += ' · Festivo Nacional (' + holiday + ')';
+                    if (hol) titleStr += ' · ' + getHolidayTypeLabel(hol.type) + ' (' + hol.name + ')';
                     if (isVac) titleStr += ' · De Vacaciones';
 
                     let cellInner = '';
                     if (isVac) cellInner = '✓';
-                    else if (holiday) cellInner = '<span class="holiday-marker" title="' + holiday + '">★</span>';
+                    else if (hol) cellInner = '<span class="holiday-marker ' + hol.type + '" title="' + hol.name + '">' + getHolidayTypeIcon(hol.type) + '</span>';
 
-                    tableHTML += `<td class="matrix-day-cell ${isWeekend ? 'is-weekend' : ''} ${holiday ? 'is-holiday' : ''} ${isVac ? 'vacation-active tech-' + person.id : ''}"
+                    const holClass = hol ? ('is-holiday-' + hol.type) : '';
+
+                    tableHTML += `<td class="matrix-day-cell ${isWeekend ? 'is-weekend' : ''} ${holClass} ${isVac ? 'vacation-active tech-' + person.id : ''}"
                                       data-date="${dateStr}" 
                                       data-person-id="${person.id}"
                                       title="${titleStr}">
@@ -1897,21 +1983,31 @@
         for (const y of yearsToSave) {
             const yStr = String(y);
             const data = vacationsByYear[yStr];
+            const holidays = holidaysByYear[yStr] || {};
+
+            // Guardar vacaciones
             if (data) {
                 const payload = {};
                 TEAM.forEach(p => {
                     payload[p.id] = Array.from(data[p.id] || []).sort();
                 });
                 localStorage.setItem('vacaciones_data_' + yStr, JSON.stringify(payload));
+            }
 
-                if (db) {
-                    try {
-                        await db.collection('vacaciones_teleco').doc(yStr).set({
-                            vacations: payload,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    } catch(e) {}
-                }
+            // Guardar festivos editados (nacionales, autonómicos y locales)
+            localStorage.setItem('festivos_data_' + yStr, JSON.stringify(holidays));
+
+            // Sincronizar en Firebase
+            if (db) {
+                try {
+                    const vacPayload = {};
+                    if (data) TEAM.forEach(p => vacPayload[p.id] = Array.from(data[p.id] || []).sort());
+                    await db.collection('vacaciones_teleco').doc(yStr).set({
+                        vacations: vacPayload,
+                        holidays: holidays,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                } catch(e) {}
             }
         }
 
@@ -1995,6 +2091,78 @@
         });
 
         setupModals();
+
+        // Selector de tipo de festivo en el modal
+        document.getElementById('holidayTypeSelector').addEventListener('click', (e) => {
+            const btn = e.target.closest('.holiday-type-pill');
+            if (!btn || !currentSelectedDate) return;
+
+            document.querySelectorAll('.holiday-type-pill').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const type = btn.dataset.type;
+            const nameGroup = document.getElementById('holidayNameGroup');
+            const nameInput = document.getElementById('holidayNameInput');
+            const badgeEl = document.getElementById('currentHolidayBadge');
+
+            if (type === 'none') {
+                nameGroup.style.display = 'none';
+                nameInput.value = '';
+                badgeEl.textContent = 'Laborable normal';
+                setHoliday(currentSelectedDate, 'none', '');
+            } else {
+                nameGroup.style.display = 'flex';
+                if (!nameInput.value.trim()) {
+                    nameInput.value = getDefaultHolidayTypeName(type);
+                }
+                badgeEl.textContent = nameInput.value + ' (' + getHolidayTypeLabel(type) + ')';
+                setHoliday(currentSelectedDate, type, nameInput.value);
+            }
+            renderMatrixView();
+        });
+
+        // Cambio de nombre de festivo
+        document.getElementById('holidayNameInput').addEventListener('input', (e) => {
+            if (!currentSelectedDate) return;
+            const activeBtn = document.querySelector('.holiday-type-pill.active');
+            const type = activeBtn ? activeBtn.dataset.type : 'nacional';
+            if (type !== 'none') {
+                setHoliday(currentSelectedDate, type, e.target.value);
+                document.getElementById('currentHolidayBadge').textContent = e.target.value + ' (' + getHolidayTypeLabel(type) + ')';
+                renderMatrixView();
+            }
+        });
+
+        // Clic en etiquetas rápidas de festivos (San José, Santa Faz, etc.)
+        document.getElementById('holidayQuickTags').addEventListener('click', (e) => {
+            const tag = e.target.closest('.quick-tag');
+            if (!tag || !currentSelectedDate) return;
+
+            const name = tag.dataset.name;
+            const type = tag.dataset.type || 'autonomico';
+
+            document.querySelectorAll('.holiday-type-pill').forEach(b => b.classList.remove('active'));
+            const targetBtn = document.querySelector('.holiday-type-pill[data-type="' + type + '"]');
+            if (targetBtn) targetBtn.classList.add('active');
+
+            document.getElementById('holidayNameGroup').style.display = 'flex';
+            document.getElementById('holidayNameInput').value = name;
+            document.getElementById('currentHolidayBadge').textContent = name + ' (' + getHolidayTypeLabel(type) + ')';
+
+            setHoliday(currentSelectedDate, type, name);
+            renderMatrixView();
+        });
+
+        // En modo edición: permitir clic en el número de día de la cabecera para editar el festivo
+        document.getElementById('matrixViewContainer').addEventListener('click', (e) => {
+            const headerNum = e.target.closest('.matrix-header-num');
+            if (!headerNum) return;
+            const dateStr = headerNum.dataset.date;
+            if (dateStr && isEditMode) {
+                openDayModal(dateStr);
+            }
+        });
+
     }
 
     function setupModals() {
@@ -2076,15 +2244,35 @@
         const dayOfWeekName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][dateObj.getDay()];
 
         document.getElementById('modalDateTitle').textContent = `${dayOfWeekName}, ${d} de ${MONTH_NAMES[m - 1]} de ${y}`;
-        const holName = getHolidayName(dateStr);
+        
+        // Cargar estado de festivo en el modal
+        const hol = getHolidayInfo(dateStr);
         const subEl = document.getElementById('modalDateSubtitle');
-        if (holName) {
-            subEl.innerHTML = '⭐ <strong style="color:#D97706;">Festivo Nacional en España: ' + holName + '</strong>';
-        } else if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
-            subEl.textContent = 'Fin de semana (Sábado/Domingo)';
+        const badgeEl = document.getElementById('currentHolidayBadge');
+        const nameGroup = document.getElementById('holidayNameGroup');
+        const nameInput = document.getElementById('holidayNameInput');
+
+        document.querySelectorAll('.holiday-type-pill').forEach(btn => btn.classList.remove('active'));
+
+        if (hol) {
+            subEl.innerHTML = getHolidayTypeIcon(hol.type) + ' <strong style="color:var(--text-main);">' + getHolidayTypeLabel(hol.type) + ': ' + hol.name + '</strong>';
+            badgeEl.textContent = hol.name + ' (' + getHolidayTypeLabel(hol.type) + ')';
+            const activeBtn = document.querySelector('.holiday-type-pill[data-type="' + hol.type + '"]');
+            if (activeBtn) activeBtn.classList.add('active');
+            nameGroup.style.display = 'flex';
+            nameInput.value = hol.name;
         } else {
-            subEl.textContent = 'Día laborable';
+            if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
+                subEl.textContent = 'Fin de semana (Sábado/Domingo)';
+            } else {
+                subEl.textContent = 'Día laborable normal';
+            }
+            badgeEl.textContent = 'Laborable normal';
+            document.querySelector('.holiday-type-pill[data-type="none"]').classList.add('active');
+            nameGroup.style.display = 'none';
+            nameInput.value = '';
         }
+
         document.getElementById('rangeStartDate').value = dateStr;
         document.getElementById('rangeEndDate').value = dateStr;
 
@@ -2167,6 +2355,21 @@
         a.download = `Vacaciones_Teleco_${currentYear}.csv`;
         a.click();
         URL.revokeObjectURL(url);
+    }
+
+    
+    function getHolidayTypeLabel(type) {
+        if (type === 'nacional') return 'Festivo Nacional';
+        if (type === 'autonomico') return 'Festivo Autonómico';
+        if (type === 'local') return 'Festivo Local';
+        return 'Festivo';
+    }
+
+    function getHolidayTypeIcon(type) {
+        if (type === 'nacional') return '⭐';
+        if (type === 'autonomico') return '🔷';
+        if (type === 'local') return '🟣';
+        return '';
     }
 
     function formatDate(y, m, d) {
