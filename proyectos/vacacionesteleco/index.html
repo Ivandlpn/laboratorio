@@ -773,6 +773,39 @@
             border-color: rgba(147, 51, 234, 0.45) !important;
         }
 
+        /* 4. DÍA NO LABORABLE (CONVENIO: 24 Y 31 DE DICIEMBRE, ETC.) */
+        .is-holiday-nolaborable {
+            background-color: #CCFBF1 !important;
+            border-color: #99F6E4 !important;
+        }
+        body.dark-mode .is-holiday-nolaborable {
+            background-color: #042F2E !important;
+            border-color: #0D9488 !important;
+        }
+        .matrix-header-num.is-holiday-nolaborable {
+            background: linear-gradient(135deg, #CCFBF1, #99F6E4) !important;
+            color: #0F766E !important;
+            border: 1px solid #14B8A6 !important;
+            font-weight: 800;
+            box-shadow: 0 1px 4px rgba(20, 184, 166, 0.28);
+        }
+        body.dark-mode .matrix-header-num.is-holiday-nolaborable {
+            background: linear-gradient(135deg, #042F2E, #115E59) !important;
+            color: #5EEAD4 !important;
+            border-color: #0D9488 !important;
+        }
+        .matrix-header-day.is-holiday-nolaborable { color: #0D9488 !important; font-weight: 800; }
+        body.dark-mode .matrix-header-day.is-holiday-nolaborable { color: #2DD4BF !important; }
+
+        .matrix-day-cell.is-holiday-nolaborable:not(.vacation-active) {
+            background-color: rgba(204, 251, 241, 0.45) !important;
+            border-color: rgba(20, 184, 166, 0.35) !important;
+        }
+        body.dark-mode .matrix-day-cell.is-holiday-nolaborable:not(.vacation-active) {
+            background-color: rgba(4, 47, 46, 0.35) !important;
+            border-color: rgba(13, 148, 136, 0.45) !important;
+        }
+
         /* MARCADORES E ICONOS DE FESTIVOS EN CELDA */
         .holiday-marker {
             display: inline-block;
@@ -783,10 +816,12 @@
         .holiday-marker.nacional { color: #D97706; }
         .holiday-marker.autonomico { color: #0284C7; }
         .holiday-marker.local { color: #9333EA; }
+        .holiday-marker.nolaborable { color: #0D9488; }
 
         body.dark-mode .holiday-marker.nacional { color: #FBBF24; }
         body.dark-mode .holiday-marker.autonomico { color: #38BDF8; }
         body.dark-mode .holiday-marker.local { color: #C084FC; }
+        body.dark-mode .holiday-marker.nolaborable { color: #2DD4BF; }
 
         /* PÍLDORAS DE LA LEYENDA */
         .legend-pill {
@@ -802,11 +837,13 @@
         .legend-pill.nacional { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
         .legend-pill.autonomico { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
         .legend-pill.local { background: #F3E8FF; color: #6B21A8; border: 1px solid #E9D5FF; }
+        .legend-pill.nolaborable { background: #CCFBF1; color: #0F766E; border: 1px solid #99F6E4; }
         .legend-pill.weekend { background: var(--color-weekend); color: #9A3412; border: 1px solid var(--color-weekend-border); }
 
         body.dark-mode .legend-pill.nacional { background: #451A03; color: #FDE68A; border-color: #92400E; }
         body.dark-mode .legend-pill.autonomico { background: #082F49; color: #7DD3FC; border-color: #0369A1; }
         body.dark-mode .legend-pill.local { background: #3B0764; color: #D8B4FE; border-color: #7E22CE; }
+        body.dark-mode .legend-pill.nolaborable { background: #042F2E; color: #5EEAD4; border-color: #0D9488; }
         body.dark-mode .legend-pill.weekend { color: #FDBA74; }
 
         /* GESTIÓN DE FESTIVOS DENTRO DEL MODAL */
@@ -829,7 +866,7 @@
         }
         .holiday-type-selector {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 0.45rem;
         }
         .holiday-type-pill {
@@ -870,6 +907,11 @@
             color: #6B21A8;
             background: #F3E8FF;
         }
+        .holiday-type-pill.type-nolaborable.active {
+            border-color: #14B8A6;
+            color: #0F766E;
+            background: #CCFBF1;
+        }
         body.dark-mode .holiday-type-pill.type-nacional.active {
             background: #451A03;
             color: #FDE68A;
@@ -884,6 +926,11 @@
             background: #3B0764;
             color: #D8B4FE;
             border-color: #9333EA;
+        }
+        body.dark-mode .holiday-type-pill.type-nolaborable.active {
+            background: #042F2E;
+            color: #5EEAD4;
+            border-color: #14B8A6;
         }
         .holiday-name-input-group {
             display: flex;
@@ -1345,6 +1392,7 @@
                 <span class="legend-pill nacional" title="Festivo Nacional oficial">⭐ Nacional</span>
                 <span class="legend-pill autonomico" title="Festivo Autonómico (ej. San Juan, San José, 9 d'Octubre)">🔷 Autonómico</span>
                 <span class="legend-pill local" title="Festivo Local (ej. Santa Faz en Alicante, fiestas patronales)">🟣 Local</span>
+                <span class="legend-pill nolaborable" title="Días No Laborables de convenio (24 y 31 de Diciembre)">☕ No Laborable</span>
                 <span class="legend-pill weekend" title="Sábados y Domingos">Fin de semana</span>
                 <div id="overlapBadge" class="overlap-badge" style="display:none;" title="Días con más de 1 técnico de vacaciones simultáneamente">
                     ⚠️ <span id="overlapText">0 solapes</span>
@@ -1395,10 +1443,13 @@
                         <button type="button" class="holiday-type-pill type-nacional" data-type="nacional">⭐ Nacional</button>
                         <button type="button" class="holiday-type-pill type-autonomico" data-type="autonomico">🔷 Autonómico</button>
                         <button type="button" class="holiday-type-pill type-local" data-type="local">🟣 Local</button>
+                        <button type="button" class="holiday-type-pill type-nolaborable" data-type="nolaborable">☕ No Laborable</button>
                     </div>
                     <div id="holidayNameGroup" class="holiday-name-input-group" style="display:none;">
                         <input type="text" id="holidayNameInput" placeholder="Nombre del festivo (ej. San José, Santa Faz, San Juan...)" />
                         <div class="quick-tags-container" id="holidayQuickTags">
+                            <span class="quick-tag" data-name="Nochebuena" data-type="nolaborable">Nochebuena (24 Dic)</span>
+                            <span class="quick-tag" data-name="Nochevieja" data-type="nolaborable">Nochevieja (31 Dic)</span>
                             <span class="quick-tag" data-name="San José" data-type="autonomico">San José</span>
                             <span class="quick-tag" data-name="Lunes de Pascua" data-type="autonomico">Lunes Pascua</span>
                             <span class="quick-tag" data-name="Santa Faz" data-type="local">Santa Faz</span>
@@ -1816,6 +1867,13 @@
                     loaded = true;
                 } catch(e) {}
             }
+            // Asegurar que 24 y 31 de diciembre estén configurados como No Laborable por defecto
+            if (holidaysByYear[yStr]) {
+                const dec24 = formatDate(year, 11, 24);
+                const dec31 = formatDate(year, 11, 31);
+                if (!holidaysByYear[yStr][dec24]) holidaysByYear[yStr][dec24] = { type: 'nolaborable', name: 'Nochebuena (No laborable)' };
+                if (!holidaysByYear[yStr][dec31]) holidaysByYear[yStr][dec31] = { type: 'nolaborable', name: 'Nochevieja (No laborable)' };
+            }
 
             // 2. Si no hay datos guardados, inicializar con los Festivos Nacionales por defecto
             if (!loaded) {
@@ -1855,6 +1913,10 @@
         const easterDate = new Date(year, easterMonth, easterDay);
         const viernesSanto = new Date(easterDate.getTime() - 2 * 24 * 60 * 60 * 1000);
         map[formatDate(viernesSanto.getFullYear(), viernesSanto.getMonth(), viernesSanto.getDate())] = { type: 'nacional', name: 'Viernes Santo' };
+
+        // Días No Laborables oficiales de convenio (24 de diciembre Nochebuena y 31 de diciembre Nochevieja)
+        add(12, 24, 'Nochebuena (No laborable)', 'nolaborable');
+        add(12, 31, 'Nochevieja (No laborable)', 'nolaborable');
 
         // Añadir festivos autonómicos/locales conocidos de la LAV Este si es 2024, 2025 o 2026
         if (year === 2026) {
@@ -1896,6 +1958,7 @@
         if (type === 'nacional') return 'Festivo Nacional';
         if (type === 'autonomico') return 'Festivo Autonómico';
         if (type === 'local') return 'Festivo Local';
+        if (type === 'nolaborable') return 'No Laborable';
         return 'Festivo';
     }
 
@@ -2621,6 +2684,7 @@
         if (type === 'nacional') return 'Festivo Nacional';
         if (type === 'autonomico') return 'Festivo Autonómico';
         if (type === 'local') return 'Festivo Local';
+        if (type === 'nolaborable') return 'No Laborable';
         return 'Festivo';
     }
 
@@ -2628,6 +2692,7 @@
         if (type === 'nacional') return '⭐';
         if (type === 'autonomico') return '🔷';
         if (type === 'local') return '🟣';
+        if (type === 'nolaborable') return '☕';
         return '';
     }
 
