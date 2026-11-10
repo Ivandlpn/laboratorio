@@ -1923,6 +1923,270 @@
             opacity: 1;
         }
 
+    
+        /* ==========================================================================
+           APLICACIÓN SISTEMÁTICA DE LAS 6 MEJORAS DE UI (ORGANIZACIÓN, LIMPIEZA, SIMETRÍA)
+           ========================================================================== */
+
+        /* BOTONES SOLO ICONO JUNTO A LOS NOMBRES */
+        .compact-icon-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-left: 0.2rem;
+        }
+
+        .icon-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .icon-action-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.24);
+            border-color: rgba(255, 255, 255, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .icon-action-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .icon-action-btn.edit-toggle-btn.active {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            border-color: #FBBF24;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
+        }
+
+        .icon-action-btn.save-action-btn.has-changes {
+            background: linear-gradient(135deg, #CB1823 0%, #E6222E 100%);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 14px rgba(203, 24, 35, 0.5);
+            animation: pulse-save 1.8s infinite;
+        }
+
+        /* MEJORA 5: TARJETAS DE TÉCNICOS EN CABECERA CON DISTRIBUCIÓN EQUIDISTANTE */
+        .technician-cards {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tech-card {
+            min-width: 132px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.25rem 0.65rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tech-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-1px);
+        }
+
+        /* MEJORA 1: TOOLBAR EN 3 BLOQUES SIMÉTRICOS */
+        .toolbar-three-blocks {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 0.55rem 1rem;
+            margin-bottom: 1.15rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .toolbar-block-left {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-shrink: 0;
+        }
+
+        .toolbar-divider-subtle {
+            width: 1px;
+            height: 20px;
+            background: var(--border-card);
+            margin: 0 0.2rem;
+        }
+
+        .toolbar-block-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .toolbar-block-right {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            flex-shrink: 0;
+        }
+
+        /* LEYENDA DESPLEGABLE MINIMALISTA */
+        .legend-dropdown-container {
+            position: relative;
+        }
+
+        .legend-dropdown-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-card);
+            color: var(--text-main);
+            padding: 0.4rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            font-family: var(--font-main);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .legend-dropdown-trigger:hover,
+        .legend-dropdown-container.active .legend-dropdown-trigger {
+            background: var(--bg-card);
+            border-color: #3B82F6;
+            color: #3B82F6;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+        }
+
+        .trigger-caret {
+            font-size: 0.7rem;
+            transition: transform 0.2s ease;
+        }
+
+        .legend-dropdown-container.active .trigger-caret {
+            transform: rotate(180deg);
+        }
+
+        .legend-dropdown-popover {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 0.75rem 0.95rem;
+            box-shadow: var(--shadow-lg);
+            min-width: 380px;
+            backdrop-filter: blur(12px);
+            animation: zoomIn 0.15s ease-out;
+        }
+
+        .legend-dropdown-container.active .legend-dropdown-popover {
+            display: block;
+        }
+
+        .legend-dropdown-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            justify-content: center;
+        }
+
+        /* MEJORA 2: SIMETRÍA DE COLUMNAS PIXEL-PERFECT (ANCHO FIJO MONOSPACED) */
+        .matrix-table {
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+            width: auto !important;
+        }
+
+        .matrix-table .col-tech-label {
+            width: 185px !important;
+            min-width: 185px !important;
+            max-width: 185px !important;
+            box-sizing: border-box !important;
+        }
+
+        .matrix-header-day,
+        .matrix-header-num,
+        .matrix-day-cell {
+            width: 32px !important;
+            min-width: 32px !important;
+            max-width: 32px !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+        }
+
+        /* MEJORA 3: LIMPIEZA VISUAL: BORDES Y SEPARADORES ULTRA-FINOS */
+        .month-card {
+            border: 1px solid var(--border-card) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03) !important;
+            overflow: hidden !important;
+            margin-bottom: 1.5rem !important;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            border: 1px solid var(--border-card) !important;
+        }
+
+        /* MEJORA 4: GUÍA DE CRUZ AL PASAR EL RATÓN (CROSSHAIR GRID HOVER) */
+        .matrix-day-cell.crosshair-col,
+        .matrix-header-day.crosshair-col,
+        .matrix-header-num.crosshair-col {
+            background-color: rgba(59, 130, 246, 0.04) !important;
+        }
+
+        body.dark-mode .matrix-day-cell.crosshair-col,
+        body.dark-mode .matrix-header-day.crosshair-col,
+        body.dark-mode .matrix-header-num.crosshair-col {
+            background-color: rgba(96, 165, 250, 0.07) !important;
+        }
+
+        .matrix-table tbody tr.crosshair-row td:not(.vacation-active):not(.absence-asuntos) {
+            background-color: rgba(59, 130, 246, 0.03);
+        }
+
+        /* MEJORA 6: PALETA DE PASTELES SUAVES REFINADA */
+        :root {
+            --color-weekend: #FFF8F3;
+            --color-weekend-border: #FED7AA;
+            --color-nacional: #FEF9C3;
+            --color-autonomico: #F0F9FF;
+            --color-local: #FAF5FF;
+            --color-nolaborable: #F0FDFA;
+        }
+
+        body.dark-mode {
+            --color-weekend: #1C1917;
+            --color-weekend-border: #442416;
+            --color-nacional: #2A2412;
+            --color-autonomico: #0C253B;
+            --color-local: #241436;
+            --color-nolaborable: #052E2B;
+        }
+
     </style>
 </head>
 <body>
@@ -2009,36 +2273,33 @@
                         </div>
                     </div>
                 </div>
-                <div class="header-divider" style="height:28px;"></div>
-                <div class="header-actions">
+
+                <!-- SEPARADOR DISCRETO -->
+                <div class="header-divider" style="height:24px; margin: 0 0.15rem;"></div>
+
+                <!-- ACCIONES COMPACTAS SOLO CON ICONO JUNTO A LOS NOMBRES -->
+                <div class="header-actions compact-icon-actions">
                     <span id="saveFeedback">¡Guardado!</span>
-                    <a id="linkToGuardias" class="nav-switch-btn" title="Saltar al cuadrante de Guardias Teleco">
-                        <span class="nav-switch-icon">📞</span>
-                        <span>Guardias</span>
-                    </a>
-                    <button id="undoButton" class="undo-button" title="Deshacer el último cambio (Ctrl+Z)" disabled>
+                    <button id="undoButton" class="icon-action-btn" title="Deshacer último cambio (Ctrl+Z)" disabled aria-label="Deshacer">
                         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M3 7v6h6"></path>
                             <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
                         </svg>
-                        <span>Deshacer</span>
                     </button>
-                    <button id="editToggleBtn" class="edit-toggle-button" title="Activar modo edición para modificar vacaciones">
+                    <button id="editToggleBtn" class="icon-action-btn edit-toggle-btn" title="Modo Edición" aria-label="Modo Edición">
                         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 20h9"></path>
                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                         </svg>
-                        <span id="editBtnText">Editar</span>
                     </button>
-                    <button id="saveButton" class="save-button" title="Guardar cambios en Firestore">
+                    <button id="saveButton" class="icon-action-btn save-action-btn" title="Guardar cambios" aria-label="Guardar">
                         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                             <polyline points="17 21 17 13 7 13 7 21"></polyline>
                             <polyline points="7 3 7 8 15 8"></polyline>
                         </svg>
-                        <span>Guardar</span>
                     </button>
-                    <button id="themeToggleBtn" class="theme-toggle-btn" title="Alternar Modo Oscuro / Claro" aria-label="Alternar tema">
+                    <button id="themeToggleBtn" class="icon-action-btn theme-toggle-btn" title="Alternar Tema Claro / Oscuro" aria-label="Alternar tema">
                         🌙
                     </button>
                 </div>
@@ -2046,15 +2307,18 @@
         </header>
 
         <!-- BARRA DE HERRAMIENTAS Y VISTAS DE COORDINACIÓN -->
-        <section class="toolbar">
-            <div class="toolbar-group">
+        <section class="toolbar toolbar-three-blocks">
+            <!-- BLOQUE 1 (IZQUIERDA): VISTAS Y FILTROS -->
+            <div class="toolbar-block-left">
                 <span class="toolbar-label">Vista:</span>
                 <div class="pill-group" id="viewSelectorGroup">
-                    <button class="pill-btn active" data-view="two-months" title="Vista inicial enfocada en el mes actual y el siguiente">📍 Mes actual + siguiente</button>
-                    <button class="pill-btn" data-view="all-months" title="Ver los 14 meses completos (+ Dic anterior y Ene próximo)">📅 Calendario completo (14 meses)</button>
+                    <button class="pill-btn active" data-view="two-months" title="Vista inicial enfocada en el mes actual y el siguiente">📍 Actual + Siguiente</button>
+                    <button class="pill-btn" data-view="all-months" title="Ver los 14 meses completos">📅 14 Meses</button>
                 </div>
 
-                <span class="toolbar-label" style="margin-left: 0.5rem;">Filtrar:</span>
+                <div class="toolbar-divider-subtle"></div>
+
+                <span class="toolbar-label">Filtrar:</span>
                 <div class="pill-group" id="filterGroup">
                     <button class="pill-btn active" data-filter="all">Todos</button>
                     <button class="pill-btn" data-filter="samuel">Samuel</button>
@@ -2064,19 +2328,35 @@
                 </div>
             </div>
 
-            <div class="toolbar-group">
-                <span class="legend-pill nacional" title="Festivo Nacional oficial">⭐ Nacional</span>
-                <span class="legend-pill autonomico" title="Festivo Autonómico (ej. San Juan, San José, 9 d'Octubre)">🔷 Autonómico</span>
-                <span class="legend-pill local" title="Festivo Local (ej. Santa Faz en Alicante, fiestas patronales)">🟣 Local</span>
-                <span class="legend-pill nolaborable" title="Días No Laborables de convenio (24 y 31 de Diciembre)">☕ No Laborable</span>
-                <span class="legend-pill guard" title="Técnico asignado de guardia telefónica esa semana">📞 De Guardia</span>
-                <span class="legend-pill weekend" title="Sábados y Domingos">Fin de semana</span>
-                
+            <!-- BLOQUE 2 (CENTRO): LEYENDA DESPLEGABLE LIMPIA Y ELEGANTE -->
+            <div class="toolbar-block-center">
+                <div class="legend-dropdown-container" id="legendDropdownContainer">
+                    <button id="legendDropdownToggle" type="button" class="legend-dropdown-trigger" title="Ver código de colores del cuadrante">
+                        <span class="trigger-icon">ℹ️</span>
+                        <span>Leyenda de colores</span>
+                        <span class="trigger-caret">▾</span>
+                    </button>
+                    <div id="legendDropdownMenu" class="legend-dropdown-popover">
+                        <div class="legend-dropdown-grid">
+                            <span class="legend-pill nacional" title="Festivo Nacional oficial">⭐ Nacional</span>
+                            <span class="legend-pill autonomico" title="Festivo Autonómico">🔷 Autonómico</span>
+                            <span class="legend-pill local" title="Festivo Local">🟣 Local</span>
+                            <span class="legend-pill nolaborable" title="Días No Laborables de convenio (24 y 31 Dic)">☕ No Laborable</span>
+                            <span class="legend-pill guard" title="Guardia asignada">📞 De Guardia</span>
+                            <span class="legend-pill asuntos" title="Asuntos propios o permiso">📋 Asuntos Propios</span>
+                            <span class="legend-pill weekend" title="Sábados y Domingos">Fin de semana</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOQUE 3 (DERECHA): ACCIONES DE EXPORTACIÓN SIMÉTRICAS -->
+            <div class="toolbar-block-right">
                 <button id="openExportModalBtn" class="toolbar-btn" title="Exportar calendario a Outlook / Google Calendar">
-                    📅 Exportar .ics
+                    📅 .ics
                 </button>
                 <button id="exportCsvBtn" class="toolbar-btn" title="Descargar datos en CSV para Excel">
-                    📊 Excel (CSV)
+                    📊 Excel
                 </button>
                 <button id="printBtn" class="toolbar-btn" title="Imprimir cuadrante">
                     🖨️ Imprimir
@@ -3447,15 +3727,19 @@
 
         if (isEditMode) {
             document.body.classList.add('is-editing');
-            btn.classList.add('active');
-            text.textContent = 'Editando';
-            btn.setAttribute('title', 'Finalizar modo edición');
+            if (btn) {
+                btn.classList.add('active');
+                btn.setAttribute('title', 'Finalizar modo edición');
+            }
+            if (text) text.textContent = 'Editando';
             updateDraftBar();
         } else {
             document.body.classList.remove('is-editing');
-            btn.classList.remove('active');
-            text.textContent = 'Editar';
-            btn.setAttribute('title', 'Activar modo edición para modificar vacaciones');
+            if (btn) {
+                btn.classList.remove('active');
+                btn.setAttribute('title', 'Activar modo edición para modificar vacaciones');
+            }
+            if (text) text.textContent = 'Editar';
             if (activePainter) exitPainter();
         }
     }
