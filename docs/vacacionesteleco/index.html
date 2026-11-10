@@ -1514,7 +1514,7 @@
 
     const DAY_NAMES = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
-    // CÁLCULO DE FESTIVOS NACIONALES DE ESPAÑA (Fijos y Semana Santa móvil por Computus)
+    // CÁLCULO DE FESTIVOS NACIONALES DE ESPAÑA (EXCLUSIVAMENTE FESTIVOS NACIONALES FIJOS Y VIERNES SANTO, SIN TRASLADOS NI PUENTES)
     const holidaysCache = {};
 
     function getSpanishNationalHolidays(year) {
@@ -1522,16 +1522,11 @@
 
         const holidays = {};
 
-        function addHoliday(m, d, name, allowSundayTransfer = true) {
-            let date = new Date(year, m - 1, d);
-            if (allowSundayTransfer && date.getDay() === 0) {
-                date = new Date(year, m - 1, d + 1); // Se traslada al lunes
-                name += ' (trasladado)';
-            }
-            holidays[formatDate(date.getFullYear(), date.getMonth(), date.getDate())] = name;
+        function addHoliday(m, d, name) {
+            holidays[formatDate(year, m - 1, d)] = name;
         }
 
-        // 1. Festivos Fijos Nacionales
+        // 1. Festivos Fijos Nacionales de España (en su día natural estricto, sin trasladar a lunes ni puentes)
         addHoliday(1, 1, 'Año Nuevo');
         addHoliday(1, 6, 'Epifanía del Señor (Reyes)');
         addHoliday(5, 1, 'Fiesta del Trabajo');
@@ -1542,7 +1537,7 @@
         addHoliday(12, 8, 'Inmaculada Concepción');
         addHoliday(12, 25, 'Natividad del Señor (Navidad)');
 
-        // 2. Semana Santa Móvil (Algoritmo de Meeus/Jones/Butcher para el Computus)
+        // 2. Semana Santa: Únicamente Viernes Santo (festivo nacional común no sustituible en toda España)
         const a = year % 19;
         const b = Math.floor(year / 100);
         const c = year % 100;
@@ -1559,11 +1554,6 @@
         const easterDay = ((h + l - 7 * m + 114) % 31) + 1;
         const easterDate = new Date(year, easterMonth, easterDay);
 
-        // Jueves Santo: Domingo de Pascua - 3 días
-        const juevesSanto = new Date(easterDate.getTime() - 3 * 24 * 60 * 60 * 1000);
-        holidays[formatDate(juevesSanto.getFullYear(), juevesSanto.getMonth(), juevesSanto.getDate())] = 'Jueves Santo';
-
-        // Viernes Santo: Domingo de Pascua - 2 días
         const viernesSanto = new Date(easterDate.getTime() - 2 * 24 * 60 * 60 * 1000);
         holidays[formatDate(viernesSanto.getFullYear(), viernesSanto.getMonth(), viernesSanto.getDate())] = 'Viernes Santo';
 
