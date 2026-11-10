@@ -2,9 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Vacaciones Teleco LAV Este - Ineco</title>
-    <link rel="icon" type="image/png" href="logos/ineco-color.png">
+
+    <!-- Metadatos Primarios & SEO -->
+    <meta name="title" content="Vacaciones Teleco LAV Este - Ineco">
+    <meta name="description" content="Cuadrante anual interactivo de vacaciones, festivos de Madrid, Valencia y Alicante, y control de coberturas mínimas para Telecomunicaciones LAV Este.">
+    <meta name="author" content="Ineco - Adif Alta Velocidad">
+    <meta name="theme-color" content="#071732">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vacaciones Teleco">
+
+    <!-- Favicons Multiplataforma (SVG vectorial + PNG retina + Apple Touch Icon) -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+    <!-- Open Graph / WhatsApp / Telegram / Facebook / Teams -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ivandlpn.github.io/laboratorio/docs/vacacionesteleco/">
+    <meta property="og:site_name" content="Ineco Telecomunicaciones">
+    <meta property="og:title" content="Vacaciones Teleco LAV Este - Ineco">
+    <meta property="og:description" content="Cuadrante anual interactivo de vacaciones, festivos de Madrid, Valencia y Alicante, y control de coberturas mínimas para Telecomunicaciones LAV Este.">
+    <meta property="og:image" content="https://ivandlpn.github.io/laboratorio/docs/vacacionesteleco/og-vacaciones.png">
+    <meta property="og:image:secure_url" content="https://ivandlpn.github.io/laboratorio/docs/vacacionesteleco/og-vacaciones.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Vista previa del Cuadrante de Vacaciones Teleco LAV Este">
+    <meta property="og:locale" content="es_ES">
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://ivandlpn.github.io/laboratorio/docs/vacacionesteleco/">
+    <meta name="twitter:title" content="Vacaciones Teleco LAV Este - Ineco">
+    <meta name="twitter:description" content="Cuadrante anual interactivo de vacaciones, festivos de Madrid, Valencia y Alicante, y control de coberturas mínimas.">
+    <meta name="twitter:image" content="https://ivandlpn.github.io/laboratorio/docs/vacacionesteleco/og-vacaciones.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -662,6 +697,11 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            position: sticky;
+            left: 0;
+            z-index: 6;
+            background: var(--bg-card);
+            box-shadow: 2px 0 6px rgba(0, 0, 0, 0.08);
         }
 
         .matrix-header-day {
@@ -1234,7 +1274,22 @@
             box-shadow: 0 4px 12px rgba(0, 112, 192, 0.35);
         }
 
-        /* RESPONSIVE */
+        /* RESPONSIVE & MOBILE DESIGN */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+
+        .month-card {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .matrix-table {
+            min-width: 780px;
+        }
+
         @media (max-width: 1100px) {
             .header {
                 flex-direction: column;
@@ -1247,24 +1302,138 @@
             .header-controls {
                 justify-content: space-between;
                 flex-wrap: wrap;
+                gap: 0.85rem;
             }
             .technician-cards {
                 flex-wrap: wrap;
             }
         }
 
-        @media (max-width: 680px) {
+        @media (max-width: 768px) {
             .main-container {
-                padding: 0.8rem 0.8rem 2rem;
+                padding: 0.75rem 0.65rem 2.5rem;
+            }
+            .header {
+                padding: 0.9rem 1rem;
+                border-radius: 14px;
+            }
+            .header-brand {
+                flex-direction: row;
+                align-items: center;
+                gap: 0.75rem;
+            }
+            .brand-logo {
+                max-width: 135px;
+                height: auto;
             }
             .title-row h1 {
+                font-size: 1.15rem;
+                line-height: 1.25;
+            }
+            .header-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.85rem;
+            }
+            .technician-cards {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+                width: 100%;
+            }
+            .tech-card {
+                padding: 0.45rem 0.65rem;
+            }
+            .header-actions {
+                display: flex;
+                justify-content: flex-end;
+                align-items: center;
+                gap: 0.5rem;
+                width: 100%;
+            }
+            .header-actions button,
+            .header-actions .nav-icon-btn,
+            .header-actions .theme-toggle-btn {
+                min-width: 42px;
+                min-height: 42px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .month-card {
+                padding: 0.85rem 0.65rem;
+                border-radius: 12px;
+            }
+            .month-card-title h3 {
                 font-size: 1.05rem;
+            }
+            .matrix-day-cell {
+                height: 38px;
+                min-width: 28px;
+            }
+            .matrix-table thead th.col-tech-label,
+            .col-tech-label {
+                width: 95px !important;
+                min-width: 95px !important;
+                max-width: 95px !important;
+                font-size: 0.76rem !important;
+                padding: 0.25rem 0.45rem !important;
+            }
+            .modal-card {
+                width: calc(100vw - 24px);
+                max-width: 480px;
+                max-height: 88vh;
+                margin: auto;
+            }
+            .modal-body {
+                padding: 1rem;
+                max-height: calc(88vh - 120px);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .modal-body input,
+            .modal-body select,
+            .modal-body textarea {
+                font-size: 16px !important; /* Previene auto-zoom molesto en Safari iOS */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-brand {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .technician-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+            .tech-name {
+                font-size: 0.82rem;
+            }
+            .tech-city-pill {
+                font-size: 0.62rem;
             }
             .modal-people-grid {
                 grid-template-columns: 1fr;
             }
             .range-inputs {
                 grid-template-columns: 1fr;
+            }
+            .modal-actions {
+                flex-direction: column-reverse;
+                gap: 0.5rem;
+            }
+            .modal-actions button {
+                width: 100%;
+                min-height: 44px;
+            }
+            .toast {
+                left: 12px !important;
+                right: 12px !important;
+                bottom: 16px !important;
+                transform: none !important;
+                width: auto !important;
+                text-align: center;
             }
         }
     
@@ -2105,6 +2274,9 @@
 
         /* CABECERA GENERAL (LUNES A VIERNES) */
         .matrix-table thead th.col-tech-label {
+            position: sticky;
+            left: 0;
+            z-index: 12;
             background: #0E2954 !important;
             color: #FFFFFF !important;
             font-weight: 800 !important;
@@ -2112,6 +2284,7 @@
             letter-spacing: 0.05em !important;
             text-transform: uppercase !important;
             border: 1px solid rgba(255, 255, 255, 0.16) !important;
+            box-shadow: 2px 0 6px rgba(0, 0, 0, 0.15);
         }
 
         .matrix-table thead th.matrix-header-day {
@@ -2197,9 +2370,18 @@
 
         /* MODO OSCURO PARA CABECERA */
         body.dark-mode .matrix-table thead th.col-tech-label {
+            position: sticky;
+            left: 0;
+            z-index: 12;
             background: #051020 !important;
             color: #F8FAFC !important;
             border-color: rgba(255, 255, 255, 0.12) !important;
+            box-shadow: 2px 0 6px rgba(0, 0, 0, 0.4);
+        }
+
+        body.dark-mode td.col-tech-label {
+            background: var(--bg-card) !important;
+            box-shadow: 2px 0 6px rgba(0, 0, 0, 0.35);
         }
 
         body.dark-mode .matrix-table thead th.matrix-header-day {

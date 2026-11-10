@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="vacGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#6366F1"/>
+    </linearGradient>
+    <linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#vacGrad)" filter="url(#shadow)"/>
+  <rect x="4" y="4" width="56" height="56" rx="12" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.25"/>
+  <!-- Calendar Body -->
+  <rect x="14" y="16" width="36" height="34" rx="6" fill="#FFFFFF"/>
+  <!-- Calendar Header -->
+  <path d="M 14 22 C 14 18.7 16.7 16 20 16 L 44 16 C 47.3 16 50 18.7 50 22 L 50 25 L 14 25 Z" fill="#4F46E5"/>
+  <!-- Rings -->
+  <rect x="21" y="12" width="4" height="7" rx="2" fill="#FFFFFF"/>
+  <rect x="39" y="12" width="4" height="7" rx="2" fill="#FFFFFF"/>
+  <!-- Grid Dots -->
+  <circle cx="22" cy="32" r="2" fill="#9CA3AF"/>
+  <circle cx="32" cy="32" r="2" fill="#9CA3AF"/>
+  <circle cx="42" cy="32" r="2" fill="#9CA3AF"/>
+  <circle cx="22" cy="40" r="2" fill="#9CA3AF"/>
+  <circle cx="32" cy="40" r="2" fill="#EC4899"/>
+  <circle cx="42" cy="40" r="2" fill="#9CA3AF"/>
+  <!-- Sun Badge -->
+  <circle cx="48" cy="14" r="8" fill="url(#sunGrad)" stroke="#FFFFFF" stroke-width="1.5"/>
+</svg>
