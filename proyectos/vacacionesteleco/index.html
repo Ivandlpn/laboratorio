@@ -1087,6 +1087,8 @@
             </div>
 
             <div class="toolbar-group">
+                <span class="legend-pill holiday" title="Días no laborables por Festivo Nacional en España">⭐ Festivo Nacional</span>
+                <span class="legend-pill weekend" title="Sábados y Domingos">Fin de semana</span>
                 <div id="overlapBadge" class="overlap-badge" style="display:none;" title="Días con más de 1 técnico de vacaciones simultáneamente">
                     ⚠️ <span id="overlapText">0 solapes</span>
                 </div>
@@ -1512,6 +1514,70 @@
 
     const DAY_NAMES = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
+    // CÁLCULO DE FESTIVOS NACIONALES DE ESPAÑA (Fijos y Semana Santa móvil por Computus)
+    const holidaysCache = {};
+
+    function getSpanishNationalHolidays(year) {
+        if (holidaysCache[year]) return holidaysCache[year];
+
+        const holidays = {};
+
+        function addHoliday(m, d, name, allowSundayTransfer = true) {
+            let date = new Date(year, m - 1, d);
+            if (allowSundayTransfer && date.getDay() === 0) {
+                date = new Date(year, m - 1, d + 1); // Se traslada al lunes
+                name += ' (trasladado)';
+            }
+            holidays[formatDate(date.getFullYear(), date.getMonth(), date.getDate())] = name;
+        }
+
+        // 1. Festivos Fijos Nacionales
+        addHoliday(1, 1, 'Año Nuevo');
+        addHoliday(1, 6, 'Epifanía del Señor (Reyes)');
+        addHoliday(5, 1, 'Fiesta del Trabajo');
+        addHoliday(8, 15, 'Asunción de la Virgen');
+        addHoliday(10, 12, 'Fiesta Nacional de España');
+        addHoliday(11, 1, 'Todos los Santos');
+        addHoliday(12, 6, 'Día de la Constitución Española');
+        addHoliday(12, 8, 'Inmaculada Concepción');
+        addHoliday(12, 25, 'Natividad del Señor (Navidad)');
+
+        // 2. Semana Santa Móvil (Algoritmo de Meeus/Jones/Butcher para el Computus)
+        const a = year % 19;
+        const b = Math.floor(year / 100);
+        const c = year % 100;
+        const d = Math.floor(b / 4);
+        const e = b % 4;
+        const f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3);
+        const h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4);
+        const k = c % 4;
+        const l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const easterMonth = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+        const easterDay = ((h + l - 7 * m + 114) % 31) + 1;
+        const easterDate = new Date(year, easterMonth, easterDay);
+
+        // Jueves Santo: Domingo de Pascua - 3 días
+        const juevesSanto = new Date(easterDate.getTime() - 3 * 24 * 60 * 60 * 1000);
+        holidays[formatDate(juevesSanto.getFullYear(), juevesSanto.getMonth(), juevesSanto.getDate())] = 'Jueves Santo';
+
+        // Viernes Santo: Domingo de Pascua - 2 días
+        const viernesSanto = new Date(easterDate.getTime() - 2 * 24 * 60 * 60 * 1000);
+        holidays[formatDate(viernesSanto.getFullYear(), viernesSanto.getMonth(), viernesSanto.getDate())] = 'Viernes Santo';
+
+        holidaysCache[year] = holidays;
+        return holidays;
+    }
+
+    function getHolidayName(dateStr) {
+        const y = parseInt(dateStr.split('-')[0]);
+        const hMap = getSpanishNationalHolidays(y);
+        return hMap[dateStr] || null;
+    }
+
+
     // CONFIGURACIÓN FIREBASE FIRESTORE
     const firebaseConfig = {
         apiKey: "AIzaSyDsRf3_ZYJrCfTGhbXeHPowQX07YTdmqdQ",
@@ -1729,19 +1795,23 @@
 
             // Fila de letras de días
             for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = formatDate(item.year, item.month, d);
                 const dayDate = new Date(item.year, item.month, d);
                 const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                tableHTML += `<th class="matrix-header-day ${isWeekend ? 'is-weekend' : ''}">${DAY_NAMES[dayOfWeek]}</th>`;
+                const holiday = getHolidayName(dateStr);
+                tableHTML += `<th class="matrix-header-day ${isWeekend ? 'is-weekend' : ''} ${holiday ? 'is-holiday' : ''}" title="${holiday ? 'Festivo Nacional: ' + holiday : ''}">${DAY_NAMES[dayOfWeek]}</th>`;
             }
             tableHTML += `</tr><tr><th class="col-tech-label">Día del mes</th>`;
 
             // Fila de números de días
             for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = formatDate(item.year, item.month, d);
                 const dayDate = new Date(item.year, item.month, d);
                 const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                tableHTML += `<th class="matrix-header-num ${isWeekend ? 'is-weekend' : ''}">${d}</th>`;
+                const holiday = getHolidayName(dateStr);
+                tableHTML += `<th class="matrix-header-num ${isWeekend ? 'is-weekend' : ''} ${holiday ? 'is-holiday' : ''}" title="${holiday ? 'Festivo Nacional: ' + holiday : ''}">${d}${holiday ? '⭐' : ''}</th>`;
             }
             tableHTML += `</tr></thead><tbody>`;
 
@@ -1757,13 +1827,22 @@
                     const dayDate = new Date(item.year, item.month, d);
                     const dayOfWeek = dayDate.getDay();
                     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                    const holiday = getHolidayName(dateStr);
                     const isVac = isVacation(person.id, dateStr);
 
-                    tableHTML += `<td class="matrix-day-cell ${isWeekend ? 'is-weekend' : ''} ${isVac ? 'vacation-active tech-' + person.id : ''}"
+                    let titleStr = person.name + ' - ' + d + ' de ' + MONTH_NAMES[item.month] + ' ' + item.year;
+                    if (holiday) titleStr += ' · Festivo Nacional (' + holiday + ')';
+                    if (isVac) titleStr += ' · De Vacaciones';
+
+                    let cellInner = '';
+                    if (isVac) cellInner = '✓';
+                    else if (holiday) cellInner = '<span class="holiday-marker" title="' + holiday + '">★</span>';
+
+                    tableHTML += `<td class="matrix-day-cell ${isWeekend ? 'is-weekend' : ''} ${holiday ? 'is-holiday' : ''} ${isVac ? 'vacation-active tech-' + person.id : ''}"
                                       data-date="${dateStr}" 
                                       data-person-id="${person.id}"
-                                      title="${person.name} - ${d} de ${MONTH_NAMES[item.month]} ${item.year}">
-                                      ${isVac ? '✓' : ''}
+                                      title="${titleStr}">
+                                      ${cellInner}
                                   </td>`;
                 }
                 tableHTML += `</tr>`;
@@ -2007,6 +2086,15 @@
         const dayOfWeekName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][dateObj.getDay()];
 
         document.getElementById('modalDateTitle').textContent = `${dayOfWeekName}, ${d} de ${MONTH_NAMES[m - 1]} de ${y}`;
+        const holName = getHolidayName(dateStr);
+        const subEl = document.getElementById('modalDateSubtitle');
+        if (holName) {
+            subEl.innerHTML = '⭐ <strong style="color:#D97706;">Festivo Nacional en España: ' + holName + '</strong>';
+        } else if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
+            subEl.textContent = 'Fin de semana (Sábado/Domingo)';
+        } else {
+            subEl.textContent = 'Día laborable';
+        }
         document.getElementById('rangeStartDate').value = dateStr;
         document.getElementById('rangeEndDate').value = dateStr;
 
