@@ -50,8 +50,8 @@
             --text-main: #0F172A;
             --text-muted: #64748B;
             --text-light: #94A3B8;
-            --color-weekend: #FFEFE6;
-            --color-weekend-border: #FED7AA;
+            --color-weekend: #FFE8DB;
+            --color-weekend-border: #FDBA74;
             --color-holiday: #FEF3C7;
             --color-holiday-border: #FCD34D;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
@@ -70,8 +70,8 @@
             --text-main: #F1F5F9;
             --text-muted: #94A3B8;
             --text-light: #64748B;
-            --color-weekend: #261B18;
-            --color-weekend-border: #5C321E;
+            --color-weekend: #2A1A16;
+            --color-weekend-border: #66321A;
             --color-holiday: #2E2516;
             --color-holiday-border: #785A1D;
             --bg-samuel: rgba(124, 58, 237, 0.2);
@@ -1879,19 +1879,15 @@
         return new Date(year, month, day);
     }
 
-    function initDefaultHolidays(year) {
-        const yStr = String(year);
+    function buildHolidaysForYear(year) {
         const map = {};
-
-        // Función auxiliar: add(mes, dia, nombre, tipo, scope)
-        // scope: 'all' (nacional / convenio) | 'madrid' (Samuel y Carlos) | 'valencia' (Raúl) | 'alicante' (Iván) | 'valenciana' (Raúl e Iván)
         function add(m, d, name, type, scope = 'all') {
             const key = formatDate(year, m - 1, d);
             if (!map[key]) map[key] = [];
             map[key].push({ type, name, scope });
         }
 
-        // 1. FESTIVOS NACIONALES ESTRICTOS (Aplica a todos)
+        // 1. FESTIVOS NACIONALES DE ESPAÑA (Aplica a todos los técnicos)
         add(1, 1, 'Año Nuevo', 'nacional', 'all');
         add(1, 6, 'Epifanía del Señor (Reyes)', 'nacional', 'all');
         add(5, 1, 'Fiesta del Trabajo', 'nacional', 'all');
@@ -1902,7 +1898,7 @@
         add(12, 8, 'Inmaculada Concepción', 'nacional', 'all');
         add(12, 25, 'Natividad del Señor (Navidad)', 'nacional', 'all');
 
-        // Viernes Santo (Móvil nacional - Aplica a todos)
+        // Semana Santa móvil según cálculo astronómico pascual
         const easter = getEaster(year);
         const viernesSanto = new Date(easter.getTime() - 2 * 24 * 60 * 60 * 1000);
         add(viernesSanto.getMonth() + 1, viernesSanto.getDate(), 'Viernes Santo', 'nacional', 'all');
@@ -1931,28 +1927,34 @@
         add(sanVicenteFerrer.getMonth() + 1, sanVicenteFerrer.getDate(), 'San Vicente Ferrer (Local Valencia)', 'local', 'valencia');
 
         // 6. FESTIVOS LOCALES DE ALICANTE CIUDAD (Iván)
-        // Santa Faz: 2º jueves tras Jueves Santo
         const santaFaz = new Date(juevesSanto.getTime() + 14 * 24 * 60 * 60 * 1000);
         add(santaFaz.getMonth() + 1, santaFaz.getDate(), 'Santa Faz (Local Alicante)', 'local', 'alicante');
 
-        holidaysByYear[yStr] = map;
+        return map;
     }
 
     function getYearHolidays(year) {
         const yStr = String(year);
         if (!holidaysByYear[yStr]) {
-            holidaysByYear[yStr] = {};
+            const defaults = buildHolidaysForYear(year);
             const local = localStorage.getItem('festivos_ciudad_data_' + yStr);
-            let loaded = false;
             if (local) {
                 try {
-                    holidaysByYear[yStr] = JSON.parse(local);
-                    loaded = true;
+                    const custom = JSON.parse(local);
+                    Object.keys(custom).forEach(k => {
+                        let val = custom[k];
+                        if (!Array.isArray(val)) val = [val];
+                        // Normalizar scopes para compatibilidad con datos antiguos
+                        val.forEach(item => {
+                            if (item.type === 'nacional' || item.type === 'nolaborable') {
+                                if (!item.scope) item.scope = 'all';
+                            }
+                        });
+                        defaults[k] = val;
+                    });
                 } catch(e) {}
             }
-            if (!loaded) {
-                initDefaultHolidays(year);
-            }
+            holidaysByYear[yStr] = defaults;
         }
         return holidaysByYear[yStr];
     }
@@ -1985,9 +1987,18 @@
 
         const list = getHolidaysForDate(dateStr);
         for (const hol of list) {
-            if (hol.scope === 'all') return hol;
-            if (hol.scope === person.city) return hol;
-            if (hol.scope === 'valenciana' && (person.city === 'valencia' || person.city === 'alicante')) return hol;
+            // 1. Festivo Nacional o No Laborable -> APLICA A TODOS LOS TÉCNICOS
+            if (hol.type === 'nacional' || hol.type === 'nolaborable' || hol.scope === 'all' || !hol.scope) {
+                return hol;
+            }
+            // 2. Festivo específico de la ciudad del técnico
+            if (hol.scope === person.city) {
+                return hol;
+            }
+            // 3. Festivo autonómico de la Comunidad Valenciana (aplica a Raúl en Valencia e Iván en Alicante)
+            if (hol.scope === 'valenciana' && (person.city === 'valencia' || person.city === 'alicante')) {
+                return hol;
+            }
         }
         return null;
     }
@@ -2118,6 +2129,9 @@
         getYearData(currentYear - 1);
         getYearData(currentYear);
         getYearData(currentYear + 1);
+        getYearHolidays(currentYear - 1);
+        getYearHolidays(currentYear);
+        getYearHolidays(currentYear + 1);
 
         // Intentar sincronizar con Firestore para el año actual
         if (db) {
