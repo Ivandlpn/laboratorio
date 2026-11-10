@@ -2480,6 +2480,59 @@
         body.dark-mode .legend-pill.nolaborable { background: var(--color-nolaborable); color: #5EEAD4; border-color: var(--color-nolaborable-border); }
         body.dark-mode .legend-pill.weekend { background: var(--color-weekend); color: #FDBA74; border-color: var(--color-weekend-border); }
 
+        /* ==========================================================================
+           DÍA ACTUAL (HOY): MARCADO CON BORDE GRUESO ALREDEDOR DE TODO EL DÍA
+           ========================================================================== */
+        th.matrix-header-day.is-today {
+            border: 3px solid #2563eb !important;
+            border-bottom: 1.5px dashed rgba(37, 99, 235, 0.45) !important;
+            border-radius: 6px 6px 0 0 !important;
+            background: rgba(37, 99, 235, 0.16) !important;
+            color: #1d4ed8 !important;
+            font-weight: 800 !important;
+            position: relative;
+            z-index: 6;
+        }
+
+        th.matrix-header-num.is-today {
+            border: 3px solid #2563eb !important;
+            border-top: none !important;
+            border-radius: 0 0 6px 6px !important;
+            background: #2563eb !important;
+            color: #ffffff !important;
+            font-weight: 900 !important;
+            position: relative;
+            z-index: 6;
+            box-shadow: 0 3px 8px rgba(37, 99, 235, 0.4);
+        }
+
+        .matrix-day-cell.is-today {
+            border: 3px solid #2563eb !important;
+            box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.25), 0 2px 8px rgba(37, 99, 235, 0.35) !important;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* MODO OSCURO */
+        body.dark-mode th.matrix-header-day.is-today {
+            border: 3px solid #38bdf8 !important;
+            border-bottom: 1.5px dashed rgba(56, 189, 248, 0.45) !important;
+            background: rgba(56, 189, 248, 0.24) !important;
+            color: #7dd3fc !important;
+        }
+
+        body.dark-mode th.matrix-header-num.is-today {
+            border: 3px solid #38bdf8 !important;
+            border-top: none !important;
+            background: #0284c7 !important;
+            color: #ffffff !important;
+            box-shadow: 0 3px 10px rgba(56, 189, 248, 0.5);
+        }
+
+        body.dark-mode .matrix-day-cell.is-today {
+            border: 3px solid #38bdf8 !important;
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3), 0 2px 10px rgba(56, 189, 248, 0.45) !important;
+        }
     </style>
 </head>
 <body>
@@ -3885,6 +3938,7 @@
         const now = new Date();
         const currentMonthIdx = now.getMonth();
         const currentYearNum = now.getFullYear();
+        const todayStr = formatDate(now.getFullYear(), now.getMonth(), now.getDate());
 
         const all14Months = getFourteenMonths(currentYear);
 
@@ -3941,6 +3995,7 @@
                 const isDecNoLaborable = (item.month === 11 && (d === 24 || d === 31));
                 const dayHols = getHolidaysForDate(dateStr);
                 const hasHoliday = dayHols.length > 0;
+                const isToday = (dateStr === todayStr);
                 
                 const isGeneralOff = isWeekend || isDecNoLaborable || dayHols.some(h => h.type === 'nacional' || h.type === 'nolaborable' || h.scope === 'all');
 
@@ -3960,7 +4015,7 @@
                     isHeaderShaded = !!getHolidayForPerson(activeFilter, dateStr);
                 }
 
-                tableHTML += `<th class="matrix-header-day ${isHeaderShaded ? 'is-weekend' : ''} ${holClass}" title="${holTitle}">${DAY_NAMES[dayOfWeek]}</th>`;
+                tableHTML += `<th class="matrix-header-day ${isHeaderShaded ? 'is-weekend' : ''} ${holClass} ${isToday ? 'is-today' : ''}" title="${holTitle}">${DAY_NAMES[dayOfWeek]}</th>`;
             }
             tableHTML += `</tr><tr><th class="col-tech-label">Día del mes</th>`;
 
@@ -3973,6 +4028,7 @@
                 const isDecNoLaborable = (item.month === 11 && (d === 24 || d === 31));
                 const dayHols = getHolidaysForDate(dateStr);
                 const hasHoliday = dayHols.length > 0;
+                const isToday = (dateStr === todayStr);
 
                 const isGeneralOff = isWeekend || isDecNoLaborable || dayHols.some(h => h.type === 'nacional' || h.type === 'nolaborable' || h.scope === 'all');
 
@@ -3995,7 +4051,7 @@
                     isHeaderShaded = !!getHolidayForPerson(activeFilter, dateStr);
                 }
 
-                tableHTML += `<th class="matrix-header-num ${isHeaderShaded ? 'is-weekend' : ''} ${holClass}" data-date="${dateStr}" title="${holTitle}">${d}${holIcon}</th>`;
+                tableHTML += `<th class="matrix-header-num ${isHeaderShaded ? 'is-weekend' : ''} ${holClass} ${isToday ? 'is-today' : ''}" data-date="${dateStr}" title="${holTitle}">${d}${holIcon}</th>`;
             }
             tableHTML += `</tr></thead><tbody>`;
 
@@ -4015,6 +4071,7 @@
                     const dayOfWeek = dayDate.getDay();
                     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
                     const isDecNoLaborable = (item.month === 11 && (d === 24 || d === 31));
+                    const isToday = (dateStr === todayStr);
                     let hol = getHolidayForPerson(person.id, dateStr);
                     if (!hol && isDecNoLaborable) {
                         hol = { type: 'nolaborable', name: (d === 24 ? 'Nochebuena' : 'Nochevieja'), scope: 'all' };
@@ -4029,6 +4086,7 @@
                     const isClash = (isPersonOnGuard && isVac);
 
                     let titleStr = person.name + ' (' + person.cityName + ') - ' + d + ' de ' + MONTH_NAMES[item.month] + ' ' + item.year;
+                    if (isToday) titleStr = '🎯 [HOY] ' + titleStr;
                     if (hol) titleStr += ' · ' + getHolidayTypeLabel(hol.type, hol.scope) + ' (' + hol.name + ')';
                     if (isPersonOnGuard) titleStr += ' · 📞 De Guardia (Semana ' + guardInfo.week + ')';
                     if (isVac) {
@@ -4080,7 +4138,7 @@
                         titleStr += ' · [No laborable / No seleccionable como vacaciones]';
                     }
 
-                    tableHTML += `<td class="matrix-day-cell ${isCellNonWorking ? 'is-weekend' : ''} ${guardClass} ${holClass} ${vacClass} ${asuntosClass} ${nonVacClass}"
+                    tableHTML += `<td class="matrix-day-cell ${isCellNonWorking ? 'is-weekend' : ''} ${guardClass} ${holClass} ${vacClass} ${asuntosClass} ${nonVacClass} ${isToday ? 'is-today' : ''}"
                                       data-date="${dateStr}" 
                                       data-person-id="${person.id}"
                                       title="${titleStr}">
