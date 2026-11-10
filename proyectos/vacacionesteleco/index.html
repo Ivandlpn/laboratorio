@@ -26,22 +26,18 @@
             
             /* Colores de los Técnicos */
             --color-samuel: #7C3AED;
-            --color-samuel-rgb: 124, 58, 237;
             --bg-samuel: #F5F3FF;
             --text-samuel: #5B21B6;
 
             --color-ivan: #0070C0;
-            --color-ivan-rgb: 0, 112, 192;
             --bg-ivan: #F0F9FF;
             --text-ivan: #0369A1;
 
             --color-carlos: #059669;
-            --color-carlos-rgb: 5, 150, 105;
             --bg-carlos: #ECFDF5;
             --text-carlos: #047857;
 
             --color-raul: #CB1823;
-            --color-raul-rgb: 203, 24, 35;
             --bg-raul: #FEF2F2;
             --text-raul: #991B1B;
 
@@ -109,14 +105,14 @@
         .main-container {
             max-width: 1720px;
             margin: 0 auto;
-            padding: 1.25rem 1.5rem 3rem;
+            padding: 1.1rem 1.4rem 3rem;
         }
 
         /* CABECERA CORPORATIVA COMPACTA */
         .header {
             background: linear-gradient(135deg, #071732 0%, #0d264e 35%, #153c75 75%, #0b2247 100%);
             border-radius: 16px;
-            padding: 0.85rem 1.4rem;
+            padding: 0.8rem 1.35rem;
             color: white;
             box-shadow: 0 10px 30px rgba(7, 23, 50, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
             display: flex;
@@ -173,7 +169,7 @@
         }
 
         .title-row h1 {
-            font-size: 1.28rem;
+            font-size: 1.26rem;
             font-weight: 800;
             letter-spacing: -0.01em;
             color: #FFFFFF;
@@ -188,7 +184,7 @@
             background: rgba(255, 255, 255, 0.14);
             border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 9999px;
-            padding: 0.28rem 0.75rem;
+            padding: 0.26rem 0.75rem;
             backdrop-filter: blur(8px);
         }
 
@@ -198,7 +194,7 @@
             color: #FFFFFF;
             font-family: var(--font-main);
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.94rem;
             cursor: pointer;
             outline: none;
             padding-right: 0.2rem;
@@ -209,46 +205,11 @@
             color: #FFFFFF;
         }
 
-        .month-jump-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.45rem;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #FFFFFF;
-            border-radius: 9999px;
-            padding: 0.32rem 0.85rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition-speed) ease;
-        }
-
-        .month-jump-btn:hover {
-            background: rgba(255, 255, 255, 0.22);
-            transform: translateY(-1px);
-        }
-
-        .pulse-beacon {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background-color: #10B981;
-            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-            animation: pulse-green 2s infinite;
-        }
-
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.8); }
-            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        /* GRUPO DERECHA CABECERA */
+        /* GRUPO DERECHA CABECERA: AVATARES DE COORDINACIÓN (SIN CONTADORES) */
         .header-controls {
             display: flex;
             align-items: center;
-            gap: 1.1rem;
+            gap: 1rem;
             z-index: 2;
             flex-shrink: 0;
         }
@@ -256,17 +217,17 @@
         .technician-cards {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
+            gap: 0.55rem;
         }
 
         .tech-card {
             display: flex;
             align-items: center;
-            gap: 0.55rem;
+            gap: 0.5rem;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 9999px;
-            padding: 0.25rem 0.75rem 0.25rem 0.3rem;
+            padding: 0.22rem 0.75rem 0.22rem 0.28rem;
             cursor: pointer;
             transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
             backdrop-filter: blur(8px);
@@ -274,8 +235,8 @@
         }
 
         .tech-card:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.22);
+            border-color: rgba(255, 255, 255, 0.45);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         }
@@ -310,21 +271,6 @@
             color: #FFFFFF;
         }
 
-        .tech-count {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 28px;
-            height: 20px;
-            padding: 0 0.45rem;
-            border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.22);
-            font-family: var(--font-mono);
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #FFFFFF;
-        }
-
         .header-actions {
             display: flex;
             align-items: center;
@@ -339,7 +285,7 @@
             background: rgba(255, 255, 255, 0.14);
             color: #FFFFFF;
             border: 1px solid rgba(255, 255, 255, 0.26);
-            padding: 0.55rem 1.05rem;
+            padding: 0.52rem 1.05rem;
             font-family: var(--font-main);
             font-weight: 600;
             font-size: 0.88rem;
@@ -375,7 +321,7 @@
             background: rgba(255, 255, 255, 0.14);
             color: #FFFFFF;
             border: 1px solid rgba(255, 255, 255, 0.26);
-            padding: 0.55rem 1.15rem;
+            padding: 0.52rem 1.15rem;
             font-family: var(--font-main);
             font-weight: 600;
             font-size: 0.88rem;
@@ -435,7 +381,7 @@
             background: rgba(255, 255, 255, 0.22);
         }
 
-        /* BARRA DE HERRAMIENTAS */
+        /* BARRA DE HERRAMIENTAS Y VISTAS */
         .toolbar {
             display: flex;
             align-items: center;
@@ -579,12 +525,12 @@
         }
 
         /* ==========================================================================
-           VISTA MATRIZ ANUAL (ESTILO EXCEL INTERACTIVO DE TELECO)
+           MATRIZ DEL CALENDARIO (14 MESES: DICIEMBRE ANTERIOR + 12 + ENERO PRÓXIMO)
            ========================================================================== */
         .matrix-view-container {
             display: flex;
             flex-direction: column;
-            gap: 1.4rem;
+            gap: 1.35rem;
             margin-top: 1.25rem;
         }
 
@@ -595,11 +541,27 @@
             padding: 1.1rem 1.25rem;
             box-shadow: var(--shadow-sm);
             overflow-x: auto;
-            transition: box-shadow var(--transition-speed) ease;
+            transition: all var(--transition-speed) ease;
         }
 
         .month-card:hover {
             box-shadow: var(--shadow-md);
+        }
+
+        /* Destacar mes actual y mes siguiente */
+        .month-card.is-current-month {
+            border: 2px solid var(--color-ineco-blue);
+            box-shadow: 0 0 0 1px var(--color-ineco-blue), var(--shadow-md);
+        }
+
+        .month-card.is-next-month {
+            border: 1.5px solid rgba(0, 112, 192, 0.45);
+        }
+
+        .month-card.is-adjacent-year {
+            opacity: 0.92;
+            background: var(--bg-card);
+            border-style: dashed;
         }
 
         .month-card-header {
@@ -623,15 +585,26 @@
             text-transform: uppercase;
         }
 
-        .month-stats-badge {
-            font-family: var(--font-mono);
-            font-size: 0.78rem;
+        .month-status-pill {
+            font-size: 0.76rem;
             font-weight: 700;
-            padding: 0.2rem 0.6rem;
-            border-radius: 6px;
+            padding: 0.2rem 0.65rem;
+            border-radius: 9999px;
             background: var(--bg-card-subtle);
             color: var(--text-muted);
             border: 1px solid var(--border-card);
+        }
+
+        .month-status-pill.current {
+            background: rgba(0, 112, 192, 0.15);
+            color: var(--color-ineco-blue);
+            border-color: rgba(0, 112, 192, 0.35);
+        }
+
+        .month-status-pill.next {
+            background: rgba(16, 185, 129, 0.15);
+            color: #059669;
+            border-color: rgba(16, 185, 129, 0.35);
         }
 
         .matrix-table {
@@ -705,12 +678,6 @@
             font-weight: 800;
         }
 
-        /* FESTIVO */
-        .is-holiday {
-            background-color: var(--color-holiday) !important;
-            border-color: var(--color-holiday-border) !important;
-        }
-
         /* DÍA CON VACACIONES */
         .vacation-active {
             font-weight: 800;
@@ -734,7 +701,7 @@
             background: linear-gradient(135deg, #CB1823, #B91C1C) !important;
         }
 
-        /* HOVER Y MODO EDICIÓN */
+        /* MODO EDICIÓN */
         body.is-editing .matrix-day-cell {
             cursor: pointer;
         }
@@ -750,115 +717,7 @@
             cursor: default;
         }
 
-        /* LÁPIZ DE EDICIÓN: OCULTO DE INICIO */
-        .cell-edit-hint {
-            display: none !important;
-        }
-
-        body.is-editing .cell-edit-hint {
-            display: block !important;
-        }
-
-        /* ALERTA DE COINCIDENCIA / SOLAPE */
-        .overlap-indicator-dot {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #F59E0B;
-            box-shadow: 0 0 4px #F59E0B;
-        }
-
-        /* ==========================================================================
-           VISTA BALANCE / ESTADÍSTICAS DEL EQUIPO
-           ========================================================================== */
-        .stats-view-container {
-            display: none;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 1.4rem;
-            margin-top: 1.25rem;
-        }
-
-        .stats-view-container.active {
-            display: grid;
-        }
-
-        .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-card);
-            border-radius: 16px;
-            padding: 1.4rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .stat-card-header {
-            display: flex;
-            align-items: center;
-            gap: 0.9rem;
-            margin-bottom: 1.2rem;
-        }
-
-        .stat-avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            border: 3px solid var(--ring-color);
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .stat-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .stat-tech-info h4 {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: var(--text-main);
-        }
-
-        .stat-tech-info p {
-            font-size: 0.82rem;
-            color: var(--text-muted);
-        }
-
-        .stat-progress-bar-wrap {
-            background: var(--bg-card-subtle);
-            border-radius: 9999px;
-            height: 12px;
-            overflow: hidden;
-            margin: 0.9rem 0;
-            border: 1px solid var(--border-card);
-        }
-
-        .stat-progress-bar-fill {
-            height: 100%;
-            border-radius: 9999px;
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .stat-numbers-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.86rem;
-            margin-top: 0.4rem;
-        }
-
-        .stat-badge {
-            font-family: var(--font-mono);
-            font-weight: 700;
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
-        }
-
-        /* ==========================================================================
-           MODAL DE ASIGNACIÓN DETALLADA / RANGOS
-           ========================================================================== */
+        /* MODAL DE ASIGNACIÓN DETALLADA / RANGOS */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -1045,7 +904,7 @@
             background: #005a9e;
         }
 
-        /* MODAL EXPORTACIÓN ICS */
+        /* MODAL EXPORTAR .ICS */
         .ics-export-options {
             display: flex;
             flex-direction: column;
@@ -1145,14 +1004,10 @@
                             <option value="2030">2030</option>
                         </select>
                     </div>
-                    <button id="currentMonthBtn" class="month-jump-btn" title="Ir al mes en curso">
-                        <span class="pulse-beacon"></span>
-                        <span id="currentMonthBadge">Mes Actual</span>
-                    </button>
                 </div>
             </div>
 
-            <!-- DERECHA: AVATARES DE LOS 4 TÉCNICOS + BOTÓN EDITAR + GUARDAR + TEMA -->
+            <!-- DERECHA: AVATARES DE COORDINACIÓN (SIN CONTADORES DE AUDITORÍA) + BOTÓN EDITAR + GUARDAR + TEMA -->
             <div class="header-controls">
                 <div class="technician-cards" id="technicianCards">
                     <!-- Samuel -->
@@ -1161,7 +1016,6 @@
                             <img src="avatars/samuel.jpg" alt="Samuel" class="tech-avatar-img" />
                         </div>
                         <span class="tech-name">Samuel</span>
-                        <span class="tech-count" id="count-samuel" title="Días de vacaciones">0 d</span>
                     </div>
 
                     <!-- Iván -->
@@ -1170,7 +1024,6 @@
                             <img src="avatars/ivan.jpg" alt="Iván" class="tech-avatar-img" />
                         </div>
                         <span class="tech-name">Iván</span>
-                        <span class="tech-count" id="count-ivan" title="Días de vacaciones">0 d</span>
                     </div>
 
                     <!-- Carlos -->
@@ -1179,7 +1032,6 @@
                             <img src="avatars/carlos.jpg" alt="Carlos" class="tech-avatar-img" />
                         </div>
                         <span class="tech-name">Carlos</span>
-                        <span class="tech-count" id="count-carlos" title="Días de vacaciones">0 d</span>
                     </div>
 
                     <!-- Raúl -->
@@ -1188,7 +1040,6 @@
                             <img src="avatars/raul.jpg" alt="Raúl" class="tech-avatar-img" />
                         </div>
                         <span class="tech-name">Raúl</span>
-                        <span class="tech-count" id="count-raul" title="Días de vacaciones">0 d</span>
                     </div>
                 </div>
 
@@ -1216,13 +1067,13 @@
             </div>
         </header>
 
-        <!-- BARRA DE HERRAMIENTAS Y VISTAS -->
+        <!-- BARRA DE HERRAMIENTAS Y VISTAS DE COORDINACIÓN -->
         <section class="toolbar">
             <div class="toolbar-group">
                 <span class="toolbar-label">Vista:</span>
                 <div class="pill-group" id="viewSelectorGroup">
-                    <button class="pill-btn active" data-view="matrix">📅 Matriz Anual</button>
-                    <button class="pill-btn" data-view="stats">👥 Balance de Equipo</button>
+                    <button class="pill-btn active" data-view="two-months" title="Vista inicial enfocada en el mes actual y el siguiente">📍 Mes actual + siguiente</button>
+                    <button class="pill-btn" data-view="all-months" title="Ver los 14 meses completos (+ Dic anterior y Ene próximo)">📅 Calendario completo (14 meses)</button>
                 </div>
 
                 <span class="toolbar-label" style="margin-left: 0.5rem;">Filtrar:</span>
@@ -1245,7 +1096,7 @@
                 <button id="exportCsvBtn" class="toolbar-btn" title="Descargar datos en CSV para Excel">
                     📊 Excel (CSV)
                 </button>
-                <button id="printBtn" class="toolbar-btn" title="Imprimir cuadrante anual">
+                <button id="printBtn" class="toolbar-btn" title="Imprimir cuadrante">
                     🖨️ Imprimir
                 </button>
             </div>
@@ -1259,11 +1110,8 @@
             <button id="exitPainterBtn" class="btn-exit-painter">Finalizar (Esc) ✕</button>
         </div>
 
-        <!-- CONTENEDOR DE LA VISTA MATRIZ ANUAL -->
+        <!-- CONTENEDOR DE LA MATRIZ DE VACACIONES (14 MESES) -->
         <main id="matrixViewContainer" class="matrix-view-container"></main>
-
-        <!-- CONTENEDOR DE LA VISTA BALANCE DE EQUIPO -->
-        <section id="statsViewContainer" class="stats-view-container"></section>
     </div>
 
     <!-- MODAL DE ASIGNACIÓN DETALLADA / RANGOS -->
@@ -1271,14 +1119,14 @@
         <div class="modal-card">
             <div class="modal-header">
                 <div class="modal-title-group">
-                    <h3 id="modalDateTitle">Asignar Vacaciones</h3>
+                    <h3 id="modalDateTitle">Coordinar Vacaciones</h3>
                     <div id="modalDateSubtitle" class="modal-subtitle">Día laborable</div>
                 </div>
                 <button id="closeDayModalBtn" class="modal-close-btn" aria-label="Cerrar">✕</button>
             </div>
             <div class="modal-body">
                 <div>
-                    <span class="toolbar-label" style="display:block;margin-bottom:0.6rem;">Técnicos de vacaciones en esta fecha:</span>
+                    <span class="toolbar-label" style="display:block;margin-bottom:0.6rem;">Técnicos ausentes en esta fecha:</span>
                     <div class="modal-people-grid">
                         <!-- Samuel -->
                         <div class="modal-person-toggle" data-person-id="samuel" style="--tech-color: var(--color-samuel); --tech-bg: var(--bg-samuel);">
@@ -1651,10 +1499,10 @@
 };
 
     const TEAM = [
-        { id: 'samuel', name: 'Samuel', avatar: 'avatars/samuel.jpg', color: 'var(--color-samuel)', baseDays: 22 },
-        { id: 'ivan', name: 'Iván', avatar: 'avatars/ivan.jpg', color: 'var(--color-ivan)', baseDays: 22 },
-        { id: 'carlos', name: 'Carlos', avatar: 'avatars/carlos.jpg', color: 'var(--color-carlos)', baseDays: 22 },
-        { id: 'raul', name: 'Raúl', avatar: 'avatars/raul.jpg', color: 'var(--color-raul)', baseDays: 22 }
+        { id: 'samuel', name: 'Samuel', avatar: 'avatars/samuel.jpg', color: 'var(--color-samuel)' },
+        { id: 'ivan', name: 'Iván', avatar: 'avatars/ivan.jpg', color: 'var(--color-ivan)' },
+        { id: 'carlos', name: 'Carlos', avatar: 'avatars/carlos.jpg', color: 'var(--color-carlos)' },
+        { id: 'raul', name: 'Raúl', avatar: 'avatars/raul.jpg', color: 'var(--color-raul)' }
     ];
 
     const MONTH_NAMES = [
@@ -1683,16 +1531,62 @@
     }
 
     // ESTADO DE LA APLICACIÓN
+    // VISTA INICIAL: MES ACTUAL + SIGUIENTE
     let currentYear = 2026;
     let activeFilter = 'all';
-    let currentView = 'matrix';
+    let currentView = 'two-months'; // 'two-months' (por defecto) o 'all-months'
     let isEditMode = false;
     let activePainter = null;
     let hasUnsavedChanges = false;
     let currentSelectedDate = null;
 
-    // Almacenamiento en memoria para el año actual: { samuel: Set(), ivan: Set(), carlos: Set(), raul: Set() }
-    let yearVacations = { samuel: new Set(), ivan: new Set(), carlos: new Set(), raul: new Set() };
+    // Almacenamiento por año: { [year]: { samuel: Set(), ivan: Set(), carlos: Set(), raul: Set() } }
+    const vacationsByYear = {};
+
+    function getYearData(year) {
+        const yStr = String(year);
+        if (!vacationsByYear[yStr]) {
+            vacationsByYear[yStr] = { samuel: new Set(), ivan: new Set(), carlos: new Set(), raul: new Set() };
+            // 1. Cargar desde LocalStorage
+            const local = localStorage.getItem('vacaciones_data_' + yStr);
+            let loaded = false;
+            if (local) {
+                try {
+                    const parsed = JSON.parse(local);
+                    TEAM.forEach(p => {
+                        vacationsByYear[yStr][p.id] = new Set(parsed[p.id] || []);
+                    });
+                    loaded = true;
+                } catch(e) {}
+            }
+            // 2. Si no hay en local, usar PRELOADED
+            if (!loaded && PRELOADED_VACATIONS[yStr]) {
+                TEAM.forEach(p => {
+                    vacationsByYear[yStr][p.id] = new Set(PRELOADED_VACATIONS[yStr][p.id] || []);
+                });
+            }
+        }
+        return vacationsByYear[yStr];
+    }
+
+    function isVacation(personId, dateStr) {
+        const y = dateStr.split('-')[0];
+        const data = getYearData(y);
+        return data[personId] && data[personId].has(dateStr);
+    }
+
+    function toggleVacation(personId, dateStr) {
+        const y = dateStr.split('-')[0];
+        const data = getYearData(y);
+        if (!data[personId]) data[personId] = new Set();
+        if (data[personId].has(dateStr)) {
+            data[personId].delete(dateStr);
+        } else {
+            data[personId].add(dateStr);
+        }
+        hasUnsavedChanges = true;
+        updateSaveButtonState();
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         initTheme();
@@ -1705,82 +1599,61 @@
         currentYear = parseInt(year);
         document.getElementById('yearSelector').value = currentYear;
 
-        // Reset sets
-        yearVacations = { samuel: new Set(), ivan: new Set(), carlos: new Set(), raul: new Set() };
+        // Asegurar que tenemos el año actual, el anterior y el próximo cargados
+        getYearData(currentYear - 1);
+        getYearData(currentYear);
+        getYearData(currentYear + 1);
 
-        // 1. Cargar desde LocalStorage
-        const localKey = 'vacaciones_data_' + currentYear;
-        const localData = localStorage.getItem(localKey);
-        let loaded = false;
-
-        if (localData) {
-            try {
-                const parsed = JSON.parse(localData);
-                TEAM.forEach(p => {
-                    yearVacations[p.id] = new Set(parsed[p.id] || []);
-                });
-                loaded = true;
-            } catch(e) { console.error('Error parseando localStorage', e); }
-        }
-
-        // 2. Si no hay en localStorage, usar PRELOADED del Excel
-        if (!loaded && PRELOADED_VACATIONS[String(currentYear)]) {
-            const yData = PRELOADED_VACATIONS[String(currentYear)];
-            TEAM.forEach(p => {
-                yearVacations[p.id] = new Set(yData[p.id] || []);
-            });
-            loaded = true;
-        }
-
-        // 3. Intentar cargar desde Firebase Firestore (asíncrono)
+        // Intentar sincronizar con Firestore para el año actual
         if (db) {
             try {
-                const docRef = db.collection('vacaciones_teleco').doc(String(currentYear));
-                const docSnap = await docRef.get();
+                const docSnap = await db.collection('vacaciones_teleco').doc(String(currentYear)).get();
                 if (docSnap.exists) {
                     const fbData = docSnap.data().vacations;
                     if (fbData) {
+                        const yData = getYearData(currentYear);
                         TEAM.forEach(p => {
-                            yearVacations[p.id] = new Set(fbData[p.id] || []);
+                            yData[p.id] = new Set(fbData[p.id] || []);
                         });
                     }
                 }
-            } catch(err) {
-                console.log('Modo offline / Firestore fallback a datos locales');
-            }
+            } catch(e) {}
         }
 
         hasUnsavedChanges = false;
         updateSaveButtonState();
-        renderAll();
-    }
-
-    // RENDERIZADO GENERAL
-    function renderAll() {
-        updateCounters();
         renderMatrixView();
-        renderStatsView();
         checkOverlaps();
     }
 
-    // CONTADORES DE DÍAS EN CABECERA
-    function updateCounters() {
-        TEAM.forEach(p => {
-            const count = yearVacations[p.id] ? yearVacations[p.id].size : 0;
-            const badge = document.getElementById('count-' + p.id);
-            if (badge) {
-                badge.textContent = count + ' d';
-            }
-        });
+    // LISTADO DE LOS 14 MESES: DICIEMBRE ANTERIOR + 12 MESES + ENERO PRÓXIMO
+    function getFourteenMonths(baseYear) {
+        const list = [];
+        // 1. Diciembre del año anterior
+        list.push({ year: baseYear - 1, month: 11, label: 'DICIEMBRE ' + (baseYear - 1), tag: 'Año anterior' });
+        // 2..13. Los 12 meses del año en curso
+        for (let m = 0; m < 12; m++) {
+            list.push({ year: baseYear, month: m, label: MONTH_NAMES[m].toUpperCase() + ' ' + baseYear, tag: null });
+        }
+        // 14. Enero del año siguiente
+        list.push({ year: baseYear + 1, month: 0, label: 'ENERO ' + (baseYear + 1), tag: 'Año siguiente' });
+        return list;
     }
 
     // DETECCIÓN DE SOLAPES
     function checkOverlaps() {
         const dateCounts = {};
-        TEAM.forEach(p => {
-            yearVacations[p.id].forEach(dateStr => {
-                dateCounts[dateStr] = (dateCounts[dateStr] || 0) + 1;
-            });
+        const months = getFourteenMonths(currentYear);
+        months.forEach(item => {
+            const daysInMonth = new Date(item.year, item.month + 1, 0).getDate();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = formatDate(item.year, item.month, d);
+                TEAM.forEach(p => {
+                    if (isVacation(p.id, dateStr)) {
+                        dateCounts[dateStr] = (dateCounts[dateStr] || 0) + 1;
+                    }
+                });
+            }
         });
 
         const overlapDates = Object.keys(dateCounts).filter(d => dateCounts[d] > 1);
@@ -1789,37 +1662,64 @@
 
         if (overlapDates.length > 0) {
             badge.style.display = 'inline-flex';
-            text.textContent = overlapDates.length + (overlapDates.length === 1 ? ' día con solape' : ' días con solape');
+            text.textContent = overlapDates.length + (overlapDates.length === 1 ? ' fecha con coincidencia' : ' fechas con coincidencia');
         } else {
             badge.style.display = 'none';
         }
     }
 
-    // GENERAR LA VISTA MATRIZ ANUAL (12 MESES)
+    // GENERAR LA VISTA MATRIZ DEL CALENDARIO
     function renderMatrixView() {
         const container = document.getElementById('matrixViewContainer');
         container.innerHTML = '';
 
-        for (let m = 0; m < 12; m++) {
-            const daysInMonth = new Date(currentYear, m + 1, 0).getDate();
+        const now = new Date();
+        const currentMonthIdx = now.getMonth();
+        const currentYearNum = now.getFullYear();
+
+        const all14Months = getFourteenMonths(currentYear);
+
+        // Si la vista es 'two-months', filtrar para mostrar únicamente el mes actual y el siguiente
+        let monthsToDisplay = all14Months;
+        if (currentView === 'two-months') {
+            monthsToDisplay = all14Months.filter(item => {
+                // Mes actual
+                const isCurrent = (item.year === currentYearNum && item.month === currentMonthIdx);
+                // Mes siguiente
+                const nextMonthDate = new Date(currentYearNum, currentMonthIdx + 1, 1);
+                const isNext = (item.year === nextMonthDate.getFullYear() && item.month === nextMonthDate.getMonth());
+                return isCurrent || isNext;
+            });
+            // Si por el año seleccionado no cae en los dos meses actuales, mostrar los dos primeros del año elegido
+            if (monthsToDisplay.length === 0) {
+                monthsToDisplay = all14Months.slice(1, 3); // Enero y Febrero del año elegido
+            }
+        }
+
+        monthsToDisplay.forEach((item, index) => {
+            const daysInMonth = new Date(item.year, item.month + 1, 0).getDate();
             const monthCard = document.createElement('div');
             monthCard.className = 'month-card';
-            monthCard.id = 'month-card-' + m;
 
-            // Calcular días del mes tomados por el equipo
-            let monthTeamDays = 0;
-            for (let d = 1; d <= daysInMonth; d++) {
-                const dateStr = formatDate(currentYear, m, d);
-                TEAM.forEach(p => {
-                    if (yearVacations[p.id].has(dateStr)) monthTeamDays++;
-                });
-            }
+            const isCurrent = (item.year === currentYearNum && item.month === currentMonthIdx);
+            const nextMonthDate = new Date(currentYearNum, currentMonthIdx + 1, 1);
+            const isNext = (item.year === nextMonthDate.getFullYear() && item.month === nextMonthDate.getMonth());
+            const isAdjacent = (item.tag !== null);
+
+            if (isCurrent) monthCard.classList.add('is-current-month');
+            else if (isNext) monthCard.classList.add('is-next-month');
+            if (isAdjacent) monthCard.classList.add('is-adjacent-year');
+
+            let badgeHtml = '';
+            if (isCurrent) badgeHtml = '<span class="month-status-pill current">📍 Mes Actual</span>';
+            else if (isNext) badgeHtml = '<span class="month-status-pill next">➡️ Mes Siguiente</span>';
+            else if (item.tag) badgeHtml = '<span class="month-status-pill">' + item.tag + '</span>';
 
             let tableHTML = `
                 <div class="month-card-header">
                     <div class="month-card-title">
-                        <h3>${MONTH_NAMES[m]} ${currentYear}</h3>
-                        <span class="month-stats-badge">${monthTeamDays} días equipo</span>
+                        <h3>${item.label}</h3>
+                        ${badgeHtml}
                     </div>
                 </div>
                 <table class="matrix-table">
@@ -1827,25 +1727,25 @@
                         <tr>
                             <th class="col-tech-label">Técnico</th>`;
 
-            // Fila de letras de días (L, M, X, J, V, S, D)
+            // Fila de letras de días
             for (let d = 1; d <= daysInMonth; d++) {
-                const dayDate = new Date(currentYear, m, d);
-                const dayOfWeek = dayDate.getDay(); // 0 es Domingo, 6 es Sábado
+                const dayDate = new Date(item.year, item.month, d);
+                const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
                 tableHTML += `<th class="matrix-header-day ${isWeekend ? 'is-weekend' : ''}">${DAY_NAMES[dayOfWeek]}</th>`;
             }
             tableHTML += `</tr><tr><th class="col-tech-label">Día del mes</th>`;
 
-            // Fila de números de días (1..31)
+            // Fila de números de días
             for (let d = 1; d <= daysInMonth; d++) {
-                const dayDate = new Date(currentYear, m, d);
+                const dayDate = new Date(item.year, item.month, d);
                 const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
                 tableHTML += `<th class="matrix-header-num ${isWeekend ? 'is-weekend' : ''}">${d}</th>`;
             }
             tableHTML += `</tr></thead><tbody>`;
 
-            // Filas de los 4 Técnicos (o el filtrado)
+            // Filas de los Técnicos (sin contadores de auditoría)
             TEAM.forEach(person => {
                 if (activeFilter !== 'all' && activeFilter !== person.id) return;
 
@@ -1853,17 +1753,17 @@
                     <td class="col-tech-label" style="color: ${person.color}">${person.name}</td>`;
 
                 for (let d = 1; d <= daysInMonth; d++) {
-                    const dateStr = formatDate(currentYear, m, d);
-                    const dayDate = new Date(currentYear, m, d);
+                    const dateStr = formatDate(item.year, item.month, d);
+                    const dayDate = new Date(item.year, item.month, d);
                     const dayOfWeek = dayDate.getDay();
                     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                    const isVacation = yearVacations[person.id].has(dateStr);
+                    const isVac = isVacation(person.id, dateStr);
 
-                    tableHTML += `<td class="matrix-day-cell ${isWeekend ? 'is-weekend' : ''} ${isVacation ? 'vacation-active tech-' + person.id : ''}"
+                    tableHTML += `<td class="matrix-day-cell ${isWeekend ? 'is-weekend' : ''} ${isVac ? 'vacation-active tech-' + person.id : ''}"
                                       data-date="${dateStr}" 
                                       data-person-id="${person.id}"
-                                      title="${person.name} - ${d} de ${MONTH_NAMES[m]}: ${isVacation ? 'De Vacaciones' : 'Laborable'}">
-                                      ${isVacation ? '✓' : ''}
+                                      title="${person.name} - ${d} de ${MONTH_NAMES[item.month]} ${item.year}">
+                                      ${isVac ? '✓' : ''}
                                   </td>`;
                 }
                 tableHTML += `</tr>`;
@@ -1872,46 +1772,6 @@
             tableHTML += `</tbody></table>`;
             monthCard.innerHTML = tableHTML;
             container.appendChild(monthCard);
-        }
-    }
-
-    // RENDERIZAR VISTA DE BALANCE
-    function renderStatsView() {
-        const container = document.getElementById('statsViewContainer');
-        container.innerHTML = '';
-
-        TEAM.forEach(person => {
-            const count = yearVacations[person.id].size;
-            const pct = Math.min(100, Math.round((count / person.baseDays) * 100));
-            const remaining = Math.max(0, person.baseDays - count);
-
-            const card = document.createElement('div');
-            card.className = 'stat-card';
-            card.innerHTML = `
-                <div class="stat-card-header">
-                    <div class="stat-avatar" style="--ring-color: ${person.color}">
-                        <img src="${person.avatar}" alt="${person.name}">
-                    </div>
-                    <div class="stat-tech-info">
-                        <h4>${person.name}</h4>
-                        <p>Telecomunicaciones LAV Este</p>
-                    </div>
-                </div>
-                <div>
-                    <div class="stat-numbers-row">
-                        <span style="font-weight:700;">Días asignados:</span>
-                        <span class="stat-badge" style="background:${person.color};color:white;">${count} / ${person.baseDays} días</span>
-                    </div>
-                    <div class="stat-progress-bar-wrap">
-                        <div class="stat-progress-bar-fill" style="width: ${pct}%; background: ${person.color};"></div>
-                    </div>
-                    <div class="stat-numbers-row" style="color:var(--text-muted);font-size:0.82rem;">
-                        <span>Restantes según convenio: <strong>${remaining} días</strong></span>
-                        <span>${pct}%</span>
-                    </div>
-                </div>
-            `;
-            container.appendChild(card);
         });
     }
 
@@ -1961,29 +1821,34 @@
     // GUARDAR CAMBIOS
     async function saveVacations() {
         const saveFeedback = document.getElementById('saveFeedback');
-        const payload = {};
-        TEAM.forEach(p => {
-            payload[p.id] = Array.from(yearVacations[p.id]).sort();
-        });
+        
+        // Guardar cada año modificado en localStorage y Firestore
+        const yearsToSave = [currentYear - 1, currentYear, currentYear + 1];
 
-        // Guardar en localStorage
-        localStorage.setItem('vacaciones_data_' + currentYear, JSON.stringify(payload));
-
-        // Guardar en Firebase
-        if (db) {
-            try {
-                await db.collection('vacaciones_teleco').doc(String(currentYear)).set({
-                    vacations: payload,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        for (const y of yearsToSave) {
+            const yStr = String(y);
+            const data = vacationsByYear[yStr];
+            if (data) {
+                const payload = {};
+                TEAM.forEach(p => {
+                    payload[p.id] = Array.from(data[p.id] || []).sort();
                 });
-            } catch(e) {
-                console.warn('Error al guardar en Firestore, guardado en localStorage', e);
+                localStorage.setItem('vacaciones_data_' + yStr, JSON.stringify(payload));
+
+                if (db) {
+                    try {
+                        await db.collection('vacaciones_teleco').doc(yStr).set({
+                            vacations: payload,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                    } catch(e) {}
+                }
             }
         }
 
         hasUnsavedChanges = false;
         updateSaveButtonState();
-        setEditMode(false); // Al guardar desaparece el modo edición y los lápices
+        setEditMode(false); // Al guardar desaparece el modo edición
 
         saveFeedback.style.opacity = '1';
         setTimeout(() => { saveFeedback.style.opacity = '0'; }, 2200);
@@ -1997,34 +1862,24 @@
 
     // EVENT LISTENERS
     function setupEventListeners() {
-        // Toggle Modo Edición
         document.getElementById('editToggleBtn').addEventListener('click', () => {
             setEditMode(!isEditMode);
         });
 
-        // Guardar
         document.getElementById('saveButton').addEventListener('click', saveVacations);
 
-        // Selector de año
         document.getElementById('yearSelector').addEventListener('change', (e) => {
             initYear(e.target.value);
         });
 
-        // Selector de vistas
+        // Selector de vista: 'two-months' (Mes actual + siguiente) vs 'all-months' (14 meses completos)
         document.getElementById('viewSelectorGroup').addEventListener('click', (e) => {
             const btn = e.target.closest('.pill-btn');
             if (!btn) return;
             document.querySelectorAll('#viewSelectorGroup .pill-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentView = btn.dataset.view;
-
-            if (currentView === 'matrix') {
-                document.getElementById('matrixViewContainer').style.display = 'flex';
-                document.getElementById('statsViewContainer').classList.remove('active');
-            } else {
-                document.getElementById('matrixViewContainer').style.display = 'none';
-                document.getElementById('statsViewContainer').classList.add('active');
-            }
+            renderMatrixView();
         });
 
         // Filtro de técnicos
@@ -2044,20 +1899,7 @@
             setPainter(card.dataset.techId);
         });
 
-        // Salir de painter
         document.getElementById('exitPainterBtn').addEventListener('click', exitPainter);
-
-        // Salto al mes actual
-        document.getElementById('currentMonthBtn').addEventListener('click', () => {
-            const now = new Date();
-            if (now.getFullYear() !== currentYear) {
-                initYear(now.getFullYear());
-            }
-            setTimeout(() => {
-                const target = document.getElementById('month-card-' + now.getMonth());
-                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 300);
-        });
 
         // Click en celdas de la matriz
         document.getElementById('matrixViewContainer').addEventListener('click', (e) => {
@@ -2075,22 +1917,14 @@
             }
 
             if (activePainter) {
-                // Alternar vacaciones del pintor activo
-                if (yearVacations[activePainter].has(dateStr)) {
-                    yearVacations[activePainter].delete(dateStr);
-                } else {
-                    yearVacations[activePainter].add(dateStr);
-                }
-                hasUnsavedChanges = true;
-                updateSaveButtonState();
-                renderAll();
+                toggleVacation(activePainter, dateStr);
+                renderMatrixView();
+                checkOverlaps();
             } else {
-                // Abrir modal detallado para el día
                 openDayModal(dateStr);
             }
         });
 
-        // Modales
         setupModals();
     }
 
@@ -2112,16 +1946,14 @@
             if (!toggle || !currentSelectedDate) return;
 
             const pId = toggle.dataset.personId;
-            if (yearVacations[pId].has(currentSelectedDate)) {
-                yearVacations[pId].delete(currentSelectedDate);
-                toggle.classList.remove('selected');
-            } else {
-                yearVacations[pId].add(currentSelectedDate);
+            toggleVacation(pId, currentSelectedDate);
+            if (isVacation(pId, currentSelectedDate)) {
                 toggle.classList.add('selected');
+            } else {
+                toggle.classList.remove('selected');
             }
-            hasUnsavedChanges = true;
-            updateSaveButtonState();
-            renderAll();
+            renderMatrixView();
+            checkOverlaps();
         });
 
         // Asignar rango
@@ -2134,38 +1966,37 @@
             const end = new Date(endVal);
             if (start > end) return alert('La fecha de inicio debe ser anterior o igual a la de fin.');
 
-            // Obtener personas seleccionadas en el modal
             const selectedPeople = [];
             document.querySelectorAll('.modal-person-toggle.selected').forEach(t => selectedPeople.push(t.dataset.personId));
             if (selectedPeople.length === 0) return alert('Selecciona al menos un técnico arriba.');
 
             let curr = new Date(start);
             while (curr <= end) {
-                // Excluir fines de semana por defecto
                 const dow = curr.getDay();
                 if (dow !== 0 && dow !== 6) {
                     const dStr = curr.toISOString().split('T')[0];
-                    selectedPeople.forEach(pId => yearVacations[pId].add(dStr));
+                    selectedPeople.forEach(pId => {
+                        const y = dStr.split('-')[0];
+                        const dData = getYearData(y);
+                        dData[pId].add(dStr);
+                    });
                 }
                 curr.setDate(curr.getDate() + 1);
             }
 
             hasUnsavedChanges = true;
             updateSaveButtonState();
-            renderAll();
+            renderMatrixView();
+            checkOverlaps();
             dayModal.classList.remove('active');
         });
 
-        // Descarga de archivo .ics
         document.getElementById('downloadIcsBtn').addEventListener('click', () => {
             const filter = document.getElementById('icsTechSelect').value;
             downloadICS(filter);
         });
 
-        // Exportar CSV
         document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
-
-        // Imprimir
         document.getElementById('printBtn').addEventListener('click', () => window.print());
     }
 
@@ -2181,7 +2012,7 @@
 
         document.querySelectorAll('.modal-person-toggle').forEach(toggle => {
             const pId = toggle.dataset.personId;
-            if (yearVacations[pId].has(dateStr)) {
+            if (isVacation(pId, dateStr)) {
                 toggle.classList.add('selected');
             } else {
                 toggle.classList.remove('selected');
@@ -2198,20 +2029,27 @@
         TEAM.forEach(p => {
             if (techFilter !== 'all' && techFilter !== p.id) return;
 
-            yearVacations[p.id].forEach(dateStr => {
-                const [y, m, d] = dateStr.split('-');
-                const dt = y + m + d;
-                const uid = 'vacacion-' + dateStr + '-' + p.id + '@ineco.es';
+            const months = getFourteenMonths(currentYear);
+            months.forEach(item => {
+                const daysInMonth = new Date(item.year, item.month + 1, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = formatDate(item.year, item.month, d);
+                    if (isVacation(p.id, dateStr)) {
+                        const [y, m, day] = dateStr.split('-');
+                        const dt = y + m + day;
+                        const uid = 'vacacion-' + dateStr + '-' + p.id + '@ineco.es';
 
-                ics += "BEGIN:VEVENT\r\n" +
-                       "UID:" + uid + "\r\n" +
-                       "DTSTAMP:" + dt + "T080000Z\r\n" +
-                       "DTSTART;VALUE=DATE:" + dt + "\r\n" +
-                       "SUMMARY:Vacaciones " + p.name + " (Teleco LAV Este)\r\n" +
-                       "DESCRIPTION:Jornada de vacaciones de " + p.name + " - Ineco Telecomunicaciones LAV Este.\r\n" +
-                       "STATUS:CONFIRMED\r\n" +
-                       "TRANSP:TRANSPARENT\r\n" +
-                       "END:VEVENT\r\n";
+                        ics += "BEGIN:VEVENT\r\n" +
+                               "UID:" + uid + "\r\n" +
+                               "DTSTAMP:" + dt + "T080000Z\r\n" +
+                               "DTSTART;VALUE=DATE:" + dt + "\r\n" +
+                               "SUMMARY:Vacaciones " + p.name + " (Teleco LAV Este)\r\n" +
+                               "DESCRIPTION:Jornada de vacaciones de " + p.name + " - Ineco Telecomunicaciones LAV Este.\r\n" +
+                               "STATUS:CONFIRMED\r\n" +
+                               "TRANSP:TRANSPARENT\r\n" +
+                               "END:VEVENT\r\n";
+                    }
+                }
             });
         });
 
@@ -2229,19 +2067,20 @@
     // EXPORTAR CSV
     function exportCSV() {
         let csv = "Año;Mes;Dia;Fecha;Dia_Semana;Tecnico;Estado\n";
-        for (let m = 0; m < 12; m++) {
-            const daysInMonth = new Date(currentYear, m + 1, 0).getDate();
+        const months = getFourteenMonths(currentYear);
+        months.forEach(item => {
+            const daysInMonth = new Date(item.year, item.month + 1, 0).getDate();
             for (let d = 1; d <= daysInMonth; d++) {
-                const dateStr = formatDate(currentYear, m, d);
-                const dayDate = new Date(currentYear, m, d);
-                const dayName = ['D','L','M','X','J','V','S'][dayDate.getDay()];
+                const dateStr = formatDate(item.year, item.month, d);
+                const dayDate = new Date(item.year, item.month, d);
+                const dayName = DAY_NAMES[dayDate.getDay()];
 
                 TEAM.forEach(p => {
-                    const isVac = yearVacations[p.id].has(dateStr);
-                    csv += `${currentYear};${MONTH_NAMES[m]};${d};${dateStr};${dayName};${p.name};${isVac ? 'Vacaciones' : 'Laborable'}\n`;
+                    const isVac = isVacation(p.id, dateStr);
+                    csv += `${item.year};${MONTH_NAMES[item.month]};${d};${dateStr};${dayName};${p.name};${isVac ? 'Vacaciones' : 'Laborable'}\n`;
                 });
             }
-        }
+        });
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
