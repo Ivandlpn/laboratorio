@@ -2272,10 +2272,14 @@
                 const dayDate = new Date(item.year, item.month, d);
                 const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                const hol = getHolidayInfo(dateStr);
-                const holClass = hol ? ('is-holiday-' + hol.type) : '';
-                const holTitle = hol ? (getHolidayTypeLabel(hol.type) + ': ' + hol.name) : '';
-
+                const dayHols = getHolidaysForDate(dateStr);
+                let holClass = '';
+                let holTitle = '';
+                if (dayHols.length > 0) {
+                    const topHol = dayHols[0];
+                    holClass = 'is-holiday-' + topHol.type + (topHol.scope !== 'all' ? ' city-' + topHol.scope : '');
+                    holTitle = dayHols.map(h => getHolidayTypeLabel(h.type, h.scope) + ': ' + h.name).join(' | ');
+                }
                 tableHTML += `<th class="matrix-header-day ${isWeekend ? 'is-weekend' : ''} ${holClass}" title="${holTitle}">${DAY_NAMES[dayOfWeek]}</th>`;
             }
             tableHTML += `</tr><tr><th class="col-tech-label">Día del mes</th>`;
@@ -2286,11 +2290,6 @@
                 const dayDate = new Date(item.year, item.month, d);
                 const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                const hol = getHolidayInfo(dateStr);
-                const holClass = hol ? ('is-holiday-' + hol.type) : '';
-                const holIcon = hol ? getHolidayTypeIcon(hol.type) : '';
-                const holTitle = hol ? (getHolidayTypeLabel(hol.type) + ': ' + hol.name) : '';
-
                 const dayHols = getHolidaysForDate(dateStr);
                 let holClass = '';
                 let holIcon = '';
