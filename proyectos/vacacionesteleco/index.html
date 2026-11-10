@@ -2071,9 +2071,7 @@
                 <span class="legend-pill nolaborable" title="Días No Laborables de convenio (24 y 31 de Diciembre)">☕ No Laborable</span>
                 <span class="legend-pill guard" title="Técnico asignado de guardia telefónica esa semana">📞 De Guardia</span>
                 <span class="legend-pill weekend" title="Sábados y Domingos">Fin de semana</span>
-                <div id="overlapBadge" class="overlap-badge" style="display:none;" title="Días con más de 1 técnico de vacaciones simultáneamente">
-                    ⚠️ <span id="overlapText">0 solapes</span>
-                </div>
+                
                 <button id="openExportModalBtn" class="toolbar-btn" title="Exportar calendario a Outlook / Google Calendar">
                     📅 Exportar .ics
                 </button>
@@ -3225,16 +3223,9 @@
             }
         });
 
-        const overlapDates = Object.keys(dateCounts).filter(d => dateCounts[d] > 1);
+        // Badge de solapes eliminado según requerimiento
         const badge = document.getElementById('overlapBadge');
-        const text = document.getElementById('overlapText');
-
-        if (overlapDates.length > 0) {
-            badge.style.display = 'inline-flex';
-            text.textContent = overlapDates.length + (overlapDates.length === 1 ? ' fecha con coincidencia' : ' fechas con coincidencia');
-        } else {
-            badge.style.display = 'none';
-        }
+        if (badge) badge.style.display = 'none';
     }
 
     // UI 3: GENERAR LA VISTA MATRIZ DEL CALENDARIO CON MICRO-BADGES E INDICADORES MULTI-ESTADO
