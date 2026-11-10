@@ -1219,6 +1219,53 @@
             transform: translateY(-1px);
         }
 
+    
+        /* BOTÓN DESTACADO DE SALTO DIRECTO ENTRE APLICACIONES */
+        .app-switch-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.08) 100%);
+            color: #FFFFFF !important;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            padding: 0.44rem 0.95rem;
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 0.84rem;
+            border-radius: 9999px;
+            text-decoration: none;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+            margin-left: 0.5rem;
+        }
+
+        .app-switch-pill:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.4) 0%, rgba(37, 99, 235, 0.4) 100%);
+            border-color: rgba(147, 197, 253, 0.8);
+            color: #FFFFFF !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+        }
+
+        .app-switch-pill .switch-icon {
+            font-size: 1.05rem;
+            line-height: 1;
+        }
+
+        .app-switch-pill .switch-arrow {
+            font-size: 0.78rem;
+            opacity: 0.8;
+            transition: transform 0.2s ease;
+        }
+
+        .app-switch-pill:hover .switch-arrow {
+            transform: translate(2px, -2px);
+            opacity: 1;
+        }
+
     </style>
 </head>
 <body>
@@ -1247,6 +1294,11 @@
                             <span class="pulse-beacon"></span>
                             <span>Semana Actual (<strong id="currentWeekBadge">Sem --</strong>)</span>
                         </button>
+                        <a id="appSwitchToVacaciones" class="app-switch-pill" href="#" title="Saltar al calendario de Vacaciones Teleco">
+                            <span class="switch-icon">🏖️</span>
+                            <span>Ir a Vacaciones</span>
+                            <span class="switch-arrow">↗</span>
+                        </a>
                     </div>
                     
                 </div>
@@ -1444,14 +1496,36 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
     <script>
     // UX 5: SALTO DIRECTO A VACACIONES TELECO
+    
     function getVacacionesUrl(year, tech) {
+        const isFile = window.location.protocol === 'file:';
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        let base = isLocal ? 'http://127.0.0.1:3001/' : '../vacacionesteleco/';
+        const currentPath = window.location.pathname.toLowerCase();
+        let base = '';
+
+        if (isFile) {
+            base = currentPath.includes('laboratorio') ? '../vacacionesteleco/index.html' : '../Vacaciones/index.html';
+        } else if (isLocal) {
+            base = 'http://' + window.location.hostname + ':3001/';
+        } else {
+            base = '../vacacionesteleco/';
+        }
+
         const params = new URLSearchParams();
         if (year) params.set('year', year);
         if (tech && tech !== 'all') params.set('tech', tech);
         const q = params.toString();
         return base + (q ? '?' + q : '');
+    }
+
+    function updateNavVacacionesLink() {
+        const currentYearVal = (typeof currentYear !== 'undefined') ? currentYear : 2026;
+        const currentTechVal = (typeof activeFilter !== 'undefined') ? activeFilter : '';
+        const url = getVacacionesUrl(currentYearVal, currentTechVal);
+        const link1 = document.getElementById('linkToVacaciones');
+        const link2 = document.getElementById('appSwitchToVacaciones');
+        if (link1) link1.href = url;
+        if (link2) link2.href = url;
     }
 
     function updateNavVacacionesLink() {
@@ -1476,6 +1550,17 @@
     const db = firebase.firestore();
 
     document.addEventListener('DOMContentLoaded', () => {
+        const switchVacBtn = document.getElementById('appSwitchToVacaciones');
+        if (switchVacBtn) {
+            switchVacBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const curY = (typeof currentYear !== 'undefined') ? currentYear : 2026;
+                const curT = (typeof activeFilter !== 'undefined') ? activeFilter : '';
+                window.location.href = getVacacionesUrl(curY, curT);
+            });
+        }
+        updateNavVacacionesLink();
+        
         updateNavVacacionesLink();
         // EQUIPO CON AVATARES
         const TEAM = [
