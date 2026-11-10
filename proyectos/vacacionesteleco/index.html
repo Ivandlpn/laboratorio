@@ -2148,22 +2148,252 @@
 
         /* MEJORA 6: PALETA DE PASTELES SUAVES REFINADA */
         :root {
-            --color-weekend: #FFF8F3;
-            --color-weekend-border: #FED7AA;
-            --color-nacional: #FEF9C3;
-            --color-autonomico: #F0F9FF;
-            --color-local: #FAF5FF;
-            --color-nolaborable: #F0FDFA;
+            --color-weekend: #FFE2D1;
+            --color-weekend-border: #FDBA74;
+            --color-nacional: #FEF08A;
+            --color-nacional-border: #F59E0B;
+            --color-autonomico: #BAE6FD;
+            --color-autonomico-border: #38BDF8;
+            --color-local: #E9D5FF;
+            --color-local-border: #C084FC;
+            --color-nolaborable: #99F6E4;
+            --color-nolaborable-border: #14B8A6;
         }
 
         body.dark-mode {
-            --color-weekend: #1C1917;
-            --color-weekend-border: #442416;
-            --color-nacional: #2A2412;
-            --color-autonomico: #0C253B;
-            --color-local: #241436;
-            --color-nolaborable: #052E2B;
+            --color-weekend: #2D1812;
+            --color-weekend-border: #7C2D12;
+            --color-nacional: #451A03;
+            --color-nacional-border: #B45309;
+            --color-autonomico: #082F49;
+            --color-autonomico-border: #0284C7;
+            --color-local: #3B0764;
+            --color-local-border: #9333EA;
+            --color-nolaborable: #042F2E;
+            --color-nolaborable-border: #0D9488;
         }
+
+    
+        /* ==========================================================================
+           CABECERA DE DATOS DE LA TABLA: OSCURA, SÓLIDA Y CON ALTO CONTRASTE
+           ========================================================================== */
+
+        /* CABECERA GENERAL (LUNES A VIERNES) */
+        .matrix-table thead th.col-tech-label {
+            background: #0F274E !important;
+            color: #FFFFFF !important;
+            font-weight: 800 !important;
+            font-size: 0.74rem !important;
+            letter-spacing: 0.05em !important;
+            text-transform: uppercase !important;
+            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        }
+
+        .matrix-header-day {
+            min-width: 30px;
+            height: 24px;
+            padding: 3px 2px;
+            font-weight: 800 !important;
+            font-size: 0.76rem !important;
+            background: #133366 !important;
+            color: #93C5FD !important;
+            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+            border-radius: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .matrix-header-num {
+            min-width: 30px;
+            height: 26px;
+            padding: 3px 2px;
+            font-family: var(--font-mono);
+            font-weight: 800 !important;
+            font-size: 0.84rem !important;
+            background: #0B2144 !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+            border-radius: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+
+        /* CABECERA EN FINES DE SEMANA (SÁBADO Y DOMINGO) */
+        .matrix-header-day.is-weekend {
+            background: #7C2D12 !important;
+            color: #FED7AA !important;
+            border: 1px solid #9A3412 !important;
+        }
+
+        .matrix-header-num.is-weekend {
+            background: #561F0C !important;
+            color: #FFEDD5 !important;
+            border: 1px solid #9A3412 !important;
+        }
+
+        /* CABECERA EN FESTIVO NACIONAL */
+        .matrix-header-day.is-holiday-nacional {
+            background: #78350F !important;
+            color: #FDE68A !important;
+            border: 1px solid #B45309 !important;
+        }
+
+        .matrix-header-num.is-holiday-nacional {
+            background: #522409 !important;
+            color: #FEF3C7 !important;
+            border: 1px solid #B45309 !important;
+        }
+
+        /* CABECERA EN FESTIVO AUTONÓMICO */
+        .matrix-header-day.is-holiday-autonomico {
+            background: #075985 !important;
+            color: #BAE6FD !important;
+            border: 1px solid #0284C7 !important;
+        }
+
+        .matrix-header-num.is-holiday-autonomico {
+            background: #063E5C !important;
+            color: #E0F2FE !important;
+            border: 1px solid #0284C7 !important;
+        }
+
+        /* CABECERA EN FESTIVO LOCAL */
+        .matrix-header-day.is-holiday-local {
+            background: #581C87 !important;
+            color: #E9D5FF !important;
+            border: 1px solid #7E22CE !important;
+        }
+
+        .matrix-header-num.is-holiday-local {
+            background: #3F1461 !important;
+            color: #F3E8FF !important;
+            border: 1px solid #7E22CE !important;
+        }
+
+        /* CABECERA EN DÍA NO LABORABLE (CONVENIO 24 Y 31 DIC) */
+        .matrix-header-day.is-holiday-nolaborable {
+            background: #115E59 !important;
+            color: #99F6E4 !important;
+            border: 1px solid #0F766E !important;
+        }
+
+        .matrix-header-num.is-holiday-nolaborable {
+            background: #0D4743 !important;
+            color: #CCFBF1 !important;
+            border: 1px solid #0F766E !important;
+        }
+
+        /* MODO OSCURO PARA CABECERA DE DATOS */
+        body.dark-mode .matrix-table thead th.col-tech-label {
+            background: #051020 !important;
+            color: #F8FAFC !important;
+            border-color: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        body.dark-mode .matrix-header-day {
+            background: #081B36 !important;
+            color: #93C5FD !important;
+            border-color: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        body.dark-mode .matrix-header-num {
+            background: #030B17 !important;
+            color: #FFFFFF !important;
+            border-color: rgba(255, 255, 255, 0.12) !important;
+        }
+
+        body.dark-mode .matrix-header-day.is-weekend {
+            background: #431407 !important;
+            color: #FDBA74 !important;
+            border-color: #7C2D12 !important;
+        }
+
+        body.dark-mode .matrix-header-num.is-weekend {
+            background: #2D0E05 !important;
+            color: #FFEDD5 !important;
+            border-color: #7C2D12 !important;
+        }
+
+        body.dark-mode .matrix-header-day.is-holiday-nacional {
+            background: #451A03 !important;
+            color: #FDE68A !important;
+            border-color: #92400E !important;
+        }
+        body.dark-mode .matrix-header-num.is-holiday-nacional {
+            background: #2E1202 !important;
+            color: #FEF3C7 !important;
+            border-color: #92400E !important;
+        }
+
+        body.dark-mode .matrix-header-day.is-holiday-autonomico {
+            background: #082F49 !important;
+            color: #7DD3FC !important;
+            border-color: #0369A1 !important;
+        }
+        body.dark-mode .matrix-header-num.is-holiday-autonomico {
+            background: #052031 !important;
+            color: #BAE6FD !important;
+            border-color: #0369A1 !important;
+        }
+
+        body.dark-mode .matrix-header-day.is-holiday-local {
+            background: #3B0764 !important;
+            color: #D8B4FE !important;
+            border-color: #6B21A8 !important;
+        }
+        body.dark-mode .matrix-header-num.is-holiday-local {
+            background: #270542 !important;
+            color: #E9D5FF !important;
+            border-color: #6B21A8 !important;
+        }
+
+        body.dark-mode .matrix-header-day.is-holiday-nolaborable {
+            background: #042F2E !important;
+            color: #5EEAD4 !important;
+            border-color: #115E59 !important;
+        }
+        body.dark-mode .matrix-header-num.is-holiday-nolaborable {
+            background: #03201F !important;
+            color: #99F6E4 !important;
+            border-color: #115E59 !important;
+        }
+
+        /* CELDAS DEL CUERPO (BODY): PALETA CONTRASTADA Y VISIBLE */
+        .matrix-day-cell.is-weekend {
+            background-color: var(--color-weekend) !important;
+            border-color: var(--color-weekend-border) !important;
+        }
+
+        .matrix-day-cell.is-holiday-nacional:not(.vacation-active) {
+            background-color: var(--color-nacional) !important;
+            border-color: var(--color-nacional-border) !important;
+        }
+
+        .matrix-day-cell.is-holiday-autonomico:not(.vacation-active) {
+            background-color: var(--color-autonomico) !important;
+            border-color: var(--color-autonomico-border) !important;
+        }
+
+        .matrix-day-cell.is-holiday-local:not(.vacation-active) {
+            background-color: var(--color-local) !important;
+            border-color: var(--color-local-border) !important;
+        }
+
+        .matrix-day-cell.is-holiday-nolaborable:not(.vacation-active) {
+            background-color: var(--color-nolaborable) !important;
+            border-color: var(--color-nolaborable-border) !important;
+        }
+
+        /* PÍLDORAS DE LA LEYENDA ACTUALIZADAS */
+        .legend-pill.nacional { background: var(--color-nacional); color: #78350F; border-color: var(--color-nacional-border); }
+        .legend-pill.autonomico { background: var(--color-autonomico); color: #075985; border-color: var(--color-autonomico-border); }
+        .legend-pill.local { background: var(--color-local); color: #581C87; border-color: var(--color-local-border); }
+        .legend-pill.nolaborable { background: var(--color-nolaborable); color: #115E59; border-color: var(--color-nolaborable-border); }
+        .legend-pill.weekend { background: var(--color-weekend); color: #7C2D12; border-color: var(--color-weekend-border); }
+
+        body.dark-mode .legend-pill.nacional { background: var(--color-nacional); color: #FDE68A; border-color: var(--color-nacional-border); }
+        body.dark-mode .legend-pill.autonomico { background: var(--color-autonomico); color: #7DD3FC; border-color: var(--color-autonomico-border); }
+        body.dark-mode .legend-pill.local { background: var(--color-local); color: #D8B4FE; border-color: var(--color-local-border); }
+        body.dark-mode .legend-pill.nolaborable { background: var(--color-nolaborable); color: #5EEAD4; border-color: var(--color-nolaborable-border); }
+        body.dark-mode .legend-pill.weekend { background: var(--color-weekend); color: #FDBA74; border-color: var(--color-weekend-border); }
 
     </style>
 </head>
