@@ -1343,6 +1343,539 @@
                 grid-template-columns: 1fr;
             }
         }
+    
+        /* ==========================================================================
+           ENHANCEMENTS: UI 3, UX 1, UX 3, UX 4, UX 5
+           ========================================================================== */
+
+        /* UI 3: CÉLULA MULTI-ESTADO CON MICRO-BADGES */
+        .matrix-day-cell {
+            position: relative;
+            padding: 0 !important;
+            height: 38px;
+            min-width: 28px;
+            text-align: center;
+            vertical-align: middle;
+            user-select: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .matrix-day-cell.drag-in-range {
+            outline: 2px dashed #3B82F6 !important;
+            background: rgba(59, 130, 246, 0.25) !important;
+            position: relative;
+            z-index: 5;
+        }
+
+        .cell-inner-flex {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .badge-micro {
+            position: absolute;
+            font-size: 0.65rem;
+            line-height: 1;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .badge-micro.corner-tl {
+            top: 2px;
+            left: 2px;
+        }
+
+        .badge-micro.corner-tr {
+            top: 2px;
+            right: 2px;
+        }
+
+        .badge-micro.badge-guard {
+            font-size: 0.68rem;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+        }
+
+        .badge-micro.badge-clash {
+            background: #EF4444;
+            color: #FFFFFF;
+            border-radius: 9999px;
+            padding: 1px 3px;
+            font-size: 0.58rem;
+            font-weight: 800;
+            box-shadow: 0 0 6px rgba(239, 68, 68, 0.7);
+            animation: pulse-clash 1.6s infinite;
+        }
+
+        @keyframes pulse-clash {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .matrix-day-cell.absence-asuntos {
+            background: rgba(147, 51, 234, 0.15) !important;
+            border: 1px solid rgba(147, 51, 234, 0.4) !important;
+            color: #7E22CE !important;
+            font-weight: 700;
+        }
+        body.dark-mode .matrix-day-cell.absence-asuntos {
+            background: rgba(168, 85, 247, 0.22) !important;
+            color: #D8B4FE !important;
+            border-color: rgba(168, 85, 247, 0.5) !important;
+        }
+
+        /* BOTÓN DESHACER (CTRL+Z) EN HEADER */
+        .undo-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.42rem;
+            background: rgba(255, 255, 255, 0.12);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            padding: 0.52rem 0.95rem;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 0.88rem;
+            border-radius: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all var(--transition-speed) ease;
+        }
+
+        .undo-button:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .undo-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .undo-button:not(:disabled) {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: rgba(147, 197, 253, 0.5);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+        }
+
+        /* UX 5: BOTÓN SALTO DIRECTO A GUARDIAS */
+        .nav-switch-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(255, 255, 255, 0.14);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 0.48rem 0.9rem;
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 0.82rem;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .nav-switch-btn:hover {
+            background: rgba(56, 189, 248, 0.25);
+            border-color: rgba(56, 189, 248, 0.5);
+            color: #38BDF8;
+            transform: translateY(-1px);
+        }
+
+        /* UX 4: BARRA DE MODO BORRADOR / SIMULADOR DE COBERTURA */
+        .draft-simulator-bar {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+            border: 1px solid rgba(96, 165, 250, 0.4);
+            border-radius: 10px;
+            padding: 0.65rem 1.1rem;
+            margin-bottom: 0.95rem;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.35);
+            animation: slideDown 0.22s ease-out;
+        }
+
+        body.is-editing .draft-simulator-bar {
+            display: flex;
+        }
+
+        .draft-bar-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #E2E8F0;
+            font-size: 0.86rem;
+        }
+
+        .draft-badge-pill {
+            background: #2563EB;
+            color: #FFFFFF;
+            font-size: 0.74rem;
+            font-weight: 800;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .draft-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .btn-draft {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.42rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .btn-draft.btn-discard {
+            background: rgba(239, 68, 68, 0.15);
+            color: #FCA5A5;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        .btn-draft.btn-discard:hover {
+            background: rgba(239, 68, 68, 0.3);
+            border-color: #EF4444;
+            color: #FFFFFF;
+        }
+
+        .btn-draft.btn-undo-step {
+            background: rgba(255, 255, 255, 0.12);
+            color: #FFFFFF;
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        .btn-draft.btn-undo-step:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-draft.btn-save-draft {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF;
+            border-color: #34D399;
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+        }
+        .btn-draft.btn-save-draft:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.5);
+        }
+
+        /* UX 3: MENÚ CONTEXTUAL RÁPIDO (CLICK DERECHO) */
+        .quick-context-menu {
+            position: fixed;
+            z-index: 10000;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+            padding: 0.5rem;
+            min-width: 250px;
+            backdrop-filter: blur(14px);
+            animation: zoomIn 0.15s ease-out;
+            font-family: var(--font-main);
+        }
+
+        .qcm-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0.6rem 0.5rem;
+            border-bottom: 1px solid var(--border-card);
+            margin-bottom: 0.35rem;
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .qcm-header .qcm-date-badge {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-card);
+            padding: 0.15rem 0.45rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .qcm-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .qcm-item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            width: 100%;
+            background: transparent;
+            border: none;
+            padding: 0.5rem 0.65rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.12s ease;
+        }
+
+        .qcm-item:hover {
+            background: var(--bg-card-subtle);
+        }
+
+        .qcm-item .qcm-icon {
+            font-size: 1.05rem;
+            flex-shrink: 0;
+        }
+
+        .qcm-item .qcm-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.25;
+        }
+
+        .qcm-item .qcm-text strong {
+            font-size: 0.82rem;
+            color: var(--text-main);
+        }
+
+        .qcm-item .qcm-text small {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .qcm-divider {
+            height: 1px;
+            background: var(--border-card);
+            margin: 0.3rem 0;
+        }
+
+        /* UX 1: BURBUJA FLOTANTE PARA RANGO ARRASTRADO */
+        .range-quick-popover {
+            position: fixed;
+            z-index: 9999;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+            padding: 0.7rem 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            animation: zoomIn 0.15s ease-out;
+        }
+
+        .range-quick-header {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .range-quick-actions {
+            display: flex;
+            gap: 0.45rem;
+        }
+
+        .btn-range-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.42rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid var(--border-card);
+            background: var(--bg-card-subtle);
+            color: var(--text-main);
+            transition: all 0.15s ease;
+        }
+
+        .btn-range-action:hover {
+            transform: translateY(-1px);
+            border-color: #3B82F6;
+            color: #3B82F6;
+        }
+
+        .btn-range-action.primary {
+            background: #2563EB;
+            color: #FFFFFF;
+            border-color: #3B82F6;
+        }
+        .btn-range-action.primary:hover {
+            background: #1D4ED8;
+            color: #FFFFFF;
+        }
+
+        /* TOAST FLOATING NOTIFICATIONS */
+        .toast-bubble {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 11000;
+            background: rgba(15, 23, 42, 0.95);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.7rem 1.15rem;
+            border-radius: 10px;
+            font-size: 0.86rem;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            animation: slideUpToast 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        @keyframes slideUpToast {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* SELECTOR DE ESTADOS DETALLADO EN EL MODAL */
+        .tech-status-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 0.6rem 0.85rem;
+            transition: border-color 0.15s ease;
+        }
+
+        .tech-status-row:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .tech-status-left {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .tech-status-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 2px solid var(--tech-color);
+            overflow: hidden;
+        }
+
+        .tech-status-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .tech-status-names {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .tech-status-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .tech-status-city {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+        }
+
+        .tech-status-selector-group {
+            display: flex;
+            gap: 0.35rem;
+        }
+
+        .status-pill-opt {
+            padding: 0.35rem 0.65rem;
+            border-radius: 6px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            border: 1px solid var(--border-card);
+            background: var(--bg-card);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.12s ease;
+        }
+
+        .status-pill-opt:hover {
+            border-color: #94A3B8;
+            color: var(--text-main);
+        }
+
+        .status-pill-opt.active[data-status="laborable"] {
+            background: #E2E8F0;
+            color: #1E293B;
+            border-color: #94A3B8;
+        }
+        body.dark-mode .status-pill-opt.active[data-status="laborable"] {
+            background: #334155;
+            color: #F8FAFC;
+            border-color: #64748B;
+        }
+
+        .status-pill-opt.active[data-status="vacaciones"] {
+            background: #8B5CF6;
+            color: #FFFFFF;
+            border-color: #7C3AED;
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.4);
+        }
+
+        .status-pill-opt.active[data-status="asuntos"] {
+            background: #0284C7;
+            color: #FFFFFF;
+            border-color: #0369A1;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+        }
+
+        .batch-bar-modal {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.6rem;
+        }
+
+        .btn-modal-batch {
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-card);
+            background: var(--bg-card-subtle);
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.12s ease;
+        }
+        .btn-modal-batch:hover {
+            border-color: #3B82F6;
+            color: #3B82F6;
+        }
+
     </style>
 </head>
 <body>
@@ -1427,6 +1960,17 @@
                 <div class="header-divider" style="height:28px;"></div>
                 <div class="header-actions">
                     <span id="saveFeedback">¡Guardado!</span>
+                    <a id="linkToGuardias" class="nav-switch-btn" title="Saltar al cuadrante de Guardias Teleco">
+                        <span class="nav-switch-icon">📞</span>
+                        <span>Guardias</span>
+                    </a>
+                    <button id="undoButton" class="undo-button" title="Deshacer el último cambio (Ctrl+Z)" disabled>
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 7v6h6"></path>
+                            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                        </svg>
+                        <span>Deshacer</span>
+                    </button>
                     <button id="editToggleBtn" class="edit-toggle-button" title="Activar modo edición para modificar vacaciones">
                         <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 20h9"></path>
@@ -1499,6 +2043,20 @@
         </div>
 
         <!-- CONTENEDOR DE LA MATRIZ DE VACACIONES (14 MESES) -->
+        
+        <!-- UX 4: BARRA DE MODO BORRADOR / SIMULADOR DE COBERTURA -->
+        <div id="draftSimulatorBar" class="draft-simulator-bar">
+            <div class="draft-bar-info">
+                <span class="draft-badge-pill">🧪 Simulador / Borrador</span>
+                <span id="draftStatusText">Modo edición activo. Puedes simular cambios de vacaciones y cobertura antes de consolidar.</span>
+            </div>
+            <div class="draft-actions">
+                <button id="discardDraftBtn" class="btn-draft btn-discard" title="Descartar todos los cambios no guardados y volver al estado inicial">🗑️ Descartar borrador</button>
+                <button id="undoDraftBtn" class="btn-draft btn-undo-step" title="Deshacer último paso" disabled>↩️ Deshacer</button>
+                <button id="saveDraftBtn" class="btn-draft btn-save-draft" title="Guardar cuadrante definitivo">💾 Guardar Cuadrante</button>
+            </div>
+        </div>
+
         <main id="matrixViewContainer" class="matrix-view-container"></main>
     </div>
 
@@ -1556,28 +2114,15 @@
                 </div>
 
                 <div>
-                    <span class="toolbar-label" style="display:block;margin-bottom:0.6rem;">Técnicos de vacaciones en esta fecha:</span>
-                    <div class="modal-people-grid">
-                        <!-- Samuel -->
-                        <div class="modal-person-toggle" data-person-id="samuel" style="--tech-color: var(--color-samuel); --tech-bg: var(--bg-samuel);">
-                            <div class="toggle-avatar"><img src="avatars/samuel.jpg" alt="Samuel" /></div>
-                            <span class="toggle-name">Samuel</span>
+                    <div class="batch-bar-modal">
+                        <span class="toolbar-label">Estado de los técnicos en esta fecha:</span>
+                        <div style="display:flex; gap:0.4rem;">
+                            <button type="button" class="btn-modal-batch" id="modalBatchLaborable" title="Marcar día laborable a los 4 técnicos">💼 Todos Laborable</button>
+                            <button type="button" class="btn-modal-batch" id="modalBatchVacation" title="Marcar vacaciones a los 4 técnicos">🏖️ Todos Vacaciones</button>
                         </div>
-                        <!-- Iván -->
-                        <div class="modal-person-toggle" data-person-id="ivan" style="--tech-color: var(--color-ivan); --tech-bg: var(--bg-ivan);">
-                            <div class="toggle-avatar"><img src="avatars/ivan.jpg" alt="Iván" /></div>
-                            <span class="toggle-name">Iván</span>
-                        </div>
-                        <!-- Carlos -->
-                        <div class="modal-person-toggle" data-person-id="carlos" style="--tech-color: var(--color-carlos); --tech-bg: var(--bg-carlos);">
-                            <div class="toggle-avatar"><img src="avatars/carlos.jpg" alt="Carlos" /></div>
-                            <span class="toggle-name">Carlos</span>
-                        </div>
-                        <!-- Raúl -->
-                        <div class="modal-person-toggle" data-person-id="raul" style="--tech-color: var(--color-raul); --tech-bg: var(--bg-raul);">
-                            <div class="toggle-avatar"><img src="avatars/raul.jpg" alt="Raúl" /></div>
-                            <span class="toggle-name">Raúl</span>
-                        </div>
+                    </div>
+                    <div class="modal-tech-status-list" id="modalTechStatusList" style="display:flex; flex-direction:column; gap:0.5rem;">
+                        <!-- Generado dinámicamente con opciones [Laborable] [Vacaciones] [Asuntos Propios] -->
                     </div>
                 </div>
 
@@ -1594,7 +2139,15 @@
                             <input type="date" id="rangeEndDate" />
                         </div>
                     </div>
-                    <button id="applyRangeBtn" class="btn-apply-range">Aplicar a los técnicos seleccionados</button>
+                    <div style="margin-top:0.45rem; margin-bottom:0.6rem;">
+                        <label style="font-size:0.75rem; font-weight:700; display:block; margin-bottom:0.25rem; color:var(--text-main);">Acción a aplicar en el periodo:</label>
+                        <select id="rangeStatusSelect" style="width:100%; padding:0.48rem; border-radius:6px; border:1px solid var(--border-card); background:var(--bg-card); color:var(--text-main); font-weight:600; font-size:0.82rem;">
+                            <option value="vacaciones">🏖️ Asignar Vacaciones (✓)</option>
+                            <option value="laborable">💼 Marcar como Laborable (Quitar vacaciones)</option>
+                            <option value="asuntos">📋 Asignar Asuntos Propios</option>
+                        </select>
+                    </div>
+                    <button id="applyRangeBtn" class="btn-apply-range">Aplicar al rango seleccionado</button>
                 </div>
             </div>
         </div>
@@ -2270,6 +2823,9 @@
     // Almacenamiento por año: { [year]: { samuel: Set(), ivan: Set(), carlos: Set(), raul: Set() } }
     const vacationsByYear = {};
 
+    // Almacenamiento de ausencias adicionales (asuntos propios, permisos): { [year]: { samuel: { [date]: 'asuntos' } } }
+    const absenceTypesByYear = {};
+
     function getYearData(year) {
         const yStr = String(year);
         if (!vacationsByYear[yStr]) {
@@ -2296,29 +2852,217 @@
         return vacationsByYear[yStr];
     }
 
-    function isVacation(personId, dateStr) {
+    function getAbsenceTypes(year) {
+        const yStr = String(year);
+        if (!absenceTypesByYear[yStr]) {
+            absenceTypesByYear[yStr] = { samuel: {}, ivan: {}, carlos: {}, raul: {} };
+            const local = localStorage.getItem('ausencias_tipos_' + yStr);
+            if (local) {
+                try {
+                    const parsed = JSON.parse(local);
+                    TEAM.forEach(p => {
+                        absenceTypesByYear[yStr][p.id] = parsed[p.id] || {};
+                    });
+                } catch(e) {}
+            }
+        }
+        return absenceTypesByYear[yStr];
+    }
+
+    function getPersonDayStatus(personId, dateStr) {
         const y = dateStr.split('-')[0];
         const data = getYearData(y);
-        return data[personId] && data[personId].has(dateStr);
+        const absences = getAbsenceTypes(y);
+        if (absences[personId] && absences[personId][dateStr]) {
+            return absences[personId][dateStr]; // 'asuntos'
+        }
+        if (data[personId] && data[personId].has(dateStr)) {
+            return 'vacaciones';
+        }
+        return 'laborable';
+    }
+
+    function isVacation(personId, dateStr) {
+        return getPersonDayStatus(personId, dateStr) === 'vacaciones';
+    }
+
+    // UX 4: HISTORIAL DE CAMBIOS (DESHACER / CTRL+Z) Y SIMULADOR BORRADOR
+    const undoStack = [];
+    let initialSavedSnapshot = null;
+
+    function captureSnapshot(desc = 'Cambio') {
+        const snapshot = {
+            desc,
+            vacations: {},
+            absences: {},
+            holidays: JSON.parse(JSON.stringify(holidaysByYear))
+        };
+        Object.keys(vacationsByYear).forEach(y => {
+            snapshot.vacations[y] = {};
+            TEAM.forEach(p => {
+                snapshot.vacations[y][p.id] = new Set(vacationsByYear[y][p.id] || []);
+            });
+        });
+        Object.keys(absenceTypesByYear).forEach(y => {
+            snapshot.absences[y] = JSON.parse(JSON.stringify(absenceTypesByYear[y] || {}));
+        });
+        return snapshot;
+    }
+
+    function pushUndoState(desc = 'Cambio') {
+        const snapshot = captureSnapshot(desc);
+        undoStack.push(snapshot);
+        if (undoStack.length > 50) undoStack.shift();
+        updateUndoButtonsState();
+        updateDraftBar();
+    }
+
+    function restoreSnapshot(snapshot) {
+        if (!snapshot) return;
+        Object.keys(snapshot.vacations).forEach(y => {
+            if (!vacationsByYear[y]) vacationsByYear[y] = {};
+            TEAM.forEach(p => {
+                vacationsByYear[y][p.id] = new Set(snapshot.vacations[y][p.id] || []);
+            });
+        });
+        Object.keys(snapshot.absences).forEach(y => {
+            absenceTypesByYear[y] = JSON.parse(JSON.stringify(snapshot.absences[y] || {}));
+        });
+        holidaysByYear = JSON.parse(JSON.stringify(snapshot.holidays || {}));
+        
+        hasUnsavedChanges = (undoStack.length > 0);
+        updateSaveButtonState();
+        updateUndoButtonsState();
+        updateDraftBar();
+        renderMatrixView();
+        checkOverlaps();
+        if (currentSelectedDate && document.getElementById('dayModal').classList.contains('active')) {
+            openDayModal(currentSelectedDate);
+        }
+    }
+
+    function undo() {
+        if (undoStack.length === 0) return;
+        const last = undoStack.pop();
+        restoreSnapshot(last);
+        updateUndoButtonsState();
+        updateDraftBar();
+        showToast('↩️ Deshecho: ' + (last.desc || 'Último cambio'));
+    }
+
+    function discardDraft() {
+        if (!initialSavedSnapshot) return;
+        if (!confirm('¿Deseas descartar todos los cambios del borrador y volver al estado inicial?')) return;
+        restoreSnapshot(initialSavedSnapshot);
+        undoStack.length = 0;
+        hasUnsavedChanges = false;
+        updateSaveButtonState();
+        updateUndoButtonsState();
+        updateDraftBar();
+        showToast('🗑️ Borrador descartado con éxito');
+    }
+
+    function updateUndoButtonsState() {
+        const canUndo = (undoStack.length > 0);
+        const undoHeaderBtn = document.getElementById('undoButton');
+        const undoDraftBtn = document.getElementById('undoDraftBtn');
+        if (undoHeaderBtn) undoHeaderBtn.disabled = !canUndo;
+        if (undoDraftBtn) undoDraftBtn.disabled = !canUndo;
+    }
+
+    function updateDraftBar() {
+        const textEl = document.getElementById('draftStatusText');
+        if (textEl) {
+            const count = undoStack.length;
+            if (count === 0) {
+                textEl.textContent = 'Modo edición activo. Sin cambios pendientes en el borrador.';
+            } else {
+                textEl.textContent = count + (count === 1 ? ' cambio pendiente' : ' cambios pendientes') + ' en el borrador (Simulador de Cobertura).';
+            }
+        }
+    }
+
+    function setPersonDayStatus(personId, dateStr, status, shouldPush = true) {
+        if (shouldPush) {
+            const tech = TEAM.find(p => p.id === personId);
+            const techName = tech ? tech.name : personId;
+            pushUndoState(techName + ' -> ' + status + ' (' + dateStr + ')');
+        }
+        const y = dateStr.split('-')[0];
+        const data = getYearData(y);
+        const absences = getAbsenceTypes(y);
+        if (!absences[personId]) absences[personId] = {};
+
+        if (status === 'laborable') {
+            data[personId].delete(dateStr);
+            delete absences[personId][dateStr];
+        } else if (status === 'vacaciones') {
+            data[personId].add(dateStr);
+            delete absences[personId][dateStr];
+        } else if (status === 'asuntos') {
+            data[personId].delete(dateStr);
+            absences[personId][dateStr] = 'asuntos';
+        }
+
+        hasUnsavedChanges = true;
+        updateSaveButtonState();
+        updateDraftBar();
+        renderMatrixView();
+        checkOverlaps();
     }
 
     function toggleVacation(personId, dateStr) {
-        const y = dateStr.split('-')[0];
-        const data = getYearData(y);
-        if (!data[personId]) data[personId] = new Set();
-        if (data[personId].has(dateStr)) {
-            data[personId].delete(dateStr);
-        } else {
-            data[personId].add(dateStr);
+        const curStatus = getPersonDayStatus(personId, dateStr);
+        const newStatus = (curStatus === 'vacaciones') ? 'laborable' : 'vacaciones';
+        setPersonDayStatus(personId, dateStr, newStatus);
+    }
+
+    // TOAST NOTIFICATIONS
+    let toastTimeout = null;
+    function showToast(msg) {
+        const toast = document.getElementById('toastNotification');
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.style.display = 'flex';
+        toast.style.opacity = '1';
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => { toast.style.display = 'none'; }, 300);
+        }, 2200);
+    }
+
+    // UX 5: URL INTELIGENTE DE SALTO DIRECTO A GUARDIAS
+    function getGuardiasUrl(year, week, tech) {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        let base = isLocal ? 'http://127.0.0.1:3000/' : '../guardiasteleco/';
+        const params = new URLSearchParams();
+        if (year) params.set('year', year);
+        if (week) params.set('week', week);
+        if (tech && tech !== 'all') params.set('tech', tech);
+        const q = params.toString();
+        return base + (q ? '?' + q : '');
+    }
+
+    function updateNavSwitchLink() {
+        const link = document.getElementById('linkToGuardias');
+        if (link) {
+            link.href = getGuardiasUrl(currentYear, null, activeFilter);
         }
-        hasUnsavedChanges = true;
-        updateSaveButtonState();
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Leer parámetros URL para auto-selección de año o técnico (UX 5)
+        const urlParams = new URLSearchParams(window.location.search);
+        const qYear = urlParams.get('year');
+        const qTech = urlParams.get('tech');
+        if (qYear && !isNaN(parseInt(qYear))) currentYear = parseInt(qYear);
+        if (qTech && TEAM.some(t => t.id === qTech)) activeFilter = qTech;
+
         initTheme();
         initYear(currentYear);
         setupEventListeners();
+        updateNavSwitchLink();
     });
 
     // INICIALIZAR AÑO
@@ -2330,7 +3074,9 @@
         getYearData(currentYear - 1);
         getYearData(currentYear);
         getYearData(currentYear + 1);
-        // Asegurar festivos oficiales y sedes para el año en curso
+        getAbsenceTypes(currentYear - 1);
+        getAbsenceTypes(currentYear);
+        getAbsenceTypes(currentYear + 1);
         getYearHolidays(currentYear - 1);
         getYearHolidays(currentYear);
         getYearHolidays(currentYear + 1);
@@ -2362,6 +3108,10 @@
                             yData[p.id] = new Set(fbDoc.vacations[p.id] || []);
                         });
                     }
+                    if (fbDoc.dayTypes) {
+                        absenceTypesByYear[String(currentYear)] = fbDoc.dayTypes;
+                        localStorage.setItem('ausencias_tipos_' + currentYear, JSON.stringify(fbDoc.dayTypes));
+                    }
                     if (fbDoc.holidays) {
                         holidaysByYear[String(currentYear)] = fbDoc.holidays;
                         localStorage.setItem('festivos_ciudad_data_' + currentYear, JSON.stringify(fbDoc.holidays));
@@ -2369,6 +3119,13 @@
                 }
             } catch(e) {}
         }
+
+        // Capturar instantánea inicial limpia para el Simulador / Descartar Borrador (UX 4)
+        initialSavedSnapshot = captureSnapshot('Estado Guardado');
+        undoStack.length = 0;
+        updateUndoButtonsState();
+        updateDraftBar();
+        updateNavSwitchLink();
 
         hasUnsavedChanges = false;
         updateSaveButtonState();
@@ -2379,13 +3136,10 @@
     // LISTADO DE LOS 14 MESES: DICIEMBRE ANTERIOR + 12 MESES + ENERO PRÓXIMO
     function getFourteenMonths(baseYear) {
         const list = [];
-        // 1. Diciembre del año anterior
         list.push({ year: baseYear - 1, month: 11, label: 'DICIEMBRE ' + (baseYear - 1), tag: 'Año anterior' });
-        // 2..13. Los 12 meses del año en curso
         for (let m = 0; m < 12; m++) {
             list.push({ year: baseYear, month: m, label: MONTH_NAMES[m].toUpperCase() + ' ' + baseYear, tag: null });
         }
-        // 14. Enero del año siguiente
         list.push({ year: baseYear + 1, month: 0, label: 'ENERO ' + (baseYear + 1), tag: 'Año siguiente' });
         return list;
     }
@@ -2418,7 +3172,7 @@
         }
     }
 
-    // GENERAR LA VISTA MATRIZ DEL CALENDARIO
+    // UI 3: GENERAR LA VISTA MATRIZ DEL CALENDARIO CON MICRO-BADGES E INDICADORES MULTI-ESTADO
     function renderMatrixView() {
         const container = document.getElementById('matrixViewContainer');
         container.innerHTML = '';
@@ -2429,7 +3183,6 @@
 
         const all14Months = getFourteenMonths(currentYear);
 
-        // Si la vista es 'two-months', filtrar para mostrar únicamente el mes actual y el siguiente
         let monthsToDisplay = all14Months;
         if (currentView === 'two-months') {
             monthsToDisplay = all14Months.filter(item => {
@@ -2484,7 +3237,6 @@
                 const dayHols = getHolidaysForDate(dateStr);
                 const hasHoliday = dayHols.length > 0;
                 
-                // Es festivo general que aplica a todos (Nacional o No Laborable)
                 const isGeneralOff = isWeekend || isDecNoLaborable || dayHols.some(h => h.type === 'nacional' || h.type === 'nolaborable' || h.scope === 'all');
 
                 let holClass = '';
@@ -2498,7 +3250,6 @@
                     holTitle = (d === 24 ? 'Nochebuena' : 'Nochevieja') + ' (No Laborable)';
                 }
 
-                // Sombreado en cabecera si es fin de semana o festivo general (o si hay filtro activo y aplica a ese técnico)
                 let isHeaderShaded = isGeneralOff;
                 if (!isHeaderShaded && activeFilter !== 'all' && hasHoliday) {
                     isHeaderShaded = !!getHolidayForPerson(activeFilter, dateStr);
@@ -2517,6 +3268,7 @@
                 const isDecNoLaborable = (item.month === 11 && (d === 24 || d === 31));
                 const dayHols = getHolidaysForDate(dateStr);
                 const hasHoliday = dayHols.length > 0;
+
                 const isGeneralOff = isWeekend || isDecNoLaborable || dayHols.some(h => h.type === 'nacional' || h.type === 'nolaborable' || h.scope === 'all');
 
                 let holClass = '';
@@ -2562,41 +3314,60 @@
                     if (!hol && isDecNoLaborable) {
                         hol = { type: 'nolaborable', name: (d === 24 ? 'Nochebuena' : 'Nochevieja'), scope: 'all' };
                     }
-                    const isVac = isVacation(person.id, dateStr);
+                    
+                    const status = getPersonDayStatus(person.id, dateStr);
+                    const isVac = (status === 'vacaciones');
+                    const isAsuntos = (status === 'asuntos');
 
-                    // Sincronización con hoja de Guardias: verificar si esta persona está de guardia esta semana
                     const guardInfo = getGuardPersonForDate(dayDate);
                     const isPersonOnGuard = (guardInfo.personId === person.id);
+                    const isClash = (isPersonOnGuard && isVac);
 
                     let titleStr = person.name + ' (' + person.cityName + ') - ' + d + ' de ' + MONTH_NAMES[item.month] + ' ' + item.year;
                     if (hol) titleStr += ' · ' + getHolidayTypeLabel(hol.type, hol.scope) + ' (' + hol.name + ')';
                     if (isPersonOnGuard) titleStr += ' · 📞 De Guardia (Semana ' + guardInfo.week + ')';
                     if (isVac) {
-                        titleStr += ' · De Vacaciones';
+                        titleStr += ' · De Vacaciones (✓)';
                         if (isPersonOnGuard) titleStr += ' ⚠️ (¡Coincide con semana de guardia!)';
+                    } else if (isAsuntos) {
+                        titleStr += ' · Asuntos Propios / Permiso (📋)';
+                    } else {
+                        titleStr += ' · Laborable normal';
                     }
 
-                    // Construcción del contenido interior de la celda (con icono 📞 si está de guardia)
-                    let cellInner = '';
-                    if (isVac) {
-                        cellInner = '✓';
-                        if (isPersonOnGuard) {
-                            cellInner += ' <span class="guard-phone is-vac-clash" title="⚠️ De vacaciones y de guardia la Semana ' + guardInfo.week + '">📞</span>';
+                    // UI 3: Célula con micro-badges e indicadores multi-estado
+                    let cellInner = '<div class="cell-inner-flex">';
+                    
+                    // Esquina Superior Izquierda: Guardia y advertencia de conflicto
+                    if (isPersonOnGuard) {
+                        if (isClash) {
+                            cellInner += '<span class="badge-micro corner-tl badge-guard badge-clash" title="⚠️ Coincide guardia con vacaciones">⚠️📞</span>';
+                        } else {
+                            cellInner += '<span class="badge-micro corner-tl badge-guard" title="📞 De guardia Semana ' + guardInfo.week + '">📞</span>';
                         }
-                    } else if (hol) {
-                        cellInner = '<span class="holiday-marker ' + hol.type + '" title="' + hol.name + '">' + getHolidayTypeIcon(hol.type, hol.scope) + '</span>';
-                        if (isPersonOnGuard) {
-                            cellInner += ' <span class="guard-phone" title="📞 De guardia la Semana ' + guardInfo.week + '">📞</span>';
-                        }
-                    } else if (isPersonOnGuard) {
-                        cellInner = '<span class="guard-phone" title="📞 De guardia la Semana ' + guardInfo.week + '">📞</span>';
                     }
+
+                    // Esquina Superior Derecha: Marcador de festivo si aplica
+                    if (hol) {
+                        cellInner += '<span class="badge-micro corner-tr" title="' + hol.name + '">' + getHolidayTypeIcon(hol.type, hol.scope) + '</span>';
+                    }
+
+                    // Símbolo Central
+                    if (isVac) {
+                        cellInner += '<span class="cell-main-symbol" style="color:var(--tech-color);">✓</span>';
+                    } else if (isAsuntos) {
+                        cellInner += '<span class="cell-main-symbol">📋</span>';
+                    }
+
+                    cellInner += '</div>';
 
                     const holClass = hol ? ('is-holiday-' + hol.type) : '';
                     const isCellNonWorking = isWeekend || !!hol;
                     const guardClass = isPersonOnGuard ? 'is-on-guard' : '';
+                    const vacClass = isVac ? ('vacation-active tech-' + person.id) : '';
+                    const asuntosClass = isAsuntos ? 'absence-asuntos' : '';
 
-                    tableHTML += `<td class="matrix-day-cell ${isCellNonWorking ? 'is-weekend' : ''} ${guardClass} ${holClass} ${isVac ? 'vacation-active tech-' + person.id : ''}"
+                    tableHTML += `<td class="matrix-day-cell ${isCellNonWorking ? 'is-weekend' : ''} ${guardClass} ${holClass} ${vacClass} ${asuntosClass}"
                                       data-date="${dateStr}" 
                                       data-person-id="${person.id}"
                                       title="${titleStr}">
@@ -2623,6 +3394,7 @@
             btn.classList.add('active');
             text.textContent = 'Editando';
             btn.setAttribute('title', 'Finalizar modo edición');
+            updateDraftBar();
         } else {
             document.body.classList.remove('is-editing');
             btn.classList.remove('active');
@@ -2639,32 +3411,32 @@
             return;
         }
         activePainter = techId;
-        setEditMode(true);
-        const person = TEAM.find(p => p.id === techId);
-        document.getElementById('painterName').textContent = person ? person.name : techId;
+        const tech = TEAM.find(p => p.id === techId);
+        document.body.classList.add('painter-mode');
         document.getElementById('painterBanner').classList.add('active');
+        document.getElementById('painterName').textContent = tech.name;
         document.querySelectorAll('.tech-card').forEach(c => {
-            if (c.dataset.techId === techId) c.classList.add('is-painter');
-            else c.classList.remove('is-painter');
+            if (c.dataset.techId === techId) c.classList.add('painting');
+            else c.classList.remove('painting');
         });
     }
 
     function exitPainter() {
         activePainter = null;
+        document.body.classList.remove('painter-mode');
         document.getElementById('painterBanner').classList.remove('active');
-        document.querySelectorAll('.tech-card').forEach(c => c.classList.remove('is-painter'));
+        document.querySelectorAll('.tech-card').forEach(c => c.classList.remove('painting'));
     }
 
-    // GUARDAR CAMBIOS
+    // GUARDAR EN LOCALSTORAGE Y FIRESTORE
     async function saveVacations() {
         const saveFeedback = document.getElementById('saveFeedback');
-        
-        // Guardar cada año modificado en localStorage y Firestore
         const yearsToSave = [currentYear - 1, currentYear, currentYear + 1];
 
         for (const y of yearsToSave) {
             const yStr = String(y);
             const data = vacationsByYear[yStr];
+            const absences = absenceTypesByYear[yStr] || {};
             const holidays = holidaysByYear[yStr] || {};
 
             // Guardar vacaciones
@@ -2676,7 +3448,10 @@
                 localStorage.setItem('vacaciones_data_' + yStr, JSON.stringify(payload));
             }
 
-            // Guardar festivos editados (nacionales, autonómicos y locales)
+            // Guardar ausencias adicionales (asuntos propios)
+            localStorage.setItem('ausencias_tipos_' + yStr, JSON.stringify(absences));
+
+            // Guardar festivos editados
             localStorage.setItem('festivos_ciudad_data_' + yStr, JSON.stringify(holidays));
 
             // Sincronizar en Firebase
@@ -2686,6 +3461,7 @@
                     if (data) TEAM.forEach(p => vacPayload[p.id] = Array.from(data[p.id] || []).sort());
                     await db.collection('vacaciones_teleco').doc(yStr).set({
                         vacations: vacPayload,
+                        dayTypes: absences,
                         holidays: holidays,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     }, { merge: true });
@@ -2694,8 +3470,12 @@
         }
 
         hasUnsavedChanges = false;
+        undoStack.length = 0;
+        initialSavedSnapshot = captureSnapshot('Guardado Consolidado');
         updateSaveButtonState();
-        setEditMode(false); // Al guardar desaparece el modo edición
+        updateUndoButtonsState();
+        updateDraftBar();
+        setEditMode(false);
 
         saveFeedback.style.display = 'inline-block';
         saveFeedback.style.opacity = '1';
@@ -2703,6 +3483,7 @@
             saveFeedback.style.opacity = '0';
             setTimeout(() => { saveFeedback.style.display = 'none'; }, 300);
         }, 2200);
+        showToast('💾 Cuadrante guardado y sincronizado con éxito');
     }
 
     function updateSaveButtonState() {
@@ -2711,19 +3492,41 @@
         else btn.classList.remove('has-changes');
     }
 
-    // EVENT LISTENERS
+    // EVENT LISTENERS COMPLETOS (UI 3, UX 1, UX 3, UX 4, UX 5)
     function setupEventListeners() {
         document.getElementById('editToggleBtn').addEventListener('click', () => {
             setEditMode(!isEditMode);
         });
 
         document.getElementById('saveButton').addEventListener('click', saveVacations);
+        document.getElementById('saveDraftBtn').addEventListener('click', saveVacations);
+
+        // Deshacer (UX 4)
+        document.getElementById('undoButton').addEventListener('click', undo);
+        document.getElementById('undoDraftBtn').addEventListener('click', undo);
+        document.getElementById('discardDraftBtn').addEventListener('click', discardDraft);
+
+        // Atajo teclado Ctrl+Z
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
+                if (undoStack.length > 0) {
+                    e.preventDefault();
+                    undo();
+                }
+            } else if (e.key === 'Escape') {
+                if (activePainter) exitPainter();
+                const qcm = document.getElementById('quickContextMenu');
+                if (qcm) qcm.style.display = 'none';
+                const rangePop = document.getElementById('rangeQuickPopover');
+                if (rangePop) rangePop.style.display = 'none';
+            }
+        });
 
         document.getElementById('yearSelector').addEventListener('change', (e) => {
             initYear(e.target.value);
         });
 
-        // Selector de vista: 'two-months' (Mes actual + siguiente) vs 'all-months' (14 meses completos)
+        // Selector de vista
         document.getElementById('viewSelectorGroup').addEventListener('click', (e) => {
             const btn = e.target.closest('.pill-btn');
             if (!btn) return;
@@ -2740,6 +3543,7 @@
             document.querySelectorAll('#filterGroup .pill-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             activeFilter = btn.dataset.filter;
+            updateNavSwitchLink();
             renderMatrixView();
         });
 
@@ -2752,8 +3556,105 @@
 
         document.getElementById('exitPainterBtn').addEventListener('click', exitPainter);
 
-        // Click en celdas de la matriz
-        document.getElementById('matrixViewContainer').addEventListener('click', (e) => {
+        // MATRIZ CONTAINER: CLICKS, DRAG SELECTION (UX 1) Y MENÚ CONTEXTUAL (UX 3)
+        const matrixContainer = document.getElementById('matrixViewContainer');
+
+        let isDraggingRange = false;
+        let dragPersonId = null;
+        let dragStartDate = null;
+        let dragSelectedDates = [];
+        let didDragMove = false;
+
+        // UX 1: DRAG SELECTION MOUSEDOWN
+        matrixContainer.addEventListener('mousedown', (e) => {
+            if (e.button !== 0 || !isEditMode || activePainter) return;
+            const cell = e.target.closest('.matrix-day-cell');
+            if (!cell) return;
+            isDraggingRange = true;
+            didDragMove = false;
+            dragPersonId = cell.dataset.personId;
+            dragStartDate = cell.dataset.date;
+            dragSelectedDates = [dragStartDate];
+            document.querySelectorAll('.matrix-day-cell.drag-in-range').forEach(c => c.classList.remove('drag-in-range'));
+            cell.classList.add('drag-in-range');
+        });
+
+        // UX 1: DRAG SELECTION MOUSEOVER
+        matrixContainer.addEventListener('mouseover', (e) => {
+            if (!isDraggingRange || !dragPersonId || !dragStartDate) return;
+            const cell = e.target.closest('.matrix-day-cell');
+            if (!cell || cell.dataset.personId !== dragPersonId) return;
+
+            didDragMove = true;
+            const currDate = cell.dataset.date;
+            const [y1, m1, d1] = dragStartDate.split('-').map(Number);
+            const [y2, m2, d2] = currDate.split('-').map(Number);
+            const startDate = new Date(Math.min(new Date(y1, m1 - 1, d1), new Date(y2, m2 - 1, d2)));
+            const endDate = new Date(Math.max(new Date(y1, m1 - 1, d1), new Date(y2, m2 - 1, d2)));
+
+            dragSelectedDates = [];
+            document.querySelectorAll('.matrix-day-cell.drag-in-range').forEach(c => c.classList.remove('drag-in-range'));
+
+            let temp = new Date(startDate);
+            while (temp <= endDate) {
+                const dow = temp.getDay();
+                if (dow !== 0 && dow !== 6) {
+                    const dStr = temp.toISOString().split('T')[0];
+                    dragSelectedDates.push(dStr);
+                    const matchCell = document.querySelector(`.matrix-day-cell[data-person-id="${dragPersonId}"][data-date="${dStr}"]`);
+                    if (matchCell) matchCell.classList.add('drag-in-range');
+                }
+                temp.setDate(temp.getDate() + 1);
+            }
+        });
+
+        // UX 1: DRAG SELECTION MOUSEUP
+        window.addEventListener('mouseup', (e) => {
+            if (!isDraggingRange) return;
+            isDraggingRange = false;
+            document.querySelectorAll('.matrix-day-cell.drag-in-range').forEach(c => c.classList.remove('drag-in-range'));
+
+            if (didDragMove && dragSelectedDates.length > 1) {
+                const popover = document.getElementById('rangeQuickPopover');
+                const titleEl = document.getElementById('rangeQuickTitle');
+                const tech = TEAM.find(p => p.id === dragPersonId);
+                titleEl.textContent = (tech ? tech.name : dragPersonId) + ': ' + dragSelectedDates.length + ' días seleccionados';
+                
+                popover.style.left = Math.min(e.clientX + 10, window.innerWidth - 320) + 'px';
+                popover.style.top = Math.min(e.clientY + 10, window.innerHeight - 120) + 'px';
+                popover.style.display = 'flex';
+            }
+        });
+
+        // Acciones del Popover de Rango Rápido
+        document.getElementById('closeRangeQuickBtn').addEventListener('click', () => {
+            document.getElementById('rangeQuickPopover').style.display = 'none';
+        });
+
+        document.getElementById('rangeQuickPopover').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-range-action');
+            if (!btn || !dragPersonId || dragSelectedDates.length === 0) return;
+            const status = btn.dataset.rangeStatus;
+            const tech = TEAM.find(p => p.id === dragPersonId);
+            const techName = tech ? tech.name : dragPersonId;
+
+            pushUndoState('Rango ' + dragSelectedDates.length + 'd para ' + techName + ' -> ' + status);
+            dragSelectedDates.forEach(dStr => {
+                setPersonDayStatus(dragPersonId, dStr, status, false);
+            });
+
+            renderMatrixView();
+            checkOverlaps();
+            document.getElementById('rangeQuickPopover').style.display = 'none';
+            showToast('✓ Rango de ' + dragSelectedDates.length + ' días aplicado a ' + techName + ' (' + status + ')');
+        });
+
+        // Click estándar en celdas de la matriz
+        matrixContainer.addEventListener('click', (e) => {
+            if (didDragMove) {
+                didDragMove = false;
+                return;
+            }
             const cell = e.target.closest('.matrix-day-cell');
             if (!cell) return;
 
@@ -2769,10 +3670,72 @@
 
             if (activePainter) {
                 toggleVacation(activePainter, dateStr);
-                renderMatrixView();
-                checkOverlaps();
             } else {
-                openDayModal(dateStr);
+                openDayModal(dateStr, personId);
+            }
+        });
+
+        // UX 3: MENÚ CONTEXTUAL RÁPIDO AL CLIC DERECHO
+        let contextTarget = null;
+        const qcm = document.getElementById('quickContextMenu');
+
+        matrixContainer.addEventListener('contextmenu', (e) => {
+            const cell = e.target.closest('.matrix-day-cell');
+            if (!cell) return;
+            e.preventDefault();
+
+            const personId = cell.dataset.personId;
+            const dateStr = cell.dataset.date;
+            contextTarget = { personId, dateStr };
+
+            const tech = TEAM.find(p => p.id === personId);
+            document.getElementById('qcmTechName').textContent = tech ? tech.name : personId;
+            
+            const [y, m, d] = dateStr.split('-');
+            document.getElementById('qcmDateBadge').textContent = d + ' ' + MONTH_NAMES[parseInt(m) - 1].slice(0, 3) + ' ' + y;
+
+            const menuWidth = 265;
+            const menuHeight = 230;
+            let posX = e.clientX;
+            let posY = e.clientY;
+            if (posX + menuWidth > window.innerWidth) posX = window.innerWidth - menuWidth - 10;
+            if (posY + menuHeight > window.innerHeight) posY = window.innerHeight - menuHeight - 10;
+
+            qcm.style.left = posX + 'px';
+            qcm.style.top = posY + 'px';
+            qcm.style.display = 'block';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!qcm.contains(e.target)) qcm.style.display = 'none';
+        });
+        window.addEventListener('scroll', () => { qcm.style.display = 'none'; }, true);
+
+        qcm.addEventListener('click', (e) => {
+            const item = e.target.closest('.qcm-item');
+            if (!item || !contextTarget) return;
+            const action = item.dataset.action;
+            const { personId, dateStr } = contextTarget;
+            const tech = TEAM.find(p => p.id === personId);
+            const techName = tech ? tech.name : personId;
+
+            qcm.style.display = 'none';
+
+            if (action === 'laborable') {
+                setPersonDayStatus(personId, dateStr, 'laborable');
+                showToast('💼 ' + techName + ' marcado como Laborable');
+            } else if (action === 'vacaciones') {
+                setPersonDayStatus(personId, dateStr, 'vacaciones');
+                showToast('🏖️ Vacaciones asignadas a ' + techName);
+            } else if (action === 'asuntos') {
+                setPersonDayStatus(personId, dateStr, 'asuntos');
+                showToast('📋 Asuntos Propios asignados a ' + techName);
+            } else if (action === 'open-modal') {
+                openDayModal(dateStr, personId);
+            } else if (action === 'switch-guardias') {
+                const dateObj = new Date(dateStr);
+                const guardInfo = getGuardPersonForDate(dateObj);
+                window.location.href = getGuardiasUrl(dateStr.split('-')[0], guardInfo.week, personId);
             }
         });
 
@@ -2783,6 +3746,7 @@
             const btn = e.target.closest('.holiday-type-pill');
             if (!btn || !currentSelectedDate) return;
 
+            pushUndoState('Festivo en ' + currentSelectedDate);
             document.querySelectorAll('#holidayScopeSelector .holiday-type-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
@@ -2813,6 +3777,7 @@
             }
             hasUnsavedChanges = true;
             updateSaveButtonState();
+            updateDraftBar();
             renderMatrixView();
         });
 
@@ -2822,27 +3787,29 @@
             const yMap = getYearHolidays(y);
             const activeBtn = document.querySelector('#holidayScopeSelector .holiday-type-pill.active');
             const scope = activeBtn ? activeBtn.dataset.scope : 'none';
-            if (scope === 'none') {
-                yMap[currentSelectedDate] = [];
-                return;
-            }
+            if (scope === 'none') return;
+
+            pushUndoState('Edición Festivo ' + currentSelectedDate);
             const name = document.getElementById('holidayNameInput').value.trim() || 'Festivo';
             const type = document.getElementById('holidayTypeSelect').value;
+
             yMap[currentSelectedDate] = [{ type, name, scope }];
             document.getElementById('currentHolidayBadge').textContent = name + ' (' + getHolidayTypeLabel(type, scope) + ')';
             hasUnsavedChanges = true;
             updateSaveButtonState();
+            updateDraftBar();
             renderMatrixView();
         }
 
         document.getElementById('holidayNameInput').addEventListener('input', updateCurrentHolidayState);
         document.getElementById('holidayTypeSelect').addEventListener('change', updateCurrentHolidayState);
 
-        // Clic en etiquetas rápidas de festivos
+        // Quick tags
         document.getElementById('holidayCityQuickTags').addEventListener('click', (e) => {
             const tag = e.target.closest('.quick-tag');
             if (!tag || !currentSelectedDate) return;
 
+            pushUndoState('Tag Festivo: ' + tag.dataset.name);
             const name = tag.dataset.name;
             const scope = tag.dataset.scope;
             const type = tag.dataset.type;
@@ -2862,11 +3829,12 @@
             document.getElementById('currentHolidayBadge').textContent = name + ' (' + getHolidayTypeLabel(type, scope) + ')';
             hasUnsavedChanges = true;
             updateSaveButtonState();
+            updateDraftBar();
             renderMatrixView();
         });
 
-        // En modo edición: permitir clic en el número de día o letra de la cabecera para editar el festivo
-        document.getElementById('matrixViewContainer').addEventListener('click', (e) => {
+        // Click en número de cabecera para editar festivo
+        matrixContainer.addEventListener('click', (e) => {
             const headerNum = e.target.closest('.matrix-header-num');
             if (!headerNum) return;
             const dateStr = headerNum.dataset.date;
@@ -2874,9 +3842,9 @@
                 openDayModal(dateStr);
             }
         });
-
     }
 
+    // MODALES Y ASIGNACIÓN MULTI-ESTADO
     function setupModals() {
         const dayModal = document.getElementById('dayModal');
         const exportModal = document.getElementById('exportModal');
@@ -2889,23 +3857,50 @@
 
         document.getElementById('openExportModalBtn').addEventListener('click', () => exportModal.classList.add('active'));
 
-        // Alternar persona en modal de día
-        document.querySelector('.modal-people-grid').addEventListener('click', (e) => {
-            const toggle = e.target.closest('.modal-person-toggle');
-            if (!toggle || !currentSelectedDate) return;
+        // Cambio de estado individual en el modal de día ([Laborable] [Vacaciones] [Asuntos])
+        document.getElementById('modalTechStatusList').addEventListener('click', (e) => {
+            const btn = e.target.closest('.status-pill-opt');
+            if (!btn || !currentSelectedDate) return;
+            const row = btn.closest('.tech-status-row');
+            if (!row) return;
 
-            const pId = toggle.dataset.personId;
-            toggleVacation(pId, currentSelectedDate);
-            if (isVacation(pId, currentSelectedDate)) {
-                toggle.classList.add('selected');
-            } else {
-                toggle.classList.remove('selected');
-            }
-            renderMatrixView();
-            checkOverlaps();
+            const pId = row.dataset.personId;
+            const status = btn.dataset.status;
+
+            setPersonDayStatus(pId, currentSelectedDate, status);
+
+            // Actualizar botones en la fila
+            row.querySelectorAll('.status-pill-opt').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
         });
 
-        // Asignar rango
+        // Batch en el modal: Todos Laborable
+        document.getElementById('modalBatchLaborable').addEventListener('click', () => {
+            if (!currentSelectedDate) return;
+            pushUndoState('Todos Laborable (' + currentSelectedDate + ')');
+            TEAM.forEach(p => {
+                setPersonDayStatus(p.id, currentSelectedDate, 'laborable', false);
+            });
+            renderMatrixView();
+            checkOverlaps();
+            openDayModal(currentSelectedDate);
+            showToast('💼 Todos los técnicos marcados como Laborable');
+        });
+
+        // Batch en el modal: Todos Vacaciones
+        document.getElementById('modalBatchVacation').addEventListener('click', () => {
+            if (!currentSelectedDate) return;
+            pushUndoState('Todos Vacaciones (' + currentSelectedDate + ')');
+            TEAM.forEach(p => {
+                setPersonDayStatus(p.id, currentSelectedDate, 'vacaciones', false);
+            });
+            renderMatrixView();
+            checkOverlaps();
+            openDayModal(currentSelectedDate);
+            showToast('🏖️ Todos los técnicos marcados como Vacaciones');
+        });
+
+        // Asignar rango con estado seleccionado ([Vacaciones] [Laborable] [Asuntos])
         document.getElementById('applyRangeBtn').addEventListener('click', () => {
             const startVal = document.getElementById('rangeStartDate').value;
             const endVal = document.getElementById('rangeEndDate').value;
@@ -2915,29 +3910,27 @@
             const end = new Date(endVal);
             if (start > end) return alert('La fecha de inicio debe ser anterior o igual a la de fin.');
 
-            const selectedPeople = [];
-            document.querySelectorAll('.modal-person-toggle.selected').forEach(t => selectedPeople.push(t.dataset.personId));
-            if (selectedPeople.length === 0) return alert('Selecciona al menos un técnico arriba.');
+            const status = document.getElementById('rangeStatusSelect').value;
+            pushUndoState('Rango ' + startVal + ' a ' + endVal + ' -> ' + status);
 
+            let countDays = 0;
             let curr = new Date(start);
             while (curr <= end) {
                 const dow = curr.getDay();
                 if (dow !== 0 && dow !== 6) {
                     const dStr = curr.toISOString().split('T')[0];
-                    selectedPeople.forEach(pId => {
-                        const y = dStr.split('-')[0];
-                        const dData = getYearData(y);
-                        dData[pId].add(dStr);
+                    countDays++;
+                    TEAM.forEach(p => {
+                        setPersonDayStatus(p.id, dStr, status, false);
                     });
                 }
                 curr.setDate(curr.getDate() + 1);
             }
 
-            hasUnsavedChanges = true;
-            updateSaveButtonState();
             renderMatrixView();
             checkOverlaps();
             dayModal.classList.remove('active');
+            showToast('✓ Rango de ' + countDays + ' días aplicado con éxito (' + status + ')');
         });
 
         document.getElementById('downloadIcsBtn').addEventListener('click', () => {
@@ -2949,7 +3942,7 @@
         document.getElementById('printBtn').addEventListener('click', () => window.print());
     }
 
-    function openDayModal(dateStr) {
+    function openDayModal(dateStr, focusedPersonId = null) {
         currentSelectedDate = dateStr;
         const [y, m, d] = dateStr.split('-').map(Number);
         const dateObj = new Date(y, m - 1, d);
@@ -3005,14 +3998,34 @@
         document.getElementById('rangeStartDate').value = dateStr;
         document.getElementById('rangeEndDate').value = dateStr;
 
-        document.querySelectorAll('.modal-person-toggle').forEach(toggle => {
-            const pId = toggle.dataset.personId;
-            if (isVacation(pId, dateStr)) {
-                toggle.classList.add('selected');
-            } else {
-                toggle.classList.remove('selected');
-            }
-        });
+        // Renderizar lista interactiva multi-estado para los 4 técnicos ([Laborable] [Vacaciones] [Asuntos])
+        const statusListContainer = document.getElementById('modalTechStatusList');
+        if (statusListContainer) {
+            let listHtml = '';
+            TEAM.forEach(p => {
+                const curStatus = getPersonDayStatus(p.id, dateStr);
+                const isFocused = (focusedPersonId === p.id);
+                listHtml += `
+                    <div class="tech-status-row" data-person-id="${p.id}" style="--tech-color:${p.color}; ${isFocused ? 'border-color:var(--tech-color); box-shadow:0 0 10px rgba(59,130,246,0.25);' : ''}">
+                        <div class="tech-status-left">
+                            <div class="tech-status-avatar">
+                                <img src="avatars/${p.id}.jpg" alt="${p.name}" />
+                            </div>
+                            <div class="tech-status-names">
+                                <span class="tech-status-name">${p.name}</span>
+                                <span class="tech-status-city">📍 ${p.cityName}</span>
+                            </div>
+                        </div>
+                        <div class="tech-status-selector-group">
+                            <button type="button" class="status-pill-opt ${curStatus === 'laborable' ? 'active' : ''}" data-status="laborable" title="Día normal de trabajo / Sin vacaciones">💼 Laborable</button>
+                            <button type="button" class="status-pill-opt ${curStatus === 'vacaciones' ? 'active' : ''}" data-status="vacaciones" title="Día de vacaciones anuales">🏖️ Vacaciones</button>
+                            <button type="button" class="status-pill-opt ${curStatus === 'asuntos' ? 'active' : ''}" data-status="asuntos" title="Asuntos propios o permiso">📋 Asuntos</button>
+                        </div>
+                    </div>
+                `;
+            });
+            statusListContainer.innerHTML = listHtml;
+        }
 
         document.getElementById('dayModal').classList.add('active');
     }
@@ -3118,5 +4131,68 @@
         });
     }
     </script>
+
+    <!-- UX 3: MENÚ CONTEXTUAL RÁPIDO (CLICK DERECHO) -->
+    <div id="quickContextMenu" class="quick-context-menu" style="display:none;">
+        <div class="qcm-header">
+            <span id="qcmTechName">Técnico</span>
+            <span id="qcmDateBadge" class="qcm-date-badge">15 Jul</span>
+        </div>
+        <div class="qcm-options">
+            <button class="qcm-item" data-action="laborable">
+                <span class="qcm-icon">💼</span>
+                <div class="qcm-text">
+                    <strong>Marcar Laborable</strong>
+                    <small>Día habitual de trabajo / Quitar vacación</small>
+                </div>
+            </button>
+            <button class="qcm-item" data-action="vacaciones">
+                <span class="qcm-icon">🏖️</span>
+                <div class="qcm-text">
+                    <strong>Asignar Vacaciones</strong>
+                    <small>Día de vacaciones anuales (✓)</small>
+                </div>
+            </button>
+            <button class="qcm-item" data-action="asuntos">
+                <span class="qcm-icon">📋</span>
+                <div class="qcm-text">
+                    <strong>Asuntos Propios / Permiso</strong>
+                    <small>Libre disposición o permiso</small>
+                </div>
+            </button>
+            <div class="qcm-divider"></div>
+            <button class="qcm-item" data-action="open-modal">
+                <span class="qcm-icon">⚙️</span>
+                <div class="qcm-text">
+                    <strong>Configurar Festivo / Rango...</strong>
+                    <small>Abrir panel de opciones completo</small>
+                </div>
+            </button>
+            <button class="qcm-item" data-action="switch-guardias">
+                <span class="qcm-icon">📞</span>
+                <div class="qcm-text">
+                    <strong>Ver en Cuadrante de Guardias</strong>
+                    <small>Saltar a la semana correspondiente</small>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- UX 1: POP-OVER RÁPIDO PARA RANGO ARRASTRADO -->
+    <div id="rangeQuickPopover" class="range-quick-popover" style="display:none;">
+        <div class="range-quick-header">
+            <span id="rangeQuickTitle">Rango seleccionado: 5 días</span>
+            <button id="closeRangeQuickBtn" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-weight:700;">✕</button>
+        </div>
+        <div class="range-quick-actions">
+            <button class="btn-range-action primary" data-range-status="vacaciones">🏖️ Vacaciones</button>
+            <button class="btn-range-action" data-range-status="laborable">💼 Laborable</button>
+            <button class="btn-range-action" data-range-status="asuntos">📋 Asuntos Propios</button>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastNotification" class="toast-bubble" style="display:none;"></div>
+
 </body>
 </html>

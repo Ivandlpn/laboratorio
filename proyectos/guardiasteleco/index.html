@@ -1193,6 +1193,32 @@
             .toolbar-left, .toolbar-right { width: 100%; justify-content: space-between; }
             .filter-group { width: 100%; justify-content: space-between; }
         }
+    
+        /* UX 5: BOTÓN SALTO DIRECTO A VACACIONES */
+        .nav-switch-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: rgba(255, 255, 255, 0.14);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 0.48rem 0.9rem;
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 0.82rem;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .nav-switch-btn:hover {
+            background: rgba(139, 92, 246, 0.25);
+            border-color: rgba(167, 139, 250, 0.5);
+            color: #C4B5FD;
+            transform: translateY(-1px);
+        }
+
     </style>
 </head>
 <body>
@@ -1259,6 +1285,10 @@
 
                 <div class="header-actions">
                     <span id="saveFeedback"></span>
+                    <a id="linkToVacaciones" class="nav-switch-btn" title="Saltar al calendario de Vacaciones Teleco">
+                        <span class="nav-switch-icon">🏖️</span>
+                        <span>Vacaciones</span>
+                    </a>
                     <button id="editToggleBtn" class="edit-toggle-button" title="Activar modo edición para modificar turnos">
                         <svg class="edit-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 20h9"></path>
@@ -1413,6 +1443,26 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
     <script>
+    // UX 5: SALTO DIRECTO A VACACIONES TELECO
+    function getVacacionesUrl(year, tech) {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        let base = isLocal ? 'http://127.0.0.1:3001/' : '../vacacionesteleco/';
+        const params = new URLSearchParams();
+        if (year) params.set('year', year);
+        if (tech && tech !== 'all') params.set('tech', tech);
+        const q = params.toString();
+        return base + (q ? '?' + q : '');
+    }
+
+    function updateNavVacacionesLink() {
+        const link = document.getElementById('linkToVacaciones');
+        if (link) {
+            const currentYearVal = (typeof currentYear !== 'undefined') ? currentYear : 2026;
+            const currentTechVal = (typeof activeFilter !== 'undefined') ? activeFilter : '';
+            link.href = getVacacionesUrl(currentYearVal, currentTechVal);
+        }
+    }
+
     const firebaseConfig = {
       apiKey: "AIzaSyDsRf3_ZYJrCfTGhbXeHPowQX07YTdmqdQ",
       authDomain: "guardias-teleco-ineco.firebaseapp.com",
@@ -1426,6 +1476,7 @@
     const db = firebase.firestore();
 
     document.addEventListener('DOMContentLoaded', () => {
+        updateNavVacacionesLink();
         // EQUIPO CON AVATARES
         const TEAM = [
             { id: 'raul', name: 'Raúl', avatar: 'avatars/raul.jpg?v=2' },
