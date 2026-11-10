@@ -760,36 +760,29 @@
             position: relative;
         }
 
-        
-            50% { opacity: 0.5; }
-        }
-
-        /* LÁPIZ: SOLO APARECE EN MODO EDICIÓN Y AL PASAR EL RATÓN SOBRE LA SEMANA */
+        /* LÁPIZ: OCULTO POR DEFECTO, SOLO APARECE EN MODO EDICIÓN */
         .edit-icon {
             display: none !important;
             opacity: 0 !important;
-            position: absolute;
-            right: 6px;
-            top: 50%;
-            transform: translateY(-50%) scale(0.85);
-            font-size: 13px;
-            transition: all 0.15s ease;
+            margin-left: 3px;
+            font-size: 11px;
+            vertical-align: middle;
+            transition: transform 0.15s ease, opacity 0.15s ease;
             pointer-events: none;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+            user-select: none;
         }
 
-        /* Cuando está en modo edición, permanece oculto por defecto... */
+        /* SOLO APARECE CUANDO ESTÁ EN MODO EDICIÓN */
         body.is-editing .edit-icon {
-            display: none !important;
-            opacity: 0 !important;
+            display: inline-block !important;
+            opacity: 0.85 !important;
         }
 
-        /* ...y SOLO aparece cuando el ratón pasa por encima de la semana (hover en la fila) */
+        /* Efecto al pasar el ratón en la fila en modo edición */
         body.is-editing tr:hover .edit-icon,
         body.is-editing tr[data-week-id]:hover .edit-icon {
-            display: inline-block !important;
             opacity: 1 !important;
-            transform: translateY(-50%) scale(1.15);
+            transform: scale(1.2);
         }
 
         body.is-editing tr[data-week-id] {
