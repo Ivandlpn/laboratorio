@@ -2071,6 +2071,39 @@
             animation: pulse-save 1.8s infinite;
         }
 
+        .icon-action-btn.guard-action-btn {
+            text-decoration: none;
+        }
+
+        .icon-action-btn.guard-action-btn:hover {
+            background: rgba(37, 99, 235, 0.32);
+            border-color: rgba(96, 165, 250, 0.65);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+        }
+
+        .guard-cell-phone {
+            font-size: 0.95rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+            transition: transform 0.15s ease;
+        }
+
+        .matrix-day-cell:hover .guard-cell-phone {
+            transform: scale(1.25);
+        }
+
+        /* Días no seleccionables como vacaciones (sábados, domingos, festivos nacionales) */
+        body.is-editing .matrix-day-cell.is-non-vacation-date {
+            cursor: not-allowed !important;
+        }
+
+        body.is-editing .matrix-day-cell.is-non-vacation-date:hover {
+            outline: 2px dashed rgba(239, 68, 68, 0.45) !important;
+        }
+
         /* MEJORA 5: TARJETAS DE TÉCNICOS EN CABECERA CON DISTRIBUCIÓN EQUIDISTANTE */
         .technician-cards {
             display: flex;
@@ -2554,6 +2587,9 @@
                             <polyline points="7 3 7 8 15 8"></polyline>
                         </svg>
                     </button>
+                    <a id="appSwitchToGuardias" class="icon-action-btn guard-action-btn" href="#" title="Ir al cuadrante de Guardias Teleco" aria-label="Ir a Guardias">
+                        <span style="font-size:1.05rem;line-height:1;">📞</span>
+                    </a>
                     <button id="themeToggleBtn" class="icon-action-btn theme-toggle-btn" title="Alternar Tema Claro / Oscuro" aria-label="Alternar tema">
                         🌙
                     </button>
@@ -2845,7 +2881,26 @@
 
     function getGuardPersonForDate(dateObj) {
         const info = getISOWeekInfo(dateObj);
-        const map = guardiasByYear[String(info.year)] || {};
+        const yStr = String(info.year);
+        let map = guardiasByYear[yStr];
+        if (!map || Object.keys(map).length === 0) {
+            const local = localStorage.getItem('guardias_assignments_' + yStr);
+            if (local) {
+                try {
+                    map = JSON.parse(local);
+                    guardiasByYear[yStr] = map;
+                } catch(e) {}
+            }
+        }
+        // Fallback: ciclo de rotación continua estándar de telecomunicaciones (ivan -> carlos -> raul)
+        if (!map || Object.keys(map).length === 0) {
+            map = {};
+            const cycle = ['ivan', 'carlos', 'raul'];
+            for (let w = 1; w <= 53; w++) {
+                map[String(w)] = cycle[(w - 1) % 3];
+            }
+            guardiasByYear[yStr] = map;
+        }
         return {
             personId: map[String(info.week)] || null,
             week: info.week,
@@ -3342,6 +3397,42 @@
         return null;
     }
 
+    // REGLA: Los sábados, domingos y festivos nacionales/de convenio no se pueden seleccionar como vacaciones
+    function isDateSelectableForVacations(dateStr, personId) {
+        if (!dateStr) return false;
+        const parts = dateStr.split('-');
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        const d = parseInt(parts[2], 10);
+        const dateObj = new Date(y, m, d);
+        const dow = dateObj.getDay();
+
+        // 1. Sábados (6) y Domingos (0)
+        if (dow === 0 || dow === 6) return false;
+
+        // 2. Días no laborables de convenio (24 y 31 de Diciembre)
+        if (m === 11 && (d === 24 || d === 31)) return false;
+
+        // 3. Festivos nacionales o generales (scope: 'all' o type: 'nacional' / 'nolaborable')
+        const hols = getHolidaysForDate(dateStr);
+        for (const h of hols) {
+            const sc = resolveHolidayScope(h.name, h.type, h.scope);
+            if (h.type === 'nacional' || h.type === 'nolaborable' || sc === 'all') {
+                return false;
+            }
+        }
+
+        // 4. Si se indica el técnico, validar festivos específicos de su sede
+        if (personId) {
+            const hol = getHolidayForPerson(personId, dateStr);
+            if (hol && (hol.type === 'nacional' || hol.type === 'nolaborable' || hol.scope === 'all')) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // Comprobar festivo general del día para la cabecera
     function getHeaderHolidayInfo(dateStr) {
         const list = getHolidaysForDate(dateStr);
@@ -3433,6 +3524,17 @@
                     vacationsByYear[yStr][p.id] = new Set(PRELOADED_VACATIONS[yStr][p.id] || []);
                 });
             }
+
+            // Sanitización estricta: asegurar que sábados, domingos y festivos nacionales nunca sean vacaciones
+            TEAM.forEach(p => {
+                const cleanSet = new Set();
+                vacationsByYear[yStr][p.id].forEach(dStr => {
+                    if (isDateSelectableForVacations(dStr, p.id)) {
+                        cleanSet.add(dStr);
+                    }
+                });
+                vacationsByYear[yStr][p.id] = cleanSet;
+            });
         }
         return vacationsByYear[yStr];
     }
@@ -3568,6 +3670,11 @@
     }
 
     function setPersonDayStatus(personId, dateStr, status, shouldPush = true) {
+        if (status === 'vacaciones' && !isDateSelectableForVacations(dateStr, personId)) {
+            showToast('⚠️ Los sábados, domingos y festivos nacionales no se pueden seleccionar como vacaciones.');
+            return false;
+        }
+
         if (shouldPush) {
             const tech = TEAM.find(p => p.id === personId);
             const techName = tech ? tech.name : personId;
@@ -3594,10 +3701,17 @@
         updateDraftBar();
         renderMatrixView();
         checkOverlaps();
+        return true;
     }
 
     function toggleVacation(personId, dateStr) {
         const curStatus = getPersonDayStatus(personId, dateStr);
+        if (curStatus !== 'vacaciones') {
+            if (!isDateSelectableForVacations(dateStr, personId)) {
+                showToast('⚠️ Los sábados, domingos y festivos nacionales no se pueden seleccionar como vacaciones.');
+                return;
+            }
+        }
         const newStatus = (curStatus === 'vacaciones') ? 'laborable' : 'vacaciones';
         setPersonDayStatus(personId, dateStr, newStatus);
     }
@@ -3929,13 +4043,9 @@
                     // UI 3: Célula con micro-badges e indicadores multi-estado
                     let cellInner = '<div class="cell-inner-flex">';
                     
-                    // Esquina Superior Izquierda: Guardia y advertencia de conflicto
-                    if (isPersonOnGuard) {
-                        if (isClash) {
-                            cellInner += '<span class="badge-micro corner-tl badge-guard badge-clash" title="⚠️ Coincide guardia con vacaciones">⚠️📞</span>';
-                        } else {
-                            cellInner += '<span class="badge-micro corner-tl badge-guard" title="📞 De guardia Semana ' + guardInfo.week + '">📞</span>';
-                        }
+                    // Esquina Superior Izquierda: Alerta si coincide guardia con vacaciones
+                    if (isPersonOnGuard && isClash) {
+                        cellInner += '<span class="badge-micro corner-tl badge-guard badge-clash" title="⚠️ Coincide guardia con vacaciones">⚠️📞</span>';
                     }
 
                     // Esquina Superior Derecha: Marcador de festivo si aplica
@@ -3943,11 +4053,17 @@
                         cellInner += '<span class="badge-micro corner-tr" title="' + hol.name + '">' + getHolidayTypeIcon(hol.type, hol.scope) + '</span>';
                     }
 
-                    // Símbolo Central
+                    // Símbolo Central: Vacaciones (✓), Asuntos Propios (📋) o Teléfono de Guardia (📞)
                     if (isVac) {
-                        cellInner += '<span class="cell-main-symbol" style="color:var(--tech-color);">✓</span>';
+                        if (isPersonOnGuard) {
+                            cellInner += '<span class="cell-main-symbol" style="color:var(--tech-color); display:inline-flex; align-items:center; gap:2px;"><span style="font-weight:900;">✓</span><span class="guard-cell-phone" style="font-size:0.84rem;">📞</span></span>';
+                        } else {
+                            cellInner += '<span class="cell-main-symbol" style="color:var(--tech-color);">✓</span>';
+                        }
                     } else if (isAsuntos) {
                         cellInner += '<span class="cell-main-symbol">📋</span>';
+                    } else if (isPersonOnGuard) {
+                        cellInner += '<span class="cell-main-symbol guard-cell-phone" title="📞 De Guardia de Telecomunicaciones (Semana ' + guardInfo.week + ')">📞</span>';
                     }
 
                     cellInner += '</div>';
@@ -3958,7 +4074,13 @@
                     const vacClass = isVac ? ('vacation-active tech-' + person.id) : '';
                     const asuntosClass = isAsuntos ? 'absence-asuntos' : '';
 
-                    tableHTML += `<td class="matrix-day-cell ${isCellNonWorking ? 'is-weekend' : ''} ${guardClass} ${holClass} ${vacClass} ${asuntosClass}"
+                    const isSelectableForVac = isDateSelectableForVacations(dateStr, person.id);
+                    const nonVacClass = !isSelectableForVac ? 'is-non-vacation-date' : '';
+                    if (!isSelectableForVac) {
+                        titleStr += ' · [No laborable / No seleccionable como vacaciones]';
+                    }
+
+                    tableHTML += `<td class="matrix-day-cell ${isCellNonWorking ? 'is-weekend' : ''} ${guardClass} ${holClass} ${vacClass} ${asuntosClass} ${nonVacClass}"
                                       data-date="${dateStr}" 
                                       data-person-id="${person.id}"
                                       title="${titleStr}">
@@ -4203,9 +4325,11 @@
                 const dow = temp.getDay();
                 if (dow !== 0 && dow !== 6) {
                     const dStr = temp.toISOString().split('T')[0];
-                    dragSelectedDates.push(dStr);
-                    const matchCell = document.querySelector(`.matrix-day-cell[data-person-id="${dragPersonId}"][data-date="${dStr}"]`);
-                    if (matchCell) matchCell.classList.add('drag-in-range');
+                    if (isDateSelectableForVacations(dStr, dragPersonId)) {
+                        dragSelectedDates.push(dStr);
+                        const matchCell = document.querySelector(`.matrix-day-cell[data-person-id="${dragPersonId}"][data-date="${dStr}"]`);
+                        if (matchCell) matchCell.classList.add('drag-in-range');
+                    }
                 }
                 temp.setDate(temp.getDate() + 1);
             }
@@ -4243,6 +4367,7 @@
 
             pushUndoState('Rango ' + dragSelectedDates.length + 'd para ' + techName + ' -> ' + status);
             dragSelectedDates.forEach(dStr => {
+                if (status === 'vacaciones' && !isDateSelectableForVacations(dStr, dragPersonId)) return;
                 setPersonDayStatus(dragPersonId, dStr, status, false);
             });
 
@@ -4272,7 +4397,17 @@
             }
 
             if (activePainter) {
+                if (!isDateSelectableForVacations(dateStr, activePainter)) {
+                    showToast('⚠️ Los sábados, domingos y festivos nacionales no se pueden seleccionar como vacaciones.');
+                    return;
+                }
                 toggleVacation(activePainter, dateStr);
+            } else if (isEditMode) {
+                if (!isDateSelectableForVacations(dateStr, personId)) {
+                    showToast('⚠️ Los sábados, domingos y festivos nacionales no se pueden seleccionar como vacaciones.');
+                    return;
+                }
+                toggleVacation(personId, dateStr);
             } else {
                 openDayModal(dateStr, personId);
             }
@@ -4328,6 +4463,10 @@
                 setPersonDayStatus(personId, dateStr, 'laborable');
                 showToast('💼 ' + techName + ' marcado como Laborable');
             } else if (action === 'vacaciones') {
+                if (!isDateSelectableForVacations(dateStr, personId)) {
+                    showToast('⚠️ Los sábados, domingos y festivos nacionales no se pueden seleccionar como vacaciones.');
+                    return;
+                }
                 setPersonDayStatus(personId, dateStr, 'vacaciones');
                 showToast('🏖️ Vacaciones asignadas a ' + techName);
             } else if (action === 'asuntos') {
@@ -4493,9 +4632,15 @@
         // Batch en el modal: Todos Vacaciones
         document.getElementById('modalBatchVacation').addEventListener('click', () => {
             if (!currentSelectedDate) return;
+            if (!isDateSelectableForVacations(currentSelectedDate)) {
+                showToast('⚠️ Los sábados, domingos y festivos nacionales no se pueden seleccionar como vacaciones.');
+                return;
+            }
             pushUndoState('Todos Vacaciones (' + currentSelectedDate + ')');
             TEAM.forEach(p => {
-                setPersonDayStatus(p.id, currentSelectedDate, 'vacaciones', false);
+                if (isDateSelectableForVacations(currentSelectedDate, p.id)) {
+                    setPersonDayStatus(p.id, currentSelectedDate, 'vacaciones', false);
+                }
             });
             renderMatrixView();
             checkOverlaps();
@@ -4522,10 +4667,21 @@
                 const dow = curr.getDay();
                 if (dow !== 0 && dow !== 6) {
                     const dStr = curr.toISOString().split('T')[0];
-                    countDays++;
-                    TEAM.forEach(p => {
-                        setPersonDayStatus(p.id, dStr, status, false);
-                    });
+                    if (status === 'vacaciones') {
+                        let anyApplied = false;
+                        TEAM.forEach(p => {
+                            if (isDateSelectableForVacations(dStr, p.id)) {
+                                setPersonDayStatus(p.id, dStr, 'vacaciones', false);
+                                anyApplied = true;
+                            }
+                        });
+                        if (anyApplied) countDays++;
+                    } else {
+                        countDays++;
+                        TEAM.forEach(p => {
+                            setPersonDayStatus(p.id, dStr, status, false);
+                        });
+                    }
                 }
                 curr.setDate(curr.getDate() + 1);
             }
