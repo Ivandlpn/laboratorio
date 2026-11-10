@@ -606,6 +606,8 @@
             padding: 1.1rem 1.25rem;
             box-shadow: var(--shadow-sm);
             overflow-x: auto;
+            scroll-margin-top: 130px;
+            scroll-margin-bottom: 40px;
             transition: all var(--transition-speed) ease;
         }
 
@@ -1276,7 +1278,7 @@
 
         /* RESPONSIVE & MOBILE DESIGN */
         html, body {
-            overflow-x: hidden;
+            overflow-x: clip;
             max-width: 100vw;
         }
 
@@ -3931,6 +3933,7 @@
     }
 
     // UI 3: GENERAR LA VISTA MATRIZ DEL CALENDARIO CON MICRO-BADGES E INDICADORES MULTI-ESTADO
+    let hasInitialScrolledVac = false;
     function renderMatrixView() {
         const container = document.getElementById('matrixViewContainer');
         container.innerHTML = '';
@@ -4152,6 +4155,16 @@
             monthCard.innerHTML = tableHTML;
             container.appendChild(monthCard);
         });
+
+        if (!hasInitialScrolledVac) {
+            hasInitialScrolledVac = true;
+            setTimeout(() => {
+                const curCard = document.querySelector('.month-card.is-current-month');
+                if (curCard) {
+                    curCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 300);
+        }
     }
 
     // MODO EDICIÓN
@@ -4306,6 +4319,7 @@
         });
 
         document.getElementById('yearSelector').addEventListener('change', (e) => {
+            hasInitialScrolledVac = false;
             initYear(e.target.value);
         });
 

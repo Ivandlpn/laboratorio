@@ -1,5 +1,5 @@
 // Service Worker para Guardias Teleco - Network First (siempre fresco)
-const CACHE_NAME = 'guardias-teleco-v5';
+const CACHE_NAME = 'guardias-teleco-v6';
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();

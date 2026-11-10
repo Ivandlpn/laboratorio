@@ -99,13 +99,15 @@
         }
         .main-container { max-width: 1850px; margin: 0 auto; padding: 1.5rem 2rem 3rem; }
         
-        /* CABECERA DINÁMICA MULTICAPA (NO COLOR SÓLIDO) */
+        /* CABECERA DINÁMICA MULTICAPA (FIJA / STICKY EN SCROLL VERTICAL) */
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 1.75rem;
-            position: relative;
+            position: sticky;
+            top: 0.5rem;
+            z-index: 100;
             overflow: hidden;
             background: 
                 radial-gradient(circle at 10% 25%, rgba(30, 85, 175, 0.48) 0%, transparent 45%),
@@ -119,6 +121,8 @@
             box-shadow: 0 20px 45px -8px rgba(7, 21, 43, 0.55), 0 3px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255, 255, 255, 0.22);
             border: 1px solid rgba(255, 255, 255, 0.16);
             border-top: 1px solid rgba(255, 255, 255, 0.38);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
 
         /* Trama técnica de micro-rejilla en cabecera */
@@ -665,7 +669,13 @@
             box-shadow: 0 4px 14px rgba(0,0,0,0.06);
             border: 1px solid var(--color-border);
             overflow: hidden;
-            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+            scroll-margin-top: 130px;
+            scroll-margin-bottom: 40px;
+            transition: background-color var(--transition-speed), border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+        .month-block.is-current-month {
+            border: 2px solid var(--color-accent, #2563eb) !important;
+            box-shadow: 0 0 0 1px var(--color-accent, #2563eb), 0 8px 25px rgba(37, 99, 235, 0.22) !important;
         }
         .month-header {
             background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-soft) 100%);
@@ -1253,7 +1263,7 @@
 
         /* RESPONSIVE & MOBILE DESIGN */
         html, body {
-            overflow-x: hidden;
+            overflow-x: clip;
             max-width: 100vw;
         }
 
@@ -1884,6 +1894,20 @@
             }
         }
         
+        let hasInitialScrolledGuardias = false;
+        function scrollToCurrentMonth(smooth = true) {
+            const now = new Date();
+            const curYear = now.getFullYear();
+            const curMonth = now.getMonth();
+            const selectedYear = parseInt(yearSelector.value) || curYear;
+            if (selectedYear === curYear) {
+                const target = document.querySelector('.month-block.is-current-month') || document.querySelector(`.month-block[data-month="${curMonth}"]`);
+                if (target) {
+                    target.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' });
+                }
+            }
+        }
+
         // FIRESTORE SYNC
         async function initializeYear(year) {
             if (unsubscribe) unsubscribe();
@@ -1904,12 +1928,16 @@
                 }
                 initialLoadedAssignments = JSON.parse(JSON.stringify(assignments));
                 localStorage.setItem('guardias_assignments_' + year, JSON.stringify(assignments));
-                localStorage.setItem('guardias_assignments_' + year, JSON.stringify(assignments));
                 updateAllUI();
                 highlightCurrentWeek();
                 updateCounters();
                 renderHistoryUI();
                 applyFilter(currentFilter);
+
+                if (!hasInitialScrolledGuardias) {
+                    hasInitialScrolledGuardias = true;
+                    setTimeout(() => scrollToCurrentMonth(true), 300);
+                }
             }, error => {
                 console.error("Error al escuchar cambios:", error);
                 alert("Error de conexión en tiempo real con Firebase.");
@@ -2031,10 +2059,15 @@
         function generateFullCalendar(year) {
             calendarContainer.innerHTML = '';
             const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+            const now = new Date();
+            const isCurYear = (year === now.getFullYear());
+            const curMonth = now.getMonth();
             
             for (let month = 0; month < 12; month++) {
                 const monthBlock = document.createElement('div');
-                monthBlock.className = 'month-block';
+                const isCurrentMonthNow = (isCurYear && month === curMonth);
+                monthBlock.className = 'month-block' + (isCurrentMonthNow ? ' is-current-month' : '');
+                monthBlock.dataset.month = month;
                 let tableHTML = '<div class="month-header">' + monthNames[month].toUpperCase() + '</div>' +
                                 '<table class="calendar-table">' +
                                 '<thead><tr><th>Técnico</th><th>Sem</th><th>Lu</th><th>Ma</th><th>Mi</th><th>Ju</th><th>Vi</th><th>Sá</th><th>Do</th></tr></thead>' +
@@ -2380,7 +2413,10 @@
         });
         clearAssignmentButton.addEventListener('click', handleClearAssignment);
         saveButton.addEventListener('click', saveAssignments);
-        yearSelector.addEventListener('change', (e) => initializeYear(parseInt(e.target.value)));
+        yearSelector.addEventListener('change', (e) => {
+            hasInitialScrolledGuardias = false;
+            initializeYear(parseInt(e.target.value));
+        });
 
         function getMondayOfISOWeek(w, y) {
             const d = new Date(Date.UTC(y, 0, 4));
