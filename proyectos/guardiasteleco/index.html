@@ -374,15 +374,7 @@
             min-width: 26px;
             text-align: center;
         }
-        .tech-card .fatigue-warn {
-            color: #fbbf24;
-            font-size: 0.85rem;
-            display: none;
-            margin-left: -2px;
-        }
-        .tech-card.has-fatigue .fatigue-warn {
-            display: inline-block;
-        }
+        
 
         /* BOTONES ACCIÓN HEADER */
         .header-actions {
@@ -696,21 +688,7 @@
             position: relative;
         }
 
-        /* ALERTA DE SEMANAS CONSECUTIVAS */
-        .consecutive-warn-badge {
-            display: inline-block;
-            font-size: 0.7rem;
-            background: #ef4444;
-            color: #ffffff;
-            border-radius: 4px;
-            padding: 1px 4px;
-            margin-left: 2px;
-            vertical-align: middle;
-            font-weight: 700;
-            animation: pulse-warn 2s infinite;
-        }
-        @keyframes pulse-warn {
-            0%, 100% { opacity: 1; }
+        
             50% { opacity: 0.5; }
         }
 
@@ -1038,32 +1016,32 @@
                 <div class="technician-cards" id="technicianCards">
                     <div class="tech-card" data-tech-id="raul" title="Clic para modo asignación rápida o ver a Raúl">
                         <div class="avatar-wrap" style="--ring-color: var(--color-raul);">
-                            <img src="avatars/raul.jpg" alt="Raúl" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2322c55e\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>R</text></svg>'" />
+                            <img src="avatars/raul.jpg?v=2" alt="Raúl" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2322c55e\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>R</text></svg>'" />
                             <span class="status-dot"></span>
                         </div>
                         <span class="tech-name">Raúl</span>
                         <span class="tech-count" id="count-raul" title="Semanas asignadas">0</span>
-                        <span class="fatigue-warn" title="Tiene semanas consecutivas asignadas">⚠️</span>
+                        
                     </div>
 
                     <div class="tech-card" data-tech-id="ivan" title="Clic para modo asignación rápida o ver a Iván">
                         <div class="avatar-wrap" style="--ring-color: var(--color-ivan);">
-                            <img src="avatars/ivan.jpg" alt="Iván" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%230ea5e9\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>I</text></svg>'" />
+                            <img src="avatars/ivan.jpg?v=2" alt="Iván" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%230ea5e9\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>I</text></svg>'" />
                             <span class="status-dot"></span>
                         </div>
                         <span class="tech-name">Iván</span>
                         <span class="tech-count" id="count-ivan" title="Semanas asignadas">0</span>
-                        <span class="fatigue-warn" title="Tiene semanas consecutivas asignadas">⚠️</span>
+                        
                     </div>
 
                     <div class="tech-card" data-tech-id="carlos" title="Clic para modo asignación rápida o ver a Carlos">
                         <div class="avatar-wrap" style="--ring-color: var(--color-carlos);">
-                            <img src="avatars/carlos.jpg" alt="Carlos" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23f59e0b\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>C</text></svg>'" />
+                            <img src="avatars/carlos.jpg?v=2" alt="Carlos" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23f59e0b\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>C</text></svg>'" />
                             <span class="status-dot"></span>
                         </div>
                         <span class="tech-name">Carlos</span>
                         <span class="tech-count" id="count-carlos" title="Semanas asignadas">0</span>
-                        <span class="fatigue-warn" title="Tiene semanas consecutivas asignadas">⚠️</span>
+                        
                     </div>
                 </div>
 
@@ -1146,21 +1124,21 @@
             <div class="export-options">
                 <button class="export-btn" data-export-tech="raul">
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <img src="avatars/raul.jpg" class="export-avatar-img" alt="Raúl" />
+                        <img src="avatars/raul.jpg?v=2" class="export-avatar-img" alt="Raúl" />
                         <span>Solo turnos de Raúl</span>
                     </div>
                     <span>📥 Descargar</span>
                 </button>
                 <button class="export-btn" data-export-tech="ivan">
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <img src="avatars/ivan.jpg" class="export-avatar-img" alt="Iván" />
+                        <img src="avatars/ivan.jpg?v=2" class="export-avatar-img" alt="Iván" />
                         <span>Solo turnos de Iván</span>
                     </div>
                     <span>📥 Descargar</span>
                 </button>
                 <button class="export-btn" data-export-tech="carlos">
                     <div style="display:flex; align-items:center; gap:0.75rem;">
-                        <img src="avatars/carlos.jpg" class="export-avatar-img" alt="Carlos" />
+                        <img src="avatars/carlos.jpg?v=2" class="export-avatar-img" alt="Carlos" />
                         <span>Solo turnos de Carlos</span>
                     </div>
                     <span>📥 Descargar</span>
@@ -1209,9 +1187,9 @@
     document.addEventListener('DOMContentLoaded', () => {
         // EQUIPO CON AVATARES
         const TEAM = [
-            { id: 'raul', name: 'Raúl', avatar: 'avatars/raul.jpg' },
-            { id: 'ivan', name: 'Iván', avatar: 'avatars/ivan.jpg' },
-            { id: 'carlos', name: 'Carlos', avatar: 'avatars/carlos.jpg' }
+            { id: 'raul', name: 'Raúl', avatar: 'avatars/raul.jpg?v=2' },
+            { id: 'ivan', name: 'Iván', avatar: 'avatars/ivan.jpg?v=2' },
+            { id: 'carlos', name: 'Carlos', avatar: 'avatars/carlos.jpg?v=2' }
         ];
 
         const initialAssignments2025 = {'1':'ivan','2':'carlos','3':'raul','4':'ivan','5':'carlos','6':'raul','7':'ivan','8':'carlos','9':'raul','10':'ivan','11':'carlos','12':'ivan','13':'raul','14':'carlos','15':'ivan','16':'raul','17':'carlos','18':'ivan','19':'raul','20':'carlos','21':'ivan','22':'raul','23':'carlos','24':'ivan','25':'raul','26':'carlos','27':'ivan','28':'raul','29':'carlos','30':'ivan','31':'carlos','32':'ivan','33':'carlos','34':'ivan','35':'carlos','36':'raul','37':'ivan','38':'carlos','39':'raul','40':'ivan','41':'carlos','42':'raul','43':'ivan','44':'carlos','45':'raul','46':'carlos','47':'raul','48':'ivan','49':'raul','50':'ivan','51':'raul'};
@@ -1265,7 +1243,7 @@
 
         // SERVICE WORKER (PWA)
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js?v=3').catch(() => {});
+            navigator.serviceWorker.register('sw.js?v=4').catch(() => {});
         }
 
         // SELECTOR DE AÑO
@@ -1370,31 +1348,19 @@
             }
         }
 
-        // CONTADORES Y DETECTOR DE FATIGA
+        // CONTADORES DE GUARDIAS POR TÉCNICO
         function updateCounters() {
             const counts = { raul: 0, ivan: 0, carlos: 0 };
-            const consecutiveFlags = { raul: false, ivan: false, carlos: false };
-
-            let prevTech = null;
             for (let w = 1; w <= 53; w++) {
                 const currentTech = assignments[w] || null;
                 if (currentTech && counts[currentTech] !== undefined) {
                     counts[currentTech]++;
-                    if (currentTech === prevTech) {
-                        consecutiveFlags[currentTech] = true;
-                    }
                 }
-                prevTech = currentTech;
             }
-
             TEAM.forEach(person => {
                 const badge = document.getElementById('count-' + person.id);
                 if (badge) {
                     badge.textContent = counts[person.id] || 0;
-                }
-                const card = document.querySelector('.tech-card[data-tech-id="' + person.id + '"]');
-                if (card) {
-                    card.classList.toggle('has-fatigue', consecutiveFlags[person.id]);
                 }
             });
         }
@@ -1497,21 +1463,15 @@
             const weekRows = document.querySelectorAll('tr[data-week-id="' + weekId + '"]');
             if (!weekRows.length) return;
 
-            const isConsecutive = personId && (assignments[weekId - 1] === personId || assignments[parseInt(weekId) + 1] === personId);
-
             weekRows.forEach(row => {
                 const assigneeCell = row.querySelector('.assignee-cell');
                 TEAM.forEach(p => row.classList.remove('assigned-' + p.id));
-                assigneeCell.innerHTML = '';
+                assigneeCell.textContent = '';
                 if (personId) {
                     const person = TEAM.find(p => p.id === personId);
                     if (person) {
                         row.classList.add('assigned-' + person.id);
-                        if (isConsecutive) {
-                            assigneeCell.innerHTML = person.name + ' <span class="consecutive-warn-badge" title="2 o más semanas consecutivas">2x</span>';
-                        } else {
-                            assigneeCell.textContent = person.name;
-                        }
+                        assigneeCell.textContent = person.name;
                     }
                 }
             });
