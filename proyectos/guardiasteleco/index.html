@@ -1526,6 +1526,8 @@
                     historyLogs = [];
                 }
                 initialLoadedAssignments = JSON.parse(JSON.stringify(assignments));
+                localStorage.setItem('guardias_assignments_' + year, JSON.stringify(assignments));
+                localStorage.setItem('guardias_assignments_' + year, JSON.stringify(assignments));
                 updateAllUI();
                 highlightCurrentWeek();
                 updateCounters();

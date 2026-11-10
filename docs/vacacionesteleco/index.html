@@ -815,6 +815,82 @@
         body.dark-mode .holiday-marker.local { color: #C084FC; }
         body.dark-mode .holiday-marker.nolaborable { color: #2DD4BF; }
 
+        
+        /* SINCRONIZACIÓN DE GUARDIAS TELECO (ICONO DE TELÉFONO) */
+        .guard-phone {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.76rem;
+            line-height: 1;
+            cursor: pointer;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.22));
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .matrix-day-cell:hover .guard-phone {
+            transform: scale(1.3);
+        }
+
+        .matrix-day-cell.is-on-guard {
+            box-shadow: inset 0 0 0 1.5px rgba(18, 55, 110, 0.38);
+        }
+
+        body.dark-mode .matrix-day-cell.is-on-guard {
+            box-shadow: inset 0 0 0 1.5px rgba(56, 189, 248, 0.45);
+        }
+
+        .matrix-day-cell.is-on-guard.vacation-active {
+            box-shadow: 0 0 0 2px #EF4444, 0 3px 10px rgba(239, 68, 68, 0.45) !important;
+        }
+
+        .guard-phone.is-vac-clash {
+            animation: pulse-guard-clash 1.6s infinite ease-in-out;
+        }
+
+        @keyframes pulse-guard-clash {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px #FDE047); }
+            50% { transform: scale(1.32); filter: drop-shadow(0 0 7px #EF4444); }
+        }
+
+        .legend-pill.guard {
+            background: #EFF6FF;
+            color: #1D4ED8;
+            border: 1px solid #BFDBFE;
+        }
+        body.dark-mode .legend-pill.guard {
+            background: #1E293B;
+            color: #93C5FD;
+            border-color: #3B82F6;
+        }
+
+        .modal-guard-notice {
+            background: rgba(18, 55, 110, 0.08);
+            border: 1px solid rgba(18, 55, 110, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 0.85rem;
+            font-size: 0.8rem;
+            color: var(--text-main);
+            margin-bottom: 0.65rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        body.dark-mode .modal-guard-notice {
+            background: rgba(56, 189, 248, 0.1);
+            border-color: rgba(56, 189, 248, 0.25);
+        }
+        .tech-guard-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: #1D4ED8;
+            color: #FFFFFF;
+            padding: 0.12rem 0.4rem;
+            border-radius: 9999px;
+            margin-left: 0.35rem;
+        }
+
         /* PÍLDORAS DE LA LEYENDA */
         .legend-pill {
             display: inline-flex;
@@ -1397,6 +1473,7 @@
                 <span class="legend-pill autonomico" title="Festivo Autonómico (ej. San Juan, San José, 9 d'Octubre)">🔷 Autonómico</span>
                 <span class="legend-pill local" title="Festivo Local (ej. Santa Faz en Alicante, fiestas patronales)">🟣 Local</span>
                 <span class="legend-pill nolaborable" title="Días No Laborables de convenio (24 y 31 de Diciembre)">☕ No Laborable</span>
+                <span class="legend-pill guard" title="Técnico asignado de guardia telefónica esa semana">📞 De Guardia</span>
                 <span class="legend-pill weekend" title="Sábados y Domingos">Fin de semana</span>
                 <div id="overlapBadge" class="overlap-badge" style="display:none;" title="Días con más de 1 técnico de vacaciones simultáneamente">
                     ⚠️ <span id="overlapText">0 solapes</span>
@@ -1433,6 +1510,7 @@
                     <h3 id="modalDateTitle">Coordinar Vacaciones</h3>
                     <div id="modalDateSubtitle" class="modal-subtitle">Día laborable</div>
                 </div>
+                <div id="modalGuardNotice" class="modal-guard-notice" style="display:none;"></div>
                 <button id="closeDayModalBtn" class="modal-close-btn" aria-label="Cerrar">✕</button>
             </div>
             <div class="modal-body">
@@ -1549,6 +1627,94 @@
     </div>
 
     <script>
+    
+    // ==========================================
+    // MOTOR DE SINCRONIZACIÓN DE GUARDIAS TELECO
+    // ==========================================
+    const guardiasByYear = {};
+    window.guardiasByYear = guardiasByYear;
+
+    function getISOWeekInfo(d) {
+        const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        target.setUTCDate(target.getUTCDate() + 4 - (target.getUTCDay() || 7));
+        const weekYear = target.getUTCFullYear();
+        const yearStart = new Date(Date.UTC(weekYear, 0, 1));
+        const weekNo = Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
+        return { week: weekNo, year: weekYear };
+    }
+
+    async function fetchGuardiasForYear(year) {
+        const yStr = String(year);
+        if (guardiasByYear[yStr] && Object.keys(guardiasByYear[yStr]).length > 0) {
+            return guardiasByYear[yStr];
+        }
+
+        // 1. Cargar desde LocalStorage
+        const local = localStorage.getItem('guardias_assignments_' + yStr);
+        if (local) {
+            try {
+                guardiasByYear[yStr] = JSON.parse(local);
+            } catch(e) {}
+        }
+
+        // 2. Si es 2025 y no hay nada, precarga histórica de 2025
+        if (!guardiasByYear[yStr] && year === 2025) {
+            guardiasByYear[yStr] = {'1':'ivan','2':'carlos','3':'raul','4':'ivan','5':'carlos','6':'raul','7':'ivan','8':'carlos','9':'raul','10':'ivan','11':'carlos','12':'ivan','13':'raul','14':'carlos','15':'ivan','16':'raul','17':'carlos','18':'ivan','19':'raul','20':'carlos','21':'ivan','22':'raul','23':'carlos','24':'ivan','25':'raul','26':'carlos','27':'ivan','28':'raul','29':'carlos','30':'ivan','31':'carlos','32':'ivan','33':'carlos','34':'ivan','35':'carlos','36':'raul','37':'ivan','38':'carlos','39':'raul','40':'ivan','41':'carlos','42':'raul','43':'ivan','44':'carlos','45':'raul','46':'carlos','47':'raul','48':'ivan','49':'raul','50':'ivan','51':'raul'};
+            localStorage.setItem('guardias_assignments_2025', JSON.stringify(guardiasByYear[yStr]));
+        }
+
+        // 3. Conexión en tiempo real con Firestore (Colección 'guardias')
+        if (db) {
+            try {
+                const docRef = db.collection('guardias').doc(yStr);
+                docRef.onSnapshot(doc => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data && data.assignments) {
+                            guardiasByYear[yStr] = data.assignments;
+                            localStorage.setItem('guardias_assignments_' + yStr, JSON.stringify(data.assignments));
+                            renderMatrixView();
+                            checkOverlaps();
+                        }
+                    }
+                }, () => {});
+            } catch(e) {}
+        }
+
+        // 4. Fallback REST API
+        if (!guardiasByYear[yStr] || Object.keys(guardiasByYear[yStr]).length === 0) {
+            try {
+                const res = await fetch('https://firestore.googleapis.com/v1/projects/guardias-teleco-ineco/databases/(default)/documents/guardias/' + yStr);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.fields && json.fields.assignments && json.fields.assignments.mapValue && json.fields.assignments.mapValue.fields) {
+                        const raw = json.fields.assignments.mapValue.fields;
+                        const map = {};
+                        Object.keys(raw).forEach(w => {
+                            map[w] = raw[w].stringValue;
+                        });
+                        guardiasByYear[yStr] = map;
+                        localStorage.setItem('guardias_assignments_' + yStr, JSON.stringify(map));
+                        renderMatrixView();
+                    }
+                }
+            } catch(e) {}
+        }
+
+        if (!guardiasByYear[yStr]) guardiasByYear[yStr] = {};
+        return guardiasByYear[yStr];
+    }
+
+    function getGuardPersonForDate(dateObj) {
+        const info = getISOWeekInfo(dateObj);
+        const map = guardiasByYear[String(info.year)] || {};
+        return {
+            personId: map[String(info.week)] || null,
+            week: info.week,
+            year: info.year
+        };
+    }
+
     // DATOS HISTÓRICOS Y ACTUALES EXTRAÍDOS DEL EXCEL OFICIAL
     const PRELOADED_VACATIONS = {
   "2023": {
@@ -2168,6 +2334,9 @@
         getYearHolidays(currentYear - 1);
         getYearHolidays(currentYear);
         getYearHolidays(currentYear + 1);
+        fetchGuardiasForYear(currentYear - 1);
+        fetchGuardiasForYear(currentYear);
+        fetchGuardiasForYear(currentYear + 1);
 
         // Si es 2026, garantizar que las sedes (Madrid, Valencia, Alicante) estén perfectamente asignadas
         if (currentYear === 2026) {
@@ -2395,19 +2564,39 @@
                     }
                     const isVac = isVacation(person.id, dateStr);
 
+                    // Sincronización con hoja de Guardias: verificar si esta persona está de guardia esta semana
+                    const guardInfo = getGuardPersonForDate(dayDate);
+                    const isPersonOnGuard = (guardInfo.personId === person.id);
+
                     let titleStr = person.name + ' (' + person.cityName + ') - ' + d + ' de ' + MONTH_NAMES[item.month] + ' ' + item.year;
                     if (hol) titleStr += ' · ' + getHolidayTypeLabel(hol.type, hol.scope) + ' (' + hol.name + ')';
-                    if (isVac) titleStr += ' · De Vacaciones';
+                    if (isPersonOnGuard) titleStr += ' · 📞 De Guardia (Semana ' + guardInfo.week + ')';
+                    if (isVac) {
+                        titleStr += ' · De Vacaciones';
+                        if (isPersonOnGuard) titleStr += ' ⚠️ (¡Coincide con semana de guardia!)';
+                    }
 
+                    // Construcción del contenido interior de la celda (con icono 📞 si está de guardia)
                     let cellInner = '';
-                    if (isVac) cellInner = '✓';
-                    else if (hol) cellInner = '<span class="holiday-marker ' + hol.type + '" title="' + hol.name + '">' + getHolidayTypeIcon(hol.type, hol.scope) + '</span>';
+                    if (isVac) {
+                        cellInner = '✓';
+                        if (isPersonOnGuard) {
+                            cellInner += ' <span class="guard-phone is-vac-clash" title="⚠️ De vacaciones y de guardia la Semana ' + guardInfo.week + '">📞</span>';
+                        }
+                    } else if (hol) {
+                        cellInner = '<span class="holiday-marker ' + hol.type + '" title="' + hol.name + '">' + getHolidayTypeIcon(hol.type, hol.scope) + '</span>';
+                        if (isPersonOnGuard) {
+                            cellInner += ' <span class="guard-phone" title="📞 De guardia la Semana ' + guardInfo.week + '">📞</span>';
+                        }
+                    } else if (isPersonOnGuard) {
+                        cellInner = '<span class="guard-phone" title="📞 De guardia la Semana ' + guardInfo.week + '">📞</span>';
+                    }
 
                     const holClass = hol ? ('is-holiday-' + hol.type) : '';
-                    // Sombreado idéntico al fin de semana si es fin de semana O festivo/no laborable
                     const isCellNonWorking = isWeekend || !!hol;
+                    const guardClass = isPersonOnGuard ? 'is-on-guard' : '';
 
-                    tableHTML += `<td class="matrix-day-cell ${isCellNonWorking ? 'is-weekend' : ''} ${holClass} ${isVac ? 'vacation-active tech-' + person.id : ''}"
+                    tableHTML += `<td class="matrix-day-cell ${isCellNonWorking ? 'is-weekend' : ''} ${guardClass} ${holClass} ${isVac ? 'vacation-active tech-' + person.id : ''}"
                                       data-date="${dateStr}" 
                                       data-person-id="${person.id}"
                                       title="${titleStr}">
@@ -2767,6 +2956,19 @@
         const dayOfWeekName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][dateObj.getDay()];
 
         document.getElementById('modalDateTitle').textContent = `${dayOfWeekName}, ${d} de ${MONTH_NAMES[m - 1]} de ${y}`;
+        
+        // Información de guardia sincronizada
+        const guardNoticeEl = document.getElementById('modalGuardNotice');
+        if (guardNoticeEl) {
+            const guardInfo = getGuardPersonForDate(dateObj);
+            const guardPerson = TEAM.find(p => p.id === guardInfo.personId);
+            if (guardPerson) {
+                guardNoticeEl.innerHTML = '📞 <strong>Semana ' + guardInfo.week + ':</strong> Guardia de incidencias asignada a <strong style="color:' + guardPerson.color + '">' + guardPerson.name + '</strong> (' + guardPerson.cityName + ')';
+                guardNoticeEl.style.display = 'flex';
+            } else {
+                guardNoticeEl.style.display = 'none';
+            }
+        }
         
         // Cargar estado de festivo en el modal
         const hols = getHolidaysForDate(dateStr);
