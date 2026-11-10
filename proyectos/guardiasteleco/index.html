@@ -83,7 +83,7 @@
                 radial-gradient(circle at 55% 40%, rgba(14, 165, 233, 0.2) 0%, transparent 50%),
                 linear-gradient(135deg, #07152B 0%, #0D254D 45%, #13386E 100%);
             color: #ffffff;
-            padding: 1.4rem 2.25rem;
+            padding: 0.85rem 1.75rem;
             margin-bottom: 1.25rem;
             border-radius: var(--border-radius);
             box-shadow: 0 20px 45px -8px rgba(7, 21, 43, 0.55), 0 3px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255, 255, 255, 0.22);
@@ -136,8 +136,8 @@
             align-items: center;
             justify-content: center;
             background: rgba(255, 255, 255, 0.08);
-            padding: 0.65rem 1.15rem;
-            border-radius: 10px;
+            padding: 0.45rem 0.85rem;
+            border-radius: 9px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
             transition: all var(--transition-speed);
@@ -149,17 +149,17 @@
         }
 
         .header-logo {
-            height: 38px;
+            height: 32px;
             width: auto;
-            max-width: 150px;
+            max-width: 130px;
             object-fit: contain;
             display: block;
         }
 
         .header-divider {
             width: 1px;
-            height: 54px;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.32), rgba(255,255,255,0.05));
+            height: 38px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.28), rgba(255,255,255,0.05));
         }
 
         .header-title-block {
@@ -720,15 +720,15 @@
         tr.assigned-ivan .assignee-cell { background-color: var(--color-ivan); color: white; }
         tr.assigned-carlos .assignee-cell { background-color: var(--color-carlos); color: #1e293b; }
 
-        /* MODALES */
+        /* MODAL DE ASIGNACIÓN ELEGANTE Y PROFESIONAL */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(6px);
+            background: rgba(7, 21, 43, 0.72);
+            backdrop-filter: blur(8px);
             display: none;
             align-items: center;
             justify-content: center;
@@ -737,100 +737,248 @@
         .modal-content {
             background: var(--color-card-bg);
             color: var(--color-text-main);
-            padding: 2.25rem;
-            border-radius: var(--border-radius);
-            box-shadow: 0 14px 38px rgba(0,0,0,0.3);
-            border: 1px solid var(--color-border);
-            width: 90%;
-            max-width: 520px;
+            padding: 2rem 2.25rem 2.25rem;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px -10px rgba(0,0,0,0.4), 0 0 0 1px var(--color-border);
+            width: 92%;
+            max-width: 580px;
             text-align: center;
-            transform: scale(0.9);
+            transform: scale(0.92);
             opacity: 0;
-            transition: transform var(--transition-speed) ease-out, opacity var(--transition-speed) ease-out;
+            transition: transform var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1), opacity var(--transition-speed) ease-out;
             position: relative;
-            max-height: 85vh;
+            max-height: 90vh;
             overflow-y: auto;
         }
         .modal-overlay.active { display: flex; }
         .modal-overlay.active .modal-content { transform: scale(1); opacity: 1; }
         .modal-close-btn {
             position: absolute;
-            top: 12px;
-            right: 16px;
+            top: 14px;
+            right: 18px;
             background: transparent;
             border: none;
-            font-size: 2.2rem;
+            font-size: 2rem;
             line-height: 1;
             color: var(--color-text-muted);
             cursor: pointer;
             transition: color 0.2s ease-out;
-        }
-        .modal-close-btn:hover { color: var(--color-accent); }
-        .modal-content h2 {
-            font-weight: 700;
-            font-size: 1.6rem;
-            color: var(--color-primary-soft);
-            margin-bottom: 1.25rem;
-        }
-        body.dark-theme .modal-content h2 { color: #38bdf8; }
-        
-        .modal-buttons { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.25rem; }
-        
-        .btn-modal-tech {
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.85rem;
-            background-color: var(--color-primary);
-            color: #ffffff;
-            border: 2px solid var(--color-primary);
-            padding: 0.85rem;
-            font-family: var(--font-main);
-            font-weight: 600;
-            font-size: 1.1rem;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            width: 100%;
-            transition: all var(--transition-speed);
         }
-        .btn-modal-tech:hover {
-            background-color: var(--color-accent);
-            border-color: var(--color-accent);
-            transform: scale(1.02);
+        .modal-close-btn:hover { color: var(--color-accent); background: rgba(0,0,0,0.05); }
+
+        .assignment-modal-header {
+            margin-bottom: 1.25rem;
         }
-        .modal-avatar-img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #ffffff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        .assignment-badge {
+            display: inline-block;
+            background: rgba(18, 55, 110, 0.1);
+            color: var(--color-primary-soft);
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            margin-bottom: 0.5rem;
+        }
+        body.dark-theme .assignment-badge {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+        }
+        .modal-content h2 {
+            font-weight: 800;
+            font-size: 1.75rem;
+            color: var(--color-text-main);
+            margin: 0;
+            letter-spacing: 0.3px;
+        }
+        .modal-week-dates {
+            font-size: 0.88rem;
+            color: var(--color-text-muted);
+            margin-top: 0.25rem;
         }
 
-        .btn-clear {
+        /* VISTA PREVIA DE SEMANAS ANTERIORES Y ROTACIÓN */
+        .rotation-timeline {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+        .rotation-title {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--color-text-muted);
+            margin-bottom: 0.65rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .rotation-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+        .rotation-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.45rem 0.3rem;
+            border-radius: 9px;
+            background: var(--color-card-bg);
+            border: 1px solid var(--color-border);
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .rotation-step.target-week {
+            border: 2px solid var(--color-primary-soft);
+            background: rgba(30, 79, 155, 0.06);
+            box-shadow: 0 4px 12px rgba(30, 79, 155, 0.15);
+        }
+        body.dark-theme .rotation-step.target-week {
+            background: rgba(56, 189, 248, 0.08);
+            border-color: #38bdf8;
+        }
+        .rotation-step-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            margin-bottom: 0.35rem;
+        }
+        .rotation-step.target-week .rotation-step-label {
+            color: var(--color-primary-soft);
+        }
+        body.dark-theme .rotation-step.target-week .rotation-step-label {
+            color: #38bdf8;
+        }
+        .rotation-avatar-mini {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--step-color, #cbd5e1);
+            margin-bottom: 0.25rem;
+        }
+        .rotation-qmark {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.06);
+            border: 2px dashed #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--color-text-muted);
+            margin-bottom: 0.25rem;
+        }
+        .rotation-step-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* TARJETAS DE SELECCIÓN DE TÉCNICO */
+        .tech-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.85rem;
+            margin-bottom: 1.5rem;
+        }
+        .tech-select-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: var(--color-card-bg);
+            border: 2px solid var(--color-border);
+            border-radius: 14px;
+            padding: 1.15rem 0.75rem;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            text-align: center;
+            color: var(--color-text-main);
+        }
+        .tech-select-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--card-brand-color, var(--color-primary-soft));
+            box-shadow: 0 10px 24px -4px var(--card-shadow-color, rgba(0,0,0,0.15));
+        }
+        .tech-select-card.is-currently-assigned {
+            border-color: var(--card-brand-color, var(--color-primary-soft));
+            background: var(--card-bg-light, rgba(0,0,0,0.02));
+            box-shadow: 0 6px 18px -2px var(--card-shadow-color, rgba(0,0,0,0.18));
+        }
+        .tech-select-avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--card-brand-color, #ffffff);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            margin-bottom: 0.65rem;
+            transition: transform 0.2s ease;
+        }
+        .tech-select-card:hover .tech-select-avatar {
+            transform: scale(1.08);
+        }
+        .tech-select-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+            color: var(--color-text-main);
+        }
+        .tech-select-meta {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            font-weight: 500;
+        }
+        .tech-assigned-tag {
+            margin-top: 0.5rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: var(--card-brand-color);
+            color: #ffffff;
+            padding: 0.15rem 0.55rem;
+            border-radius: 10px;
+        }
+
+        .btn-clear-selection {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
             background: transparent;
             color: var(--color-accent);
-            border: 2px solid #ffdddd;
+            border: 1.5px solid rgba(203, 24, 35, 0.25);
+            font-family: var(--font-main);
             font-weight: 600;
-            padding: 0.8rem;
-            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
             cursor: pointer;
             width: 100%;
             transition: all 0.2s;
         }
-        .btn-clear:hover {
-            background: #ffebeb;
+        .btn-clear-selection:hover {
+            background: rgba(203, 24, 35, 0.08);
             border-color: var(--color-accent);
             color: var(--color-accent);
-            transform: scale(1.02);
-        }
-        body.dark-theme .btn-clear {
-            border-color: rgba(203, 24, 35, 0.4);
-            color: #f87171;
-        }
-        body.dark-theme .btn-clear:hover {
-            background: rgba(203, 24, 35, 0.2);
-            color: #fca5a5;
+            transform: scale(1.01);
         }
 
         /* TIMELINE DE HISTORIAL */
@@ -968,7 +1116,11 @@
             .main-container { padding: 1rem; }
             .calendar-container { grid-template-columns: 1fr; }
             .header-brand { flex-direction: column; align-items: flex-start; gap: 0.85rem; }
-            .header-divider { display: none; }
+            .header-divider {
+            width: 1px;
+            height: 38px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.28), rgba(255,255,255,0.05));
+        }
             .header-title-block h1 { font-size: 1.9rem; }
             .header-controls { flex-direction: column; align-items: stretch; gap: 1rem; }
             .technician-cards { justify-content: space-between; }
@@ -1007,54 +1159,50 @@
                             <span>Semana Actual (<strong id="currentWeekBadge">Sem --</strong>)</span>
                         </button>
                     </div>
-                    <div class="header-subtitle">Gestión y Planificación de Turnos · Línea de Alta Velocidad Eje Este</div>
+                    
                 </div>
             </div>
             
             <div class="header-controls">
-                <!-- TARJETAS CON AVATARES FOTOGRÁFICOS -->
+                <!-- GRUPO COMPACTO: AVATARES + GUARDAR + TEMA OSCURO -->
                 <div class="technician-cards" id="technicianCards">
                     <div class="tech-card" data-tech-id="raul" title="Clic para modo asignación rápida o ver a Raúl">
                         <div class="avatar-wrap" style="--ring-color: var(--color-raul);">
-                            <img src="avatars/raul.jpg?v=2" alt="Raúl" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2322c55e\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>R</text></svg>'" />
+                            <img src="avatars/raul.jpg?v=2" alt="Raúl" class="tech-avatar-img" />
                             <span class="status-dot"></span>
                         </div>
                         <span class="tech-name">Raúl</span>
                         <span class="tech-count" id="count-raul" title="Semanas asignadas">0</span>
-                        
                     </div>
 
                     <div class="tech-card" data-tech-id="ivan" title="Clic para modo asignación rápida o ver a Iván">
                         <div class="avatar-wrap" style="--ring-color: var(--color-ivan);">
-                            <img src="avatars/ivan.jpg?v=2" alt="Iván" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%230ea5e9\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>I</text></svg>'" />
+                            <img src="avatars/ivan.jpg?v=2" alt="Iván" class="tech-avatar-img" />
                             <span class="status-dot"></span>
                         </div>
                         <span class="tech-name">Iván</span>
                         <span class="tech-count" id="count-ivan" title="Semanas asignadas">0</span>
-                        
                     </div>
 
                     <div class="tech-card" data-tech-id="carlos" title="Clic para modo asignación rápida o ver a Carlos">
                         <div class="avatar-wrap" style="--ring-color: var(--color-carlos);">
-                            <img src="avatars/carlos.jpg?v=2" alt="Carlos" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23f59e0b\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>C</text></svg>'" />
+                            <img src="avatars/carlos.jpg?v=2" alt="Carlos" class="tech-avatar-img" />
                             <span class="status-dot"></span>
                         </div>
                         <span class="tech-name">Carlos</span>
                         <span class="tech-count" id="count-carlos" title="Semanas asignadas">0</span>
-                        
                     </div>
                 </div>
 
-                <!-- ACCIONES: GUARDAR Y TEMA OSCURO -->
                 <div class="header-actions">
                     <span id="saveFeedback"></span>
-                    <button id="saveButton" class="save-button">
+                    <button id="saveButton" class="save-button" title="Guardar cambios en Firestore">
                         <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                             <polyline points="17 21 17 13 7 13 7 21"></polyline>
                             <polyline points="7 3 7 8 15 8"></polyline>
                         </svg>
-                        <span>Guardar Cambios</span>
+                        <span>Guardar</span>
                     </button>
                     <button id="themeToggleBtn" class="theme-toggle-btn" title="Alternar Modo Oscuro / Claro" aria-label="Alternar tema">
                         🌙
@@ -1107,9 +1255,32 @@
     <div class="modal-overlay" id="assignmentModal">
         <div class="modal-content">
             <button class="modal-close-btn" id="closeModalButton">&times;</button>
-            <h2 id="modalTitle">Asignar Semana</h2>
-            <div class="modal-buttons" id="modalButtons"></div>
-            <button class="btn btn-clear" id="clearAssignmentButton">🗑️ Limpiar Asignación</button>
+            
+            <div class="assignment-modal-header">
+                <span class="assignment-badge">Planificación de Guardias</span>
+                <h2 id="modalTitle">Asignar Semana 52</h2>
+                <div class="modal-week-dates" id="modalWeekDates">📅 Del lunes 21 al domingo 27 de diciembre</div>
+            </div>
+
+            <!-- VISTA PREVIA DE ROTACIÓN Y SEMANAS ANTERIORES -->
+            <div class="rotation-timeline">
+                <div class="rotation-title">
+                    <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Contexto de Rotación (Semanas Previas y Siguiente)</span>
+                </div>
+                <div class="rotation-strip" id="rotationStrip">
+                    <!-- Se llena dinámicamente con JS -->
+                </div>
+            </div>
+
+            <!-- TARJETAS DE SELECCIÓN DE TÉCNICO -->
+            <div class="tech-selection-grid" id="modalButtons">
+                <!-- Se llena dinámicamente con JS -->
+            </div>
+
+            <button class="btn-clear-selection" id="clearAssignmentButton">
+                <span>🗑️ Dejar semana libre / Limpiar asignación</span>
+            </button>
         </div>
     </div>
 
@@ -1553,15 +1724,79 @@
         // MODAL DE ASIGNACIÓN CON AVATARES
         function openAssignmentModal(weekId) {
             currentWeekToAssign = weekId;
-            const modalTitle = document.getElementById('modalTitle');
-            modalTitle.textContent = 'Asignar Semana ' + weekId;
+            const weekNum = parseInt(weekId);
+            const year = parseInt(yearSelector.value);
+
+            // Fechas de la semana
+            const monday = getMondayOfISOWeek(weekNum, year);
+            const sunday = new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
+            const monthNames = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+            const datesStr = "📅 Del lunes " + monday.getUTCDate() + " de " + monthNames[monday.getUTCMonth()] + 
+                             " al domingo " + sunday.getUTCDate() + " de " + monthNames[sunday.getUTCMonth()] + " de " + year;
+
+            document.getElementById('modalTitle').textContent = 'Asignar Semana ' + weekNum;
+            document.getElementById('modalWeekDates').textContent = datesStr;
+
+            // VISTA PREVIA DE ROTACIÓN: w-2, w-1, w (actual), w+1
+            const rotationStrip = document.getElementById('rotationStrip');
+            const steps = [
+                { offset: -2, label: 'Sem ' + (weekNum - 2) },
+                { offset: -1, label: 'Sem ' + (weekNum - 1) },
+                { offset: 0, label: 'Sem ' + weekNum + ' (Esta)', isTarget: true },
+                { offset: 1, label: 'Sem ' + (weekNum + 1) }
+            ];
+
+            rotationStrip.innerHTML = steps.map(s => {
+                const targetW = weekNum + s.offset;
+                if (targetW < 1 || targetW > 53) {
+                    return '<div class="rotation-step"><span class="rotation-step-label">' + s.label + '</span><span class="rotation-step-name" style="color:var(--color-text-muted);">—</span></div>';
+                }
+                const assignedId = assignments[targetW] || null;
+                const person = assignedId ? TEAM.find(p => p.id === assignedId) : null;
+                const ringColor = assignedId === 'raul' ? 'var(--color-raul)' : assignedId === 'ivan' ? 'var(--color-ivan)' : assignedId === 'carlos' ? 'var(--color-carlos)' : '#cbd5e1';
+
+                let avatarHtml = '';
+                if (person) {
+                    avatarHtml = '<img src="' + person.avatar + '" class="rotation-avatar-mini" style="--step-color:' + ringColor + ';" alt="' + person.name + '" />';
+                } else {
+                    avatarHtml = '<div class="rotation-qmark">?</div>';
+                }
+
+                return '<div class="rotation-step ' + (s.isTarget ? 'target-week' : '') + '">' +
+                       '<span class="rotation-step-label">' + s.label + '</span>' +
+                       avatarHtml +
+                       '<span class="rotation-step-name">' + (person ? person.name : 'Libre') + '</span>' +
+                       '</div>';
+            }).join('');
+
+            // TARJETAS VISUALES DE SELECCIÓN DE TÉCNICO
+            const counts = { raul: 0, ivan: 0, carlos: 0 };
+            for (const pId of Object.values(assignments)) {
+                if (counts[pId] !== undefined) counts[pId]++;
+            }
+
+            const currentAssignedId = assignments[weekNum] || null;
             const modalButtons = document.getElementById('modalButtons');
-            modalButtons.innerHTML = TEAM.map(person => 
-                '<button type="button" class="btn btn-modal-tech" data-person-id="' + person.id + '">' +
-                '<img src="' + person.avatar + '" class="modal-avatar-img" alt="' + person.name + '" style="pointer-events:none;" />' +
-                '<span style="pointer-events:none;">' + person.name + '</span>' +
-                '</button>'
-            ).join('');
+
+            const techThemes = {
+                raul: { color: 'var(--color-raul)', shadow: 'rgba(34, 197, 94, 0.25)', bg: 'rgba(34, 197, 94, 0.05)' },
+                ivan: { color: 'var(--color-ivan)', shadow: 'rgba(14, 165, 233, 0.25)', bg: 'rgba(14, 165, 233, 0.05)' },
+                carlos: { color: 'var(--color-carlos)', shadow: 'rgba(245, 158, 11, 0.25)', bg: 'rgba(245, 158, 11, 0.05)' }
+            };
+
+            modalButtons.innerHTML = TEAM.map(person => {
+                const theme = techThemes[person.id] || { color: '#ffffff', shadow: 'rgba(0,0,0,0.2)', bg: 'transparent' };
+                const isAssigned = (currentAssignedId === person.id);
+                const count = counts[person.id] || 0;
+
+                return '<div class="tech-select-card ' + (isAssigned ? 'is-currently-assigned' : '') + '" data-person-id="' + person.id + '" style="--card-brand-color:' + theme.color + '; --card-shadow-color:' + theme.shadow + '; --card-bg-light:' + theme.bg + ';">' +
+                       '<img src="' + person.avatar + '" class="tech-select-avatar" alt="' + person.name + '" style="pointer-events:none;" />' +
+                       '<span class="tech-select-name" style="pointer-events:none;">' + person.name + '</span>' +
+                       '<span class="tech-select-meta" style="pointer-events:none;">' + count + ' sem. en ' + year + '</span>' +
+                       (isAssigned ? '<span class="tech-assigned-tag" style="pointer-events:none;">Asignado</span>' : '') +
+                       '</div>';
+            }).join('');
+
             const assignmentModal = document.getElementById('assignmentModal');
             assignmentModal.classList.add('active');
         }
@@ -1644,9 +1879,9 @@
         closeModalButton.addEventListener('click', closeAssignmentModal);
         assignmentModal.addEventListener('click', (e) => e.target === assignmentModal && closeAssignmentModal());
         modalButtons.addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-person-id]');
-            if (btn && btn.dataset.personId) {
-                handlePersonSelection(btn.dataset.personId);
+            const card = e.target.closest('[data-person-id]');
+            if (card && card.dataset.personId) {
+                handlePersonSelection(card.dataset.personId);
             }
         });
         clearAssignmentButton.addEventListener('click', handleClearAssignment);
