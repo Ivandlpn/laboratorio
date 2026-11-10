@@ -734,27 +734,34 @@
             50% { opacity: 0.5; }
         }
 
-        /* LÁPIZ: OCULTO DE INICIO Y VISIBLE SOLO AL PULSAR EDITAR */
+        /* LÁPIZ: SOLO APARECE EN MODO EDICIÓN Y AL PASAR EL RATÓN SOBRE LA SEMANA */
         .edit-icon {
             display: none !important;
+            opacity: 0 !important;
             position: absolute;
             right: 6px;
             top: 50%;
             transform: translateY(-50%) scale(0.85);
             font-size: 13px;
-            opacity: 0;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             pointer-events: none;
             filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
         }
+
+        /* Cuando está en modo edición, permanece oculto por defecto... */
         body.is-editing .edit-icon {
+            display: none !important;
+            opacity: 0 !important;
+        }
+
+        /* ...y SOLO aparece cuando el ratón pasa por encima de la semana (hover en la fila) */
+        body.is-editing tr:hover .edit-icon,
+        body.is-editing tr[data-week-id]:hover .edit-icon {
             display: inline-block !important;
-            opacity: 0.55;
+            opacity: 1 !important;
+            transform: translateY(-50%) scale(1.15);
         }
-        body.is-editing tr:hover .edit-icon {
-            opacity: 1;
-            transform: translateY(-50%) scale(1.2);
-        }
+
         body.is-editing tr[data-week-id] {
             cursor: pointer;
         }
@@ -1318,6 +1325,45 @@
             flex-shrink: 0;
         }
 
+    
+        /* CLUSTER DE AVATARES Y ACCIONES UNIFICADAS A LA DERECHA */
+        .header-controls {
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            gap: 0.5rem !important;
+        }
+
+        .avatars-actions-cluster {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(0, 0, 0, 0.22);
+            padding: 0.35rem 0.6rem;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            backdrop-filter: blur(10px);
+        }
+
+        .avatars-actions-cluster .technician-cards {
+            background: transparent !important;
+            border: none !important;
+            padding: 0 !important;
+            gap: 0.45rem !important;
+        }
+
+        .header-divider-cluster {
+            width: 1px;
+            height: 22px;
+            background: rgba(255, 255, 255, 0.25);
+            margin: 0 0.15rem;
+        }
+
+        .avatars-actions-cluster .compact-icon-actions {
+            margin-left: 0;
+            gap: 0.35rem;
+        }
+
     </style>
 </head>
 <body>
@@ -1357,57 +1403,60 @@
             </div>
             
             <div class="header-controls">
-                <div class="technician-cards" id="technicianCards">
-                    <div class="tech-card" data-tech-id="raul" title="Clic para modo asignación rápida o ver a Raúl">
-                        <div class="avatar-wrap" style="--ring-color: var(--color-raul);">
-                            <img src="avatars/raul.jpg?v=2" alt="Raúl" class="tech-avatar-img" />
-                            <span class="status-dot"></span>
+                <!-- CLUSTER UNIFICADO: AVATARES DE TÉCNICOS + BOTONES DE ACCIÓN A SU DERECHA -->
+                <div class="avatars-actions-cluster">
+                    <div class="technician-cards" id="technicianCards">
+                        <div class="tech-card" data-tech-id="raul" title="Clic para modo asignación rápida o ver a Raúl">
+                            <div class="avatar-wrap" style="--ring-color: var(--color-raul);">
+                                <img src="avatars/raul.jpg?v=2" alt="Raúl" class="tech-avatar-img" />
+                                <span class="status-dot"></span>
+                            </div>
+                            <span class="tech-name">Raúl</span>
+                            <span class="tech-count" id="count-raul" title="Semanas asignadas">0</span>
                         </div>
-                        <span class="tech-name">Raúl</span>
-                        <span class="tech-count" id="count-raul" title="Semanas asignadas">0</span>
+
+                        <div class="tech-card" data-tech-id="ivan" title="Clic para modo asignación rápida o ver a Iván">
+                            <div class="avatar-wrap" style="--ring-color: var(--color-ivan);">
+                                <img src="avatars/ivan.jpg?v=2" alt="Iván" class="tech-avatar-img" />
+                                <span class="status-dot"></span>
+                            </div>
+                            <span class="tech-name">Iván</span>
+                            <span class="tech-count" id="count-ivan" title="Semanas asignadas">0</span>
+                        </div>
+
+                        <div class="tech-card" data-tech-id="carlos" title="Clic para modo asignación rápida o ver a Carlos">
+                            <div class="avatar-wrap" style="--ring-color: var(--color-carlos);">
+                                <img src="avatars/carlos.jpg?v=2" alt="Carlos" class="tech-avatar-img" />
+                                <span class="status-dot"></span>
+                            </div>
+                            <span class="tech-name">Carlos</span>
+                            <span class="tech-count" id="count-carlos" title="Semanas asignadas">0</span>
+                        </div>
                     </div>
 
-                    <div class="tech-card" data-tech-id="ivan" title="Clic para modo asignación rápida o ver a Iván">
-                        <div class="avatar-wrap" style="--ring-color: var(--color-ivan);">
-                            <img src="avatars/ivan.jpg?v=2" alt="Iván" class="tech-avatar-img" />
-                            <span class="status-dot"></span>
-                        </div>
-                        <span class="tech-name">Iván</span>
-                        <span class="tech-count" id="count-ivan" title="Semanas asignadas">0</span>
+                    <!-- SEPARADOR DISCRETO -->
+                    <div class="header-divider-cluster"></div>
+
+                    <!-- BOTONES A LA DERECHA DE LOS AVATARES -->
+                    <div class="header-actions compact-icon-actions">
+                        <span id="saveFeedback"></span>
+                        <button id="editToggleBtn" class="icon-action-btn edit-toggle-button" title="Modo Edición" aria-label="Modo Edición">
+                            <svg class="edit-btn-icon btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 20h9"></path>
+                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                            </svg>
+                        </button>
+                        <button id="saveButton" class="icon-action-btn save-button" title="Guardar cambios" aria-label="Guardar">
+                            <svg class="save-icon btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                            </svg>
+                        </button>
+                        <button id="themeToggleBtn" class="icon-action-btn theme-toggle-btn" title="Alternar Modo Oscuro / Claro" aria-label="Alternar tema">
+                            🌙
+                        </button>
                     </div>
-
-                    <div class="tech-card" data-tech-id="carlos" title="Clic para modo asignación rápida o ver a Carlos">
-                        <div class="avatar-wrap" style="--ring-color: var(--color-carlos);">
-                            <img src="avatars/carlos.jpg?v=2" alt="Carlos" class="tech-avatar-img" />
-                            <span class="status-dot"></span>
-                        </div>
-                        <span class="tech-name">Carlos</span>
-                        <span class="tech-count" id="count-carlos" title="Semanas asignadas">0</span>
-                    </div>
-                </div>
-
-                <!-- SEPARADOR DISCRETO -->
-                <div class="header-divider" style="height:24px; margin: 0 0.15rem;"></div>
-
-                <!-- ACCIONES COMPACTAS SOLO CON ICONO JUNTO A LOS NOMBRES -->
-                <div class="header-actions compact-icon-actions">
-                    <span id="saveFeedback"></span>
-                    <button id="editToggleBtn" class="icon-action-btn edit-toggle-button" title="Modo Edición" aria-label="Modo Edición">
-                        <svg class="edit-btn-icon btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 20h9"></path>
-                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                        </svg>
-                    </button>
-                    <button id="saveButton" class="icon-action-btn save-button" title="Guardar cambios" aria-label="Guardar">
-                        <svg class="save-icon btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                            <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                    </button>
-                    <button id="themeToggleBtn" class="icon-action-btn theme-toggle-btn" title="Alternar Modo Oscuro / Claro" aria-label="Alternar tema">
-                        🌙
-                    </button>
                 </div>
             </div>
         </header>
