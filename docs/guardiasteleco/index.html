@@ -7,7 +7,7 @@
     
     <!-- Metadatos PWA e iconos -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0A1E3F">
+    <meta name="theme-color" content="#07152B">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -20,7 +20,7 @@
 
     <style>
         :root {
-            --color-navy-dark: #0A1E3F;
+            --color-navy-dark: #07152B;
             --color-primary: #12376E;
             --color-primary-soft: #1E4F9B;
             --color-accent: #CB1823;
@@ -38,7 +38,7 @@
             --color-ivan: #0ea5e9;
             --color-carlos: #f59e0b;
             --font-main: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            --border-radius: 12px;
+            --border-radius: 14px;
             --transition-speed: 0.25s;
         }
 
@@ -69,20 +69,60 @@
         }
         .main-container { max-width: 1850px; margin: 0 auto; padding: 1.5rem 2rem 3rem; }
         
-        /* CABECERA PRINCIPAL */
+        /* CABECERA DINÁMICA MULTICAPA (NO COLOR SÓLIDO) */
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 1.75rem;
-            background: linear-gradient(135deg, #0A1E3F 0%, #12376E 45%, #18478C 100%);
+            position: relative;
+            overflow: hidden;
+            background: 
+                radial-gradient(circle at 10% 25%, rgba(30, 85, 175, 0.48) 0%, transparent 45%),
+                radial-gradient(circle at 92% 75%, rgba(203, 24, 35, 0.26) 0%, transparent 40%),
+                radial-gradient(circle at 55% 40%, rgba(14, 165, 233, 0.2) 0%, transparent 50%),
+                linear-gradient(135deg, #07152B 0%, #0D254D 45%, #13386E 100%);
             color: #ffffff;
-            padding: 1.35rem 2.25rem;
+            padding: 1.4rem 2.25rem;
             margin-bottom: 1.25rem;
             border-radius: var(--border-radius);
-            box-shadow: 0 14px 34px -4px rgba(10, 30, 63, 0.45), 0 3px 8px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 45px -8px rgba(7, 21, 43, 0.55), 0 3px 10px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-top: 1px solid rgba(255, 255, 255, 0.38);
+        }
+
+        /* Trama técnica de micro-rejilla en cabecera */
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: 
+                radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 24px 24px, 48px 48px, 48px 48px;
+            pointer-events: none;
+            opacity: 0.65;
+            z-index: 1;
+        }
+
+        /* Resplandor diagonal de haz de luz */
+        .header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -30%;
+            width: 160%;
+            height: 200%;
+            background: linear-gradient(65deg, transparent 40%, rgba(255, 255, 255, 0.03) 45%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 55%, transparent 60%);
+            pointer-events: none;
+            transform: rotate(-8deg);
+            z-index: 1;
+        }
+
+        .header-brand, .header-controls {
             position: relative;
+            z-index: 2;
         }
 
         .header-brand {
@@ -98,13 +138,13 @@
             background: rgba(255, 255, 255, 0.08);
             padding: 0.65rem 1.15rem;
             border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
             transition: all var(--transition-speed);
         }
         .logo-container:hover {
             background: rgba(255, 255, 255, 0.16);
-            border-color: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.4);
             transform: translateY(-2px);
         }
 
@@ -118,8 +158,8 @@
 
         .header-divider {
             width: 1px;
-            height: 52px;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.28), rgba(255,255,255,0.05));
+            height: 54px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.05), rgba(255,255,255,0.32), rgba(255,255,255,0.05));
         }
 
         .header-title-block {
@@ -135,7 +175,7 @@
             flex-wrap: wrap;
         }
 
-        /* TEXTO MÁS GRANDE Y DESTACADO */
+        /* TEXTO GRANDE Y DESTACADO */
         .header-title-block h1 {
             font-size: 2.35rem;
             font-weight: 800;
@@ -143,7 +183,7 @@
             color: #ffffff;
             margin: 0;
             line-height: 1.15;
-            text-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+            text-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
             background: linear-gradient(180deg, #FFFFFF 25%, #E2EDFA 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -152,7 +192,7 @@
         .header-subtitle {
             font-size: 0.88rem;
             font-weight: 400;
-            color: rgba(255, 255, 255, 0.78);
+            color: rgba(255, 255, 255, 0.82);
             letter-spacing: 0.35px;
         }
 
@@ -164,12 +204,12 @@
             border: 1px solid rgba(255, 255, 255, 0.28);
             border-radius: 8px;
             padding: 0.35rem 0.75rem;
-            backdrop-filter: blur(6px);
+            backdrop-filter: blur(8px);
             transition: all var(--transition-speed);
         }
         .year-selector-pill:hover, .year-selector-pill:focus-within {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.26);
+            border-color: rgba(255, 255, 255, 0.55);
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
         }
 
@@ -203,7 +243,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.6rem;
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.13);
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 8px;
@@ -212,11 +252,12 @@
             font-size: 0.88rem;
             font-weight: 600;
             cursor: pointer;
+            backdrop-filter: blur(8px);
             transition: all var(--transition-speed);
         }
         .today-jump-btn:hover {
-            background: rgba(255, 255, 255, 0.24);
-            border-color: rgba(255, 255, 255, 0.45);
+            background: rgba(255, 255, 255, 0.26);
+            border-color: rgba(255, 255, 255, 0.5);
             transform: translateY(-1px);
         }
         .pulse-beacon {
@@ -240,15 +281,16 @@
             flex-wrap: wrap;
         }
 
-        /* TARJETAS TÉCNICOS */
+        /* TARJETAS TÉCNICOS CON AVATARES FOTOGRÁFICOS */
         .technician-cards {
             display: flex;
             align-items: center;
-            gap: 0.6rem;
-            background: rgba(0, 0, 0, 0.22);
-            padding: 0.4rem 0.6rem;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            gap: 0.65rem;
+            background: rgba(0, 0, 0, 0.28);
+            padding: 0.4rem 0.65rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(10px);
         }
 
         .tech-card {
@@ -256,24 +298,24 @@
             align-items: center;
             gap: 0.65rem;
             background: rgba(255, 255, 255, 0.08);
-            padding: 0.45rem 0.85rem;
-            border-radius: 8px;
+            padding: 0.4rem 0.75rem 0.4rem 0.45rem;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.16);
             user-select: none;
             position: relative;
         }
         .tech-card:hover {
             transform: translateY(-2px);
             background: rgba(255, 255, 255, 0.22);
-            border-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            border-color: rgba(255, 255, 255, 0.45);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
         }
         .tech-card.is-painter {
             background: rgba(255, 255, 255, 0.28);
             border-color: #ffffff;
-            box-shadow: 0 0 14px rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 16px rgba(255, 255, 255, 0.65);
             transform: scale(1.04);
         }
         .tech-card.is-painter::after {
@@ -285,14 +327,36 @@
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
         }
 
-        .tech-card .color-dot {
-            width: 12px;
-            height: 12px;
+        /* AVATAR CIRCULAR CON BORDE DE COLOR */
+        .avatar-wrap {
+            position: relative;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            border: 2px solid rgba(255, 255, 255, 0.9);
-            box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
             flex-shrink: 0;
         }
+        .tech-avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--ring-color, #ffffff);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+            display: block;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .status-dot {
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--ring-color, #ffffff);
+            border: 2px solid #0D254D;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+        }
+
         .tech-card .tech-name {
             font-weight: 600;
             font-size: 0.95rem;
@@ -300,11 +364,11 @@
             letter-spacing: 0.2px;
         }
         .tech-card .tech-count {
-            background: rgba(0, 0, 0, 0.35);
+            background: rgba(0, 0, 0, 0.4);
             color: #ffffff;
             font-weight: 700;
             font-size: 0.82rem;
-            padding: 0.15rem 0.5rem;
+            padding: 0.18rem 0.5rem;
             border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             min-width: 26px;
@@ -340,13 +404,13 @@
             font-size: 0.94rem;
             border-radius: 8px;
             cursor: pointer;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
             transition: all var(--transition-speed) ease;
         }
         .save-button:hover:not(.has-changes) {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.26);
             color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.45);
         }
         .save-icon {
             width: 17px;
@@ -357,8 +421,8 @@
         .save-button.has-changes {
             background: linear-gradient(135deg, #CB1823 0%, #E6222E 100%);
             color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.4);
-            box-shadow: 0 4px 16px rgba(203, 24, 35, 0.45);
+            border-color: rgba(255, 255, 255, 0.45);
+            box-shadow: 0 4px 18px rgba(203, 24, 35, 0.5);
             animation: pulse-save 1.8s infinite;
         }
         @keyframes pulse-save {
@@ -378,14 +442,15 @@
             background: rgba(255, 255, 255, 0.12);
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.25);
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             font-size: 1.2rem;
+            backdrop-filter: blur(8px);
             transition: all var(--transition-speed);
         }
         .theme-toggle-btn:hover {
@@ -394,7 +459,7 @@
             transform: scale(1.05);
         }
 
-        /* BARRA DE HERRAMIENTAS UX (FILTROS, EXPORTACIÓN, HISTORIAL) */
+        /* BARRA DE HERRAMIENTAS UX */
         .toolbar {
             display: flex;
             align-items: center;
@@ -612,14 +677,37 @@
         tr.highlight-ivan { --highlight-color: var(--color-ivan); }
         tr.highlight-carlos { --highlight-color: var(--color-carlos); }
 
+        /* CELDA DE TÉCNICO CON MINI AVATAR */
         .assignee-cell {
             font-weight: 600;
-            width: 85px;
+            width: 100px;
             background-color: var(--color-cell-empty);
             color: var(--color-text-main);
             transition: background-color 0.3s;
             position: relative;
+            padding: 0.35rem 0.4rem !important;
         }
+        .assignee-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .cell-avatar {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+            background: #cbd5e1;
+        }
+        .assignee-name {
+            font-size: 0.88rem;
+            white-space: nowrap;
+        }
+
         .week-number-cell {
             font-weight: 600;
             color: var(--color-text-muted);
@@ -627,10 +715,10 @@
             position: relative;
         }
 
-        /* ALERTA DE SEMANAS CONSECUTIVAS (UX 5) */
+        /* ALERTA DE SEMANAS CONSECUTIVAS */
         .consecutive-warn-badge {
             display: inline-block;
-            font-size: 0.72rem;
+            font-size: 0.7rem;
             background: #ef4444;
             color: #ffffff;
             border-radius: 4px;
@@ -728,24 +816,38 @@
         body.dark-theme .modal-content h2 { color: #38bdf8; }
         
         .modal-buttons { display: flex; flex-direction: column; gap: 0.85rem; margin-bottom: 1.25rem; }
-        .modal-buttons .btn {
+        
+        .btn-modal-tech {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.85rem;
             background-color: var(--color-primary);
             color: #ffffff;
             border: 2px solid var(--color-primary);
-            padding: 0.9rem;
+            padding: 0.85rem;
             font-family: var(--font-main);
             font-weight: 600;
-            font-size: 1.05rem;
+            font-size: 1.1rem;
             border-radius: var(--border-radius);
             cursor: pointer;
             width: 100%;
             transition: all var(--transition-speed);
         }
-        .modal-buttons .btn:hover {
+        .btn-modal-tech:hover {
             background-color: var(--color-accent);
             border-color: var(--color-accent);
             transform: scale(1.02);
         }
+        .modal-avatar-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
         .btn-clear {
             background: transparent;
             color: var(--color-accent);
@@ -828,8 +930,15 @@
             border-color: var(--color-primary);
             transform: translateY(-2px);
         }
+        .export-avatar-img {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid #ffffff;
+        }
 
-        /* ESTILOS DE IMPRESIÓN Y PDF OFICIAL (UX 2) */
+        /* ESTILOS DE IMPRESIÓN Y PDF */
         @media print {
             body {
                 background: #ffffff !important;
@@ -840,7 +949,7 @@
                 display: none !important;
             }
             .header {
-                background: #0A1E3F !important;
+                background: #07152B !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 padding: 1rem !important;
@@ -883,7 +992,7 @@
             }
         }
 
-        /* MEDIA QUERIES RESPONSIVAS */
+        /* MEDIA QUERIES */
         @media (max-width: 1380px) {
             .header {
                 flex-direction: column;
@@ -914,7 +1023,7 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- CABECERA PRINCIPAL -->
+        <!-- CABECERA PROFESIONAL MULTICAPA (CON RESPLANDORES Y MICRO-TRAMA) -->
         <header class="header">
             <div class="header-brand">
                 <div class="logo-container" title="Ineco">
@@ -944,22 +1053,33 @@
             </div>
             
             <div class="header-controls">
-                <!-- TARJETAS CON CONTADORES Y AVISO DE FATIGA (UX 1 & 5) -->
+                <!-- TARJETAS CON AVATARES FOTOGRÁFICOS -->
                 <div class="technician-cards" id="technicianCards">
                     <div class="tech-card" data-tech-id="raul" title="Clic para modo asignación rápida o ver a Raúl">
-                        <div class="color-dot" style="background-color: var(--color-raul);"></div>
+                        <div class="avatar-wrap" style="--ring-color: var(--color-raul);">
+                            <img src="avatars/raul.jpg" alt="Raúl" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%2322c55e\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>R</text></svg>'" />
+                            <span class="status-dot"></span>
+                        </div>
                         <span class="tech-name">Raúl</span>
                         <span class="tech-count" id="count-raul" title="Semanas asignadas">0</span>
                         <span class="fatigue-warn" title="Tiene semanas consecutivas asignadas">⚠️</span>
                     </div>
+
                     <div class="tech-card" data-tech-id="ivan" title="Clic para modo asignación rápida o ver a Iván">
-                        <div class="color-dot" style="background-color: var(--color-ivan);"></div>
+                        <div class="avatar-wrap" style="--ring-color: var(--color-ivan);">
+                            <img src="avatars/ivan.jpg" alt="Iván" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%230ea5e9\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>I</text></svg>'" />
+                            <span class="status-dot"></span>
+                        </div>
                         <span class="tech-name">Iván</span>
                         <span class="tech-count" id="count-ivan" title="Semanas asignadas">0</span>
                         <span class="fatigue-warn" title="Tiene semanas consecutivas asignadas">⚠️</span>
                     </div>
+
                     <div class="tech-card" data-tech-id="carlos" title="Clic para modo asignación rápida o ver a Carlos">
-                        <div class="color-dot" style="background-color: var(--color-carlos);"></div>
+                        <div class="avatar-wrap" style="--ring-color: var(--color-carlos);">
+                            <img src="avatars/carlos.jpg" alt="Carlos" class="tech-avatar-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'><circle cx=\'50\' cy=\'50\' r=\'50\' fill=\'%23f59e0b\'/><text x=\'50\' y=\'62\' font-size=\'36\' font-family=\'Arial\' font-weight=\'bold\' fill=\'white\' text-anchor=\'middle\'>C</text></svg>'" />
+                            <span class="status-dot"></span>
+                        </div>
                         <span class="tech-name">Carlos</span>
                         <span class="tech-count" id="count-carlos" title="Semanas asignadas">0</span>
                         <span class="fatigue-warn" title="Tiene semanas consecutivas asignadas">⚠️</span>
@@ -984,7 +1104,7 @@
             </div>
         </header>
 
-        <!-- BARRA DE HERRAMIENTAS UX (FILTROS, EXPORTACIÓN, HISTORIAL) -->
+        <!-- BARRA DE HERRAMIENTAS UX -->
         <section class="toolbar">
             <div class="toolbar-left">
                 <span class="toolbar-label">Filtrar vista:</span>
@@ -1024,7 +1144,7 @@
         <main id="calendarContainer" class="calendar-container"></main>
     </div>
 
-    <!-- MODAL DE ASIGNACIÓN -->
+    <!-- MODAL DE ASIGNACIÓN CON AVATARES -->
     <div class="modal-overlay" id="assignmentModal">
         <div class="modal-content">
             <button class="modal-close-btn" id="closeModalButton">&times;</button>
@@ -1034,36 +1154,48 @@
         </div>
     </div>
 
-    <!-- MODAL DE EXPORTACIÓN ICS (UX 1) -->
+    <!-- MODAL DE EXPORTACIÓN ICS CON AVATARES -->
     <div class="modal-overlay" id="exportModal">
         <div class="modal-content">
             <button class="modal-close-btn" id="closeExportModalButton">&times;</button>
             <h2>Exportar a Calendario (.ics)</h2>
-            <p style="color:var(--color-text-muted); margin-bottom:1rem; font-size:0.92rem;">
+            <p style="color:var(--color-text-muted); margin-bottom:1.25rem; font-size:0.92rem;">
                 Descarga el archivo <code>.ics</code> compatible con Outlook, Google Calendar y iPhone para importar los turnos con alertas automáticas.
             </p>
             <div class="export-options">
                 <button class="export-btn" data-export-tech="raul">
-                    <span>🟢 Solo turnos de Raúl</span>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <img src="avatars/raul.jpg" class="export-avatar-img" alt="Raúl" />
+                        <span>Solo turnos de Raúl</span>
+                    </div>
                     <span>📥 Descargar</span>
                 </button>
                 <button class="export-btn" data-export-tech="ivan">
-                    <span>🔵 Solo turnos de Iván</span>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <img src="avatars/ivan.jpg" class="export-avatar-img" alt="Iván" />
+                        <span>Solo turnos de Iván</span>
+                    </div>
                     <span>📥 Descargar</span>
                 </button>
                 <button class="export-btn" data-export-tech="carlos">
-                    <span>🟡 Solo turnos de Carlos</span>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <img src="avatars/carlos.jpg" class="export-avatar-img" alt="Carlos" />
+                        <span>Solo turnos de Carlos</span>
+                    </div>
                     <span>📥 Descargar</span>
                 </button>
                 <button class="export-btn" data-export-tech="all" style="border-color:var(--color-primary-soft);">
-                    <span>📋 Cuadrante completo (Todos)</span>
+                    <div style="display:flex; align-items:center; gap:0.75rem;">
+                        <span style="font-size:1.3rem;">📋</span>
+                        <span>Cuadrante completo (Todos)</span>
+                    </div>
                     <span>📥 Descargar</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL DE HISTORIAL DE AUDITORÍA (UX 3) -->
+    <!-- MODAL DE HISTORIAL DE AUDITORÍA -->
     <div class="modal-overlay" id="historyModal">
         <div class="modal-content">
             <button class="modal-close-btn" id="closeHistoryModalButton">&times;</button>
@@ -1094,17 +1226,23 @@
     const db = firebase.firestore();
 
     document.addEventListener('DOMContentLoaded', () => {
-        const TEAM = [ { id: 'raul', name: 'Raúl' }, { id: 'ivan', name: 'Iván' }, { id: 'carlos', name: 'Carlos' }];
+        // EQUIPO CON AVATARES
+        const TEAM = [
+            { id: 'raul', name: 'Raúl', avatar: 'avatars/raul.jpg' },
+            { id: 'ivan', name: 'Iván', avatar: 'avatars/ivan.jpg' },
+            { id: 'carlos', name: 'Carlos', avatar: 'avatars/carlos.jpg' }
+        ];
+
         const initialAssignments2025 = {'1':'ivan','2':'carlos','3':'raul','4':'ivan','5':'carlos','6':'raul','7':'ivan','8':'carlos','9':'raul','10':'ivan','11':'carlos','12':'ivan','13':'raul','14':'carlos','15':'ivan','16':'raul','17':'carlos','18':'ivan','19':'raul','20':'carlos','21':'ivan','22':'raul','23':'carlos','24':'ivan','25':'raul','26':'carlos','27':'ivan','28':'raul','29':'carlos','30':'ivan','31':'carlos','32':'ivan','33':'carlos','34':'ivan','35':'carlos','36':'raul','37':'ivan','38':'carlos','39':'raul','40':'ivan','41':'carlos','42':'raul','43':'ivan','44':'carlos','45':'raul','46':'carlos','47':'raul','48':'ivan','49':'raul','50':'ivan','51':'raul'};
         
         let assignments = {};
-        let initialLoadedAssignments = {}; // Para comparar cambios de auditoría
+        let initialLoadedAssignments = {};
         let historyLogs = [];
         let currentWeekToAssign = null;
         let hasUnsavedChanges = false;
         let unsubscribe;
         let activePainter = null;
-        let currentFilter = 'all'; // UX 4: Filtro de vista
+        let currentFilter = 'all';
         
         const calendarContainer = document.getElementById('calendarContainer');
         const saveButton = document.getElementById('saveButton');
@@ -1118,7 +1256,6 @@
         const exitPainterBtn = document.getElementById('exitPainterBtn');
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         
-        // Elementos de Toolbar
         const filterGroup = document.getElementById('filterGroup');
         const openExportModalBtn = document.getElementById('openExportModalBtn');
         const exportCsvBtn = document.getElementById('exportCsvBtn');
@@ -1127,7 +1264,7 @@
         const historyBadge = document.getElementById('historyBadge');
         const historyList = document.getElementById('historyList');
 
-        // TEMA OSCURO PERSISTENTE
+        // TEMA OSCURO
         function initTheme() {
             const savedTheme = localStorage.getItem('guardias-theme');
             if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -1145,12 +1282,12 @@
         });
         initTheme();
 
-        // REGISTRO SERVICE WORKER (PWA)
+        // SERVICE WORKER (PWA)
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(() => {});
         }
 
-        // POBLAR SELECTOR DE AÑO
+        // SELECTOR DE AÑO
         function populateYearSelector() {
             const currentYear = new Date().getFullYear();
             for (let i = currentYear - 1; i <= currentYear + 4; i++) {
@@ -1170,7 +1307,7 @@
             }
         }
         
-        // INICIALIZAR AÑO Y FIRESTORE
+        // FIRESTORE SYNC
         async function initializeYear(year) {
             if (unsubscribe) unsubscribe();
             calendarContainer.innerHTML = '<p style="text-align:center; width:100%; grid-column: 1 / -1; padding: 3rem; font-size: 1.1rem; color: var(--color-text-muted);">Cargando calendario...</p>';
@@ -1200,7 +1337,6 @@
             });
         }
         
-        // GUARDAR CAMBIOS EN FIRESTORE (CON AUDITORÍA UX 3)
         async function saveAssignments() {
             if (!hasUnsavedChanges) return;
             saveFeedback.textContent = "Guardando...";
@@ -1208,7 +1344,6 @@
             const year = yearSelector.value;
             const docRef = db.collection('guardias').doc(String(year));
 
-            // Generar entradas de auditoría detectando diferencias
             const newEntries = [];
             const now = new Date();
             const dateStr = now.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -1254,7 +1389,7 @@
             }
         }
 
-        // CONTADORES Y DETECTOR DE FATIGA / SEMANAS CONSECUTIVAS (UX 1 & 5)
+        // CONTADORES Y DETECTOR DE FATIGA
         function updateCounters() {
             const counts = { raul: 0, ivan: 0, carlos: 0 };
             const consecutiveFlags = { raul: false, ivan: false, carlos: false };
@@ -1300,7 +1435,6 @@
             weekRows.forEach(row => row.classList.add('current-week'));
         }
 
-        // SALTO A LA SEMANA ACTUAL (MEJORA 2)
         function jumpToCurrentWeek() {
             const currentYear = new Date().getFullYear();
             if (parseInt(yearSelector.value) !== currentYear) {
@@ -1325,7 +1459,7 @@
         }
         if (todayBtn) todayBtn.addEventListener('click', jumpToCurrentWeek);
         
-        // GENERACIÓN DEL CALENDARIO
+        // CALENDARIO
         function generateFullCalendar(year) {
             calendarContainer.innerHTML = '';
             const monthNames = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
@@ -1377,7 +1511,7 @@
             return weekNo;
         }
 
-        // ACTUALIZAR FILA DE SEMANA (CON DETECCIÓN DE SEMANAS CONSECUTIVAS UX 5)
+        // ACTUALIZAR CELDA CON MINI AVATAR
         function updateWeekRowUI(weekId, personId) {
             const weekRows = document.querySelectorAll('tr[data-week-id="' + weekId + '"]');
             if (!weekRows.length) return;
@@ -1392,17 +1526,20 @@
                     const person = TEAM.find(p => p.id === personId);
                     if (person) {
                         row.classList.add('assigned-' + person.id);
-                        let badgeHtml = person.name;
+                        let html = '<div class="assignee-content">' +
+                                   '<img src="' + person.avatar + '" alt="' + person.name + '" class="cell-avatar" onerror="this.style.display=\'none\'" />' +
+                                   '<span class="assignee-name">' + person.name + '</span>';
                         if (isConsecutive) {
-                            badgeHtml += '<span class="consecutive-warn-badge" title="2 o más semanas consecutivas">2x</span>';
+                            html += '<span class="consecutive-warn-badge" title="2 o más semanas consecutivas">2x</span>';
                         }
-                        assigneeCell.innerHTML = badgeHtml;
+                        html += '</div>';
+                        assigneeCell.innerHTML = html;
                     }
                 }
             });
         }
 
-        // FILTRO DE VISTA «SOLO MIS GUARDIAS» (UX 4)
+        // FILTRO DE VISTA
         function applyFilter(filterId) {
             currentFilter = filterId;
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1416,7 +1553,7 @@
 
                 row.classList.remove('dimmed-row', 'focused-row');
                 if (filterId === 'all') {
-                    // Mostrar todos normal
+                    // Normal
                 } else if (assigned === filterId) {
                     row.classList.add('focused-row');
                 } else {
@@ -1433,7 +1570,7 @@
             });
         }
 
-        // CONTROL MODO PINTOR (ASIGNACIÓN RÁPIDA)
+        // MODO PINTOR
         function setPainter(techId) {
             if (activePainter === techId) {
                 exitPainter();
@@ -1475,14 +1612,17 @@
             setPainter(techId);
         });
 
-        // MODAL DE ASIGNACIÓN
+        // MODAL DE ASIGNACIÓN CON AVATARES
         function openAssignmentModal(weekId) {
             currentWeekToAssign = weekId;
             const modalTitle = document.getElementById('modalTitle');
             modalTitle.textContent = 'Asignar Semana ' + weekId;
             const modalButtons = document.getElementById('modalButtons');
             modalButtons.innerHTML = TEAM.map(person => 
-                '<button class="btn" data-person-id="' + person.id + '">' + person.name + '</button>'
+                '<button class="btn btn-modal-tech" data-person-id="' + person.id + '">' +
+                '<img src="' + person.avatar + '" class="modal-avatar-img" alt="' + person.name + '" />' +
+                '<span>' + person.name + '</span>' +
+                '</button>'
             ).join('');
             const assignmentModal = document.getElementById('assignmentModal');
             assignmentModal.classList.add('active');
@@ -1518,7 +1658,7 @@
             }
         }
         
-        // RESALTAR AL PASAR EL RATÓN SOBRE UN TÉCNICO
+        // HOVER RESALTADO
         technicianCards.addEventListener('mouseover', (e) => {
             if (activePainter) return;
             const techCard = e.target.closest('.tech-card');
@@ -1535,7 +1675,7 @@
             });
         });
         
-        // CLIC EN SEMANA
+        // CLICK SEMANA
         calendarContainer.addEventListener('click', (e) => {
             const weekRow = e.target.closest('tr[data-week-id]');
             if (!weekRow) return;
@@ -1558,7 +1698,6 @@
             }
         });
 
-        // GESTIÓN DE MODALES
         const assignmentModal = document.getElementById('assignmentModal');
         const closeModalButton = document.getElementById('closeModalButton');
         const clearAssignmentButton = document.getElementById('clearAssignmentButton');
@@ -1566,12 +1705,15 @@
         
         closeModalButton.addEventListener('click', closeAssignmentModal);
         assignmentModal.addEventListener('click', (e) => e.target === assignmentModal && closeAssignmentModal());
-        modalButtons.addEventListener('click', (e) => e.target.matches('.btn') && handlePersonSelection(e.target.dataset.personId));
+        modalButtons.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-modal-tech');
+            if (btn) handlePersonSelection(btn.dataset.personId);
+        });
         clearAssignmentButton.addEventListener('click', handleClearAssignment);
         saveButton.addEventListener('click', saveAssignments);
         yearSelector.addEventListener('change', (e) => initializeYear(parseInt(e.target.value)));
 
-        // EXPORTACIÓN A CALENDARIO .ICS (UX 1)
+        // EXPORTACIÓN .ICS
         const exportModal = document.getElementById('exportModal');
         const closeExportModalButton = document.getElementById('closeExportModalButton');
         
@@ -1651,7 +1793,7 @@
             generateICS(tech);
         });
 
-        // EXPORTACIÓN A EXCEL / CSV (UX 2)
+        // EXPORTACIÓN CSV
         function exportToCSV() {
             const year = parseInt(yearSelector.value);
             let csv = "\uFEFFAño;Semana;Fecha Inicio (Lunes);Fecha Fin (Domingo);Técnico;Línea\r\n";
@@ -1680,14 +1822,14 @@
         }
         if (exportCsvBtn) exportCsvBtn.addEventListener('click', exportToCSV);
 
-        // IMPRIMIR / GENERAR PDF OFICIAL (UX 2)
+        // IMPRIMIR / PDF
         if (printBtn) {
             printBtn.addEventListener('click', () => {
                 window.print();
             });
         }
 
-        // HISTORIAL DE AUDITORÍA (UX 3)
+        // HISTORIAL AUDITORÍA
         const historyModal = document.getElementById('historyModal');
         const closeHistoryModalButton = document.getElementById('closeHistoryModalButton');
 
