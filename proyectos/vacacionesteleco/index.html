@@ -674,6 +674,265 @@
             font-weight: 800;
         }
 
+        /* 1. FESTIVO NACIONAL (ÁMBAR / DORADO) */
+        .is-holiday-nacional {
+            background-color: #FEF3C7 !important;
+            border-color: #FCD34D !important;
+        }
+        body.dark-mode .is-holiday-nacional {
+            background-color: #382407 !important;
+            border-color: #784A09 !important;
+        }
+        .matrix-header-num.is-holiday-nacional {
+            background: linear-gradient(135deg, #FEF3C7, #FDE68A) !important;
+            color: #92400E !important;
+            border: 1px solid #F59E0B !important;
+            font-weight: 800;
+            box-shadow: 0 1px 4px rgba(245, 158, 11, 0.28);
+        }
+        body.dark-mode .matrix-header-num.is-holiday-nacional {
+            background: linear-gradient(135deg, #451A03, #78350F) !important;
+            color: #FDE68A !important;
+            border-color: #B45309 !important;
+        }
+        .matrix-header-day.is-holiday-nacional { color: #D97706 !important; font-weight: 800; }
+        body.dark-mode .matrix-header-day.is-holiday-nacional { color: #FCD34D !important; }
+
+        .matrix-day-cell.is-holiday-nacional:not(.vacation-active) {
+            background-color: rgba(254, 243, 199, 0.45) !important;
+            border-color: rgba(245, 158, 11, 0.35) !important;
+        }
+        body.dark-mode .matrix-day-cell.is-holiday-nacional:not(.vacation-active) {
+            background-color: rgba(69, 26, 3, 0.35) !important;
+            border-color: rgba(180, 83, 9, 0.45) !important;
+        }
+
+        /* 2. FESTIVO AUTONÓMICO (AZUL / CIAN) */
+        .is-holiday-autonomico {
+            background-color: #E0F2FE !important;
+            border-color: #BAE6FD !important;
+        }
+        body.dark-mode .is-holiday-autonomico {
+            background-color: #082F49 !important;
+            border-color: #0369A1 !important;
+        }
+        .matrix-header-num.is-holiday-autonomico {
+            background: linear-gradient(135deg, #E0F2FE, #BAE6FD) !important;
+            color: #0369A1 !important;
+            border: 1px solid #0284C7 !important;
+            font-weight: 800;
+            box-shadow: 0 1px 4px rgba(2, 132, 199, 0.28);
+        }
+        body.dark-mode .matrix-header-num.is-holiday-autonomico {
+            background: linear-gradient(135deg, #082F49, #0C4A6E) !important;
+            color: #7DD3FC !important;
+            border-color: #0284C7 !important;
+        }
+        .matrix-header-day.is-holiday-autonomico { color: #0284C7 !important; font-weight: 800; }
+        body.dark-mode .matrix-header-day.is-holiday-autonomico { color: #38BDF8 !important; }
+
+        .matrix-day-cell.is-holiday-autonomico:not(.vacation-active) {
+            background-color: rgba(224, 242, 254, 0.45) !important;
+            border-color: rgba(2, 132, 199, 0.35) !important;
+        }
+        body.dark-mode .matrix-day-cell.is-holiday-autonomico:not(.vacation-active) {
+            background-color: rgba(8, 47, 73, 0.35) !important;
+            border-color: rgba(2, 132, 199, 0.45) !important;
+        }
+
+        /* 3. FESTIVO LOCAL (MORADO / PÚRPURA) */
+        .is-holiday-local {
+            background-color: #F3E8FF !important;
+            border-color: #E9D5FF !important;
+        }
+        body.dark-mode .is-holiday-local {
+            background-color: #3B0764 !important;
+            border-color: #7E22CE !important;
+        }
+        .matrix-header-num.is-holiday-local {
+            background: linear-gradient(135deg, #F3E8FF, #E9D5FF) !important;
+            color: #6B21A8 !important;
+            border: 1px solid #9333EA !important;
+            font-weight: 800;
+            box-shadow: 0 1px 4px rgba(147, 51, 234, 0.28);
+        }
+        body.dark-mode .matrix-header-num.is-holiday-local {
+            background: linear-gradient(135deg, #3B0764, #581C87) !important;
+            color: #D8B4FE !important;
+            border-color: #9333EA !important;
+        }
+        .matrix-header-day.is-holiday-local { color: #9333EA !important; font-weight: 800; }
+        body.dark-mode .matrix-header-day.is-holiday-local { color: #C084FC !important; }
+
+        .matrix-day-cell.is-holiday-local:not(.vacation-active) {
+            background-color: rgba(243, 232, 255, 0.45) !important;
+            border-color: rgba(147, 51, 234, 0.35) !important;
+        }
+        body.dark-mode .matrix-day-cell.is-holiday-local:not(.vacation-active) {
+            background-color: rgba(59, 7, 100, 0.35) !important;
+            border-color: rgba(147, 51, 234, 0.45) !important;
+        }
+
+        /* MARCADORES E ICONOS DE FESTIVOS EN CELDA */
+        .holiday-marker {
+            display: inline-block;
+            font-size: 0.72rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .holiday-marker.nacional { color: #D97706; }
+        .holiday-marker.autonomico { color: #0284C7; }
+        .holiday-marker.local { color: #9333EA; }
+
+        body.dark-mode .holiday-marker.nacional { color: #FBBF24; }
+        body.dark-mode .holiday-marker.autonomico { color: #38BDF8; }
+        body.dark-mode .holiday-marker.local { color: #C084FC; }
+
+        /* PÍLDORAS DE LA LEYENDA */
+        .legend-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.22rem 0.6rem;
+            border-radius: 9999px;
+            user-select: none;
+        }
+        .legend-pill.nacional { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+        .legend-pill.autonomico { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+        .legend-pill.local { background: #F3E8FF; color: #6B21A8; border: 1px solid #E9D5FF; }
+        .legend-pill.weekend { background: var(--color-weekend); color: #9A3412; border: 1px solid var(--color-weekend-border); }
+
+        body.dark-mode .legend-pill.nacional { background: #451A03; color: #FDE68A; border-color: #92400E; }
+        body.dark-mode .legend-pill.autonomico { background: #082F49; color: #7DD3FC; border-color: #0369A1; }
+        body.dark-mode .legend-pill.local { background: #3B0764; color: #D8B4FE; border-color: #7E22CE; }
+        body.dark-mode .legend-pill.weekend { color: #FDBA74; }
+
+        /* GESTIÓN DE FESTIVOS DENTRO DEL MODAL */
+        .modal-section-card {
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 0.95rem 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+        .modal-section-title {
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .holiday-type-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.45rem;
+        }
+        .holiday-type-pill {
+            background: var(--bg-card);
+            border: 2px solid var(--border-card);
+            color: var(--text-muted);
+            font-family: var(--font-main);
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 0.45rem 0.3rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all var(--transition-speed) ease;
+        }
+        .holiday-type-pill:hover {
+            color: var(--text-main);
+            border-color: var(--border-subtle);
+        }
+        .holiday-type-pill.active {
+            border-color: var(--color-ineco-blue);
+            color: var(--color-ineco-blue);
+            background: rgba(0, 112, 192, 0.08);
+            box-shadow: 0 2px 6px rgba(0, 112, 192, 0.15);
+        }
+        .holiday-type-pill.type-nacional.active {
+            border-color: #F59E0B;
+            color: #92400E;
+            background: #FEF3C7;
+        }
+        .holiday-type-pill.type-autonomico.active {
+            border-color: #0284C7;
+            color: #0369A1;
+            background: #E0F2FE;
+        }
+        .holiday-type-pill.type-local.active {
+            border-color: #9333EA;
+            color: #6B21A8;
+            background: #F3E8FF;
+        }
+        body.dark-mode .holiday-type-pill.type-nacional.active {
+            background: #451A03;
+            color: #FDE68A;
+            border-color: #F59E0B;
+        }
+        body.dark-mode .holiday-type-pill.type-autonomico.active {
+            background: #082F49;
+            color: #7DD3FC;
+            border-color: #0284C7;
+        }
+        body.dark-mode .holiday-type-pill.type-local.active {
+            background: #3B0764;
+            color: #D8B4FE;
+            border-color: #9333EA;
+        }
+        .holiday-name-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            margin-top: 0.2rem;
+        }
+        .holiday-name-input-group input {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-card);
+            background: var(--bg-card);
+            color: var(--text-main);
+            font-family: var(--font-main);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .quick-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .quick-tag {
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        .quick-tag:hover {
+            color: var(--color-ineco-blue);
+            border-color: var(--color-ineco-blue);
+            background: rgba(0, 112, 192, 0.08);
+        }
+
+        /* CURSOR EN MODO EDICIÓN EN CABECERAS DE DÍA */
+        body.is-editing .matrix-header-num {
+            cursor: pointer;
+        }
+        body.is-editing .matrix-header-num:hover {
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+
         /* DÍA CON VACACIONES */
         .vacation-active {
             font-weight: 800;
