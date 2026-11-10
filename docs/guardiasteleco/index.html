@@ -677,35 +677,16 @@
         tr.highlight-ivan { --highlight-color: var(--color-ivan); }
         tr.highlight-carlos { --highlight-color: var(--color-carlos); }
 
-        /* CELDA DE TÉCNICO CON MINI AVATAR */
+        /* CELDA DE TÉCNICO EN EL CALENDARIO (SOLO NOMBRE) */
         .assignee-cell {
             font-weight: 600;
-            width: 100px;
+            width: 85px;
             background-color: var(--color-cell-empty);
             color: var(--color-text-main);
             transition: background-color 0.3s;
             position: relative;
-            padding: 0.35rem 0.4rem !important;
-        }
-        .assignee-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-        .cell-avatar {
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1.5px solid rgba(255, 255, 255, 0.95);
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-            flex-shrink: 0;
-            background: #cbd5e1;
-        }
-        .assignee-name {
-            font-size: 0.88rem;
-            white-space: nowrap;
+            text-align: center;
+            font-size: 0.92rem;
         }
 
         .week-number-cell {
@@ -1511,7 +1492,7 @@
             return weekNo;
         }
 
-        // ACTUALIZAR CELDA CON MINI AVATAR
+        // ACTUALIZAR CELDA DEL CALENDARIO (SOLO NOMBRE)
         function updateWeekRowUI(weekId, personId) {
             const weekRows = document.querySelectorAll('tr[data-week-id="' + weekId + '"]');
             if (!weekRows.length) return;
@@ -1526,14 +1507,11 @@
                     const person = TEAM.find(p => p.id === personId);
                     if (person) {
                         row.classList.add('assigned-' + person.id);
-                        let html = '<div class="assignee-content">' +
-                                   '<img src="' + person.avatar + '" alt="' + person.name + '" class="cell-avatar" onerror="this.style.display=\'none\'" />' +
-                                   '<span class="assignee-name">' + person.name + '</span>';
                         if (isConsecutive) {
-                            html += '<span class="consecutive-warn-badge" title="2 o más semanas consecutivas">2x</span>';
+                            assigneeCell.innerHTML = person.name + ' <span class="consecutive-warn-badge" title="2 o más semanas consecutivas">2x</span>';
+                        } else {
+                            assigneeCell.textContent = person.name;
                         }
-                        html += '</div>';
-                        assigneeCell.innerHTML = html;
                     }
                 }
             });
@@ -1619,9 +1597,9 @@
             modalTitle.textContent = 'Asignar Semana ' + weekId;
             const modalButtons = document.getElementById('modalButtons');
             modalButtons.innerHTML = TEAM.map(person => 
-                '<button class="btn btn-modal-tech" data-person-id="' + person.id + '">' +
-                '<img src="' + person.avatar + '" class="modal-avatar-img" alt="' + person.name + '" />' +
-                '<span>' + person.name + '</span>' +
+                '<button type="button" class="btn btn-modal-tech" data-person-id="' + person.id + '">' +
+                '<img src="' + person.avatar + '" class="modal-avatar-img" alt="' + person.name + '" style="pointer-events:none;" />' +
+                '<span style="pointer-events:none;">' + person.name + '</span>' +
                 '</button>'
             ).join('');
             const assignmentModal = document.getElementById('assignmentModal');
@@ -1706,8 +1684,10 @@
         closeModalButton.addEventListener('click', closeAssignmentModal);
         assignmentModal.addEventListener('click', (e) => e.target === assignmentModal && closeAssignmentModal());
         modalButtons.addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn-modal-tech');
-            if (btn) handlePersonSelection(btn.dataset.personId);
+            const btn = e.target.closest('[data-person-id]');
+            if (btn && btn.dataset.personId) {
+                handlePersonSelection(btn.dataset.personId);
+            }
         });
         clearAssignmentButton.addEventListener('click', handleClearAssignment);
         saveButton.addEventListener('click', saveAssignments);
