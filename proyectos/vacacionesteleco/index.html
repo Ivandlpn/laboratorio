@@ -696,106 +696,30 @@
             transition: all 0.15s ease;
         }
 
-        /* FIN DE SEMANA Y FESTIVOS SOMBREADOS (DÍAS INHÁBILES Y NO LABORABLES) */
-        .is-weekend,
-        .matrix-day-cell.is-holiday-nacional,
-        .matrix-day-cell.is-holiday-autonomico,
-        .matrix-day-cell.is-holiday-local,
-        .matrix-day-cell.is-holiday-nolaborable {
+        /* FIN DE SEMANA Y FESTIVOS SOMBREADOS EN CELDAS DEL CUERPO (BODY) */
+        .matrix-day-cell.is-weekend {
             background-color: var(--color-weekend) !important;
             border-color: var(--color-weekend-border) !important;
         }
 
-        .is-weekend .matrix-header-day, 
-        .is-weekend.matrix-header-day,
-        .matrix-header-day.is-weekend,
-        .matrix-header-day.is-holiday-nacional,
-        .matrix-header-day.is-holiday-autonomico,
-        .matrix-header-day.is-holiday-local,
-        .matrix-header-day.is-holiday-nolaborable {
-            background-color: var(--color-weekend) !important;
-            border-color: var(--color-weekend-border) !important;
-            font-weight: 800;
+        .matrix-day-cell.is-holiday-nacional:not(.vacation-active) {
+            background-color: var(--color-nacional) !important;
+            border-color: var(--color-nacional-border) !important;
         }
 
-        .matrix-header-day.is-weekend:not([class*="is-holiday-"]) {
-            color: #C2410C !important;
+        .matrix-day-cell.is-holiday-autonomico:not(.vacation-active) {
+            background-color: var(--color-autonomico) !important;
+            border-color: var(--color-autonomico-border) !important;
         }
 
-        /* 1. FESTIVO NACIONAL (ÁMBAR / DORADO) */
-        .matrix-header-day.is-holiday-nacional { color: #D97706 !important; font-weight: 800; }
-        body.dark-mode .matrix-header-day.is-holiday-nacional { color: #FCD34D !important; }
-
-        .matrix-header-num.is-holiday-nacional {
-            background: var(--color-weekend) !important;
-            color: #92400E !important;
-            border: 1px solid var(--color-weekend-border) !important;
-            font-weight: 800;
-        }
-        body.dark-mode .matrix-header-num.is-holiday-nacional {
-            color: #FDE68A !important;
-            border-color: var(--color-weekend-border) !important;
+        .matrix-day-cell.is-holiday-local:not(.vacation-active) {
+            background-color: var(--color-local) !important;
+            border-color: var(--color-local-border) !important;
         }
 
-        /* 2. FESTIVO AUTONÓMICO (AZUL / CIAN) */
-        .matrix-header-day.is-holiday-autonomico { color: #0284C7 !important; font-weight: 800; }
-        body.dark-mode .matrix-header-day.is-holiday-autonomico { color: #38BDF8 !important; }
-
-        .matrix-header-num.is-holiday-autonomico {
-            background: var(--color-weekend) !important;
-            color: #0369A1 !important;
-            border: 1px solid var(--color-weekend-border) !important;
-            font-weight: 800;
-        }
-        body.dark-mode .matrix-header-num.is-holiday-autonomico {
-            color: #7DD3FC !important;
-            border-color: var(--color-weekend-border) !important;
-        }
-
-        /* 3. FESTIVO LOCAL (MORADO / PÚRPURA) */
-        .matrix-header-day.is-holiday-local { color: #9333EA !important; font-weight: 800; }
-        body.dark-mode .matrix-header-day.is-holiday-local { color: #C084FC !important; }
-
-        .matrix-header-num.is-holiday-local {
-            background: var(--color-weekend) !important;
-            color: #6B21A8 !important;
-            border: 1px solid var(--color-weekend-border) !important;
-            font-weight: 800;
-        }
-        body.dark-mode .matrix-header-num.is-holiday-local {
-            color: #D8B4FE !important;
-            border-color: var(--color-weekend-border) !important;
-        }
-
-        /* 4. DÍA NO LABORABLE (CONVENIO: 24 Y 31 DE DICIEMBRE, ETC.) */
-        .matrix-header-day.is-holiday-nolaborable { color: #0D9488 !important; font-weight: 800; }
-        body.dark-mode .matrix-header-day.is-holiday-nolaborable { color: #2DD4BF !important; }
-
-        .matrix-header-num.is-holiday-nolaborable {
-            background: var(--color-weekend) !important;
-            color: #0F766E !important;
-            border: 1px solid var(--color-weekend-border) !important;
-            font-weight: 800;
-        }
-        body.dark-mode .matrix-header-num.is-holiday-nolaborable {
-            color: #5EEAD4 !important;
-            border-color: var(--color-weekend-border) !important;
-        }
-
-        .matrix-day-cell.is-holiday-nacional:not(.vacation-active),
-        .matrix-day-cell.is-holiday-autonomico:not(.vacation-active),
-        .matrix-day-cell.is-holiday-local:not(.vacation-active),
         .matrix-day-cell.is-holiday-nolaborable:not(.vacation-active) {
-            background-color: var(--color-weekend) !important;
-            border-color: var(--color-weekend-border) !important;
-        }
-
-        body.dark-mode .matrix-day-cell.is-holiday-nacional:not(.vacation-active),
-        body.dark-mode .matrix-day-cell.is-holiday-autonomico:not(.vacation-active),
-        body.dark-mode .matrix-day-cell.is-holiday-local:not(.vacation-active),
-        body.dark-mode .matrix-day-cell.is-holiday-nolaborable:not(.vacation-active) {
-            background-color: var(--color-weekend) !important;
-            border-color: var(--color-weekend-border) !important;
+            background-color: var(--color-nolaborable) !important;
+            border-color: var(--color-nolaborable-border) !important;
         }
 
         /* MARCADORES E ICONOS DE FESTIVOS EN CELDA */
@@ -2174,13 +2098,14 @@
         }
 
     
+        
         /* ==========================================================================
-           CABECERA DE DATOS DE LA TABLA: OSCURA, SÓLIDA Y CON ALTO CONTRASTE
+           CABECERA DE DATOS UNIFICADA, OSCURA Y ELEGANTE (L-V y S-D)
            ========================================================================== */
 
         /* CABECERA GENERAL (LUNES A VIERNES) */
         .matrix-table thead th.col-tech-label {
-            background: #0F274E !important;
+            background: #0E2954 !important;
             color: #FFFFFF !important;
             font-weight: 800 !important;
             font-size: 0.74rem !important;
@@ -2189,171 +2114,116 @@
             border: 1px solid rgba(255, 255, 255, 0.16) !important;
         }
 
-        .matrix-header-day {
-            min-width: 30px;
-            height: 24px;
-            padding: 3px 2px;
-            font-weight: 800 !important;
-            font-size: 0.76rem !important;
+        .matrix-table thead th.matrix-header-day {
             background: #133366 !important;
             color: #93C5FD !important;
+            font-weight: 800 !important;
+            font-size: 0.76rem !important;
             border: 1px solid rgba(255, 255, 255, 0.16) !important;
             border-radius: 4px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
         }
 
-        .matrix-header-num {
-            min-width: 30px;
-            height: 26px;
-            padding: 3px 2px;
+        .matrix-table thead th.matrix-header-num {
+            background: #0A1E3F !important;
+            color: #FFFFFF !important;
             font-family: var(--font-mono);
             font-weight: 800 !important;
             font-size: 0.84rem !important;
-            background: #0B2144 !important;
-            color: #FFFFFF !important;
             border: 1px solid rgba(255, 255, 255, 0.16) !important;
             border-radius: 4px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
         }
 
-        /* CABECERA EN FINES DE SEMANA (SÁBADO Y DOMINGO) */
-        .matrix-header-day.is-weekend {
-            background: #7C2D12 !important;
-            color: #FED7AA !important;
-            border: 1px solid #9A3412 !important;
+        /* FINES DE SEMANA EN CABECERA (S, D) - ELEGANTE, VISIBLE Y COHESIVO */
+        .matrix-table thead th.matrix-header-day.is-weekend {
+            background: #1A365D !important;
+            color: #FB923C !important;
+            border: 1px solid rgba(251, 146, 60, 0.45) !important;
+            border-bottom: 2px solid #F97316 !important;
+            font-weight: 900 !important;
         }
 
-        .matrix-header-num.is-weekend {
-            background: #561F0C !important;
-            color: #FFEDD5 !important;
-            border: 1px solid #9A3412 !important;
+        .matrix-table thead th.matrix-header-num.is-weekend {
+            background: #0E223D !important;
+            color: #FDBA74 !important;
+            border: 1px solid rgba(251, 146, 60, 0.45) !important;
+            border-top: none !important;
+            font-weight: 900 !important;
         }
 
-        /* CABECERA EN FESTIVO NACIONAL */
-        .matrix-header-day.is-holiday-nacional {
-            background: #78350F !important;
+        /* FESTIVOS EN CABECERA */
+        .matrix-table thead th.matrix-header-day.is-holiday-nacional {
+            background: #2D2208 !important;
+            color: #FBBF24 !important;
+            border: 1px solid rgba(245, 158, 11, 0.5) !important;
+        }
+        .matrix-table thead th.matrix-header-num.is-holiday-nacional {
+            background: #1F1704 !important;
             color: #FDE68A !important;
-            border: 1px solid #B45309 !important;
+            border: 1px solid rgba(245, 158, 11, 0.5) !important;
         }
 
-        .matrix-header-num.is-holiday-nacional {
-            background: #522409 !important;
-            color: #FEF3C7 !important;
-            border: 1px solid #B45309 !important;
+        .matrix-table thead th.matrix-header-day.is-holiday-autonomico {
+            background: #082F49 !important;
+            color: #38BDF8 !important;
+            border: 1px solid rgba(56, 189, 248, 0.5) !important;
         }
-
-        /* CABECERA EN FESTIVO AUTONÓMICO */
-        .matrix-header-day.is-holiday-autonomico {
-            background: #075985 !important;
+        .matrix-table thead th.matrix-header-num.is-holiday-autonomico {
+            background: #051F31 !important;
             color: #BAE6FD !important;
-            border: 1px solid #0284C7 !important;
+            border: 1px solid rgba(56, 189, 248, 0.5) !important;
         }
 
-        .matrix-header-num.is-holiday-autonomico {
-            background: #063E5C !important;
-            color: #E0F2FE !important;
-            border: 1px solid #0284C7 !important;
+        .matrix-table thead th.matrix-header-day.is-holiday-local {
+            background: #2E1065 !important;
+            color: #C084FC !important;
+            border: 1px solid rgba(192, 132, 252, 0.5) !important;
         }
-
-        /* CABECERA EN FESTIVO LOCAL */
-        .matrix-header-day.is-holiday-local {
-            background: #581C87 !important;
+        .matrix-table thead th.matrix-header-num.is-holiday-local {
+            background: #1E0B42 !important;
             color: #E9D5FF !important;
-            border: 1px solid #7E22CE !important;
+            border: 1px solid rgba(192, 132, 252, 0.5) !important;
         }
 
-        .matrix-header-num.is-holiday-local {
-            background: #3F1461 !important;
-            color: #F3E8FF !important;
-            border: 1px solid #7E22CE !important;
+        .matrix-table thead th.matrix-header-day.is-holiday-nolaborable {
+            background: #042F2E !important;
+            color: #2DD4BF !important;
+            border: 1px solid rgba(45, 212, 191, 0.5) !important;
         }
-
-        /* CABECERA EN DÍA NO LABORABLE (CONVENIO 24 Y 31 DIC) */
-        .matrix-header-day.is-holiday-nolaborable {
-            background: #115E59 !important;
+        .matrix-table thead th.matrix-header-num.is-holiday-nolaborable {
+            background: #03201F !important;
             color: #99F6E4 !important;
-            border: 1px solid #0F766E !important;
+            border: 1px solid rgba(45, 212, 191, 0.5) !important;
         }
 
-        .matrix-header-num.is-holiday-nolaborable {
-            background: #0D4743 !important;
-            color: #CCFBF1 !important;
-            border: 1px solid #0F766E !important;
-        }
-
-        /* MODO OSCURO PARA CABECERA DE DATOS */
+        /* MODO OSCURO PARA CABECERA */
         body.dark-mode .matrix-table thead th.col-tech-label {
             background: #051020 !important;
             color: #F8FAFC !important;
             border-color: rgba(255, 255, 255, 0.12) !important;
         }
 
-        body.dark-mode .matrix-header-day {
+        body.dark-mode .matrix-table thead th.matrix-header-day {
             background: #081B36 !important;
             color: #93C5FD !important;
             border-color: rgba(255, 255, 255, 0.12) !important;
         }
 
-        body.dark-mode .matrix-header-num {
+        body.dark-mode .matrix-table thead th.matrix-header-num {
             background: #030B17 !important;
             color: #FFFFFF !important;
             border-color: rgba(255, 255, 255, 0.12) !important;
         }
 
-        body.dark-mode .matrix-header-day.is-weekend {
-            background: #431407 !important;
+        body.dark-mode .matrix-table thead th.matrix-header-day.is-weekend {
+            background: #13243C !important;
+            color: #FB923C !important;
+            border-color: rgba(251, 146, 60, 0.4) !important;
+        }
+
+        body.dark-mode .matrix-table thead th.matrix-header-num.is-weekend {
+            background: #0A1424 !important;
             color: #FDBA74 !important;
-            border-color: #7C2D12 !important;
-        }
-
-        body.dark-mode .matrix-header-num.is-weekend {
-            background: #2D0E05 !important;
-            color: #FFEDD5 !important;
-            border-color: #7C2D12 !important;
-        }
-
-        body.dark-mode .matrix-header-day.is-holiday-nacional {
-            background: #451A03 !important;
-            color: #FDE68A !important;
-            border-color: #92400E !important;
-        }
-        body.dark-mode .matrix-header-num.is-holiday-nacional {
-            background: #2E1202 !important;
-            color: #FEF3C7 !important;
-            border-color: #92400E !important;
-        }
-
-        body.dark-mode .matrix-header-day.is-holiday-autonomico {
-            background: #082F49 !important;
-            color: #7DD3FC !important;
-            border-color: #0369A1 !important;
-        }
-        body.dark-mode .matrix-header-num.is-holiday-autonomico {
-            background: #052031 !important;
-            color: #BAE6FD !important;
-            border-color: #0369A1 !important;
-        }
-
-        body.dark-mode .matrix-header-day.is-holiday-local {
-            background: #3B0764 !important;
-            color: #D8B4FE !important;
-            border-color: #6B21A8 !important;
-        }
-        body.dark-mode .matrix-header-num.is-holiday-local {
-            background: #270542 !important;
-            color: #E9D5FF !important;
-            border-color: #6B21A8 !important;
-        }
-
-        body.dark-mode .matrix-header-day.is-holiday-nolaborable {
-            background: #042F2E !important;
-            color: #5EEAD4 !important;
-            border-color: #115E59 !important;
-        }
-        body.dark-mode .matrix-header-num.is-holiday-nolaborable {
-            background: #03201F !important;
-            color: #99F6E4 !important;
-            border-color: #115E59 !important;
+            border-color: rgba(251, 146, 60, 0.4) !important;
         }
 
         /* CELDAS DEL CUERPO (BODY): PALETA CONTRASTADA Y VISIBLE */
@@ -2426,12 +2296,7 @@
                             <option value="2030">2030</option>
                         </select>
                     </div>
-                    <a id="appSwitchToGuardias" class="app-switch-pill" href="#" title="Saltar al cuadrante de Guardias Teleco">
-                        <span class="switch-icon">📞</span>
-                        <span>Ir a Guardias</span>
-                        <span class="switch-arrow">↗</span>
-                    </a>
-                </div>
+                    </div>
             </div>
 
             <!-- DERECHA: AVATARES DE COORDINACIÓN (SIN CONTADORES DE AUDITORÍA) + BOTÓN EDITAR + GUARDAR + TEMA -->
