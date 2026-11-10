@@ -50,7 +50,7 @@
             --text-main: #0F172A;
             --text-muted: #64748B;
             --text-light: #94A3B8;
-            --color-weekend: #FFF5EE;
+            --color-weekend: #FFEFE6;
             --color-weekend-border: #FED7AA;
             --color-holiday: #FEF3C7;
             --color-holiday-border: #FCD34D;
@@ -70,8 +70,8 @@
             --text-main: #F1F5F9;
             --text-muted: #94A3B8;
             --text-light: #64748B;
-            --color-weekend: #261F1D;
-            --color-weekend-border: #573322;
+            --color-weekend: #261B18;
+            --color-weekend-border: #5C321E;
             --color-holiday: #2E2516;
             --color-holiday-border: #785A1D;
             --bg-samuel: rgba(124, 58, 237, 0.2);
@@ -108,8 +108,12 @@
             padding: 1.1rem 1.4rem 3rem;
         }
 
-        /* CABECERA CORPORATIVA COMPACTA */
+        /* CABECERA CORPORATIVA COMPACTA, ORDENADA Y SIMÉTRICA */
         .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.25rem;
             position: sticky;
             top: 0.5rem;
             z-index: 100;
@@ -117,7 +121,12 @@
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0.65rem 1.4rem;
+            margin-bottom: 1.15rem;
+            border-radius: 14px;
+            box-shadow: 0 14px 35px -8px rgba(7, 21, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-top: 1px solid rgba(255, 255, 255, 0.35);
         }
 
         .header::before {
@@ -160,17 +169,18 @@
         .title-row {
             display: flex;
             align-items: center;
-            gap: 0.85rem;
-            flex-wrap: wrap;
+            gap: 0.75rem;
+            flex-wrap: nowrap;
         }
 
         .title-row h1 {
-            font-size: 1.26rem;
+            font-size: 1.15rem;
             font-weight: 800;
             letter-spacing: -0.01em;
             color: #FFFFFF;
             text-shadow: 0 2px 6px rgba(0,0,0,0.3);
             white-space: nowrap;
+            margin: 0;
         }
 
         .year-selector-pill {
@@ -370,12 +380,13 @@
 
         #saveFeedback {
             font-size: 0.82rem;
-            font-weight: 600;
+            font-weight: 700;
             color: #10B981;
             background: rgba(16, 185, 129, 0.15);
             padding: 0.35rem 0.75rem;
             border-radius: 6px;
             border: 1px solid rgba(16, 185, 129, 0.3);
+            display: none;
             opacity: 0;
             transition: opacity 0.3s ease;
             white-space: nowrap;
@@ -685,148 +696,106 @@
             transition: all 0.15s ease;
         }
 
-        /* FIN DE SEMANA */
-        .is-weekend {
+        /* FIN DE SEMANA Y FESTIVOS SOMBREADOS (DÍAS INHÁBILES Y NO LABORABLES) */
+        .is-weekend,
+        .matrix-day-cell.is-holiday-nacional,
+        .matrix-day-cell.is-holiday-autonomico,
+        .matrix-day-cell.is-holiday-local,
+        .matrix-day-cell.is-holiday-nolaborable {
             background-color: var(--color-weekend) !important;
             border-color: var(--color-weekend-border) !important;
         }
 
         .is-weekend .matrix-header-day, 
-        .is-weekend.matrix-header-day {
-            color: #C2410C !important;
+        .is-weekend.matrix-header-day,
+        .matrix-header-day.is-weekend,
+        .matrix-header-day.is-holiday-nacional,
+        .matrix-header-day.is-holiday-autonomico,
+        .matrix-header-day.is-holiday-local,
+        .matrix-header-day.is-holiday-nolaborable {
+            background-color: var(--color-weekend) !important;
+            border-color: var(--color-weekend-border) !important;
             font-weight: 800;
+        }
+
+        .matrix-header-day.is-weekend:not([class*="is-holiday-"]) {
+            color: #C2410C !important;
         }
 
         /* 1. FESTIVO NACIONAL (ÁMBAR / DORADO) */
-        .is-holiday-nacional {
-            background-color: #FEF3C7 !important;
-            border-color: #FCD34D !important;
-        }
-        body.dark-mode .is-holiday-nacional {
-            background-color: #382407 !important;
-            border-color: #784A09 !important;
-        }
-        .matrix-header-num.is-holiday-nacional {
-            background: linear-gradient(135deg, #FEF3C7, #FDE68A) !important;
-            color: #92400E !important;
-            border: 1px solid #F59E0B !important;
-            font-weight: 800;
-            box-shadow: 0 1px 4px rgba(245, 158, 11, 0.28);
-        }
-        body.dark-mode .matrix-header-num.is-holiday-nacional {
-            background: linear-gradient(135deg, #451A03, #78350F) !important;
-            color: #FDE68A !important;
-            border-color: #B45309 !important;
-        }
         .matrix-header-day.is-holiday-nacional { color: #D97706 !important; font-weight: 800; }
         body.dark-mode .matrix-header-day.is-holiday-nacional { color: #FCD34D !important; }
 
-        .matrix-day-cell.is-holiday-nacional:not(.vacation-active) {
-            background-color: rgba(254, 243, 199, 0.45) !important;
-            border-color: rgba(245, 158, 11, 0.35) !important;
+        .matrix-header-num.is-holiday-nacional {
+            background: var(--color-weekend) !important;
+            color: #92400E !important;
+            border: 1px solid var(--color-weekend-border) !important;
+            font-weight: 800;
         }
-        body.dark-mode .matrix-day-cell.is-holiday-nacional:not(.vacation-active) {
-            background-color: rgba(69, 26, 3, 0.35) !important;
-            border-color: rgba(180, 83, 9, 0.45) !important;
+        body.dark-mode .matrix-header-num.is-holiday-nacional {
+            color: #FDE68A !important;
+            border-color: var(--color-weekend-border) !important;
         }
 
         /* 2. FESTIVO AUTONÓMICO (AZUL / CIAN) */
-        .is-holiday-autonomico {
-            background-color: #E0F2FE !important;
-            border-color: #BAE6FD !important;
-        }
-        body.dark-mode .is-holiday-autonomico {
-            background-color: #082F49 !important;
-            border-color: #0369A1 !important;
-        }
-        .matrix-header-num.is-holiday-autonomico {
-            background: linear-gradient(135deg, #E0F2FE, #BAE6FD) !important;
-            color: #0369A1 !important;
-            border: 1px solid #0284C7 !important;
-            font-weight: 800;
-            box-shadow: 0 1px 4px rgba(2, 132, 199, 0.28);
-        }
-        body.dark-mode .matrix-header-num.is-holiday-autonomico {
-            background: linear-gradient(135deg, #082F49, #0C4A6E) !important;
-            color: #7DD3FC !important;
-            border-color: #0284C7 !important;
-        }
         .matrix-header-day.is-holiday-autonomico { color: #0284C7 !important; font-weight: 800; }
         body.dark-mode .matrix-header-day.is-holiday-autonomico { color: #38BDF8 !important; }
 
-        .matrix-day-cell.is-holiday-autonomico:not(.vacation-active) {
-            background-color: rgba(224, 242, 254, 0.45) !important;
-            border-color: rgba(2, 132, 199, 0.35) !important;
+        .matrix-header-num.is-holiday-autonomico {
+            background: var(--color-weekend) !important;
+            color: #0369A1 !important;
+            border: 1px solid var(--color-weekend-border) !important;
+            font-weight: 800;
         }
-        body.dark-mode .matrix-day-cell.is-holiday-autonomico:not(.vacation-active) {
-            background-color: rgba(8, 47, 73, 0.35) !important;
-            border-color: rgba(2, 132, 199, 0.45) !important;
+        body.dark-mode .matrix-header-num.is-holiday-autonomico {
+            color: #7DD3FC !important;
+            border-color: var(--color-weekend-border) !important;
         }
 
         /* 3. FESTIVO LOCAL (MORADO / PÚRPURA) */
-        .is-holiday-local {
-            background-color: #F3E8FF !important;
-            border-color: #E9D5FF !important;
-        }
-        body.dark-mode .is-holiday-local {
-            background-color: #3B0764 !important;
-            border-color: #7E22CE !important;
-        }
-        .matrix-header-num.is-holiday-local {
-            background: linear-gradient(135deg, #F3E8FF, #E9D5FF) !important;
-            color: #6B21A8 !important;
-            border: 1px solid #9333EA !important;
-            font-weight: 800;
-            box-shadow: 0 1px 4px rgba(147, 51, 234, 0.28);
-        }
-        body.dark-mode .matrix-header-num.is-holiday-local {
-            background: linear-gradient(135deg, #3B0764, #581C87) !important;
-            color: #D8B4FE !important;
-            border-color: #9333EA !important;
-        }
         .matrix-header-day.is-holiday-local { color: #9333EA !important; font-weight: 800; }
         body.dark-mode .matrix-header-day.is-holiday-local { color: #C084FC !important; }
 
-        .matrix-day-cell.is-holiday-local:not(.vacation-active) {
-            background-color: rgba(243, 232, 255, 0.45) !important;
-            border-color: rgba(147, 51, 234, 0.35) !important;
+        .matrix-header-num.is-holiday-local {
+            background: var(--color-weekend) !important;
+            color: #6B21A8 !important;
+            border: 1px solid var(--color-weekend-border) !important;
+            font-weight: 800;
         }
-        body.dark-mode .matrix-day-cell.is-holiday-local:not(.vacation-active) {
-            background-color: rgba(59, 7, 100, 0.35) !important;
-            border-color: rgba(147, 51, 234, 0.45) !important;
+        body.dark-mode .matrix-header-num.is-holiday-local {
+            color: #D8B4FE !important;
+            border-color: var(--color-weekend-border) !important;
         }
 
         /* 4. DÍA NO LABORABLE (CONVENIO: 24 Y 31 DE DICIEMBRE, ETC.) */
-        .is-holiday-nolaborable {
-            background-color: #CCFBF1 !important;
-            border-color: #99F6E4 !important;
-        }
-        body.dark-mode .is-holiday-nolaborable {
-            background-color: #042F2E !important;
-            border-color: #0D9488 !important;
-        }
-        .matrix-header-num.is-holiday-nolaborable {
-            background: linear-gradient(135deg, #CCFBF1, #99F6E4) !important;
-            color: #0F766E !important;
-            border: 1px solid #14B8A6 !important;
-            font-weight: 800;
-            box-shadow: 0 1px 4px rgba(20, 184, 166, 0.28);
-        }
-        body.dark-mode .matrix-header-num.is-holiday-nolaborable {
-            background: linear-gradient(135deg, #042F2E, #115E59) !important;
-            color: #5EEAD4 !important;
-            border-color: #0D9488 !important;
-        }
         .matrix-header-day.is-holiday-nolaborable { color: #0D9488 !important; font-weight: 800; }
         body.dark-mode .matrix-header-day.is-holiday-nolaborable { color: #2DD4BF !important; }
 
-        .matrix-day-cell.is-holiday-nolaborable:not(.vacation-active) {
-            background-color: rgba(204, 251, 241, 0.45) !important;
-            border-color: rgba(20, 184, 166, 0.35) !important;
+        .matrix-header-num.is-holiday-nolaborable {
+            background: var(--color-weekend) !important;
+            color: #0F766E !important;
+            border: 1px solid var(--color-weekend-border) !important;
+            font-weight: 800;
         }
+        body.dark-mode .matrix-header-num.is-holiday-nolaborable {
+            color: #5EEAD4 !important;
+            border-color: var(--color-weekend-border) !important;
+        }
+
+        .matrix-day-cell.is-holiday-nacional:not(.vacation-active),
+        .matrix-day-cell.is-holiday-autonomico:not(.vacation-active),
+        .matrix-day-cell.is-holiday-local:not(.vacation-active),
+        .matrix-day-cell.is-holiday-nolaborable:not(.vacation-active) {
+            background-color: var(--color-weekend) !important;
+            border-color: var(--color-weekend-border) !important;
+        }
+
+        body.dark-mode .matrix-day-cell.is-holiday-nacional:not(.vacation-active),
+        body.dark-mode .matrix-day-cell.is-holiday-autonomico:not(.vacation-active),
+        body.dark-mode .matrix-day-cell.is-holiday-local:not(.vacation-active),
         body.dark-mode .matrix-day-cell.is-holiday-nolaborable:not(.vacation-active) {
-            background-color: rgba(4, 47, 46, 0.35) !important;
-            border-color: rgba(13, 148, 136, 0.45) !important;
+            background-color: var(--color-weekend) !important;
+            border-color: var(--color-weekend-border) !important;
         }
 
         /* MARCADORES E ICONOS DE FESTIVOS EN CELDA */
@@ -1379,7 +1348,7 @@
                         </div>
                     </div>
                 </div>
-
+                <div class="header-divider" style="height:28px;"></div>
                 <div class="header-actions">
                     <span id="saveFeedback">¡Guardado!</span>
                     <button id="editToggleBtn" class="edit-toggle-button" title="Activar modo edición para modificar vacaciones">
@@ -1992,9 +1961,20 @@
     function getHolidaysForDate(dateStr) {
         const y = parseInt(dateStr.split('-')[0]);
         const map = getYearHolidays(y);
-        const list = map[dateStr] || [];
-        // Si el formato almacenado fuera un objeto individual en vez de array, normalizarlo
-        if (!Array.isArray(list)) return [list];
+        let list = map[dateStr] || [];
+        if (!Array.isArray(list)) list = [list];
+
+        // Todos los 24 y 31 de diciembre son Días No Laborables de convenio (en todos los años y para todos)
+        if (dateStr.endsWith('-12-24')) {
+            if (!list.some(h => h.name === 'Nochebuena' || h.type === 'nolaborable')) {
+                list = [{ type: 'nolaborable', name: 'Nochebuena', scope: 'all' }, ...list];
+            }
+        } else if (dateStr.endsWith('-12-31')) {
+            if (!list.some(h => h.name === 'Nochevieja' || h.type === 'nolaborable')) {
+                list = [{ type: 'nolaborable', name: 'Nochevieja', scope: 'all' }, ...list];
+            }
+        }
+
         return list;
     }
 
@@ -2222,16 +2202,13 @@
         let monthsToDisplay = all14Months;
         if (currentView === 'two-months') {
             monthsToDisplay = all14Months.filter(item => {
-                // Mes actual
                 const isCurrent = (item.year === currentYearNum && item.month === currentMonthIdx);
-                // Mes siguiente
                 const nextMonthDate = new Date(currentYearNum, currentMonthIdx + 1, 1);
                 const isNext = (item.year === nextMonthDate.getFullYear() && item.month === nextMonthDate.getMonth());
                 return isCurrent || isNext;
             });
-            // Si por el año seleccionado no cae en los dos meses actuales, mostrar los dos primeros del año elegido
             if (monthsToDisplay.length === 0) {
-                monthsToDisplay = all14Months.slice(1, 3); // Enero y Febrero del año elegido
+                monthsToDisplay = all14Months.slice(1, 3);
             }
         }
 
@@ -2272,15 +2249,23 @@
                 const dayDate = new Date(item.year, item.month, d);
                 const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                const isDecNoLaborable = (item.month === 11 && (d === 24 || d === 31));
                 const dayHols = getHolidaysForDate(dateStr);
+                const hasHoliday = dayHols.length > 0;
                 let holClass = '';
                 let holTitle = '';
-                if (dayHols.length > 0) {
+                if (hasHoliday) {
                     const topHol = dayHols[0];
                     holClass = 'is-holiday-' + topHol.type + (topHol.scope !== 'all' ? ' city-' + topHol.scope : '');
                     holTitle = dayHols.map(h => getHolidayTypeLabel(h.type, h.scope) + ': ' + h.name).join(' | ');
+                } else if (isDecNoLaborable) {
+                    holClass = 'is-holiday-nolaborable';
+                    holTitle = (d === 24 ? 'Nochebuena' : 'Nochevieja') + ' (No Laborable)';
                 }
-                tableHTML += `<th class="matrix-header-day ${isWeekend ? 'is-weekend' : ''} ${holClass}" title="${holTitle}">${DAY_NAMES[dayOfWeek]}</th>`;
+
+                // Sombreado de fin de semana y festivos en cabecera
+                const isShaded = isWeekend || hasHoliday || isDecNoLaborable;
+                tableHTML += `<th class="matrix-header-day ${isShaded ? 'is-weekend' : ''} ${holClass}" title="${holTitle}">${DAY_NAMES[dayOfWeek]}</th>`;
             }
             tableHTML += `</tr><tr><th class="col-tech-label">Día del mes</th>`;
 
@@ -2290,21 +2275,30 @@
                 const dayDate = new Date(item.year, item.month, d);
                 const dayOfWeek = dayDate.getDay();
                 const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                const isDecNoLaborable = (item.month === 11 && (d === 24 || d === 31));
                 const dayHols = getHolidaysForDate(dateStr);
+                const hasHoliday = dayHols.length > 0;
                 let holClass = '';
                 let holIcon = '';
                 let holTitle = '';
-                if (dayHols.length > 0) {
+                if (hasHoliday) {
                     const topHol = dayHols[0];
                     holClass = 'is-holiday-' + topHol.type + (topHol.scope !== 'all' ? ' city-' + topHol.scope : '');
                     holIcon = getHolidayTypeIcon(topHol.type, topHol.scope);
                     holTitle = dayHols.map(h => getHolidayTypeLabel(h.type, h.scope) + ': ' + h.name).join(' | ');
+                } else if (isDecNoLaborable) {
+                    holClass = 'is-holiday-nolaborable';
+                    holIcon = '☕';
+                    holTitle = (d === 24 ? 'Nochebuena' : 'Nochevieja') + ' (No Laborable)';
                 }
-                tableHTML += `<th class="matrix-header-num ${isWeekend ? 'is-weekend' : ''} ${holClass}" data-date="${dateStr}" title="${holTitle}">${d}${holIcon}</th>`;
+
+                // Sombreado de fin de semana y festivos en número de día
+                const isShaded = isWeekend || hasHoliday || isDecNoLaborable;
+                tableHTML += `<th class="matrix-header-num ${isShaded ? 'is-weekend' : ''} ${holClass}" data-date="${dateStr}" title="${holTitle}">${d}${holIcon}</th>`;
             }
             tableHTML += `</tr></thead><tbody>`;
 
-            // Filas de los Técnicos (sin contadores de auditoría)
+            // Filas de los Técnicos
             TEAM.forEach(person => {
                 if (activeFilter !== 'all' && activeFilter !== person.id) return;
 
@@ -2319,7 +2313,11 @@
                     const dayDate = new Date(item.year, item.month, d);
                     const dayOfWeek = dayDate.getDay();
                     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                    const hol = getHolidayForPerson(person.id, dateStr);
+                    const isDecNoLaborable = (item.month === 11 && (d === 24 || d === 31));
+                    let hol = getHolidayForPerson(person.id, dateStr);
+                    if (!hol && isDecNoLaborable) {
+                        hol = { type: 'nolaborable', name: (d === 24 ? 'Nochebuena' : 'Nochevieja'), scope: 'all' };
+                    }
                     const isVac = isVacation(person.id, dateStr);
 
                     let titleStr = person.name + ' (' + person.cityName + ') - ' + d + ' de ' + MONTH_NAMES[item.month] + ' ' + item.year;
@@ -2331,8 +2329,10 @@
                     else if (hol) cellInner = '<span class="holiday-marker ' + hol.type + '" title="' + hol.name + '">' + getHolidayTypeIcon(hol.type, hol.scope) + '</span>';
 
                     const holClass = hol ? ('is-holiday-' + hol.type) : '';
+                    // Sombreado idéntico al fin de semana si es fin de semana O festivo/no laborable
+                    const isCellNonWorking = isWeekend || !!hol;
 
-                    tableHTML += `<td class="matrix-day-cell ${isWeekend ? 'is-weekend' : ''} ${holClass} ${isVac ? 'vacation-active tech-' + person.id : ''}"
+                    tableHTML += `<td class="matrix-day-cell ${isCellNonWorking ? 'is-weekend' : ''} ${holClass} ${isVac ? 'vacation-active tech-' + person.id : ''}"
                                       data-date="${dateStr}" 
                                       data-person-id="${person.id}"
                                       title="${titleStr}">
@@ -2433,8 +2433,12 @@
         updateSaveButtonState();
         setEditMode(false); // Al guardar desaparece el modo edición
 
+        saveFeedback.style.display = 'inline-block';
         saveFeedback.style.opacity = '1';
-        setTimeout(() => { saveFeedback.style.opacity = '0'; }, 2200);
+        setTimeout(() => {
+            saveFeedback.style.opacity = '0';
+            setTimeout(() => { saveFeedback.style.display = 'none'; }, 300);
+        }, 2200);
     }
 
     function updateSaveButtonState() {
