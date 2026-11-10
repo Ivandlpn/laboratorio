@@ -261,6 +261,29 @@
             display: block;
         }
 
+        .tech-info-inline {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        .tech-city-pill {
+            font-size: 0.68rem;
+            color: rgba(255, 255, 255, 0.72);
+            font-weight: 600;
+        }
+        .col-tech-city {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: block;
+        }
+        .legend-pill.city-madrid { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; }
+        .legend-pill.city-valencia { background: #FFEDD5; color: #C2410C; border: 1px solid #FDBA74; }
+        .legend-pill.city-alicante { background: #E0F2FE; color: #0369A1; border: 1px solid #BAE6FD; }
+        body.dark-mode .legend-pill.city-madrid { background: #451A03; color: #FDE68A; border-color: #92400E; }
+        body.dark-mode .legend-pill.city-valencia { background: #431407; color: #FDBA74; border-color: #C2410C; }
+        body.dark-mode .legend-pill.city-alicante { background: #082F49; color: #7DD3FC; border-color: #0369A1; }
+        
         .tech-name {
             font-size: 0.88rem;
             font-weight: 700;
@@ -1313,35 +1336,47 @@
             <div class="header-controls">
                 <div class="technician-cards" id="technicianCards">
                     <!-- Samuel -->
-                    <div class="tech-card" data-tech-id="samuel" title="Clic para modo asignación rápida de Samuel">
+                    <div class="tech-card" data-tech-id="samuel" title="Samuel · Base: Madrid Ciudad">
                         <div class="avatar-wrap" style="--ring-color: var(--color-samuel);">
                             <img src="avatars/samuel.jpg" alt="Samuel" class="tech-avatar-img" />
                         </div>
-                        <span class="tech-name">Samuel</span>
+                        <div class="tech-info-inline">
+                            <span class="tech-name">Samuel</span>
+                            <span class="tech-city-pill">Madrid</span>
+                        </div>
                     </div>
 
                     <!-- Iván -->
-                    <div class="tech-card" data-tech-id="ivan" title="Clic para modo asignación rápida de Iván">
+                    <div class="tech-card" data-tech-id="ivan" title="Iván · Base: Alicante Ciudad">
                         <div class="avatar-wrap" style="--ring-color: var(--color-ivan);">
                             <img src="avatars/ivan.jpg" alt="Iván" class="tech-avatar-img" />
                         </div>
-                        <span class="tech-name">Iván</span>
+                        <div class="tech-info-inline">
+                            <span class="tech-name">Iván</span>
+                            <span class="tech-city-pill">Alicante</span>
+                        </div>
                     </div>
 
                     <!-- Carlos -->
-                    <div class="tech-card" data-tech-id="carlos" title="Clic para modo asignación rápida de Carlos">
+                    <div class="tech-card" data-tech-id="carlos" title="Carlos · Base: Madrid Ciudad">
                         <div class="avatar-wrap" style="--ring-color: var(--color-carlos);">
                             <img src="avatars/carlos.jpg" alt="Carlos" class="tech-avatar-img" />
                         </div>
-                        <span class="tech-name">Carlos</span>
+                        <div class="tech-info-inline">
+                            <span class="tech-name">Carlos</span>
+                            <span class="tech-city-pill">Madrid</span>
+                        </div>
                     </div>
 
                     <!-- Raúl -->
-                    <div class="tech-card" data-tech-id="raul" title="Clic para modo asignación rápida de Raúl">
+                    <div class="tech-card" data-tech-id="raul" title="Raúl · Base: Valencia Ciudad">
                         <div class="avatar-wrap" style="--ring-color: var(--color-raul);">
                             <img src="avatars/raul.jpg" alt="Raúl" class="tech-avatar-img" />
                         </div>
-                        <span class="tech-name">Raúl</span>
+                        <div class="tech-info-inline">
+                            <span class="tech-name">Raúl</span>
+                            <span class="tech-city-pill">Valencia</span>
+                        </div>
                     </div>
                 </div>
 
@@ -1435,28 +1470,40 @@
                 <!-- GESTIÓN DE FESTIVOS (NACIONAL, AUTONÓMICO, LOCAL O LABORABLE) -->
                 <div class="modal-section-card">
                     <div class="modal-section-title">
-                        <span>Configurar Festivo en este día:</span>
+                        <span>Configurar Festivo por Ciudad / Ámbito:</span>
                         <span id="currentHolidayBadge" style="font-size:0.75rem;font-weight:700;">Laborable</span>
                     </div>
-                    <div class="holiday-type-selector" id="holidayTypeSelector">
-                        <button type="button" class="holiday-type-pill active" data-type="none">Laborable</button>
-                        <button type="button" class="holiday-type-pill type-nacional" data-type="nacional">⭐ Nacional</button>
-                        <button type="button" class="holiday-type-pill type-autonomico" data-type="autonomico">🔷 Autonómico</button>
-                        <button type="button" class="holiday-type-pill type-local" data-type="local">🟣 Local</button>
-                        <button type="button" class="holiday-type-pill type-nolaborable" data-type="nolaborable">☕ No Laborable</button>
+                    
+                    <div class="holiday-type-selector" id="holidayScopeSelector" style="margin-bottom: 0.5rem;">
+                        <button type="button" class="holiday-type-pill active" data-scope="none">Laborable</button>
+                        <button type="button" class="holiday-type-pill" data-scope="all">⭐ Nacional</button>
+                        <button type="button" class="holiday-type-pill" data-scope="madrid">🏛️ Madrid (Samuel / Carlos)</button>
+                        <button type="button" class="holiday-type-pill" data-scope="valencia">🍊 Valencia (Raúl)</button>
+                        <button type="button" class="holiday-type-pill" data-scope="alicante">🌴 Alicante (Iván)</button>
                     </div>
-                    <div id="holidayNameGroup" class="holiday-name-input-group" style="display:none;">
-                        <input type="text" id="holidayNameInput" placeholder="Nombre del festivo (ej. San José, Santa Faz, San Juan...)" />
-                        <div class="quick-tags-container" id="holidayQuickTags">
-                            <span class="quick-tag" data-name="Nochebuena" data-type="nolaborable">Nochebuena (24 Dic)</span>
-                            <span class="quick-tag" data-name="Nochevieja" data-type="nolaborable">Nochevieja (31 Dic)</span>
-                            <span class="quick-tag" data-name="San José" data-type="autonomico">San José</span>
-                            <span class="quick-tag" data-name="Lunes de Pascua" data-type="autonomico">Lunes Pascua</span>
-                            <span class="quick-tag" data-name="Santa Faz" data-type="local">Santa Faz</span>
-                            <span class="quick-tag" data-name="San Juan" data-type="autonomico">San Juan</span>
-                            <span class="quick-tag" data-name="Día Comunitat Valenciana" data-type="autonomico">9 d'Octubre</span>
-                            <span class="quick-tag" data-name="San Isidro" data-type="local">San Isidro</span>
-                            <span class="quick-tag" data-name="Santiago" data-type="autonomico">Santiago</span>
+
+                    <div id="holidayDetailGroup" style="display:none; flex-direction:column; gap:0.55rem;">
+                        <div style="display:flex; gap:0.5rem;">
+                            <input type="text" id="holidayNameInput" style="flex:1;" placeholder="Nombre del festivo..." />
+                            <select id="holidayTypeSelect" style="padding:0.45rem; border-radius:6px; border:1px solid var(--border-card); background:var(--bg-card); color:var(--text-main); font-weight:600; font-size:0.8rem;">
+                                <option value="autonomico">Autonómico</option>
+                                <option value="local">Local</option>
+                                <option value="nacional">Nacional</option>
+                                <option value="nolaborable">No Laborable</option>
+                            </select>
+                        </div>
+                        <div class="quick-tags-container" id="holidayCityQuickTags">
+                            <span class="quick-tag" data-name="San Isidro" data-scope="madrid" data-type="local">San Isidro (Mad)</span>
+                            <span class="quick-tag" data-name="La Almudena" data-scope="madrid" data-type="local">Almudena (Mad)</span>
+                            <span class="quick-tag" data-name="Comunidad de Madrid" data-scope="madrid" data-type="autonomico">2 de Mayo (Mad)</span>
+                            <span class="quick-tag" data-name="San Vicente Mártir" data-scope="valencia" data-type="local">San Vicente Mártir (Vlc)</span>
+                            <span class="quick-tag" data-name="San Vicente Ferrer" data-scope="valencia" data-type="local">San Vicente Ferrer (Vlc)</span>
+                            <span class="quick-tag" data-name="Santa Faz" data-scope="alicante" data-type="local">Santa Faz (Alc)</span>
+                            <span class="quick-tag" data-name="San José" data-scope="valenciana" data-type="autonomico">San José (Vlc/Alc)</span>
+                            <span class="quick-tag" data-name="San Juan" data-scope="valenciana" data-type="autonomico">San Juan (Vlc/Alc)</span>
+                            <span class="quick-tag" data-name="9 d'Octubre" data-scope="valenciana" data-type="autonomico">9 d'Octubre (Vlc/Alc)</span>
+                            <span class="quick-tag" data-name="Nochebuena" data-scope="all" data-type="nolaborable">Nochebuena</span>
+                            <span class="quick-tag" data-name="Nochevieja" data-scope="all" data-type="nolaborable">Nochevieja</span>
                         </div>
                     </div>
                 </div>
@@ -1835,10 +1882,10 @@
 };
 
     const TEAM = [
-        { id: 'samuel', name: 'Samuel', avatar: 'avatars/samuel.jpg', color: 'var(--color-samuel)' },
-        { id: 'ivan', name: 'Iván', avatar: 'avatars/ivan.jpg', color: 'var(--color-ivan)' },
-        { id: 'carlos', name: 'Carlos', avatar: 'avatars/carlos.jpg', color: 'var(--color-carlos)' },
-        { id: 'raul', name: 'Raúl', avatar: 'avatars/raul.jpg', color: 'var(--color-raul)' }
+        { id: 'samuel', name: 'Samuel', city: 'madrid', cityName: 'Madrid', avatar: 'avatars/samuel.jpg', color: 'var(--color-samuel)' },
+        { id: 'ivan', name: 'Iván', city: 'alicante', cityName: 'Alicante', avatar: 'avatars/ivan.jpg', color: 'var(--color-ivan)' },
+        { id: 'carlos', name: 'Carlos', city: 'madrid', cityName: 'Madrid', avatar: 'avatars/carlos.jpg', color: 'var(--color-carlos)' },
+        { id: 'raul', name: 'Raúl', city: 'valencia', cityName: 'Valencia', avatar: 'avatars/raul.jpg', color: 'var(--color-raul)' }
     ];
 
     const MONTH_NAMES = [
@@ -1848,18 +1895,85 @@
 
     const DAY_NAMES = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
 
-    // GESTIÓN DE FESTIVOS EDITABLES (NACIONALES, AUTONÓMICOS Y LOCALES)
-    // Estructura por año: holidaysByYear[year][dateStr] = { type: 'nacional'|'autonomico'|'local', name: '...' }
+    // GESTIÓN DE FESTIVOS POR SEDE Y CIUDAD:
+    // Madrid Ciudad (Samuel y Carlos) | Valencia Ciudad (Raúl) | Alicante Ciudad (Iván)
     const holidaysByYear = {};
 
-    // Obtener festivos de un año con soporte de edición y persistencia (localStorage + Firestore)
+    function getEaster(year) {
+        const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+        const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+        const day = ((h + l - 7 * m + 114) % 31) + 1;
+        return new Date(year, month, day);
+    }
+
+    function initDefaultHolidays(year) {
+        const yStr = String(year);
+        const map = {};
+
+        // Función auxiliar: add(mes, dia, nombre, tipo, scope)
+        // scope: 'all' (nacional / convenio) | 'madrid' (Samuel y Carlos) | 'valencia' (Raúl) | 'alicante' (Iván) | 'valenciana' (Raúl e Iván)
+        function add(m, d, name, type, scope = 'all') {
+            const key = formatDate(year, m - 1, d);
+            if (!map[key]) map[key] = [];
+            map[key].push({ type, name, scope });
+        }
+
+        // 1. FESTIVOS NACIONALES ESTRICTOS (Aplica a todos)
+        add(1, 1, 'Año Nuevo', 'nacional', 'all');
+        add(1, 6, 'Epifanía del Señor (Reyes)', 'nacional', 'all');
+        add(5, 1, 'Fiesta del Trabajo', 'nacional', 'all');
+        add(8, 15, 'Asunción de la Virgen', 'nacional', 'all');
+        add(10, 12, 'Fiesta Nacional de España', 'nacional', 'all');
+        add(11, 1, 'Todos los Santos', 'nacional', 'all');
+        add(12, 6, 'Día de la Constitución Española', 'nacional', 'all');
+        add(12, 8, 'Inmaculada Concepción', 'nacional', 'all');
+        add(12, 25, 'Natividad del Señor (Navidad)', 'nacional', 'all');
+
+        // Viernes Santo (Móvil nacional - Aplica a todos)
+        const easter = getEaster(year);
+        const viernesSanto = new Date(easter.getTime() - 2 * 24 * 60 * 60 * 1000);
+        add(viernesSanto.getMonth() + 1, viernesSanto.getDate(), 'Viernes Santo', 'nacional', 'all');
+
+        // 2. DÍAS NO LABORABLES DE CONVENIO (24 y 31 Dic - Aplica a todos)
+        add(12, 24, 'Nochebuena', 'nolaborable', 'all');
+        add(12, 31, 'Nochevieja', 'nolaborable', 'all');
+
+        // 3. FESTIVOS AUTONÓMICOS Y LOCALES DE MADRID CIUDAD (Samuel y Carlos)
+        add(5, 2, 'Día de la Comunidad de Madrid', 'autonomico', 'madrid');
+        add(5, 15, 'San Isidro Labrador (Local Madrid)', 'local', 'madrid');
+        add(11, 9, 'Nuestra Señora de la Almudena (Local Madrid)', 'local', 'madrid');
+        const juevesSanto = new Date(easter.getTime() - 3 * 24 * 60 * 60 * 1000);
+        add(juevesSanto.getMonth() + 1, juevesSanto.getDate(), 'Jueves Santo (Comunidad de Madrid)', 'autonomico', 'madrid');
+
+        // 4. FESTIVOS AUTONÓMICOS DE LA COMUNITAT VALENCIANA (Raúl e Iván)
+        add(3, 19, 'San José', 'autonomico', 'valenciana');
+        const lunesPascua = new Date(easter.getTime() + 1 * 24 * 60 * 60 * 1000);
+        add(lunesPascua.getMonth() + 1, lunesPascua.getDate(), 'Lunes de Pascua', 'autonomico', 'valenciana');
+        add(6, 24, 'San Juan', 'autonomico', 'valenciana');
+        add(10, 9, 'Día de la Comunitat Valenciana', 'autonomico', 'valenciana');
+
+        // 5. FESTIVOS LOCALES DE VALENCIA CIUDAD (Raúl)
+        add(1, 22, 'San Vicente Mártir (Local Valencia)', 'local', 'valencia');
+        const sanVicenteFerrer = new Date(easter.getTime() + 8 * 24 * 60 * 60 * 1000);
+        add(sanVicenteFerrer.getMonth() + 1, sanVicenteFerrer.getDate(), 'San Vicente Ferrer (Local Valencia)', 'local', 'valencia');
+
+        // 6. FESTIVOS LOCALES DE ALICANTE CIUDAD (Iván)
+        // Santa Faz: 2º jueves tras Jueves Santo
+        const santaFaz = new Date(juevesSanto.getTime() + 14 * 24 * 60 * 60 * 1000);
+        add(santaFaz.getMonth() + 1, santaFaz.getDate(), 'Santa Faz (Local Alicante)', 'local', 'alicante');
+
+        holidaysByYear[yStr] = map;
+    }
+
     function getYearHolidays(year) {
         const yStr = String(year);
         if (!holidaysByYear[yStr]) {
             holidaysByYear[yStr] = {};
-
-            // 1. Cargar desde LocalStorage
-            const local = localStorage.getItem('festivos_data_' + yStr);
+            const local = localStorage.getItem('festivos_ciudad_data_' + yStr);
             let loaded = false;
             if (local) {
                 try {
@@ -1867,15 +1981,6 @@
                     loaded = true;
                 } catch(e) {}
             }
-            // Asegurar que 24 y 31 de diciembre estén configurados como No Laborable por defecto
-            if (holidaysByYear[yStr]) {
-                const dec24 = formatDate(year, 11, 24);
-                const dec31 = formatDate(year, 11, 31);
-                if (!holidaysByYear[yStr][dec24]) holidaysByYear[yStr][dec24] = { type: 'nolaborable', name: 'Nochebuena (No laborable)' };
-                if (!holidaysByYear[yStr][dec31]) holidaysByYear[yStr][dec31] = { type: 'nolaborable', name: 'Nochevieja (No laborable)' };
-            }
-
-            // 2. Si no hay datos guardados, inicializar con los Festivos Nacionales por defecto
             if (!loaded) {
                 initDefaultHolidays(year);
             }
@@ -1883,83 +1988,62 @@
         return holidaysByYear[yStr];
     }
 
-    function initDefaultHolidays(year) {
-        const yStr = String(year);
-        const map = {};
-
-        function add(m, d, name, type = 'nacional') {
-            map[formatDate(year, m - 1, d)] = { type, name };
-        }
-
-        // Festivos Nacionales estrictos (fijos y Viernes Santo)
-        add(1, 1, 'Año Nuevo', 'nacional');
-        add(1, 6, 'Epifanía del Señor (Reyes)', 'nacional');
-        add(5, 1, 'Fiesta del Trabajo', 'nacional');
-        add(8, 15, 'Asunción de la Virgen', 'nacional');
-        add(10, 12, 'Fiesta Nacional de España', 'nacional');
-        add(11, 1, 'Todos los Santos', 'nacional');
-        add(12, 6, 'Día de la Constitución Española', 'nacional');
-        add(12, 8, 'Inmaculada Concepción', 'nacional');
-        add(12, 25, 'Natividad del Señor (Navidad)', 'nacional');
-
-        // Viernes Santo móvil por Computus
-        const a = year % 19, b = Math.floor(year / 100), c = year % 100;
-        const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
-        const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
-        const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7;
-        const m = Math.floor((a + 11 * h + 22 * l) / 451);
-        const easterMonth = Math.floor((h + l - 7 * m + 114) / 31) - 1;
-        const easterDay = ((h + l - 7 * m + 114) % 31) + 1;
-        const easterDate = new Date(year, easterMonth, easterDay);
-        const viernesSanto = new Date(easterDate.getTime() - 2 * 24 * 60 * 60 * 1000);
-        map[formatDate(viernesSanto.getFullYear(), viernesSanto.getMonth(), viernesSanto.getDate())] = { type: 'nacional', name: 'Viernes Santo' };
-
-        // Días No Laborables oficiales de convenio (24 de diciembre Nochebuena y 31 de diciembre Nochevieja)
-        add(12, 24, 'Nochebuena (No laborable)', 'nolaborable');
-        add(12, 31, 'Nochevieja (No laborable)', 'nolaborable');
-
-        // Añadir festivos autonómicos/locales conocidos de la LAV Este si es 2024, 2025 o 2026
-        if (year === 2026) {
-            add(3, 19, 'San José', 'autonomico');
-            add(6, 24, 'San Juan', 'autonomico');
-            add(10, 9, 'Día de la Comunitat Valenciana', 'autonomico');
-        } else if (year === 2024) {
-            add(3, 19, 'San José', 'autonomico');
-            add(4, 1, 'Lunes de Pascua', 'autonomico');
-            add(4, 11, 'Santa Faz', 'local');
-            add(6, 24, 'San Juan', 'autonomico');
-            add(10, 9, 'Día de la Comunitat Valenciana', 'autonomico');
-        }
-
-        holidaysByYear[yStr] = map;
-    }
-
-    function getHolidayInfo(dateStr) {
+    // Obtener array de festivos en una fecha
+    function getHolidaysForDate(dateStr) {
         const y = parseInt(dateStr.split('-')[0]);
-        const hMap = getYearHolidays(y);
-        return hMap[dateStr] || null;
+        const map = getYearHolidays(y);
+        const list = map[dateStr] || [];
+        // Si el formato almacenado fuera un objeto individual en vez de array, normalizarlo
+        if (!Array.isArray(list)) return [list];
+        return list;
     }
 
-    function setHoliday(dateStr, type, name) {
-        const y = parseInt(dateStr.split('-')[0]);
-        const yStr = String(y);
-        const hMap = getYearHolidays(y);
+    // Comprobar si aplica festivo para un técnico concreto
+    function getHolidayForPerson(personId, dateStr) {
+        const person = TEAM.find(p => p.id === personId);
+        if (!person) return null;
 
-        if (!type || type === 'none') {
-            delete hMap[dateStr];
-        } else {
-            hMap[dateStr] = { type, name: name.trim() || getDefaultHolidayTypeName(type) };
+        const list = getHolidaysForDate(dateStr);
+        for (const hol of list) {
+            if (hol.scope === 'all') return hol;
+            if (hol.scope === person.city) return hol;
+            if (hol.scope === 'valenciana' && (person.city === 'valencia' || person.city === 'alicante')) return hol;
         }
-        hasUnsavedChanges = true;
-        updateSaveButtonState();
+        return null;
     }
 
-    function getDefaultHolidayTypeName(type) {
+    // Comprobar festivo general del día para la cabecera
+    function getHeaderHolidayInfo(dateStr) {
+        const list = getHolidaysForDate(dateStr);
+        if (list.length === 0) return null;
+        // Si hay nacional o no laborable, tiene prioridad para el encabezado
+        const allHol = list.find(h => h.scope === 'all');
+        if (allHol) return allHol;
+        return list[0];
+    }
+
+    function getHolidayTypeLabel(type, scope) {
         if (type === 'nacional') return 'Festivo Nacional';
+        if (type === 'nolaborable') return 'No Laborable';
+        if (scope === 'madrid') return 'Festivo Madrid';
+        if (scope === 'valencia') return 'Festivo Valencia';
+        if (scope === 'alicante') return 'Festivo Alicante';
+        if (scope === 'valenciana') return 'Festivo C. Valenciana';
         if (type === 'autonomico') return 'Festivo Autonómico';
         if (type === 'local') return 'Festivo Local';
-        if (type === 'nolaborable') return 'No Laborable';
         return 'Festivo';
+    }
+
+    function getHolidayTypeIcon(type, scope) {
+        if (type === 'nacional') return '⭐';
+        if (type === 'nolaborable') return '☕';
+        if (scope === 'madrid') return '🏛️';
+        if (scope === 'valencia') return '🍊';
+        if (scope === 'alicante') return '🌴';
+        if (scope === 'valenciana') return '🔷';
+        if (type === 'autonomico') return '🔷';
+        if (type === 'local') return '🟣';
+        return '⭐';
     }
 
 
@@ -2069,7 +2153,7 @@
                     }
                     if (fbDoc.holidays) {
                         holidaysByYear[String(currentYear)] = fbDoc.holidays;
-                        localStorage.setItem('festivos_data_' + currentYear, JSON.stringify(fbDoc.holidays));
+                        localStorage.setItem('festivos_ciudad_data_' + currentYear, JSON.stringify(fbDoc.holidays));
                     }
                 }
             } catch(e) {}
@@ -2207,6 +2291,16 @@
                 const holIcon = hol ? getHolidayTypeIcon(hol.type) : '';
                 const holTitle = hol ? (getHolidayTypeLabel(hol.type) + ': ' + hol.name) : '';
 
+                const dayHols = getHolidaysForDate(dateStr);
+                let holClass = '';
+                let holIcon = '';
+                let holTitle = '';
+                if (dayHols.length > 0) {
+                    const topHol = dayHols[0];
+                    holClass = 'is-holiday-' + topHol.type + (topHol.scope !== 'all' ? ' city-' + topHol.scope : '');
+                    holIcon = getHolidayTypeIcon(topHol.type, topHol.scope);
+                    holTitle = dayHols.map(h => getHolidayTypeLabel(h.type, h.scope) + ': ' + h.name).join(' | ');
+                }
                 tableHTML += `<th class="matrix-header-num ${isWeekend ? 'is-weekend' : ''} ${holClass}" data-date="${dateStr}" title="${holTitle}">${d}${holIcon}</th>`;
             }
             tableHTML += `</tr></thead><tbody>`;
@@ -2216,23 +2310,26 @@
                 if (activeFilter !== 'all' && activeFilter !== person.id) return;
 
                 tableHTML += `<tr>
-                    <td class="col-tech-label" style="color: ${person.color}">${person.name}</td>`;
+                    <td class="col-tech-label" style="color: ${person.color}">
+                        <strong>${person.name}</strong>
+                        <span class="col-tech-city">📍 ${person.cityName}</span>
+                    </td>`;
 
                 for (let d = 1; d <= daysInMonth; d++) {
                     const dateStr = formatDate(item.year, item.month, d);
                     const dayDate = new Date(item.year, item.month, d);
                     const dayOfWeek = dayDate.getDay();
                     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                    const hol = getHolidayInfo(dateStr);
+                    const hol = getHolidayForPerson(person.id, dateStr);
                     const isVac = isVacation(person.id, dateStr);
 
-                    let titleStr = person.name + ' - ' + d + ' de ' + MONTH_NAMES[item.month] + ' ' + item.year;
-                    if (hol) titleStr += ' · ' + getHolidayTypeLabel(hol.type) + ' (' + hol.name + ')';
+                    let titleStr = person.name + ' (' + person.cityName + ') - ' + d + ' de ' + MONTH_NAMES[item.month] + ' ' + item.year;
+                    if (hol) titleStr += ' · ' + getHolidayTypeLabel(hol.type, hol.scope) + ' (' + hol.name + ')';
                     if (isVac) titleStr += ' · De Vacaciones';
 
                     let cellInner = '';
                     if (isVac) cellInner = '✓';
-                    else if (hol) cellInner = '<span class="holiday-marker ' + hol.type + '" title="' + hol.name + '">' + getHolidayTypeIcon(hol.type) + '</span>';
+                    else if (hol) cellInner = '<span class="holiday-marker ' + hol.type + '" title="' + hol.name + '">' + getHolidayTypeIcon(hol.type, hol.scope) + '</span>';
 
                     const holClass = hol ? ('is-holiday-' + hol.type) : '';
 
@@ -2317,7 +2414,7 @@
             }
 
             // Guardar festivos editados (nacionales, autonómicos y locales)
-            localStorage.setItem('festivos_data_' + yStr, JSON.stringify(holidays));
+            localStorage.setItem('festivos_ciudad_data_' + yStr, JSON.stringify(holidays));
 
             // Sincronizar en Firebase
             if (db) {
@@ -2414,32 +2511,89 @@
 
         setupModals();
 
-        // Selector de tipo de festivo en el modal
-        document.getElementById('holidayTypeSelector').addEventListener('click', (e) => {
+        // GESTOR DE FESTIVOS POR SEDE EN EL MODAL
+        document.getElementById('holidayScopeSelector').addEventListener('click', (e) => {
             const btn = e.target.closest('.holiday-type-pill');
             if (!btn || !currentSelectedDate) return;
 
-            document.querySelectorAll('.holiday-type-pill').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('#holidayScopeSelector .holiday-type-pill').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            const type = btn.dataset.type;
-            const nameGroup = document.getElementById('holidayNameGroup');
+            const scope = btn.dataset.scope;
+            const detailGroup = document.getElementById('holidayDetailGroup');
             const nameInput = document.getElementById('holidayNameInput');
+            const typeSelect = document.getElementById('holidayTypeSelect');
             const badgeEl = document.getElementById('currentHolidayBadge');
 
-            if (type === 'none') {
-                nameGroup.style.display = 'none';
+            const y = parseInt(currentSelectedDate.split('-')[0]);
+            const yMap = getYearHolidays(y);
+
+            if (scope === 'none') {
+                detailGroup.style.display = 'none';
                 nameInput.value = '';
                 badgeEl.textContent = 'Laborable normal';
-                setHoliday(currentSelectedDate, 'none', '');
+                delete yMap[currentSelectedDate];
             } else {
-                nameGroup.style.display = 'flex';
-                if (!nameInput.value.trim()) {
-                    nameInput.value = getDefaultHolidayTypeName(type);
-                }
-                badgeEl.textContent = nameInput.value + ' (' + getHolidayTypeLabel(type) + ')';
-                setHoliday(currentSelectedDate, type, nameInput.value);
+                detailGroup.style.display = 'flex';
+                let defaultType = 'autonomico';
+                let defaultName = 'Festivo ' + (scope === 'all' ? 'Nacional' : (scope.charAt(0).toUpperCase() + scope.slice(1)));
+                if (scope === 'all') defaultType = 'nacional';
+                if (!nameInput.value.trim()) nameInput.value = defaultName;
+                typeSelect.value = defaultType;
+
+                yMap[currentSelectedDate] = [{ type: defaultType, name: nameInput.value, scope: scope }];
+                badgeEl.textContent = nameInput.value + ' (' + getHolidayTypeLabel(defaultType, scope) + ')';
             }
+            hasUnsavedChanges = true;
+            updateSaveButtonState();
+            renderMatrixView();
+        });
+
+        function updateCurrentHolidayState() {
+            if (!currentSelectedDate) return;
+            const y = parseInt(currentSelectedDate.split('-')[0]);
+            const yMap = getYearHolidays(y);
+            const activeBtn = document.querySelector('#holidayScopeSelector .holiday-type-pill.active');
+            const scope = activeBtn ? activeBtn.dataset.scope : 'none';
+            if (scope === 'none') {
+                delete yMap[currentSelectedDate];
+                return;
+            }
+            const name = document.getElementById('holidayNameInput').value.trim() || 'Festivo';
+            const type = document.getElementById('holidayTypeSelect').value;
+            yMap[currentSelectedDate] = [{ type, name, scope }];
+            document.getElementById('currentHolidayBadge').textContent = name + ' (' + getHolidayTypeLabel(type, scope) + ')';
+            hasUnsavedChanges = true;
+            updateSaveButtonState();
+            renderMatrixView();
+        }
+
+        document.getElementById('holidayNameInput').addEventListener('input', updateCurrentHolidayState);
+        document.getElementById('holidayTypeSelect').addEventListener('change', updateCurrentHolidayState);
+
+        document.getElementById('holidayCityQuickTags').addEventListener('click', (e) => {
+            const tag = e.target.closest('.quick-tag');
+            if (!tag || !currentSelectedDate) return;
+
+            const name = tag.dataset.name;
+            const scope = tag.dataset.scope;
+            const type = tag.dataset.type;
+
+            document.querySelectorAll('#holidayScopeSelector .holiday-type-pill').forEach(b => b.classList.remove('active'));
+            const targetBtn = document.querySelector('#holidayScopeSelector .holiday-type-pill[data-scope="' + scope + '"]') || document.querySelector('#holidayScopeSelector .holiday-type-pill[data-scope="all"]');
+            if (targetBtn) targetBtn.classList.add('active');
+
+            document.getElementById('holidayDetailGroup').style.display = 'flex';
+            document.getElementById('holidayNameInput').value = name;
+            document.getElementById('holidayTypeSelect').value = type;
+
+            const y = parseInt(currentSelectedDate.split('-')[0]);
+            const yMap = getYearHolidays(y);
+            yMap[currentSelectedDate] = [{ type, name, scope }];
+
+            document.getElementById('currentHolidayBadge').textContent = name + ' (' + getHolidayTypeLabel(type, scope) + ')';
+            hasUnsavedChanges = true;
+            updateSaveButtonState();
             renderMatrixView();
         });
 
@@ -2568,11 +2722,35 @@
         document.getElementById('modalDateTitle').textContent = `${dayOfWeekName}, ${d} de ${MONTH_NAMES[m - 1]} de ${y}`;
         
         // Cargar estado de festivo en el modal
-        const hol = getHolidayInfo(dateStr);
+        const hols = getHolidaysForDate(dateStr);
         const subEl = document.getElementById('modalDateSubtitle');
         const badgeEl = document.getElementById('currentHolidayBadge');
-        const nameGroup = document.getElementById('holidayNameGroup');
+        const detailGroup = document.getElementById('holidayDetailGroup');
         const nameInput = document.getElementById('holidayNameInput');
+        const typeSelect = document.getElementById('holidayTypeSelect');
+
+        document.querySelectorAll('#holidayScopeSelector .holiday-type-pill').forEach(b => b.classList.remove('active'));
+
+        if (hols.length > 0) {
+            const h = hols[0];
+            subEl.innerHTML = getHolidayTypeIcon(h.type, h.scope) + ' <strong style="color:var(--text-main);">' + getHolidayTypeLabel(h.type, h.scope) + ': ' + h.name + '</strong>';
+            badgeEl.textContent = h.name + ' (' + getHolidayTypeLabel(h.type, h.scope) + ')';
+            const scopeBtn = document.querySelector('#holidayScopeSelector .holiday-type-pill[data-scope="' + h.scope + '"]') || document.querySelector('#holidayScopeSelector .holiday-type-pill[data-scope="all"]');
+            if (scopeBtn) scopeBtn.classList.add('active');
+            detailGroup.style.display = 'flex';
+            nameInput.value = h.name;
+            typeSelect.value = h.type;
+        } else {
+            if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
+                subEl.textContent = 'Fin de semana (Sábado/Domingo)';
+            } else {
+                subEl.textContent = 'Día laborable normal';
+            }
+            badgeEl.textContent = 'Laborable normal';
+            document.querySelector('#holidayScopeSelector .holiday-type-pill[data-scope="none"]').classList.add('active');
+            detailGroup.style.display = 'none';
+            nameInput.value = '';
+        }
 
         document.querySelectorAll('.holiday-type-pill').forEach(btn => btn.classList.remove('active'));
 
