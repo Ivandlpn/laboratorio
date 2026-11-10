@@ -1879,6 +1879,35 @@
         return new Date(year, month, day);
     }
 
+    function resolveHolidayScope(name, type, scope) {
+        if (scope && scope !== 'none') {
+            // Si tiene scope explícito válido, respetarlo
+            return scope;
+        }
+        const n = (name || '').toLowerCase();
+        // Madrid Ciudad (Samuel y Carlos)
+        if (n.includes('almudena') || n.includes('isidro') || n.includes('comunidad de madrid') || n.includes('jueves santo')) {
+            return 'madrid';
+        }
+        // Valencia Ciudad (Raúl)
+        if (n.includes('mártir') || n.includes('martir') || n.includes('ferrer')) {
+            return 'valencia';
+        }
+        // Alicante Ciudad (Iván)
+        if (n.includes('santa faz')) {
+            return 'alicante';
+        }
+        // Comunitat Valenciana (Raúl en Valencia e Iván en Alicante)
+        if (n.includes('san josé') || n.includes('san jose') || n.includes('san juan') || n.includes('octubre') || n.includes('valenciana')) {
+            return 'valenciana';
+        }
+        // Festivos Nacionales o No Laborables (Aplican a todos)
+        if (type === 'nacional' || type === 'nolaborable' || n.includes('año nuevo') || n.includes('reyes') || n.includes('viernes santo') || n.includes('trabajo') || n.includes('asunción') || n.includes('asuncion') || n.includes('nacional de españa') || n.includes('todos los santos') || n.includes('constitución') || n.includes('constitucion') || n.includes('inmaculada') || n.includes('navidad') || n.includes('nochebuena') || n.includes('nochevieja')) {
+            return 'all';
+        }
+        return 'all';
+    }
+
     function buildHolidaysForYear(year) {
         const map = {};
         function add(m, d, name, type, scope = 'all') {
@@ -1977,26 +2006,32 @@
             }
         }
 
-        return list;
+        // Asegurar que cada festivo tenga su scope resuelto
+        return list.map(h => ({
+            ...h,
+            scope: resolveHolidayScope(h.name, h.type, h.scope)
+        }));
     }
 
-    // Comprobar si aplica festivo para un técnico concreto
     function getHolidayForPerson(personId, dateStr) {
         const person = TEAM.find(p => p.id === personId);
         if (!person) return null;
 
         const list = getHolidaysForDate(dateStr);
-        for (const hol of list) {
+        for (const rawHol of list) {
+            const scope = resolveHolidayScope(rawHol.name, rawHol.type, rawHol.scope);
+            const hol = { ...rawHol, scope };
+
             // 1. Festivo Nacional o No Laborable -> APLICA A TODOS LOS TÉCNICOS
-            if (hol.type === 'nacional' || hol.type === 'nolaborable' || hol.scope === 'all' || !hol.scope) {
+            if (hol.type === 'nacional' || hol.type === 'nolaborable' || scope === 'all') {
                 return hol;
             }
-            // 2. Festivo específico de la ciudad del técnico
-            if (hol.scope === person.city) {
+            // 2. Festivo específico de la sede de la persona (ej. Almudena / San Isidro SOLO para Madrid: Samuel y Carlos)
+            if (scope === person.city) {
                 return hol;
             }
-            // 3. Festivo autonómico de la Comunidad Valenciana (aplica a Raúl en Valencia e Iván en Alicante)
-            if (hol.scope === 'valenciana' && (person.city === 'valencia' || person.city === 'alicante')) {
+            // 3. Festivo autonómico valenciano (Raúl en Valencia e Iván en Alicante)
+            if (scope === 'valenciana' && (person.city === 'valencia' || person.city === 'alicante')) {
                 return hol;
             }
         }
@@ -2129,9 +2164,22 @@
         getYearData(currentYear - 1);
         getYearData(currentYear);
         getYearData(currentYear + 1);
+        // Asegurar festivos oficiales y sedes para el año en curso
         getYearHolidays(currentYear - 1);
         getYearHolidays(currentYear);
         getYearHolidays(currentYear + 1);
+
+        // Si es 2026, garantizar que las sedes (Madrid, Valencia, Alicante) estén perfectamente asignadas
+        if (currentYear === 2026) {
+            const h2026 = getYearHolidays(2026);
+            Object.keys(h2026).forEach(dateKey => {
+                h2026[dateKey] = h2026[dateKey].map(h => ({
+                    ...h,
+                    scope: resolveHolidayScope(h.name, h.type, h.scope)
+                }));
+            });
+            localStorage.setItem('festivos_ciudad_data_2026', JSON.stringify(h2026));
+        }
 
         // Intentar sincronizar con Firestore para el año actual
         if (db) {
@@ -2266,20 +2314,28 @@
                 const isDecNoLaborable = (item.month === 11 && (d === 24 || d === 31));
                 const dayHols = getHolidaysForDate(dateStr);
                 const hasHoliday = dayHols.length > 0;
+                
+                // Es festivo general que aplica a todos (Nacional o No Laborable)
+                const isGeneralOff = isWeekend || isDecNoLaborable || dayHols.some(h => h.type === 'nacional' || h.type === 'nolaborable' || h.scope === 'all');
+
                 let holClass = '';
                 let holTitle = '';
                 if (hasHoliday) {
                     const topHol = dayHols[0];
-                    holClass = 'is-holiday-' + topHol.type + (topHol.scope !== 'all' ? ' city-' + topHol.scope : '');
+                    holClass = 'is-holiday-' + topHol.type + (topHol.scope && topHol.scope !== 'all' ? ' city-' + topHol.scope : '');
                     holTitle = dayHols.map(h => getHolidayTypeLabel(h.type, h.scope) + ': ' + h.name).join(' | ');
                 } else if (isDecNoLaborable) {
                     holClass = 'is-holiday-nolaborable';
                     holTitle = (d === 24 ? 'Nochebuena' : 'Nochevieja') + ' (No Laborable)';
                 }
 
-                // Sombreado de fin de semana y festivos en cabecera
-                const isShaded = isWeekend || hasHoliday || isDecNoLaborable;
-                tableHTML += `<th class="matrix-header-day ${isShaded ? 'is-weekend' : ''} ${holClass}" title="${holTitle}">${DAY_NAMES[dayOfWeek]}</th>`;
+                // Sombreado en cabecera si es fin de semana o festivo general (o si hay filtro activo y aplica a ese técnico)
+                let isHeaderShaded = isGeneralOff;
+                if (!isHeaderShaded && activeFilter !== 'all' && hasHoliday) {
+                    isHeaderShaded = !!getHolidayForPerson(activeFilter, dateStr);
+                }
+
+                tableHTML += `<th class="matrix-header-day ${isHeaderShaded ? 'is-weekend' : ''} ${holClass}" title="${holTitle}">${DAY_NAMES[dayOfWeek]}</th>`;
             }
             tableHTML += `</tr><tr><th class="col-tech-label">Día del mes</th>`;
 
@@ -2292,12 +2348,14 @@
                 const isDecNoLaborable = (item.month === 11 && (d === 24 || d === 31));
                 const dayHols = getHolidaysForDate(dateStr);
                 const hasHoliday = dayHols.length > 0;
+                const isGeneralOff = isWeekend || isDecNoLaborable || dayHols.some(h => h.type === 'nacional' || h.type === 'nolaborable' || h.scope === 'all');
+
                 let holClass = '';
                 let holIcon = '';
                 let holTitle = '';
                 if (hasHoliday) {
                     const topHol = dayHols[0];
-                    holClass = 'is-holiday-' + topHol.type + (topHol.scope !== 'all' ? ' city-' + topHol.scope : '');
+                    holClass = 'is-holiday-' + topHol.type + (topHol.scope && topHol.scope !== 'all' ? ' city-' + topHol.scope : '');
                     holIcon = getHolidayTypeIcon(topHol.type, topHol.scope);
                     holTitle = dayHols.map(h => getHolidayTypeLabel(h.type, h.scope) + ': ' + h.name).join(' | ');
                 } else if (isDecNoLaborable) {
@@ -2306,9 +2364,12 @@
                     holTitle = (d === 24 ? 'Nochebuena' : 'Nochevieja') + ' (No Laborable)';
                 }
 
-                // Sombreado de fin de semana y festivos en número de día
-                const isShaded = isWeekend || hasHoliday || isDecNoLaborable;
-                tableHTML += `<th class="matrix-header-num ${isShaded ? 'is-weekend' : ''} ${holClass}" data-date="${dateStr}" title="${holTitle}">${d}${holIcon}</th>`;
+                let isHeaderShaded = isGeneralOff;
+                if (!isHeaderShaded && activeFilter !== 'all' && hasHoliday) {
+                    isHeaderShaded = !!getHolidayForPerson(activeFilter, dateStr);
+                }
+
+                tableHTML += `<th class="matrix-header-num ${isHeaderShaded ? 'is-weekend' : ''} ${holClass}" data-date="${dateStr}" title="${holTitle}">${d}${holIcon}</th>`;
             }
             tableHTML += `</tr></thead><tbody>`;
 
