@@ -2610,7 +2610,7 @@
                 detailGroup.style.display = 'none';
                 nameInput.value = '';
                 badgeEl.textContent = 'Laborable normal';
-                delete yMap[currentSelectedDate];
+                yMap[currentSelectedDate] = [];
             } else {
                 detailGroup.style.display = 'flex';
                 let defaultType = 'autonomico';
@@ -2634,7 +2634,7 @@
             const activeBtn = document.querySelector('#holidayScopeSelector .holiday-type-pill.active');
             const scope = activeBtn ? activeBtn.dataset.scope : 'none';
             if (scope === 'none') {
-                delete yMap[currentSelectedDate];
+                yMap[currentSelectedDate] = [];
                 return;
             }
             const name = document.getElementById('holidayNameInput').value.trim() || 'Festivo';
@@ -2649,6 +2649,7 @@
         document.getElementById('holidayNameInput').addEventListener('input', updateCurrentHolidayState);
         document.getElementById('holidayTypeSelect').addEventListener('change', updateCurrentHolidayState);
 
+        // Clic en etiquetas rápidas de festivos
         document.getElementById('holidayCityQuickTags').addEventListener('click', (e) => {
             const tag = e.target.closest('.quick-tag');
             if (!tag || !currentSelectedDate) return;
@@ -2675,39 +2676,7 @@
             renderMatrixView();
         });
 
-        // Cambio de nombre de festivo
-        document.getElementById('holidayNameInput').addEventListener('input', (e) => {
-            if (!currentSelectedDate) return;
-            const activeBtn = document.querySelector('.holiday-type-pill.active');
-            const type = activeBtn ? activeBtn.dataset.type : 'nacional';
-            if (type !== 'none') {
-                setHoliday(currentSelectedDate, type, e.target.value);
-                document.getElementById('currentHolidayBadge').textContent = e.target.value + ' (' + getHolidayTypeLabel(type) + ')';
-                renderMatrixView();
-            }
-        });
-
-        // Clic en etiquetas rápidas de festivos (San José, Santa Faz, etc.)
-        document.getElementById('holidayQuickTags').addEventListener('click', (e) => {
-            const tag = e.target.closest('.quick-tag');
-            if (!tag || !currentSelectedDate) return;
-
-            const name = tag.dataset.name;
-            const type = tag.dataset.type || 'autonomico';
-
-            document.querySelectorAll('.holiday-type-pill').forEach(b => b.classList.remove('active'));
-            const targetBtn = document.querySelector('.holiday-type-pill[data-type="' + type + '"]');
-            if (targetBtn) targetBtn.classList.add('active');
-
-            document.getElementById('holidayNameGroup').style.display = 'flex';
-            document.getElementById('holidayNameInput').value = name;
-            document.getElementById('currentHolidayBadge').textContent = name + ' (' + getHolidayTypeLabel(type) + ')';
-
-            setHoliday(currentSelectedDate, type, name);
-            renderMatrixView();
-        });
-
-        // En modo edición: permitir clic en el número de día de la cabecera para editar el festivo
+        // En modo edición: permitir clic en el número de día o letra de la cabecera para editar el festivo
         document.getElementById('matrixViewContainer').addEventListener('click', (e) => {
             const headerNum = e.target.closest('.matrix-header-num');
             if (!headerNum) return;
@@ -2825,29 +2794,9 @@
                 subEl.textContent = 'Día laborable normal';
             }
             badgeEl.textContent = 'Laborable normal';
-            document.querySelector('#holidayScopeSelector .holiday-type-pill[data-scope="none"]').classList.add('active');
+            const noneBtn = document.querySelector('#holidayScopeSelector .holiday-type-pill[data-scope="none"]');
+            if (noneBtn) noneBtn.classList.add('active');
             detailGroup.style.display = 'none';
-            nameInput.value = '';
-        }
-
-        document.querySelectorAll('.holiday-type-pill').forEach(btn => btn.classList.remove('active'));
-
-        if (hol) {
-            subEl.innerHTML = getHolidayTypeIcon(hol.type) + ' <strong style="color:var(--text-main);">' + getHolidayTypeLabel(hol.type) + ': ' + hol.name + '</strong>';
-            badgeEl.textContent = hol.name + ' (' + getHolidayTypeLabel(hol.type) + ')';
-            const activeBtn = document.querySelector('.holiday-type-pill[data-type="' + hol.type + '"]');
-            if (activeBtn) activeBtn.classList.add('active');
-            nameGroup.style.display = 'flex';
-            nameInput.value = hol.name;
-        } else {
-            if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
-                subEl.textContent = 'Fin de semana (Sábado/Domingo)';
-            } else {
-                subEl.textContent = 'Día laborable normal';
-            }
-            badgeEl.textContent = 'Laborable normal';
-            document.querySelector('.holiday-type-pill[data-type="none"]').classList.add('active');
-            nameGroup.style.display = 'none';
             nameInput.value = '';
         }
 
