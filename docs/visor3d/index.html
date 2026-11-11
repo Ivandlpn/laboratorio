@@ -391,6 +391,7 @@
   <span id="cabCota">— m</span>
   <span id="cabPend">— ‰</span>
   <div class="controles-cab">
+    <button type="button" id="btnPausaRecorrido" aria-pressed="false" title="Pausar o seguir el recorrido (barra espaciadora)">⏸ Pausa</button>
     <button type="button" id="btnSentido" title="Invertir sentido de marcha">→ Alicante</button>
     <button type="button" data-vel="1" aria-pressed="true">1×</button>
     <button type="button" data-vel="3">3×</button>
@@ -525,9 +526,9 @@ function lonlatAMercPx([lon, lat], z) {
 
 // ---- Carga inicial: metadatos + columna vertebral 3D + índice MDT LiDAR ----
 const cargando = document.getElementById('cargando');
-let meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales;
+let meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales;
 try {
-  [meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales] = await Promise.all([
+  [meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales] = await Promise.all([
     fetch(`${RUTA}/meta.json`).then((r) => { if (!r.ok) throw new Error('meta ' + r.status); return r.json(); }),
     fetch(`${RUTA}/eje-3d.json`).then((r) => { if (!r.ok) throw new Error('eje-3d ' + r.status); return r.json(); }),
     fetch(`${RUTA}/mdt/index.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
@@ -542,6 +543,8 @@ try {
     params.has('sinEstructuras') ? null : fetch(`${RUTA}/ramales.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
     // Pasos superiores reconstruidos de sus bordes de tablero (scripts/importar-pasos-superiores.py)
     params.has('sinEstructuras') ? null : fetch(`${RUTA}/pasos-superiores.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    // Pasos inferiores deducidos de impostas y aletas de la cartografía (scripts/importar-pasos-inferiores.py)
+    params.has('sinEstructuras') ? null : fetch(`${RUTA}/pasos-inferiores.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
   ]);
 } catch (err) {
   cargando.innerHTML = '<b>No se pudo iniciar el corredor 3D</b><span>' + String(err.message || err) + '</span>';
@@ -1022,8 +1025,31 @@ const matAndenGranito = (() => {
   return new THREE.MeshStandardMaterial({ map: t, roughness: 0.72, metalness: 0.08, side: THREE.DoubleSide });
 })();
 
-const matCarrilAlma = mat('#555b62', 1, { metalness: 0.68, roughness: 0.40 });
-const matCarrilCabeza = mat('#e5ebf0', 1, { metalness: 0.92, roughness: 0.14 });
+const matCarrilAlma = mat('#6e4a34', 1, { metalness: 0.35, roughness: 0.78 });   // óxido de alma, patín y costados de cabeza
+const matCarrilCabeza = mat('#e5ebf0', 1, { metalness: 0.92, roughness: 0.14 }); // banda de rodadura pulida por las ruedas
+// Sujeción de carril: grapa elástica en verde Adif, placa guía y placa de asiento negras, tirafondo oxidado
+const MAT_GRAPA = new THREE.MeshStandardMaterial({ color: '#1f7a3e', roughness: 0.45, metalness: 0.15 });
+const MAT_PLACA_GUIA = new THREE.MeshStandardMaterial({ color: '#1d1f22', roughness: 0.75, metalness: 0.05 });
+const MAT_TIRAFONDO = new THREE.MeshStandardMaterial({ color: '#7a4a2c', roughness: 0.8, metalness: 0.35 });
+// Perfil UIC 60 (60E1): 172 mm de alto, patín de 150 mm, alma de 16,5 mm y cabeza de 72 mm.
+// [desplazamiento lateral, cota] en metros respecto a la cota de cabeza de carril (Z + 0,022). Esquinas repetidas = aristas vivas.
+const PERFIL_UIC60 = (() => {
+  const d = [
+    [-0.075, -0.172], [-0.075, -0.172], [0.075, -0.172], [0.075, -0.172], [0.075, -0.1605], [0.075, -0.1605],
+    [0.016, -0.147], [0.0083, -0.135], [0.0083, -0.072], [0.016, -0.059], [0.036, -0.050], [0.036, -0.050],
+    [0.0365, -0.013], [0.031, -0.003], [0.019, 0],
+    [-0.019, 0], [-0.031, -0.003], [-0.0365, -0.013],
+    [-0.036, -0.050], [-0.036, -0.050], [-0.016, -0.059], [-0.0083, -0.072], [-0.0083, -0.135], [-0.016, -0.147],
+    [-0.075, -0.1605], [-0.075, -0.1605],
+  ];
+  return d.map(([x, y]) => [x, y + 0.022]);
+})();
+// Banda de rodadura pulida (abierta), un pelo por encima del perfil
+const PERFIL_RODADURA = [[-0.031, 0.019], [-0.019, 0.0222], [0.019, 0.0222], [0.031, 0.019]];
+function carrilUIC60(mOxido, mPulido, pts) {
+  extruirSeccion(mOxido, pts, PERFIL_UIC60, true, 0.5);
+  extruirSeccion(mPulido, pts, PERFIL_RODADURA, false, 0.5);
+}
 const matTraviesa = mat('#beb9b0', 1, { roughness: 0.88, metalness: 0.04 });
 
 const texGrano = (() => {
@@ -1036,27 +1062,101 @@ const texGrano = (() => {
   return t;
 })();
 const matTerrenoTopo = new THREE.MeshStandardMaterial({ vertexColors: true, map: texGrano, roughness: 0.98, metalness: 0, side: THREE.DoubleSide });
+// Huecos en el terreno: el relieve es una malla de alturas y no puede tener techo, así que en la boca de un paso inferior
+// o de un túnel la ladera cruzaba la abertura. Cada hueco es una caja orientada (en coordenadas de mundo) dentro de la
+// cual el terreno no se pinta; dentro se ve la estructura (solera, hastiales, losa, aletas o bóveda).
+const MAX_HUECOS = 24;
+const U_HUECOS = { value: Array.from({ length: MAX_HUECOS }, () => new THREE.Matrix4()) };
+const U_N_HUECOS = { value: 0 };
+function conHuecos(material) {
+  material.onBeforeCompile = (sh) => {
+    sh.uniforms.uHuecos = U_HUECOS;
+    sh.uniforms.uNHuecos = U_N_HUECOS;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vPosHueco;')
+      .replace('#include <project_vertex>', '#include <project_vertex>\nvPosHueco = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', `#include <common>
+varying vec3 vPosHueco;
+uniform mat4 uHuecos[${MAX_HUECOS}];
+uniform int uNHuecos;`)
+      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+for (int i = 0; i < ${MAX_HUECOS}; i++) {
+  if (i >= uNHuecos) break;
+  vec3 q = (uHuecos[i] * vec4(vPosHueco, 1.0)).xyz;
+  if (abs(q.x) < 0.5 && abs(q.y) < 0.5 && abs(q.z) < 0.5) discard;
+}`);
+  };
+  material.customProgramCacheKey = () => 'huecos-terreno';
+  return material;
+}
+conHuecos(matTerrenoTopo);
 const matTerrenoRegional = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, metalness: 0, side: THREE.DoubleSide });
 
 // Geometrías unitarias detalladas para InstancedMesh (compartidas entre teselas)
 const GEO = {
   // Traviesa monobloque de hormigón pretensado AI-04 con cintura central
   traviesa: (() => {
-    const extI = new THREE.BoxGeometry(0.26, 0.21, 0.92).translate(0, 0, -0.84);
-    const cen = new THREE.BoxGeometry(0.21, 0.16, 0.92);
-    const extD = new THREE.BoxGeometry(0.26, 0.21, 0.92).translate(0, 0, 0.84);
+    // Cara de apoyo del carril en y = 0 (bajo el patín y la placa de asiento de 10 mm)
+    const extI = new THREE.BoxGeometry(0.26, 0.21, 0.92).translate(0, -0.105, -0.84);
+    const cen = new THREE.BoxGeometry(0.21, 0.17, 0.92).translate(0, -0.125, 0);
+    const extD = new THREE.BoxGeometry(0.26, 0.21, 0.92).translate(0, -0.105, 0.84);
     const g = mergeGeometries([extI, cen, extD], false);
     extI.dispose(); cen.dispose(); extD.dispose();
     g.userData.compartida = true;
     return g;
   })(),
-  // Placa de asiento elastomérica + sujeciones elásticas Vossloh SKL-14 a ambos lados del patín UIC 60
+  // Placa de asiento bajo el patín (10 mm) y placas guía acodadas a cada lado del carril. Local: x a lo largo de la vía,
+  // z transversal (carriles en ±0,7175), y = 0 en la cara superior de la traviesa.
   placaAsiento: (() => {
     const partes = [];
     for (const zR of [-0.7175, 0.7175]) {
-      partes.push(new THREE.BoxGeometry(0.28, 0.032, 0.22).translate(0, 0.11, zR));
-      partes.push(new THREE.BoxGeometry(0.14, 0.048, 0.055).translate(0, 0.125, zR - 0.105));
-      partes.push(new THREE.BoxGeometry(0.14, 0.048, 0.055).translate(0, 0.125, zR + 0.105));
+      partes.push(new THREE.BoxGeometry(0.18, 0.01, 0.17).translate(0, 0.005, zR));
+      for (const s of [-1, 1]) {
+        // Placa guía: cuña negra de 150 mm entre el borde del patín y el tirafondo
+        const g = new THREE.BoxGeometry(0.15, 0.03, 0.115);
+        const pos = g.attributes.position;
+        for (let i = 0; i < pos.count; i++) if (pos.getY(i) > 0 && pos.getZ(i) * s < 0) pos.setY(i, 0.006); // chaflán hacia el carril
+        g.translate(0, 0.015, zR + s * (0.075 + 0.058));
+        partes.push(g);
+      }
+    }
+    const g = mergeGeometries(partes, false);
+    for (const p of partes) p.dispose();
+    g.userData.compartida = true;
+    return g;
+  })(),
+  // Grapa elástica (tipo Vossloh SKL) en verde Adif: lazo de varilla de 13 mm con las puntas apoyadas en el patín
+  grapa: (() => {
+    const partes = [];
+    const lazo = (d) => [
+      [-0.048, 0.030, 0.064], [-0.062, 0.040, 0.100], [-0.060, 0.050, 0.150], [-0.042, 0.060, 0.188],
+      [0.000, 0.064, 0.200], [0.042, 0.060, 0.188], [0.060, 0.050, 0.150], [0.062, 0.040, 0.100], [0.048, 0.030, 0.064],
+    ].map(([x, y, dz]) => new THREE.Vector3(x, y, d * dz));
+    for (const zR of [-0.7175, 0.7175]) {
+      for (const s of [-1, 1]) {
+        const pts = lazo(s);
+        const tubo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), pts.length * 2, 0.0085, 5, false);
+        tubo.translate(0, 0, zR);
+        partes.push(tubo);
+      }
+    }
+    const g = mergeGeometries(partes.map((t) => t.toNonIndexed()), false);
+    for (const p of partes) p.dispose();
+    g.computeVertexNormals();
+    g.userData.compartida = true;
+    return g;
+  })(),
+  // Tirafondo con arandela: tuerca hexagonal oxidada en el centro de cada grapa
+  tirafondo: (() => {
+    const partes = [];
+    for (const zR of [-0.7175, 0.7175]) {
+      for (const s of [-1, 1]) {
+        const z = zR + s * 0.13;
+        partes.push(new THREE.CylinderGeometry(0.024, 0.024, 0.006, 10).translate(0, 0.033, z));
+        partes.push(new THREE.CylinderGeometry(0.017, 0.017, 0.024, 6).translate(0, 0.048, z));
+        partes.push(new THREE.CylinderGeometry(0.008, 0.008, 0.014, 6).translate(0, 0.066, z));
+      }
     }
     const g = mergeGeometries(partes, false);
     for (const p of partes) p.dispose();
@@ -1499,8 +1599,19 @@ const HashCotas = (() => {
   return { insertarKm, quitarKm, interpolar };
 })();
 
+let PASOS_INF_TERRENO = []; // se rellena al crear PASOS_INF (más abajo)
+function fondoPasoInferior(E, N, q) {
+  for (const pi of PASOS_INF_TERRENO) {
+    if (Math.abs(q.pk - pi.pk) > pi.ancho / 2 + 2) continue;
+    const dE = E - pi.E, dN = N - pi.N;
+    const sEje = dE * pi.ax + dN * pi.ay, lat = dE * pi.tx + dN * pi.ty;
+    if (Math.abs(lat) <= pi.ancho / 2 && sEje >= -pi.finIzq - 1 && sEje <= pi.finDer + 1) return pi.suelo;
+  }
+  return null;
+}
 function cotaTerrenoUTM(E, N) {
   const q = Eje3D.proyUTM(E, N);
+  if (PASOS_INF_TERRENO.length) { const zF = fondoPasoInferior(E, N, q); if (zF !== null) return zF; }
   const mDxf = q.d < 210 ? HashCotas.interpolar(E, N) : null;
   const zMdt = MdtCorredor.cota(E, N);
   const zBasePaisaje = zMdt !== null ? zMdt : (q.Z - 0.56);
@@ -1705,12 +1816,12 @@ function actualizarMaterialBloque(entry) {
   if (!entry) return;
   if (ortofotoActiva && entry.texOrto) {
     if (!entry.matOrto) {
-      entry.matOrto = new THREE.MeshStandardMaterial({
+      entry.matOrto = conHuecos(new THREE.MeshStandardMaterial({
         map: entry.texOrto,
         roughness: 0.96,
         metalness: 0.0,
         side: THREE.DoubleSide,
-      });
+      }));
     }
     entry.matOrto.transparent = rayosXActivo;
     entry.matOrto.opacity = rayosXActivo ? 0.42 : 1;
@@ -2176,6 +2287,59 @@ const viaductoReal = (enViaducto) => (enViaducto ? VIADUCTOS_REALES.get(enViaduc
 // La leyenda cuenta solo los viaductos de la vía principal (los de ramal y las estructuras que la cruzan, aparte)
 { const elNV = document.getElementById('nViaductos'); if (elNV) elNV.textContent = String(Eje3D.viaductos.length); }
 
+// ---- Pasos inferiores (marcos bajo el terraplén) deducidos de impostas y aletas de la cartografía de Adif ----
+// La luz libre es el ancho entre impostas menos los hastiales; el gálibo, lo que cabe entre el fondo y la losa
+// (bajo 0,9 m de balasto, traviesa y capa de forma y 0,6 m de losa), con un máximo de 5,2 m.
+const PASOS_INF = (pasosInfReales?.pasos || []).map((p) => {
+  if (p.pkFin - p.pkIni > 40 || p.pk < Eje3D.pkIni || p.pk > Eje3D.pkFin) return null;
+  const m = Eje3D.enPk(p.pk);
+  if (m.enTunel || m.enViaducto) return null;
+  const galibo = Math.min(5.2, m.Z - 1.5 - p.suelo);
+  if (galibo < 1.6) return null;
+  const ancho = Math.max(3, p.pkFin - p.pkIni - 1.0);
+  // Eje del paso: perpendicular a la vía; a = (-ty, tx) apunta al lado de desplazamientos positivos
+  return { ...p, ancho, galibo, zCarril: m.Z, E: m.E, N: m.N, ax: -m.ty, ay: m.tx, tx: m.tx, ty: m.ty };
+}).filter(Boolean);
+PASOS_INF_TERRENO = PASOS_INF;
+// Huecos: caja en UTM (centro, eje a en planta, largo a lo largo de a, ancho, cota inferior y superior)
+const HUECOS = [];
+for (const pi of PASOS_INF) {
+  const hueco = (s0, s1, z0, z1) => {
+    const sc = (s0 + s1) / 2;
+    HUECOS.push({ E: pi.E + pi.ax * sc, N: pi.N + pi.ay * sc, z0, z1, ax: pi.ax, ay: pi.ay, largo: s1 - s0, ancho: pi.ancho });
+  };
+  // Bajo la losa, la abertura; fuera de las bocas, la trinchera entre aletas abierta hasta el cielo
+  hueco(-pi.bocaIzq - 0.2, pi.bocaDer + 0.2, pi.suelo - 0.3, pi.suelo + pi.galibo);
+  hueco(-pi.finIzq - 1, -pi.bocaIzq, pi.suelo - 0.3, pi.zCarril + 4);
+  hueco(pi.bocaDer, pi.finDer + 1, pi.suelo - 0.3, pi.zCarril + 4);
+}
+for (const tun of Eje3D.tuneles) {
+  for (const [pkBoca, sFuera] of [[tun.pkIni, -1], [tun.pkFin, 1]]) {
+    // De 6 m fuera de la boca a 30 m dentro: deja ver la bóveda en lugar de la ladera que la cruzaba
+    const pkC = pkBoca - sFuera * 12;
+    const m = Eje3D.enPk(pkC);
+    HUECOS.push({ E: m.E, N: m.N, z0: m.Z - 0.45, z1: m.Z + 7.3, ax: m.tx, ay: m.ty, largo: 36, ancho: 13.6 });
+  }
+}
+const mTmpHueco = new THREE.Matrix4(), vXH = new THREE.Vector3(), vYH = new THREE.Vector3(0, 1, 0), vZH = new THREE.Vector3();
+function actualizarHuecos() {
+  const camU = UTMdeMundo(camara.position);
+  const cerca = HUECOS
+    .map((h) => ({ h, d: Math.hypot(h.E - camU.E, h.N - camU.N) }))
+    .filter((x) => x.d < 2500)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, MAX_HUECOS);
+  cerca.forEach(({ h }, i) => {
+    vXH.set(h.ax, 0, -h.ay).normalize();
+    vZH.crossVectors(vXH, vYH).normalize();
+    const c = W(h.E, h.N, (h.z0 + h.z1) / 2);
+    mTmpHueco.makeBasis(vXH.clone().multiplyScalar(h.largo), vYH.clone().multiplyScalar(h.z1 - h.z0), vZH.clone().multiplyScalar(h.ancho));
+    mTmpHueco.setPosition(c);
+    U_HUECOS.value[i].copy(mTmpHueco).invert();
+  });
+  U_N_HUECOS.value = cerca.length;
+}
+
 // ---- Pasos superiores reales: un tablero por paso (eje, ancho y cota cada 2 m de sus bordes en la cartografía) ----
 const PASOS_SUP = (pasosSupReales?.pasos || []).filter((p) => p.valido && p.p?.length > 5);
 const pasosSupPorKm = new Map();
@@ -2365,7 +2529,7 @@ async function cargarTeselaKm(km) {
     const mViadTablero = new Malla(), mPretil = new Malla(), mAceroGalv = new Malla();
     const mTunelBoveda = new Malla(), mTunelAcera = new Malla(), mBarandillaTunel = new Malla();
     const mHormigonObra = new Malla(), mCanaleta = new Malla(), mCuneta = new Malla();
-    const mAsfalto = new Malla(), mMarcaVial = new Malla(), mMallaAntivand = new Malla(), mBionda = new Malla();
+    const mAsfalto = new Malla(), mMarcaVial = new Malla(), mMallaAntivand = new Malla(), mBionda = new Malla(), mZahorraPI = new Malla();
     const mPantalla = new Malla(), mValla = new Malla(), mPuerta = new Malla(), mAlambreValla = new Malla();
     const mEdif = new Malla(), mEdifTec = new Malla(), mCubierta = new Malla(), mMarquesina = new Malla(), mAnden = new Malla();
     const mArmarioVia = new Malla(), mSubest = new Malla(), mTrafo = new Malla(), mAisladorAT = new Malla(), mCajaControl = new Malla(), mAgua = new Malla();
@@ -2377,7 +2541,7 @@ async function cargarTeselaKm(km) {
     const inst = {
       traviesa: [], placaAsiento: [], poste: [], cimientoPoste: [], placaPoste: [], contrapeso: [], mensula: [], aislador: [],
       senalPoste: [], senalFoco: [], baliza: [], armario: [], arqueta: [], hitoPk: [],
-      tronco: [], copa: [], copaOlivo: [], farola: [], foco: [], posteValla: [], lumTunel: [], cartelTunel: [],
+      tronco: [], copa: [], copaOlivo: [], farola: [], foco: [], posteValla: [], lumTunel: [], cartelTunel: [], sujecion: new Map(),
     };
     const M4 = new THREE.Matrix4(), Q4 = new THREE.Quaternion(), V3 = new THREE.Vector3(), S3 = new THREE.Vector3();
     const EJE_Y = new THREE.Vector3(0, 1, 0);
@@ -2418,14 +2582,13 @@ async function cargarTeselaKm(km) {
           const nx = -m.ty, ny = m.tx, off = signo * (m.sep * 0.5);
           return L(m.E + nx * off, m.N + ny * off, m.Z);
         });
-        cinta(mBal, ptsVia, 3.45, -0.44, -0.10, 0.85, 0.25);
+        cinta(mBal, ptsVia, 3.45, -0.44, -0.23, 0.85, 0.25);
         for (const rOff of [-0.7175, 0.7175]) {
           const ptsR = muestras.map((m) => {
             const nx = -m.ty, ny = m.tx, off = signo * (m.sep * 0.5) + rOff;
             return L(m.E + nx * off, m.N + ny * off, m.Z);
           });
-          cinta(mCarAlma, ptsR, 0.14, -0.13, -0.025, 0, 0.5);
-          cinta(mCarCab, ptsR, 0.072, -0.025, 0.022, 0, 0.5);
+          carrilUIC60(mCarAlma, mCarCab, ptsR);
         }
         // Cinta 3D continua de cobre-plata para el hilo de contacto a Z + 5,300 m (fuera de túneles; interior de túnel con carril rígido/hilo tenso)
         let trContacto = [];
@@ -2447,10 +2610,13 @@ async function cargarTeselaKm(km) {
         const yaw = Math.atan2(m.ty, m.tx), nx = -m.ty, ny = m.tx;
         for (const signo of [-1, 1]) {
           const off = signo * (m.sep * 0.5);
-          const p = L(m.E + nx * off, m.N + ny * off, m.Z - 0.11);
+          // Cara superior de la traviesa = cabeza de carril (Z + 0,022) - 172 mm de carril - 10 mm de placa
+          const p = L(m.E + nx * off, m.N + ny * off, m.Z - 0.16);
           const mt = matInst(p, yaw);
           inst.traviesa.push(mt);
-          inst.placaAsiento.push(mt);
+          const tramo = Math.floor(pk / 100);
+          if (!inst.sujecion.has(tramo)) inst.sujecion.set(tramo, { mats: [], p });
+          inst.sujecion.get(tramo).mats.push(mt);
         }
       }
       for (let pkArq = Math.ceil(pk0 / 55) * 55 + 27.5; pkArq < pk1; pkArq += 55) {
@@ -2762,6 +2928,66 @@ async function cargarTeselaKm(km) {
             cajaOrientada(mHormigonObra, pb[0] + ux * sFuera * 0.25, pb[2] + uz * sFuera * 0.25, pb[1] + 9.05, pb[1] + 9.55, ux, uz, 4.5, 17.6);
           }
         }
+      }
+
+      // 2e. Pasos inferiores: marco de hormigón (solera, hastiales, losa y tímpanos) y aletas que siguen la ladera
+      for (const pi of PASOS_INF) {
+        if (pi.pk < pk0 || pi.pk >= pk1) continue;
+        const ux = pi.ax, uz = -pi.ay;             // eje del paso en coordenadas locales (x = E, z = -N)
+        const vx = pi.tx, vz = -pi.ty;             // dirección de la vía
+        const punto = (sOff, lat) => L(pi.E + pi.ax * sOff + pi.tx * lat, pi.N + pi.ay * sOff + pi.ty * lat, pi.suelo);
+        const y0 = pi.suelo - 0.5 - anclaZ + anclaZ; // cotas absolutas pasadas por L()
+        const sIzq = -pi.bocaIzq, sDer = pi.bocaDer, hw = pi.ancho / 2;
+        const yS = punto(0, 0)[1];                 // cota local del fondo
+        const yLosa = yS + pi.galibo;
+        // Solera y camino a lo largo de todo el paso
+        const sc = (-pi.finIzq - 1 + pi.finDer + 1) / 2, largoTot = pi.finIzq + pi.finDer + 2;
+        const pc = punto(sc, 0);
+        cajaOrientada(mHormigonObra, pc[0], pc[2], yS - 0.45, yS + 0.02, ux, uz, largoTot, pi.ancho + 1.0);
+        cajaOrientada(mZahorraPI, pc[0], pc[2], yS + 0.02, yS + 0.07, ux, uz, largoTot, Math.max(2.5, pi.ancho - 1.2));
+        // Marco bajo la plataforma
+        const pm = punto((sIzq + sDer) / 2, 0), largoM = sDer - sIzq;
+        for (const s of [-1, 1]) {
+          const ph = punto((sIzq + sDer) / 2, s * (hw + 0.25));
+          cajaOrientada(mHormigonObra, ph[0], ph[2], yS, yLosa, ux, uz, largoM, 0.5);
+        }
+        cajaOrientada(mHormigonObra, pm[0], pm[2], yLosa, yLosa + 0.6, ux, uz, largoM, pi.ancho + 1.0);
+        // Tímpanos sobre la abertura, hasta la plataforma
+        const yTop = pi.zCarril - 0.55 - anclaZ;
+        for (const sb of [sIzq, sDer]) {
+          const pt = punto(sb, 0);
+          if (yTop > yLosa + 0.6) cajaOrientada(mHormigonObra, pt[0], pt[2], yLosa + 0.6, yTop, ux, uz, 0.4, pi.ancho + 1.0);
+        }
+        // Aletas: de la boca al final, a cada lado, con la coronación siguiendo el terreno que contienen
+        const coronacion = (sOff, lado) => {
+          const Ew = pi.E + pi.ax * sOff + pi.tx * lado * (hw + 1.2), Nw = pi.N + pi.ay * sOff + pi.ty * lado * (hw + 1.2);
+          return Math.min(pi.zCarril - 0.5, Math.max(pi.suelo + 0.6, cotaTerrenoUTM(Ew, Nw) + 0.25)) - anclaZ;
+        };
+        for (const [s0, s1] of [[-pi.finIzq - 1, sIzq], [sDer, pi.finDer + 1]]) {
+          const n = Math.max(1, Math.ceil(Math.abs(s1 - s0) / 1.5));
+          for (const lado of [-1, 1]) {
+            for (let k = 0; k < n; k++) {
+              const sa = s0 + (s1 - s0) * (k / n), sb = s0 + (s1 - s0) * ((k + 1) / n);
+              const ya = coronacion(sa, lado), yb = coronacion(sb, lado);
+              // Prisma de 0,5 m de espesor con la coronación inclinada entre sa y sb
+              const v = [];
+              for (const [sv, yTopv] of [[sa, ya], [sb, yb]]) {
+                for (const e of [-0.25, 0.25]) {
+                  const b = punto(sv, lado * (hw + 0.25 + e));
+                  v.push([b[0], yS - 0.3, b[2]], [b[0], yTopv, b[2]]);
+                }
+              }
+              // v: [a-in-bajo, a-in-alto, a-out-bajo, a-out-alto, b-in-bajo, b-in-alto, b-out-bajo, b-out-alto]
+              const i = v.map((q) => mHormigonObra.v(q[0], q[1], q[2], q[0] * 0.25, q[1] * 0.25));
+              mHormigonObra.quad(i[0], i[4], i[5], i[1]); // cara interior
+              mHormigonObra.quad(i[2], i[3], i[7], i[6]); // cara exterior
+              mHormigonObra.quad(i[1], i[5], i[7], i[3]); // coronación
+              if (k === 0) mHormigonObra.quad(i[0], i[1], i[3], i[2]);
+              if (k === n - 1) mHormigonObra.quad(i[4], i[6], i[7], i[5]);
+            }
+          }
+        }
+        void y0; void vx; void vz;
       }
 
       let tramoT = [];
@@ -3208,6 +3434,17 @@ async function cargarTeselaKm(km) {
       const id = f.properties?.c;
       let g = f.geometry;
       if (!id || !g) continue;
+      // En las bocas de túnel la cartografía dibuja la boquilla como contorno de edificio: la boquilla ya tiene su modelo
+      if (id === '030001' || id === '030175') {
+        const cs0 = g.type === 'Polygon' ? g.coordinates[0] : g.type === 'LineString' ? g.coordinates : null;
+        if (cs0?.length) {
+          let sx = 0, sy = 0;
+          for (const c of cs0) { sx += c[0]; sy += c[1]; }
+          const [E0, N0] = lonlatAUTM(sx / cs0.length, sy / cs0.length);
+          const q0 = Eje3D.proyUTM(E0, N0);
+          if (q0.d < 25 && Eje3D.tuneles.some((t) => Math.min(Math.abs(q0.pk - t.pkIni), Math.abs(q0.pk - t.pkFin)) < 45)) continue;
+        }
+      }
       if (g.type === 'LineString' && CAPAS_HUELLA.has(id)) {
         const cs = g.coordinates, a = cs[0], b = cs[cs.length - 1];
         if (cs.length >= 4 && Math.abs(a[0] - b[0]) < 1e-7 && Math.abs(a[1] - b[1]) < 1e-7) g = { type: 'Polygon', coordinates: [cs] };
@@ -3263,8 +3500,7 @@ async function cargarTeselaKm(km) {
         if (id === '050177') {
           // Hilos de carril reales del DXF (desvíos, escapes y vías de apartado en PAET y estaciones)
           const ptsH = aLoc(cs, 'via');
-          cinta(mCarAlma, ptsH, 0.13, -0.11, -0.02, 0, 0.5);
-          cinta(mCarCab, ptsH, 0.068, -0.02, 0.024, 0, 0.5);
+          carrilUIC60(mCarAlma, mCarCab, ptsH);
         } else if (id === '050207') {
           // Eje de vía convencional adyacente (ancho ibérico)
           const ptsIb = aLoc(cs, 'terreno', 0.16);
@@ -3345,6 +3581,8 @@ async function cargarTeselaKm(km) {
           cinta(mAsfalto, aLoc(cs, 'terreno', 0.06), id === '040031' ? 9.5 : 6.4, -0.14, 0.05, 0.22, 0.15);
         } else if (id === '010127' || id === '050021' || id === '010047') {
           cinta(mCuneta, aLoc(cs, 'terreno', -0.18), 1.15, -0.35, 0.04, 0.35, 0.25);
+        } else if (id === '050135' && PASOS_INF.some((pi) => Math.abs((f.properties.pk ?? 0) - pi.pk) < (pi.pkFin - pi.pkIni) / 2 + Math.max(pi.finIzq, pi.finDer) + 5)) {
+          continue;
         } else if (id === '050135' || id === '030020' || id === '030203') {
           const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
           const qm = Eje3D.proyUTM(Em, Nm);
@@ -3747,6 +3985,7 @@ async function cargarTeselaKm(km) {
     addMalla(mCanaleta, mat('#b8b4aa', 1, { roughness: 0.86 }), 'plataforma', '050150', false, true);
     addMalla(mCuneta, mat('#9ba3ab'), 'plataforma', '010127', false, true);
     addMalla(mAsfalto, mat('#3b4048', 1, { roughness: 0.9 }), 'viales', '050197', false, true);
+    addMalla(mZahorraPI, mat('#a8987c', 1, { roughness: 0.95 }), 'estructuras', '050135', false, true);
     addMalla(mMarcaVial, mat('#f1f5f9', 1, { roughness: 0.5 }), 'viales', '050197');
     addMalla(mMallaAntivand, mat('#1d4ed8', 0.62, { metalness: 0.3, roughness: 0.4 }), 'estructuras', '050197');
     addMalla(mBionda, mat('#aeb7c2', 1, { metalness: 0.72, roughness: 0.32 }), 'viales', '040243');
@@ -3779,7 +4018,27 @@ async function cargarTeselaKm(km) {
     };
 
     addInst(inst.traviesa, GEO.traviesa, matTraviesa, 'via', '050117');
-    addInst(inst.placaAsiento, GEO.placaAsiento, mat('#27292d', 1, { metalness: 0.48, roughness: 0.52 }), 'via', '050117');
+    // Sujeciones: un InstancedMesh por tramo de 100 m y pieza; se encienden solo a menos de DIST_SUJECION de la cámara
+    const sujeciones = [];
+    if (grupos.via) {
+      for (const { mats, p } of inst.sujecion.values()) {
+        const tramo = new THREE.Group();
+        tramo.userData = { centro: new THREE.Vector3(p[0], p[1], p[2]) };
+        for (const [geo, matS] of [[GEO.placaAsiento, MAT_PLACA_GUIA], [GEO.grapa, MAT_GRAPA], [GEO.tirafondo, MAT_TIRAFONDO]]) {
+          const im = new THREE.InstancedMesh(geo, matS, mats.length);
+          for (let i = 0; i < mats.length; i++) im.setMatrixAt(i, mats[i]);
+          im.instanceMatrix.needsUpdate = true;
+          im.computeBoundingSphere();
+          im.userData = fichaElemento('050117', null, pkCentro);
+          im.userData.nombre = 'Sujeción de carril';
+          im.userData.info = 'Sujeción elástica tipo Vossloh SKL sobre traviesa monobloque: grapa de varilla en verde Adif, placa guía acodada, tirafondo con arandela y placa de asiento de 10 mm bajo el patín del carril UIC 60. Una cada 0,6 m por carril (aquí se dibuja una por traviesa del modelo, cada 1,25 m).';
+          tramo.add(im);
+        }
+        for (const c of tramo.children) c.visible = false;
+        grupos.via.add(tramo);
+        sujeciones.push(tramo);
+      }
+    }
     addInst(inst.hitoPk, GEO.hitoPk, mat('#f8fafc'), 'via', '050155');
     if (MODELOS.poste) {
       // Poste HEB 240 modelado en Blender (fuste, placa de anclaje, pernos, cartelas, macizo, abrazaderas,
@@ -3814,7 +4073,7 @@ async function cargarTeselaKm(km) {
     addInst(inst.cartelTunel, GEO.cartelTunel, matSalidaEmerg, 'estructuras', '050020');
 
     grupoTeselas.add(raiz);
-    teselasCargadas.set(km, { km, anclaE, anclaN, anclaZ, raiz, grupos, etiquetas, etiquetasEdif });
+    teselasCargadas.set(km, { km, anclaE, anclaN, anclaZ, raiz, grupos, etiquetas, etiquetasEdif, sujeciones });
     if (ultimoKmCentral >= 0) recortarCacheTeselas(ultimoKmCentral);
   } catch (err) {
     console.error('Error al construir tesela ' + km + ':', err);
@@ -4381,6 +4640,21 @@ document.getElementById('formPk').addEventListener('submit', (e) => {
   if (vistaActiva === 'cabina' || vistaActiva === 'dron') setModoVista('viaducto');
 });
 
+// Pausa del recorrido automático (cabina y dron): botón y barra espaciadora
+let recorridoPausado = false;
+const btnPausaRec = document.getElementById('btnPausaRecorrido');
+function alternarPausaRecorrido(forzar) {
+  recorridoPausado = typeof forzar === 'boolean' ? forzar : !recorridoPausado;
+  btnPausaRec.textContent = recorridoPausado ? '▶ Seguir' : '⏸ Pausa';
+  btnPausaRec.setAttribute('aria-pressed', String(recorridoPausado));
+}
+btnPausaRec.addEventListener('click', () => alternarPausaRecorrido());
+addEventListener('keydown', (ev) => {
+  if (ev.code !== 'Space' || (vistaActiva !== 'cabina' && vistaActiva !== 'dron')) return;
+  if (ev.target instanceof HTMLElement && ev.target.closest('input, textarea, select, button')) return;
+  ev.preventDefault();
+  alternarPausaRecorrido();
+});
 const btnSentido = document.getElementById('btnSentido');
 function refrescarTextoSentido() { btnSentido.textContent = sentidoRecorrido > 0 ? '→ Alicante' : '← Albacete'; }
 refrescarTextoSentido();
@@ -4946,9 +5220,23 @@ if (avanceInicial > 0) {
   }
 }
 
+const DIST_SUJECION = 150;
+let nFotograma = 0;
+const vTmpSuj = new THREE.Vector3();
+function actualizarSujeciones() {
+  for (const t of teselasCargadas.values()) {
+    for (const tr of t.sujeciones || []) {
+      vTmpSuj.copy(tr.userData.centro);
+      tr.parent?.localToWorld(vTmpSuj);
+      const vis = vTmpSuj.distanceTo(camara.position) < DIST_SUJECION + 50;
+      if (vis !== tr.userData.vis) { tr.userData.vis = vis; for (const c of tr.children) c.visible = vis; }
+    }
+  }
+}
 function fotograma(ahora) {
   const dt = Math.min(0.08, (ahora - tPrev) / 1000);
   tPrev = ahora;
+  if ((nFotograma++ & 7) === 0) { actualizarSujeciones(); actualizarHuecos(); }
 
   // Construcción escalonada de bloques de terreno para mantener 60 fps sin tirones
   if (colaBloques.size > 0) {
@@ -4972,7 +5260,7 @@ function fotograma(ahora) {
   let pkObservado = pkRecorrido;
   if (vistaActiva === 'cabina' || vistaActiva === 'dron') {
     const velBase = vistaActiva === 'cabina' ? 69.4 : 95.0;
-    if (!params.has('quieto')) {
+    if (!params.has('quieto') && !recorridoPausado) {
       pkRecorrido += sentidoRecorrido * velBase * multVel * dt;
       if (pkRecorrido > Eje3D.pkFin - 80) { pkRecorrido = Eje3D.pkFin - 80; sentidoRecorrido = -1; refrescarTextoSentido(); }
       if (pkRecorrido < Eje3D.pkIni + 80) { pkRecorrido = Eje3D.pkIni + 80; sentidoRecorrido = 1; refrescarTextoSentido(); }
