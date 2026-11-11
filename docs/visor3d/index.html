@@ -108,6 +108,16 @@
   .lista input { accent-color: var(--accent); margin: 0; }
   .sw { width: 14px; height: 4px; border-radius: 1px; flex: none; }
   .vistas { display: flex; flex-wrap: wrap; gap: 5px; }
+  .fondos { display: grid; gap: 4px; }
+  .fondos label {
+    display: flex; align-items: flex-start; gap: 8px; min-height: 32px; padding: 6px 8px; border: 1px solid var(--line);
+    border-radius: 6px; cursor: pointer; background: color-mix(in srgb, var(--bg) 55%, transparent);
+  }
+  .fondos label:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .fondos input { accent-color: var(--accent); margin: 2px 0 0; }
+  .fondos span { display: grid; gap: 2px; }
+  .fondos b { font: 600 13px/1.2 var(--sans); }
+  .fondos small { color: var(--muted); font: 500 11px/1.3 var(--sans); }
   .saltos { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
   .saltos button { text-align: left; padding: 6px 8px; display: grid; gap: 1px; min-height: 36px; }
   .saltos button small { font: 400 10px/1.15 var(--mono); color: var(--muted); }
@@ -330,25 +340,33 @@
   </section>
 
   <section>
-    <h2>Terreno y entorno</h2>
-    <div class="lista">
-      <label><input type="checkbox" id="chkOrtofoto" checked> Ortofoto aérea real (PNOA IGN)</label>
-      <label><input type="checkbox" id="chkNombresEdif" checked> Nombres de edificios</label>
-      <label><input type="checkbox" id="chkEtiquetas" checked> Etiquetas de PK</label>
-      <label><input type="checkbox" id="chkEmplazamientos" checked> Emplazamientos (Pidame)</label>
-      <label><input type="checkbox" id="chkTrenes" checked> Trenes en circulación</label>
-      <label><input type="checkbox" id="chkSubsuelo"> Monte en Rayos X (túneles)</label>
-      <label><input type="checkbox" id="chkNoche"> Modo noche / luminarias</label>
-      <label><input type="checkbox" id="chkPerfil" checked> Perfil longitudinal (164 km)</label>
+    <h2>Fondo del terreno</h2>
+    <div class="fondos" id="fondos" role="radiogroup" aria-label="Imagen sobre el relieve">
+      <label><input type="radio" name="fondo" value="proyecto" checked><span><b>Ortofoto del proyecto</b><small>PNOA 23 cm del corredor y 10 cm en Elda, servida con el visor</small></span></label>
+      <label><input type="radio" name="fondo" value="pnoa"><span><b>PNOA en línea</b><small>Última ortofoto del IGN (necesita conexión)</small></span></label>
+      <label><input type="radio" name="fondo" value="esri"><span><b>Satélite</b><small>Esri World Imagery (otra fecha y color)</small></span></label>
+      <label><input type="radio" name="fondo" value="ninguno"><span><b>Sin imagen</b><small>Solo el relieve LiDAR, para leer la forma del terreno</small></span></label>
     </div>
   </section>
 
   <section>
-    <h2>Gemelo Digital Multifuente</h2>
+    <h2>Etiquetas</h2>
     <div class="lista">
-      <label><input type="checkbox" id="chkGsmrEnlace" checked> Ondas y Handover GSM-R en Vía</label>
-      <label><input type="checkbox" id="chkBtsModelos" checked> Casetas y Torres GSM-R (Modelo Oficial)</label>
-      <label><input type="checkbox" id="chkOrtoLocal" checked> Ortofoto Local Proyecto</label>
+      <label><input type="checkbox" id="chkEmplazamientos" checked> Emplazamientos (Pidame)</label>
+      <label><input type="checkbox" id="chkNombresEdif" checked> Nombres de edificios</label>
+      <label><input type="checkbox" id="chkEtiquetas" checked> Etiquetas de PK</label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Escena</h2>
+    <div class="lista">
+      <label><input type="checkbox" id="chkTrenes" checked> Trenes en circulación</label>
+      <label><input type="checkbox" id="chkGsmrEnlace" checked> Enlace GSM-R tren–torre</label>
+      <label><input type="checkbox" id="chkBtsModelos" checked> Casetas y torres GSM-R (al cargar cada km)</label>
+      <label><input type="checkbox" id="chkSubsuelo"> Monte en rayos X (túneles)</label>
+      <label><input type="checkbox" id="chkNoche"> Modo noche y luminarias</label>
+      <label><input type="checkbox" id="chkPerfil" checked> Perfil longitudinal (164 km)</label>
     </div>
   </section>
 
@@ -854,6 +872,54 @@ new MutationObserver(aplicarTema).observe(document.documentElement, { attributes
 
 // ---- Materiales compartidos y texturas procedurales PBR de ingeniería y arquitectura ----
 const cacheMat = new Map();
+// Vallado de cerramiento: el mismo que el entorno 3D de la caseta GSM-R (malla de simple torsión en rombo de unos 6 cm,
+// postes de tubo gris cada 2,5 m y tres alambres por encima). UV en metros: 1 rombo cada 0,12 m.
+const TEX_MALLA_VALLA = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const x = c.getContext('2d');
+  x.strokeStyle = '#fff'; x.lineWidth = 4;
+  x.beginPath(); x.moveTo(0, 0); x.lineTo(64, 64); x.moveTo(64, 0); x.lineTo(0, 64); x.stroke();
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+  return t;
+})();
+const MAT_MALLA_VALLA = new THREE.MeshStandardMaterial({ color: '#a7b0b2', map: TEX_MALLA_VALLA, transparent: true, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 0.6, metalness: 0.3 });
+const MAT_PUERTA_VALLA = new THREE.MeshStandardMaterial({ color: '#8d979b', map: TEX_MALLA_VALLA, transparent: true, alphaTest: 0.3, side: THREE.DoubleSide, roughness: 0.6, metalness: 0.3 });
+const ALTO_VALLA = 2.0, SEP_POSTE_VALLA = 2.5, ESC_ROMBO = 0.12;
+// Paño de malla vertical sobre una polilínea local [[x, y, z], ...] (y = pie de la valla) + postes y alambres
+function valla(mMalla, mAlambre, postes, pts, alto = ALTO_VALLA, matInstF = null) {
+  let dist = 0, prev = null;
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
+    if (prev) dist += Math.hypot(p[0] - prev.p[0], p[2] - prev.p[2]);
+    const u = dist / ESC_ROMBO;
+    const b = mMalla.v(p[0], p[1], p[2], u, 0);
+    const t = mMalla.v(p[0], p[1] + alto, p[2], u, alto / ESC_ROMBO);
+    if (prev) mMalla.quad(prev.b, b, t, prev.t);
+    prev = { p, b, t };
+  }
+  for (const h of [alto, alto + 0.15, alto + 0.3]) cinta(mAlambre, pts, 0.012, h - 0.006, h + 0.006, 0, 0.2);
+  if (!postes) return;
+  // Postes cada 2,5 m a lo largo de la polilínea (y en sus vértices de quiebro)
+  let resto = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], c = pts[i + 1];
+    const l = Math.hypot(c[0] - a[0], c[2] - a[2]);
+    for (let d = resto; d < l; d += SEP_POSTE_VALLA) {
+      const f = d / l;
+      postes.push(matInstF([a[0] + (c[0] - a[0]) * f, a[1] + (c[1] - a[1]) * f, a[2] + (c[2] - a[2]) * f], 0));
+    }
+    resto = (resto - l) % SEP_POSTE_VALLA; if (resto < 0) resto += SEP_POSTE_VALLA;
+  }
+  postes.push(matInstF(pts[pts.length - 1], 0));
+}
+// Rectángulo de vallado alrededor de un recinto (centro, eje u y normal n en el plano, medidas a lo largo y a lo ancho)
+function vallaRecinto(mMalla, mAlambre, postes, cx, cz, y0, ux, uz, largo, ancho, alto, matInstF) {
+  const nx = -uz, nz = ux, a = largo / 2, b = ancho / 2;
+  const esq = [[-a, -b], [a, -b], [a, b], [-a, b], [-a, -b]].map(([s, t]) => [cx + s * ux + t * nx, y0, cz + s * uz + t * nz]);
+  valla(mMalla, mAlambre, postes, esq, alto, matInstF);
+}
+
 function mat(color, opacidad = 1, extra = {}) {
   const k = color + '|' + opacidad + '|' + JSON.stringify(extra);
   if (!cacheMat.has(k)) {
@@ -1074,7 +1140,7 @@ const GEO = {
     g.userData.compartida = true;
     return g;
   })(),
-  posteValla: (() => { const g = new THREE.CylinderGeometry(0.035, 0.035, 2.05, 5).translate(0, 1.02, 0); g.userData.compartida = true; return g; })(),
+  posteValla: (() => { const g = new THREE.CylinderGeometry(0.03, 0.03, 2.3, 6).translate(0, 1.15, 0); g.userData.compartida = true; return g; })(),
   lumTunel: (() => { const g = new THREE.BoxGeometry(1.5, 0.12, 0.18); g.userData.compartida = true; return g; })(),
   cartelTunel: (() => { const g = new THREE.BoxGeometry(0.65, 0.32, 0.05); g.userData.compartida = true; return g; })(),
 };
@@ -1485,8 +1551,10 @@ function cotaTerrenoUTM(E, N) {
 }
 
 // ---- Cargador asíncrono de Ortofoto Aérea PNOA (IGN WMTS + respaldo Esri) sobre bloques UTM ----
-let ortofotoActiva = !params.has('sinOrto');
-let ortoLocalActiva = true;
+// Fondo del terreno: 'proyecto' (teselas propias y, donde falten, PNOA en línea), 'pnoa', 'esri' o 'ninguno'
+const FONDOS = ['proyecto', 'pnoa', 'esri', 'ninguno'];
+let fondoTerreno = params.has('sinOrto') ? 'ninguno' : (FONDOS.includes(params.get('fondo')) ? params.get('fondo') : 'proyecto');
+let ortofotoActiva = fondoTerreno !== 'ninguno';
 const Ortofoto3D = (() => {
   const cacheImg = new Map(); // clave -> Promise<HTMLImageElement | null>
   const URL_PNOA = (z, x, y) => `https://www.ign.es/wmts/pnoa-ma?service=WMTS&request=GetTile&version=1.0.0&layer=OI.OrthoimageCoverage&style=default&tilematrixset=GoogleMapsCompatible&tilematrix=${z}&tilerow=${y}&tilecol=${x}&format=image/jpeg`;
@@ -1537,11 +1605,13 @@ const Ortofoto3D = (() => {
   }
 
   function obtenerTesela(z, x, y) {
-    const k = `${z}/${x}/${y}`;
+    const fuente = fondoTerreno;
+    const k = `${fuente}/${z}/${x}/${y}`;
     if (cacheImg.has(k)) return cacheImg.get(k);
     const p = (async () => {
+      if (fuente === 'esri') return descargarImg(URL_ESRI(z, x, y));
       // 1. Ortofoto local de muy alta resolución del proyecto (10 cm en Elda / 23 cm en Albacete-Alicante)
-      if (ortoLocalActiva) {
+      if (fuente === 'proyecto') {
         await cargarCatalogoLocal();
         if (catalogoOrtoLocal) {
           if (existeEnNiveles(catalogoOrtoLocal.pkg042, z, x, y)) {
@@ -1608,7 +1678,7 @@ const Ortofoto3D = (() => {
     return tex;
   }
 
-  return { generarTexturaBloque };
+  return { generarTexturaBloque, vaciarCache: () => cacheImg.clear() };
 })();
 
 // ---- Terreno continuo en dos escalas: Bloques detallados (2,4x2,4 km) + Panorama LiDAR Regional (21x21 km) ----
@@ -2296,7 +2366,7 @@ async function cargarTeselaKm(km) {
     const mTunelBoveda = new Malla(), mTunelAcera = new Malla(), mBarandillaTunel = new Malla();
     const mHormigonObra = new Malla(), mCanaleta = new Malla(), mCuneta = new Malla();
     const mAsfalto = new Malla(), mMarcaVial = new Malla(), mMallaAntivand = new Malla(), mBionda = new Malla();
-    const mPantalla = new Malla(), mValla = new Malla(), mPuerta = new Malla();
+    const mPantalla = new Malla(), mValla = new Malla(), mPuerta = new Malla(), mAlambreValla = new Malla();
     const mEdif = new Malla(), mEdifTec = new Malla(), mCubierta = new Malla(), mMarquesina = new Malla(), mAnden = new Malla();
     const mArmarioVia = new Malla(), mSubest = new Malla(), mTrafo = new Malla(), mAisladorAT = new Malla(), mCajaControl = new Malla(), mAgua = new Malla();
 
@@ -2856,10 +2926,7 @@ async function cargarTeselaKm(km) {
 
       // Vallado perimetral con cancelas metálicas de acceso GSM-R y Operadores
       const vY0 = zSuelo + 0.18, vY1 = zSuelo + 2.18;
-      cajaOrientada(mValla, cRecX, cRecZ + 3.5 * nz, vY0, vY1, ux, uz, 24.9, 0.08);
-      cajaOrientada(mValla, cRecX, cRecZ - 3.5 * nz, vY0, vY1, ux, uz, 24.9, 0.08);
-      cajaOrientada(mValla, cRecX - 12.45 * ux, cRecZ, vY0, vY1, nx, nz, 7.0, 0.08);
-      cajaOrientada(mValla, cRecX + 12.45 * ux, cRecZ, vY0, vY1, nx, nz, 7.0, 0.08);
+      vallaRecinto(mValla, mAlambreValla, inst.posteValla, cRecX, cRecZ, vY0, ux, uz, 24.9, 7.0, ALTO_VALLA, matInst);
       // Cancelas de acceso verde Adif
       cajaOrientada(mPuerta, cRecX - 6.5 * ux, cRecZ + 3.5 * nz, vY0, vY1, ux, uz, 2.75, 0.14);
       cajaOrientada(mPuerta, cRecX + 6.5 * ux, cRecZ + 3.5 * nz, vY0, vY1, ux, uz, 2.78, 0.14);
@@ -3002,10 +3069,7 @@ async function cargarTeselaKm(km) {
 
       // Vallado perimetral (alambre y malla sobre postes)
       const vY0 = zSuelo + 0.18, vY1 = zSuelo + 2.45;
-      cajaOrientada(mValla, cx, cz + 8.5 * nz, vY0, vY1, ux, uz, 32.0, 0.08);
-      cajaOrientada(mValla, cx, cz - 8.5 * nz, vY0, vY1, ux, uz, 32.0, 0.08);
-      cajaOrientada(mValla, cx - 16.0 * ux, cz, vY0, vY1, nx, nz, 17.0, 0.08);
-      cajaOrientada(mValla, cx + 16.0 * ux, cz, vY0, vY1, nx, nz, 17.0, 0.08);
+      vallaRecinto(mValla, mAlambreValla, inst.posteValla, cx, cz, vY0, ux, uz, 32.0, 17.0, 2.27, matInst);
       // Cancela corredera metálica de acceso para vehículos de mantenimiento
       cajaOrientada(mPuerta, cx - 11.0 * ux, cz + 8.5 * nz, vY0, vY1, ux, uz, 4.8, 0.14);
 
@@ -3222,9 +3286,7 @@ async function cargarTeselaKm(km) {
           const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
           const qm = Eje3D.proyUTM(Em, Nm);
           if (qm.enViaducto && qm.d < 18) continue;
-          const ptsV = aLoc(cs, 'terreno');
-          cinta(mValla, ptsV, 0.06, 0, 2.02, 0, 0.3);
-          for (let i = 0; i < ptsV.length; i += 2) inst.posteValla.push(matInst(ptsV[i], 0));
+          valla(mValla, mAlambreValla, inst.posteValla, aLoc(cs, 'terreno'), ALTO_VALLA, matInst);
         } else if (id === '050215') {
           const ptsG = aLoc(cs, 'terreno');
           cinta(mPuerta, ptsG, 0.12, 0, 2.25, 0, 0.3);
@@ -3689,8 +3751,9 @@ async function cargarTeselaKm(km) {
     addMalla(mMallaAntivand, mat('#1d4ed8', 0.62, { metalness: 0.3, roughness: 0.4 }), 'estructuras', '050197');
     addMalla(mBionda, mat('#aeb7c2', 1, { metalness: 0.72, roughness: 0.32 }), 'viales', '040243');
     addMalla(mPantalla, mat('#2d7a6e', 1, { roughness: 0.65 }), 'estructuras', '050185', true, true);
-    // Alambrada de malla: casi transparente (antes, al 74 %, parecía un muro verde de 2 m)
-    addMalla(mValla, mat('#3a5a40', 0.3, { depthWrite: false }), 'viales', '030002');
+    // Vallado: malla de simple torsión con textura en rombo (como el entorno de la caseta GSM-R)
+    addMalla(mValla, MAT_MALLA_VALLA, 'viales', '030002', false, true);
+    addMalla(mAlambreValla, mat('#9aa3a6', 1, { metalness: 0.5, roughness: 0.45 }), 'viales', '030002');
     addMalla(mPuerta, mat('#10b981', 1, { metalness: 0.35, roughness: 0.45 }), 'viales', '050215', true);
     addMalla(mEdif, matEdifCivil, 'edificios', '030001', true, true);
     addMalla(mEdifTec, matEdifTecnico, 'edificios', '030235', true, true);
@@ -3741,7 +3804,7 @@ async function cargarTeselaKm(km) {
     addInst(inst.baliza, GEO.baliza, mat('#eab308', 1, { roughness: 0.4 }), 'catenaria', '050247');
     addInst(inst.armario, GEO.armario, mat('#94a3b8', 1, { metalness: 0.35, roughness: 0.5 }), 'catenaria', '050035', true);
     addInst(inst.arqueta, GEO.arqueta, mat('#949ca6', 1, { metalness: 0.25, roughness: 0.65 }), 'plataforma', '050134');
-    addInst(inst.posteValla, GEO.posteValla, mat('#2b5336', 1, { metalness: 0.4 }), 'viales', '030002');
+    addInst(inst.posteValla, GEO.posteValla, mat('#9aa3a6', 1, { metalness: 0.5, roughness: 0.45 }), 'viales', '030002', true);
     addInst(inst.tronco, GEO.tronco, mat('#6b4f35'), 'entorno', '030080');
     addInst(inst.copa, GEO.copa, mat('#4a6e3d', 1, { roughness: 0.92 }), 'entorno', '030080', true);
     addInst(inst.copaOlivo, GEO.copaOlivo, mat('#6c7d56', 1, { roughness: 0.90 }), 'entorno', '090092', true);
@@ -4357,15 +4420,29 @@ for (const g of meta.grupos) {
   contCapas.appendChild(lb);
 }
 
-const chkOrto = document.getElementById('chkOrtofoto');
-chkOrto.checked = ortofotoActiva;
-chkOrto.addEventListener('change', (e) => {
-  ortofotoActiva = e.target.checked;
+// Selector de fondo del terreno: cambia la fuente, tira las texturas ya hechas y vuelve a pedir los bloques
+function cambiarFondo(f) {
+  if (!FONDOS.includes(f) || f === fondoTerreno) return;
+  fondoTerreno = f;
+  ortofotoActiva = f !== 'ninguno';
+  Ortofoto3D.vaciarCache();
   for (const [k, b] of bloquesTerreno) {
+    if (b.texOrto) { b.texOrto.dispose(); b.texOrto = null; }
+    if (b.matOrto) { b.matOrto.dispose(); b.matOrto = null; }
+    b.zoomOrto = 0;
     actualizarMaterialBloque(b);
-    if (ortofotoActiva && !b.texOrto && !b.cargandoOrto) colaBloques.add(k);
+    if (ortofotoActiva && !b.cargandoOrto) colaBloques.add(k);
   }
-});
+  const u = new URL(location.href);
+  if (f === 'proyecto') u.searchParams.delete('fondo'); else u.searchParams.set('fondo', f);
+  u.searchParams.delete('sinOrto');
+  history.replaceState(null, '', u);
+  programarRepintadoPausa();
+}
+for (const r of document.querySelectorAll('#fondos input[name="fondo"]')) {
+  r.checked = r.value === fondoTerreno;
+  r.addEventListener('change', () => { if (r.checked) cambiarFondo(r.value); });
+}
 document.getElementById('chkEtiquetas').addEventListener('change', (e) => renderEtq.domElement.classList.toggle('sin-etiquetas', !e.target.checked));
 document.getElementById('chkNombresEdif').addEventListener('change', (e) => renderEtq.domElement.classList.toggle('sin-nombres-edif', !e.target.checked));
 document.getElementById('chkTrenes').addEventListener('change', (e) => { grupoFlota.visible = e.target.checked; });
@@ -4395,16 +4472,6 @@ document.getElementById('chkGsmrEnlace')?.addEventListener('change', (e) => {
   }
 });
 
-document.getElementById('chkOrtoLocal')?.addEventListener('change', (e) => {
-  Ortofoto3D.usarLocal = e.target.checked;
-  for (const [k, b] of bloquesTerreno) {
-    if (b.texOrto) {
-      b.texOrto.dispose?.();
-      b.texOrto = null;
-      colaBloques.add(k);
-    }
-  }
-});
 
 const panel = document.getElementById('panel'), btnAbrir = document.getElementById('abrir');
 if (innerWidth <= 760) panel.classList.add('cerrado');
@@ -4613,7 +4680,7 @@ function actualizarUI(pk) {
     : p.viaductoInfo ? ` · <span style="color:#10b981">${p.viaductoInfo.nombre} (${Math.round(p.viaductoInfo.pkFin - p.viaductoInfo.pkIni)} m)</span>`
     : p.enViaducto ? ` · <span style="color:#10b981">Viaducto (${Math.round(p.enViaducto[1] - p.enViaducto[0])} m)</span>` : '';
   const nOrto = [...bloquesTerreno.values()].filter((b) => b.texOrto).length;
-  const txtOrto = ortofotoActiva ? ` · PNOA ${nOrto}/${bloquesTerreno.size}` : '';
+  const txtOrto = ortofotoActiva ? ` · ${{ proyecto: 'Ortofoto', pnoa: 'PNOA', esri: 'Satélite' }[fondoTerreno]} ${nOrto}/${bloquesTerreno.size}` : '';
   txtPosicion.innerHTML = `<strong>PK ${fmtPk(pk)}</strong> · cota ${p.Z.toFixed(1)} m · pend ${(p.pend >= 0 ? '+' : '') + p.pend.toFixed(1)} ‰ · ${teselasCargadas.size} km activos${txtOrto}${ctx}`;
   dibujarPerfil(pk);
 }
