@@ -123,6 +123,13 @@
   #ficha { border-top: 1px solid var(--line); padding-top: 10px; display: grid; gap: 4px; }
   #ficha strong { font-weight: 600; }
   #ficha p { margin: 0; font-size: 13px; }
+  #ficha dl { margin: 2px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font: 500 11.5px/1.35 var(--mono); }
+  #ficha dt { color: var(--muted); }
+  #ficha dd { margin: 0; overflow-wrap: anywhere; }
+  #ficha .acciones { display: flex; gap: 6px; margin-top: 4px; }
+  #ficha .acciones button { min-height: 32px; padding: 0 10px; font: 600 12px/1 var(--sans); }
+  .etq-emp { border-style: dashed; }
+  .etq-emp .etq-nom { font-size: 11px; }
   #ficha .capa { font: 500 10.5px/1 var(--mono); color: var(--accent); text-transform: uppercase; letter-spacing: 0.06em; }
 
   #abrir {
@@ -328,6 +335,7 @@
       <label><input type="checkbox" id="chkOrtofoto" checked> Ortofoto aérea real (PNOA IGN)</label>
       <label><input type="checkbox" id="chkNombresEdif" checked> Nombres de edificios</label>
       <label><input type="checkbox" id="chkEtiquetas" checked> Etiquetas de PK</label>
+      <label><input type="checkbox" id="chkEmplazamientos" checked> Emplazamientos (Pidame)</label>
       <label><input type="checkbox" id="chkTrenes" checked> Trenes en circulación</label>
       <label><input type="checkbox" id="chkSubsuelo"> Monte en Rayos X (túneles)</label>
       <label><input type="checkbox" id="chkNoche"> Modo noche / luminarias</label>
@@ -344,13 +352,18 @@
     </div>
   </section>
 
-  <p class="ayuda" id="ayuda">Arrastra para girar, rueda o pellizco para acercar. Pulsa o arrastra sobre el perfil inferior para volar a cualquier PK de los 164 km; toca un elemento para ver su ficha.</p>
+  <p class="ayuda" id="ayuda">Arrastra para girar, rueda o pellizco para acercar. Pulsa o arrastra sobre el perfil inferior para volar a cualquier PK de los 164 km; toca un elemento para ver su ficha o el terreno para leer su PK y sus coordenadas.</p>
   <p class="ayuda" style="font-size:11px">Fuentes reales: cartografía 3D y rasante de Adif (201 teselas) + relieve MDT25 LiDAR y ortofoto PNOA © IGN España (CC BY 4.0). Secciones de carril/balasto, alturas de postes/edificios, pilas y bóveda interior de túneles: modelo tipo ingenieril.</p>
 
   <div id="ficha" hidden>
     <span class="capa" id="fichaCapa"></span>
     <strong id="fichaNombre"></strong>
     <p id="fichaInfo"></p>
+    <dl id="fichaDatos" hidden></dl>
+    <div class="acciones" id="fichaAcciones" hidden>
+      <button type="button" id="btnCopiarCoord">Copiar coordenadas</button>
+      <a id="lnkMapa" target="_blank" rel="noopener" style="align-self:center;font-size:12px">Abrir en mapa</a>
+    </div>
   </div>
 </aside>
 
@@ -3438,13 +3451,14 @@ async function cargarTeselaKm(km) {
       el.addEventListener('pointerdown', (ev) => ev.stopPropagation());
       el.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        const elFicha = document.getElementById('ficha');
-        document.getElementById('fichaCapa').textContent = ed.cat === 'energia' ? 'Tracción y Autotransformación 2×25 kV' : ed.cat === 'bts' ? 'Comunicaciones GSM-R' : 'Edificación / Instalación ADIF';
-        document.getElementById('fichaNombre').textContent = ed.nombre;
-        document.getElementById('fichaInfo').textContent = ed.cat === 'energia'
-          ? `${ed.sub || ''} · Centro técnico de tracción 2×25 kV 50 Hz. Alimentación directa a hilo de contacto (+25 kV), retorno de carril neutro (0 kV) y feeder (-25 kV). Celdas blindadas GIS SF6 y transformador de potencia ONAN 15 MVA con foso cortafuegos.`
-          : `${ed.sub || ''} · PK ${fmtPk(ed.pk)} · Coordenadas UTM 30N (${Math.round(ed.e)}, ${Math.round(ed.n)}).`;
-        elFicha.hidden = false;
+        const pt = datosDePunto(ed.e, ed.n, cotaTerrenoUTM(ed.e, ed.n));
+        mostrarFicha(
+          ed.cat === 'energia' ? 'Tracción y Autotransformación 2×25 kV' : ed.cat === 'bts' ? 'Comunicaciones GSM-R' : 'Edificación / Instalación ADIF',
+          ed.nombre,
+          ed.cat === 'energia'
+            ? `${ed.sub || ''} · Centro técnico de tracción 2×25 kV 50 Hz. Alimentación directa a hilo de contacto (+25 kV), retorno de carril neutro (0 kV) y feeder (-25 kV).`
+            : (ed.sub || ''),
+          pt.filas, pt);
       });
       const obj = new CSS2DObject(el);
       const pLbl = L(ed.e, ed.n, zSuelo + (ed.h || 4.5));
@@ -4183,7 +4197,63 @@ let EMPLAZAMIENTOS = [];
 fetch('./datos/emplazamientos.json').then((r) => (r.ok ? r.json() : null)).then((d) => {
   if (!d) return;
   EMPLAZAMIENTOS = d.emplazamientos.filter((e) => e.enCorredor).map((e) => ({ ...e, clave: normalizarTexto(`${e.nombre} ${e.tipo} ${e.pkTexto} ${e.base}`) }));
+  crearMarcasEmplazamientos();
+  actualizarUI(pkActualUI);
 }).catch(() => {});
+const COLOR_TIPO_EMP = {
+  'Viaducto': '#10b981', 'Tunel': '#0ea5e9', 'Boca de Túnel': '#0ea5e9', 'Caseta de Tunel': '#0ea5e9', 'Paso Superior': '#a3a3a3',
+  'BTS': '#f59e0b', 'Caseta de Operadora': '#f59e0b', 'Subestación': '#ef4444', 'Autotransformador': '#ef4444', 'ET': '#f97316',
+  'Centro Transformación': '#f97316', 'Estación': '#38bdf8', 'PAET/PB (Desvíos)': '#c084fc', 'PICV': '#c084fc', 'PBL/PCA/CS': '#c084fc',
+  'DCC': '#eab308', 'CRC': '#eab308', 'Base ADIF': '#38bdf8',
+};
+const marcasEmp = [];
+let mostrarEmplazamientos = true;
+function crearMarcasEmplazamientos() {
+  for (const e of EMPLAZAMIENTOS) {
+    const pkC = Math.min(Math.max((e.pk + (e.pkFin ?? e.pk)) / 2, Eje3D.pkIni), Eje3D.pkFin);
+    const p = Eje3D.enPk(pkC);
+    const el = document.createElement('div');
+    el.className = 'etq-edif etq-emp';
+    const dot = document.createElement('span');
+    dot.className = 'etq-dot';
+    dot.style.color = dot.style.background = COLOR_TIPO_EMP[e.tipo] || '#94a3b8';
+    const box = document.createElement('div');
+    box.className = 'etq-txt';
+    const bNom = document.createElement('span'); bNom.className = 'etq-nom'; bNom.textContent = e.nombre;
+    const bSub = document.createElement('span'); bSub.className = 'etq-sub'; bSub.textContent = `${e.tipo} · PK ${e.pkTexto}`;
+    box.append(bNom, bSub);
+    el.append(dot, box);
+    el.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+    el.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const pt = datosDePunto(p.E, p.N, p.Z);
+      const filas = [
+        ['Tipo', e.tipo],
+        ['PK', e.pkFin && e.pkFin !== e.pk ? `${fmtPk(e.pk)} a ${fmtPk(e.pkFin)} (${Math.round(e.pkFin - e.pk)} m)` : fmtPk(e.pk)],
+        ['Vías', e.vias || '—'],
+        ['Base', e.base || '—'],
+        ['ID Pidame', e.id],
+        ...pt.filas.slice(1),
+      ];
+      mostrarFicha('Emplazamiento · L042', e.nombre, 'Posición por PK sobre el eje (el listado no trae coordenadas propias).', filas, pt);
+    });
+    const obj = new CSS2DObject(el);
+    obj.visible = false;
+    obj.userData = { e, E: p.E, N: p.N, Z: p.Z, dMax: (e.tipo === 'Estación' || e.tipo === 'Base ADIF') ? 3000 : 1300 };
+    escena.add(obj);
+    marcasEmp.push(obj);
+  }
+}
+function colocarMarcasEmplazamientos(enTun) {
+  const camU = UTMdeMundo(camara.position);
+  for (const m of marcasEmp) {
+    const d = m.userData;
+    const vis = mostrarEmplazamientos && !enTun && Math.hypot(d.E - camU.E, d.N - camU.N) <= d.dMax;
+    m.visible = vis;
+    if (vis) m.position.copy(W(d.E, d.N, d.Z + 16));
+  }
+}
+document.getElementById('chkEmplazamientos').addEventListener('change', (ev) => { mostrarEmplazamientos = ev.target.checked; actualizarUI(pkActualUI); });
 function normalizarTexto(t) { return String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
 let sugeridos = [], selSug = -1;
 function cerrarSugerencias() { listaSug.hidden = true; inpPk.setAttribute('aria-expanded', 'false'); selSug = -1; }
@@ -4447,6 +4517,47 @@ cvPerfil.addEventListener('pointerdown', (e) => { arrastrandoPerfil = true; cvPe
 cvPerfil.addEventListener('pointermove', (e) => { if (arrastrandoPerfil) saltarDesdeEventoPerfil(e); });
 cvPerfil.addEventListener('pointerup', () => { arrastrandoPerfil = false; });
 
+// ---- Ficha: datos tabulados y coordenadas del punto (PK, distancia al eje, UTM 30N ETRS89, geográficas, cota) ----
+const elFichaDatos = document.getElementById('fichaDatos');
+const elFichaAcc = document.getElementById('fichaAcciones');
+let coordFicha = null;
+function datosDePunto(E, N, Zpunto) {
+  const q = Eje3D.proyUTM(E, N);
+  const [lon, lat] = utmALonlat(E, N);
+  const lado = q.of >= 0 ? 'izquierda' : 'derecha';
+  return {
+    filas: [
+      ['PK', `${fmtPk(q.pk)}${q.d > 1 ? ` · ${q.d.toFixed(0)} m a la ${lado} del eje` : ' · sobre el eje'}`],
+      ['UTM 30N', `X ${E.toFixed(1)} · Y ${N.toFixed(1)}`],
+      ['Geográficas', `${lat.toFixed(6)}, ${lon.toFixed(6)}`],
+      ['Cota', `${Zpunto.toFixed(1)} m${Math.abs(q.Z - Zpunto) > 0.5 ? ` · carril a ${q.Z.toFixed(1)} m` : ''}`],
+    ],
+    lat, lon, E, N, pk: q.pk,
+  };
+}
+function mostrarFicha(capa, nombre, info, filas = [], coord = null) {
+  document.getElementById('fichaCapa').textContent = capa;
+  document.getElementById('fichaNombre').textContent = nombre;
+  document.getElementById('fichaInfo').textContent = info || '';
+  document.getElementById('fichaInfo').hidden = !info;
+  elFichaDatos.replaceChildren(...filas.flatMap(([k, v]) => {
+    const dt = document.createElement('dt'); dt.textContent = k;
+    const dd = document.createElement('dd'); dd.textContent = v;
+    return [dt, dd];
+  }));
+  elFichaDatos.hidden = !filas.length;
+  coordFicha = coord;
+  elFichaAcc.hidden = !coord;
+  if (coord) document.getElementById('lnkMapa').href = `https://www.google.com/maps?q=${coord.lat.toFixed(6)},${coord.lon.toFixed(6)}`;
+  document.getElementById('ficha').hidden = false;
+}
+document.getElementById('btnCopiarCoord').addEventListener('click', async (ev) => {
+  if (!coordFicha) return;
+  const t = `PK ${fmtPk(coordFicha.pk)} · UTM30N ${coordFicha.E.toFixed(1)} ${coordFicha.N.toFixed(1)} · ${coordFicha.lat.toFixed(6)}, ${coordFicha.lon.toFixed(6)}`;
+  try { await navigator.clipboard.writeText(t); ev.target.textContent = 'Copiado'; } catch { ev.target.textContent = 'No se pudo copiar'; }
+  setTimeout(() => { ev.target.textContent = 'Copiar coordenadas'; }, 1500);
+});
+
 // ---- Inspección por clic (ficha técnica de elementos) ----
 const raycaster = new THREE.Raycaster();
 const ptr = new THREE.Vector2();
@@ -4459,21 +4570,28 @@ render.domElement.addEventListener('pointerup', (e) => {
   ptr.y = -((e.clientY - r.top) / r.height) * 2 + 1;
   raycaster.setFromCamera(ptr, camara);
   const hits = raycaster.intersectObjects([grupoTeselas, grupoFlota, grupoTerrenoMalla], true);
-  const hit = hits.find((h) => h.object?.visible && h.object?.userData?.nombre);
-  const elFicha = document.getElementById('ficha');
-  if (!hit) { elFicha.hidden = true; return; }
-  const d = hit.object.userData;
-  document.getElementById('fichaCapa').textContent = d.capa || 'Elemento';
-  document.getElementById('fichaNombre').textContent = d.nombre;
-  document.getElementById('fichaInfo').textContent = d.info || '';
-  elFicha.hidden = false;
+  const visibles = hits.filter((h) => h.object?.visible);
+  const hit = visibles.find((h) => h.object?.userData?.nombre);
+  const primero = hit || visibles[0];
+  if (!primero) { document.getElementById('ficha').hidden = true; return; }
+  const u = UTMdeMundo(primero.point);
+  const pt = datosDePunto(u.E, u.N, u.Z);
+  if (hit) {
+    const d = hit.object.userData;
+    mostrarFicha(d.capa || 'Elemento', d.nombre, d.info || '', pt.filas, pt);
+  } else {
+    mostrarFicha('Punto del terreno', `PK ${fmtPk(pt.pk)}`, '', pt.filas, pt);
+  }
 });
 
 const txtPosicion = document.getElementById('txtPosicion');
 const flecha = document.getElementById('flecha');
+let pkActualUI = Eje3D.pkIni;
 function actualizarUI(pk) {
+  pkActualUI = pk;
   const p = Eje3D.enPk(pk);
   const enTun = Boolean(p.enTunel);
+  colocarMarcasEmplazamientos(enTun);
   const camU = UTMdeMundo(camara.position);
   for (const t of teselasCargadas.values()) {
     for (const etq of t.etiquetas) {
