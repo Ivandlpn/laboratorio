@@ -1,0 +1,219 @@
+/* Apariencia común de los visores 3D: panel de vistas y capas, interruptores, leyenda flotante.
+   Se carga después del <style> de cada visor y solo usa sus variables (--panel, --fg, --muted, --line, --accent). */
+:root { --sombra: 0 14px 44px rgba(10, 18, 24, 0.30), 0 2px 8px rgba(10, 18, 24, 0.18); }
+
+#panel {
+  width: 304px; padding: 0; gap: 0; border-radius: 18px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25); backdrop-filter: blur(16px) saturate(1.25);
+  border: 1px solid color-mix(in srgb, var(--line) 85%, transparent); box-shadow: var(--sombra);
+  scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent;
+  overscroll-behavior: contain;
+}
+#panel header {
+  padding: 16px 18px 14px; border-bottom: 1px solid var(--line); gap: 5px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+}
+#panel header::before {
+  content: "Visor 3D"; font: 600 10px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--accent);
+}
+#panel h1 { font-size: 20px; letter-spacing: -0.005em; }
+#panel .sub { font-size: 11.5px; line-height: 1.45; }
+#panel section { padding: 12px 18px 14px; border-bottom: 1px solid var(--line); }
+
+/* Cabeceras de sección plegables */
+#panel section > h2 {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 10px; cursor: pointer;
+  user-select: none; font-size: 10.5px; letter-spacing: .12em; color: var(--muted);
+}
+#panel section > h2::after {
+  content: ""; flex: none; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-2px, -2px); transition: transform .18s ease; opacity: .8;
+}
+#panel section.plegada > h2 { margin-bottom: 0; }
+#panel section.plegada > h2::after { transform: rotate(-45deg); }
+#panel section.plegada > :not(h2) { display: none !important; }
+#panel section > h2 .cuenta {
+  margin-left: auto; padding: 3px 7px; border-radius: 999px; font: 500 10px/1 var(--mono); letter-spacing: 0;
+  background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent);
+}
+#panel h2:focus-visible, #panel .grupo-capas:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* Selector de vistas: rejilla de fichas */
+#panel .vistas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+#panel .vistas button {
+  padding: 9px 10px; border-radius: 10px; text-align: left; font-size: 12.5px; font-weight: 500; line-height: 1.15;
+  border: 1px solid var(--line); background: color-mix(in srgb, var(--fg) 4%, transparent);
+  transition: background .15s, border-color .15s, transform .08s, box-shadow .15s;
+}
+#panel .vistas button:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+#panel .vistas button:active { transform: scale(.97); }
+#panel .vistas button[aria-pressed="true"] {
+  color: #fff; border-color: transparent; background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #000));
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+#panel .vistas button:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+/* Capas: filas con punto de color e interruptor a la derecha */
+#panel .lista { gap: 1px; }
+#panel .lista label {
+  display: flex; align-items: center; gap: 10px; padding: 6px 8px; margin: 0 -8px; border-radius: 9px; cursor: pointer; font-size: 13.5px;
+  transition: background .12s; flex-wrap: nowrap;
+}
+#panel .lista label:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
+#panel .lista label:has(input:not(:checked)) { color: var(--muted); }
+#panel .lista label:has(input:not(:checked)) .sw { opacity: .3; }
+#panel .lista .sw { order: 0; width: 10px; height: 10px; border-radius: 50%; flex: none; transition: opacity .15s; }
+#panel .lista label > input[type="checkbox"] {
+  order: 3; margin: 0 0 0 auto; appearance: none; -webkit-appearance: none; width: 32px; height: 18px; border-radius: 999px; position: relative; flex: none;
+  background: color-mix(in srgb, var(--muted) 38%, transparent); transition: background .18s; cursor: pointer;
+}
+#panel .lista label > input[type="checkbox"]::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35); transition: transform .18s cubic-bezier(.3, .7, .3, 1);
+}
+#panel .lista label > input[type="checkbox"]:checked { background: var(--accent); }
+#panel .lista label > input[type="checkbox"]:checked::after { transform: translateX(14px); }
+#panel .lista label > input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Subgrupos de capas */
+#panel .grupo-capas {
+  display: flex; align-items: center; gap: 8px; margin: 12px 0 3px; padding: 0; color: var(--muted); cursor: pointer; user-select: none;
+  font: 600 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+}
+#panel .grupo-capas::before { content: ""; width: 14px; height: 1px; background: var(--line); }
+#panel .grupo-capas::after { content: ""; flex: 1; height: 1px; background: var(--line); order: 1; }
+#panel .grupo-capas .plegar { font-size: 10px; opacity: .8; order: 2; }
+#panel .grupo-capas:first-child { margin-top: 0; }
+#panel .oculta { display: none !important; }
+
+/* Acciones rápidas de capas */
+#panel .acciones-capas { display: flex; gap: 6px; margin: 0 0 10px; }
+#panel .acciones-capas button { flex: 1; padding: 6px 8px; font-size: 11.5px; border-radius: 8px; color: var(--muted); }
+#panel .acciones-capas button:hover { color: var(--fg); }
+
+#panel .ayuda { padding: 12px 18px; font-size: 12.5px; line-height: 1.45; background: color-mix(in srgb, var(--fg) 3.5%, transparent); }
+#panel #ficha {
+  margin: 0 12px 12px; padding: 12px 14px; border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+#panel #ficha p { font-size: 13px; line-height: 1.45; }
+#panel .nota { padding: 10px 18px 14px; }
+
+/* Botones flotantes y etiquetas */
+#abrir { border-radius: 12px; padding: 9px 14px; box-shadow: var(--sombra); font-weight: 600; }
+#brujula { border-radius: 14px; box-shadow: var(--sombra); backdrop-filter: blur(10px); }
+#cruceta button { border-radius: 12px; box-shadow: var(--sombra); }
+.etq { border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, .22); }
+
+/* Leyenda flotante contextual */
+#leyenda3d {
+  position: fixed; z-index: 5; left: calc(12px + env(safe-area-inset-left, 0px)); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  width: 252px; max-width: calc(100vw - 24px); background: color-mix(in srgb, var(--panel) 92%, transparent);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--sombra);
+  overflow: hidden; font-size: 12.5px; color: var(--fg);
+}
+#leyenda3d[hidden] { display: none; }
+#leyenda3d > button {
+  all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 8px; padding: 10px 14px; cursor: pointer;
+  font: 600 10.5px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+}
+#leyenda3d > button::after { content: ""; margin-left: auto; width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .18s; }
+#leyenda3d.plegada > button::after { transform: rotate(-135deg); }
+#leyenda3d > button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+#leyenda3d ul { list-style: none; margin: 0; padding: 0 14px 12px; display: grid; gap: 7px; max-height: 38vh; overflow: auto; }
+#leyenda3d.plegada ul { display: none; }
+#leyenda3d li { display: flex; align-items: center; gap: 10px; line-height: 1.25; }
+#leyenda3d li i { flex: none; width: 24px; height: 6px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18); }
+#leyenda3d li i.punto { width: 11px; height: 11px; border-radius: 50%; margin: 0 6.5px; }
+#leyenda3d li small { display: block; color: var(--muted); font: 400 11px/1.3 var(--mono); }
+
+@media (min-width: 641px) { #leyenda3d { left: calc(340px + env(safe-area-inset-left, 0px)); } }
+@media (max-width: 640px) {
+  #panel { width: min(320px, calc(100vw - 24px)); }
+  #leyenda3d { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); width: 224px; }
+  #panel .acciones-capas button { min-height: 36px; }
+  #leyenda3d > button { min-height: 36px; }
+  /* Con el panel abierto ocupa casi toda la pantalla: la leyenda y la alarma se apartan para no solaparse */
+  body:has(#panel:not(.cerrado)) #leyenda3d, body:has(#panel:not(.cerrado)) #alarma { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { #panel *, #leyenda3d * { transition: none !important; } }
+
+/* Cartel de alarma del DCO (túnel y paso superior): esquina superior izquierda, para no tapar la escena */
+#alarma { position: fixed; z-index: 7; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px)); transform: none; width: min(340px, calc(100vw - 24px)); padding: 0; overflow: hidden; border-radius: 14px; background: color-mix(in srgb, var(--panel) 94%, transparent); border: 1px solid var(--line); box-shadow: var(--sombra); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+#alarma[hidden] { display: none; }
+#alarma .al-cab { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: color-mix(in srgb, var(--muted) 14%, transparent); border-bottom: 1px solid var(--line); }
+#alarma .al-ico { flex: none; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: color-mix(in srgb, var(--muted) 25%, transparent); color: var(--muted); }
+#alarma .al-ico svg { width: 20px; height: 20px; }
+#alarma .al-tit { flex: 1; min-width: 0; }
+#alarma b { display: block; font: 800 12px/1.1 var(--mono); letter-spacing: .14em; color: var(--muted); }
+#alarma em { display: block; margin-top: 4px; font: 500 11px/1.25 var(--mono); color: var(--muted); font-style: normal; }
+#alarma .al-led { flex: none; width: 10px; height: 10px; border-radius: 50%; background: #2bff6a; box-shadow: 0 0 8px #2bff6a; }
+#alarma .al-barra { height: 3px; background: color-mix(in srgb, var(--muted) 22%, transparent); }
+#alarma .al-barra i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .4s ease; }
+#alarma ol { list-style: none; margin: 0; padding: 10px 12px 12px; display: grid; gap: 0; font-size: 12px; line-height: 1.35; counter-reset: paso; }
+#alarma li { position: relative; display: flex; gap: 10px; align-items: flex-start; padding: 4px 0; color: var(--muted); counter-increment: paso; }
+#alarma li::before { content: counter(paso); flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 700 10px/1 var(--mono); border: 1.5px solid currentColor; background: var(--panel); position: relative; z-index: 1; }
+#alarma li:not(:last-child)::after { content: ""; position: absolute; left: 9.5px; top: 24px; bottom: -4px; width: 1.5px; background: var(--line); }
+#alarma li span { padding-top: 2px; }
+#alarma li.hecho { color: var(--fg); }
+#alarma li.hecho::before { background: var(--accent); border-color: var(--accent); color: #fff; }
+#alarma.activa { border-color: #e5352a; animation: latido 0.9s ease-in-out infinite; }
+#alarma.activa .al-cab { background: linear-gradient(135deg, #d6382a, #a3231a); border-bottom-color: #a3231a; }
+#alarma.activa b, #alarma.activa em { color: #fff; }
+#alarma.activa .al-ico { background: rgba(255,255,255,.2); color: #fff; animation: parpadeoIco .9s ease-in-out infinite; }
+#alarma.activa .al-led { background: #fff; box-shadow: 0 0 10px #fff; animation: parpadeoIco .9s ease-in-out infinite; }
+#alarma.activa .al-barra i { background: #e5352a; }
+@keyframes latido { 50% { box-shadow: 0 0 0 5px rgba(229,53,42,.28), var(--sombra); } }
+@keyframes parpadeoIco { 50% { opacity: .35; } }
+@media (max-width: 640px) {
+  #alarma { top: calc(64px + env(safe-area-inset-top, 0px)); width: min(300px, calc(100vw - 24px)); } #alarma ol { font-size: 11.5px; }
+  /* En movil el cartel se pliega a su cabecera y la barra de progreso; se despliega al pulsar */
+  #alarma .al-cab { cursor: pointer; }
+  #alarma .al-cab::after { content: ""; flex: none; width: 8px; height: 8px; margin-left: 2px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); opacity: .8; transition: transform .2s; }
+  #alarma:not(.compacta) .al-cab::after { transform: rotate(-135deg) translateY(-2px); }
+  #alarma.compacta ol { display: none; }
+  #alarma .al-cab { color: var(--muted); } #alarma.activa .al-cab { color: #fff; }
+}
+/* Con el panel de vistas abierto a la izquierda, el cartel se coloca a su lado, en la esquina superior izquierda de la escena */
+@media (min-width: 641px) { #alarma { left: calc(340px + env(safe-area-inset-left, 0px)); } body:has(#panel.cerrado) #alarma { left: calc(12px + env(safe-area-inset-left, 0px)); } }
+
+/* ---------- Pulido de interfaz (todos los entornos 3D) ---------- */
+#panel header { position: sticky; top: 0; z-index: 3; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background-color: color-mix(in srgb, var(--panel) 96%, transparent); }
+#panel section > h2 { padding: 4px 0; margin-top: -4px; transition: color .15s; }
+#panel section > h2:hover { color: var(--fg); }
+#panel section:not(.plegada) > h2 { margin-bottom: 8px; }
+#panel button, #panel .vistas button, #panel .acciones-capas button { transition: background .15s, border-color .15s, color .15s, transform .08s, box-shadow .15s; }
+#panel button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#panel button:disabled { opacity: .45; cursor: not-allowed; }
+#panel .vistas button[aria-pressed="true"]::after { content: "●"; float: right; font-size: 8px; line-height: 1.6; opacity: .9; }
+#panel .vistas button { min-height: 36px; display: flex; align-items: center; }
+#panel .acciones-capas button { border: 1px solid var(--line); background: color-mix(in srgb, var(--fg) 4%, transparent); font-weight: 500; }
+#panel .acciones-capas button:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+#panel .acciones-capas button:active { transform: scale(.97); }
+#panel .lista label { min-height: 34px; }
+#panel .lista label:active { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+#panel .lista label:has(input:focus-visible) { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent); }
+#panel .grupo-capas { transition: color .15s; }
+#panel .grupo-capas:hover { color: var(--fg); }
+#panel .grupo-capas .cuenta-grp { order: 2; padding: 2px 6px; border-radius: 999px; font: 500 9.5px/1 var(--mono); letter-spacing: 0; background: color-mix(in srgb, var(--fg) 8%, transparent); }
+#panel .grupo-capas .plegar { order: 3; }
+#panel .filtrada { display: none !important; }
+#panel .buscar-capas { margin: 0 0 8px; }
+#panel .buscar-capas input {
+  width: 100%; box-sizing: border-box; padding: 8px 10px 8px 30px; border-radius: 10px; font: 500 12.5px var(--sans, inherit); color: var(--fg);
+  border: 1px solid var(--line); background: color-mix(in srgb, var(--fg) 4%, transparent) no-repeat 9px center / 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");
+  transition: border-color .15s, box-shadow .15s;
+}
+#panel .buscar-capas input::placeholder { color: var(--muted); }
+#panel .buscar-capas input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+#panel #ficha { box-shadow: 0 6px 18px rgba(10, 18, 24, .12); animation: entra-ficha .22s ease-out; }
+@keyframes entra-ficha { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+#leyenda3d { transition: box-shadow .2s; }
+#leyenda3d li { padding: 1px 0; }
+.etq { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, .12); }
+#abrir:hover, #brujula:hover, #cruceta button:hover { filter: brightness(1.08); }
+#abrir:active, #cruceta button:active { transform: scale(.96); }
+@media (prefers-reduced-motion: reduce) { #panel #ficha { animation: none; } }
+@media (max-width: 640px) { #panel .vistas button { min-height: 40px; } #panel .lista label { min-height: 40px; } #panel .buscar-capas input { padding-block: 10px; font-size: 14px; } }

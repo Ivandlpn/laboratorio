@@ -1,0 +1,38 @@
+{
+  "nota": "Estructuras con datos reales. El visor usa estos valores en lugar de la seccion tipo. PK en metros; luces en m entre ejes de apoyo.",
+  "viaductos": [
+    {
+      "id": "cordel-sax",
+      "nombre": "Viaducto del Cordel de Sax",
+      "pkEstribo1": 436292,
+      "pkEstribo2": 437750,
+      "luces": [25, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 25],
+      "tablero": {
+        "tipo": "Losa aligerada de hormigón postesado",
+        "ancho": 14.0,
+        "canto": 2.1,
+        "anchoInferior": 7.2
+      },
+      "pilas": {
+        "ancho": 5.2,
+        "grueso": 1.8,
+        "puntosFijos": [22, 23, 24]
+      },
+      "cimentacion": "Encepados sobre pilotes prefabricados resistentes a sulfatos",
+      "construccion": "Vano a vano con autocimbra, desde el centro hacia los dos estribos (terminado en 2010)",
+      "medido": [
+        "Luces 25 + 44 x 32 + 25 m (1.458 m, 46 vanos) y tipo de tablero: ficha del proyecto de Fhecor",
+        "Ancho del tablero 14 m: Adif; la cartografía 3D de Adif lo mide en 14,2 m",
+        "Estribos en PK 436+292 y 437+750: cortes de los bordes del tablero en la cartografía de Adif (1.458 m exactos)",
+        "Ancho de pila 5,2 m y altura media 12 m: nota de prensa de Fomento (2010)",
+        "Altura visible de cada pila: rasante de Adif menos relieve MDT05 del IGN (6,4 a 11,4 m)",
+        "Puntos fijos en las tres pilas centrales y aparatos de dilatación de vía en ambos estribos: Fhecor"
+      ],
+      "supuestos": [
+        "Canto del tablero 2,1 m (L/15) y forma de la sección aligerada",
+        "Grueso de pila 1,8 m y fuste recto sin capitel",
+        "Forma de los estribos y aletas"
+      ]
+    }
+  ]
+}
