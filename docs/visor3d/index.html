@@ -875,6 +875,63 @@ new MutationObserver(aplicarTema).observe(document.documentElement, { attributes
 
 // ---- Materiales compartidos y texturas procedurales PBR de ingeniería y arquitectura ----
 const cacheMat = new Map();
+// ---- Estación de Villena AV: materiales a partir de las fotos del proyecto (INES Ingenieros para Adif) ----
+const TEX_FACHADA_VILLENA = (() => {
+  // Fachada del volumen alto: paneles de vidrio en mosaico de verdes y grises (1 tesela = 6 x 3,6 m)
+  const c = document.createElement('canvas'); c.width = 256; c.height = 192;
+  const x = c.getContext('2d');
+  x.fillStyle = '#2a3330'; x.fillRect(0, 0, 256, 192);
+  const tonos = ['#2f5a45', '#3c6b52', '#4b5652', '#5d6b66', '#26413a', '#7c8c86', '#1f2a28'];
+  let semilla = 7;
+  const azar = () => { semilla = (semilla * 9301 + 49297) % 233280; return semilla / 233280; };
+  for (let fy = 0; fy < 4; fy++) {
+    for (let fx = 0; fx < 8; fx++) {
+      x.fillStyle = tonos[Math.floor(azar() * tonos.length)];
+      x.fillRect(fx * 32 + 1, fy * 48 + 1, 30, 46);
+      if (azar() < 0.3) { x.fillStyle = 'rgba(210,230,235,0.35)'; x.fillRect(fx * 32 + 3, fy * 48 + 3, 26, 20); }
+    }
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  t.repeat.set(1 / 6, 1 / 3.6);
+  return t;
+})();
+const TEX_CHAPA_VILLENA = (() => {
+  // Chapa grecada gris oscura del zócalo (nervios verticales cada 0,25 m)
+  const c = document.createElement('canvas'); c.width = 64; c.height = 8;
+  const x = c.getContext('2d');
+  x.fillStyle = '#474d54'; x.fillRect(0, 0, 64, 8);
+  for (let i = 0; i < 64; i += 16) { x.fillStyle = '#3a4046'; x.fillRect(i, 0, 5, 8); x.fillStyle = '#565c63'; x.fillRect(i + 5, 0, 2, 8); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace;
+  t.repeat.set(1, 1);
+  return t;
+})();
+function texRotulo(texto, sub) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 128;
+  const x = c.getContext('2d');
+  x.fillStyle = '#1d2733'; x.fillRect(0, 0, 512, 128);
+  x.fillStyle = '#ffffff'; x.font = '600 54px "IBM Plex Sans Condensed", Arial, sans-serif'; x.textBaseline = 'middle';
+  x.fillText(texto, 24, sub ? 50 : 64);
+  if (sub) { x.font = '500 26px "IBM Plex Sans Condensed", Arial, sans-serif'; x.fillStyle = '#b8c4cf'; x.fillText(sub, 26, 100); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
+const GEO_ROTULO = (() => { const g = new THREE.PlaneGeometry(2.2, 0.55); g.userData.compartida = true; return g; })();
+const MAT_EST = {
+  anden: new THREE.MeshStandardMaterial({ color: '#a7aaa8', roughness: 0.92, metalness: 0.02, side: THREE.DoubleSide }),
+  bandaRoja: new THREE.MeshStandardMaterial({ color: '#94402f', roughness: 0.9, side: THREE.DoubleSide }),
+  bordeBlanco: new THREE.MeshStandardMaterial({ color: '#e8e6df', roughness: 0.85, side: THREE.DoubleSide }),
+  marquesina: new THREE.MeshStandardMaterial({ color: '#3b4046', roughness: 0.6, metalness: 0.5, side: THREE.DoubleSide }),
+  pilar: new THREE.MeshStandardMaterial({ color: '#4d535a', roughness: 0.5, metalness: 0.6, side: THREE.DoubleSide }),
+  chapa: new THREE.MeshStandardMaterial({ map: TEX_CHAPA_VILLENA, roughness: 0.55, metalness: 0.5, side: THREE.DoubleSide }),
+  fachada: new THREE.MeshStandardMaterial({ map: TEX_FACHADA_VILLENA, roughness: 0.25, metalness: 0.55, side: THREE.DoubleSide }),
+  vidrio: new THREE.MeshStandardMaterial({ color: '#b7cdd5', roughness: 0.08, metalness: 0.7, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }),
+  vidrioBlanco: new THREE.MeshStandardMaterial({ color: '#e9eef0', roughness: 0.3, metalness: 0.25, side: THREE.DoubleSide }),
+  cubierta: new THREE.MeshStandardMaterial({ color: '#30353b', roughness: 0.65, metalness: 0.45, side: THREE.DoubleSide }),
+  celosia: new THREE.MeshStandardMaterial({ color: '#9aa1a7', roughness: 0.45, metalness: 0.65, side: THREE.DoubleSide }),
+  placaSolar: new THREE.MeshStandardMaterial({ color: '#1c2a44', roughness: 0.25, metalness: 0.6, side: THREE.DoubleSide }),
+};
+MAT_EST.rotulo = new THREE.MeshStandardMaterial({ map: texRotulo('Villena AV', 'Alta Velocidad'), roughness: 0.5, side: THREE.DoubleSide });
+
 // Vallado de cerramiento: el mismo que el entorno 3D de la caseta GSM-R (malla de simple torsión en rombo de unos 6 cm,
 // postes de tubo gris cada 2,5 m y tres alambres por encima). UV en metros: 1 rombo cada 0,12 m.
 const TEX_MALLA_VALLA = (() => {
@@ -2287,6 +2344,25 @@ const viaductoReal = (enViaducto) => (enViaducto ? VIADUCTOS_REALES.get(enViaduc
 // La leyenda cuenta solo los viaductos de la vía principal (los de ramal y las estructuras que la cruzan, aparte)
 { const elNV = document.getElementById('nViaductos'); if (elNV) elNV.textContent = String(Eje3D.viaductos.length); }
 
+// ---- Estación de Villena AV (PK 435+526): zona que se modela aparte ----
+// Medidas de la cartografía 3D de Adif (andenes, marquesinas 030051, edificios 030001, vías de andén a ±8,7 m) y aspecto de
+// las fotos del proyecto de ejecución de INES Ingenieros para Adif (vestíbulo-puente sobre las vías bajo una gran cubierta).
+const ESTACION_VILLENA = {
+  pkIni: 435379, pkFin: 435828,
+  cubre(g) {
+    const cs = g.type === 'Polygon' ? g.coordinates[0] : g.type === 'LineString' ? g.coordinates : null;
+    if (!cs?.length) return false;
+    let sx = 0, sy = 0;
+    for (const c of cs) { sx += c[0]; sy += c[1]; }
+    const [E, N] = lonlatAUTM(sx / cs.length, sy / cs.length);
+    const q = Eje3D.proyUTM(E, N);
+    if (q.pk < 435470 || q.pk > 435830) return false;
+    const of = q.of;
+    // Marquesinas de andén y de aparcamiento; edificio de viajeros, puente y torre del otro andén
+    return (of > -36 && of < 72) && (q.pk > 435500);
+  },
+};
+
 // ---- Pasos inferiores (marcos bajo el terraplén) deducidos de impostas y aletas de la cartografía de Adif ----
 // La luz libre es el ancho entre impostas menos los hastiales; el gálibo, lo que cabe entre el fondo y la losa
 // (bajo 0,9 m de balasto, traviesa y capa de forma y 0,6 m de losa), con un máximo de 5,2 m.
@@ -2990,6 +3066,111 @@ async function cargarTeselaKm(km) {
         void y0; void vx; void vz;
       }
 
+      // 2f. Estación de Villena AV
+      if (pk0 <= 435700 && pk1 > 435700) {
+        const zR = Eje3D.enPk(435600).Z;                   // cota de carril en la estación
+        const P = (pkP, of, z) => { const m = Eje3D.enPk(pkP); return L(m.E - m.ty * of, m.N + m.tx * of, z); };
+        const Y = (z) => z - anclaZ;
+        const anillo = (lista, z = zR) => { const a = lista.map(([pkP, of]) => { const q = P(pkP, of, z); return [q[0], q[2]]; }); a.push(a[0]); return a; };
+        // Banda entre dos desplazamientos laterales a lo largo de [pa, pb], con puntos cada 20 m (sigue la curva)
+        const banda = (pa, pb, of0, of1) => {
+          const ks = []; for (let k = pa; k < pb; k += 20) ks.push(k); ks.push(pb);
+          return anillo([...ks.map((k) => [k, of0]), ...ks.slice().reverse().map((k) => [k, of1])]);
+        };
+        const M = {}; for (const k of Object.keys(MAT_EST)) M[k] = new Malla();
+        const rotulos = [];
+        const yA = Y(zR + 0.76);                            // andén de 760 mm sobre carril (altura Adif para AV)
+        // Andenes: de 10,42 m (1,72 m del eje de la vía de andén, a ±8,7 m) a 18,25 m; PK 435+379 a 435+690
+        for (const sg of [1, -1]) {
+          prisma(M.anden, banda(435379, 435690, sg * 10.42, sg * 18.25), Y(zR - 0.6), yA);
+          prisma(M.bordeBlanco, banda(435379, 435690, sg * 10.42, sg * 10.62), yA, yA + 0.012);
+          prisma(M.bandaRoja, banda(435379, 435690, sg * 10.62, sg * 11.3), yA, yA + 0.01);
+          // Marquesina: losa oscura de 7,4 m a 4,2 m sobre el andén, pilares a 16,6 m cada 8,8 m (030051)
+          const pmA = 435508, pmB = sg > 0 ? 435688 : 435688;
+          prisma(M.marquesina, banda(pmA, pmB, sg * 10.7, sg * 18.1), yA + 4.2, yA + 4.55);
+          for (let k = pmA + 4; k < pmB; k += 8.8) {
+            const c = P(k, sg * 16.6, 0), m = Eje3D.enPk(k);
+            cajaOrientada(M.pilar, c[0], c[2], yA, yA + 4.2, m.tx, -m.ty, 0.3, 0.3);
+          }
+          // Rótulos «Villena AV» colgados de la marquesina cada 45 m, de cara a la vía
+          for (let k = pmA + 20; k < pmB; k += 45) {
+            const c = P(k, sg * 12.6, 0), m = Eje3D.enPk(k);
+            cajaOrientada(M.pilar, c[0], c[2], yA + 3.3, yA + 4.2, m.tx, -m.ty, 0.06, 0.06);
+            rotulos.push({ x: c[0], y: yA + 3.02, z: c[2], yaw: Math.atan2(m.ty, m.tx) });
+          }
+        }
+        // Vestíbulo-puente sobre las cuatro vías (PK 435+684 a 435+720, de -17,6 a +18,4 m): losa, fachadas de vidrio, cubierta
+        const yP0 = Y(zR + 7.0), yP1 = Y(zR + 7.6), yP2 = Y(zR + 10.3);
+        prisma(M.cubierta, anillo([[435684, -17.6], [435720, -17.6], [435720, 18.4], [435684, 18.4]]), yP0, yP1);
+        for (const pkF of [435684.3, 435719.7]) {
+          prisma(M.vidrio, anillo([[pkF - 0.08, -17.6], [pkF + 0.08, -17.6], [pkF + 0.08, 18.4], [pkF - 0.08, 18.4]]), yP1, yP2);
+          for (let of = -17.6; of <= 18.4; of += 3) {
+            const c = P(pkF, of, 0), m = Eje3D.enPk(pkF);
+            cajaOrientada(M.pilar, c[0], c[2], yP1, yP2, m.tx, -m.ty, 0.12, 0.12);
+          }
+        }
+        // Edificio de viajeros (lado aparcamiento): huella real 030001, zócalo de chapa y volumen alto de vidrio en mosaico
+        const huellaEdif = [[435720, 18.4], [435720, 66.3], [435664, 66.5], [435664, 58.7], [435661, 58.7], [435661, 48.3], [435664, 48.3],
+          [435664, 42.5], [435648, 42.6], [435648, 34.2], [435664, 34.2], [435664, 24.4], [435677, 24.4], [435680, 34.3], [435692, 34.2],
+          [435692, 29], [435684, 29.1], [435684, 19.9], [435692, 19.9], [435692, 18.4]];
+        const zSueloEd = Math.min(zR - 0.5, cotaTerrenoUTM(...(() => { const m = Eje3D.enPk(435690); return [m.E - m.ty * 45, m.N + m.tx * 45]; })()));
+        prisma(M.chapa, anillo(huellaEdif), Y(zSueloEd - 0.3), Y(zR + 3.4));
+        prisma(M.fachada, anillo(huellaEdif), Y(zR + 3.4), Y(zR + 10.3));
+        prisma(M.vidrio, anillo([[435664.2, 24.6], [435676.8, 24.6], [435676.8, 33.9], [435664.2, 33.9]]), Y(zSueloEd), Y(zR + 3.4));
+        // Torre de escaleras y ascensores del otro andén (huella real), de vidrio blanco
+        prisma(M.vidrioBlanco, anillo([[435684, -17.6], [435720, -17.7], [435720, -29.5], [435688, -29.6], [435688, -29], [435684, -28.8], [435684, -19.5], [435688, -19.4], [435688, -17.6]]), Y(zR - 0.5), yP2);
+        // Gran cubierta de celosía sobre puente y edificio: losa oscura con rejilla de vigas en diagonal por debajo
+        const cub = [[435676, -32], [435728, -32], [435728, 70], [435676, 70]];
+        prisma(M.cubierta, anillo(cub), Y(zR + 10.6), Y(zR + 11.0));
+        {
+          const m = Eje3D.enPk(435702), ux = m.tx, uz = -m.ty, nx = -uz, nz = ux;
+          const d1x = (ux + nx) / Math.SQRT2, d1z = (uz + nz) / Math.SQRT2, d2x = (ux - nx) / Math.SQRT2, d2z = (uz - nz) / Math.SQRT2;
+          for (let k = 435679; k < 435726; k += 6) {
+            for (let of = -29; of < 68; of += 6) {
+              const c = P(k, of, 0);
+              cajaOrientada(M.celosia, c[0], c[2], Y(zR + 10.25), Y(zR + 10.6), d1x, d1z, 8.4, 0.18);
+              cajaOrientada(M.celosia, c[0], c[2], Y(zR + 10.25), Y(zR + 10.6), d2x, d2z, 8.4, 0.18);
+            }
+          }
+          // Pilares de la cubierta en el lado de la vía general y en el aparcamiento
+          for (const of of [-31, 68]) {
+            for (const k of [435680, 435702, 435724]) {
+              const c = P(k, of, 0), zS = cotaTerrenoUTM(...(() => { const q = Eje3D.enPk(k); return [q.E - q.ty * of, q.N + q.tx * of]; })());
+              cajaOrientada(M.pilar, c[0], c[2], Y(Math.min(zS, zR) - 0.3), Y(zR + 10.6), ux, uz, 0.45, 0.45);
+            }
+          }
+        }
+        // Pérgolas fotovoltaicas del aparcamiento (huellas 030051 a +33/+63 m)
+        for (const [pa, pb, o0, o1] of [[435721, 435820, 33.4, 38.6], [435729, 435815, 43.4, 53.4], [435773, 435815, 58.2, 63.4]]) {
+          const mm = Eje3D.enPk((pa + pb) / 2);
+          const zS = cotaTerrenoUTM(mm.E - mm.ty * (o0 + o1) / 2, mm.N + mm.tx * (o0 + o1) / 2);
+          prisma(M.placaSolar, banda(pa, pb, o0, o1), Y(zS + 2.9), Y(zS + 3.05));
+          for (let k = pa + 2; k < pb; k += 7.5) {
+            const c = P(k, (o0 + o1) / 2, 0), m = Eje3D.enPk(k);
+            cajaOrientada(M.pilar, c[0], c[2], Y(zS - 0.2), Y(zS + 2.9), m.tx, -m.ty, 0.18, 0.18);
+          }
+        }
+        const fichaEst = {
+          capa: 'Estación de viajeros', nombre: 'Estación de Villena AV',
+          info: 'PK 435+526 de la L042. Andenes de 7,8 m a 760 mm sobre carril con banda de borde, marquesinas, vestíbulo-puente acristalado sobre las cuatro vías, edificio de viajeros y torre de comunicación vertical en sus huellas de la cartografía 3D de Adif. Alturas de la cartografía (cubierta a unos 10,4 m sobre carril); acabados según las fotos del proyecto de INES Ingenieros para Adif. Celosía y pilares de cubierta, supuestos.',
+        };
+        for (const [k, malla] of Object.entries(M)) {
+          if (malla.vacia || !grupos.edificios) continue;
+          const mesh = new THREE.Mesh(malla.construir(true), MAT_EST[k]);
+          mesh.castShadow = k !== 'vidrio'; mesh.receiveShadow = true;
+          mesh.userData = fichaEst;
+          grupos.edificios.add(mesh);
+        }
+        for (const r of rotulos) {
+          if (!grupos.edificios) break;
+          const mesh = new THREE.Mesh(GEO_ROTULO, MAT_EST.rotulo);
+          mesh.position.set(r.x, r.y, r.z);
+          mesh.rotation.y = r.yaw;
+          mesh.userData = fichaEst;
+          grupos.edificios.add(mesh);
+        }
+      }
+
       let tramoT = [];
       const cerrarTunel = () => {
         if (tramoT.length < 2) { tramoT = []; return; }
@@ -3435,6 +3616,7 @@ async function cargarTeselaKm(km) {
       let g = f.geometry;
       if (!id || !g) continue;
       // En las bocas de túnel la cartografía dibuja la boquilla como contorno de edificio: la boquilla ya tiene su modelo
+      if ((id === '030001' || id === '030051') && ESTACION_VILLENA.cubre(g)) continue;
       if (id === '030001' || id === '030175') {
         const cs0 = g.type === 'Polygon' ? g.coordinates[0] : g.type === 'LineString' ? g.coordinates : null;
         if (cs0?.length) {
