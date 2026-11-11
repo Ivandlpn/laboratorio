@@ -915,6 +915,35 @@ function texRotulo(texto, sub) {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
   return t;
 }
+// ---- Estación de Alicante-Terminal: edificio de la MZA (1858), neoclásico, planta en U, y marquesina Polonceau ----
+const TEX_FACHADA_MZA = (() => {
+  // Un vano de 5,2 m y dos plantas: muro de color crema, pilastras, ventanas altas de medio punto e imposta entre plantas
+  const c = document.createElement('canvas'); c.width = 128; c.height = 256;
+  const x = c.getContext('2d');
+  x.fillStyle = '#dccaa3'; x.fillRect(0, 0, 128, 256);
+  x.fillStyle = '#cdb88e'; x.fillRect(0, 0, 10, 256); x.fillRect(118, 0, 10, 256);   // pilastras
+  x.fillStyle = '#efe4c9'; x.fillRect(0, 124, 128, 10); x.fillRect(0, 0, 128, 8);      // imposta y cornisa
+  for (const y0 of [22, 150]) {
+    x.fillStyle = '#e9dcbc'; x.beginPath(); x.moveTo(36, y0 + 92); x.lineTo(36, y0 + 26); x.arc(64, y0 + 26, 28, Math.PI, 0); x.lineTo(92, y0 + 92); x.fill();
+    x.fillStyle = '#2b3036'; x.beginPath(); x.moveTo(42, y0 + 88); x.lineTo(42, y0 + 28); x.arc(64, y0 + 28, 22, Math.PI, 0); x.lineTo(86, y0 + 88); x.fill();
+    x.strokeStyle = '#8a8f93'; x.lineWidth = 2; x.beginPath(); x.moveTo(64, y0 + 8); x.lineTo(64, y0 + 88); x.moveTo(42, y0 + 50); x.lineTo(86, y0 + 50); x.stroke();
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+})();
+const MAT_ALI = {
+  fachada: new THREE.MeshStandardMaterial({ map: TEX_FACHADA_MZA, roughness: 0.85, side: THREE.DoubleSide }),
+  cornisa: new THREE.MeshStandardMaterial({ color: '#efe4c9', roughness: 0.8, side: THREE.DoubleSide }),
+  cubiertaEd: new THREE.MeshStandardMaterial({ color: '#8b5a44', roughness: 0.85, side: THREE.DoubleSide }),
+  vestibulo: new THREE.MeshStandardMaterial({ color: '#b9ccd3', roughness: 0.1, metalness: 0.7, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false }),
+  anden: new THREE.MeshStandardMaterial({ color: '#b1aea6', roughness: 0.92, side: THREE.DoubleSide }),
+  bordeAnden: new THREE.MeshStandardMaterial({ color: '#e9d44a', roughness: 0.85, side: THREE.DoubleSide }),
+  chapaShed: new THREE.MeshStandardMaterial({ color: '#7d868d', roughness: 0.55, metalness: 0.55, side: THREE.DoubleSide }),
+  lucernario: new THREE.MeshStandardMaterial({ color: '#cfdde3', roughness: 0.1, metalness: 0.4, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false }),
+  hierro: new THREE.MeshStandardMaterial({ color: '#4a5560', roughness: 0.5, metalness: 0.7, side: THREE.DoubleSide }),
+  marqAV: new THREE.MeshStandardMaterial({ color: '#e8ecee', roughness: 0.45, metalness: 0.3, side: THREE.DoubleSide }),
+  tope: new THREE.MeshStandardMaterial({ color: '#c0392b', roughness: 0.6, metalness: 0.3, side: THREE.DoubleSide }),
+};
 const GEO_ROTULO = (() => { const g = new THREE.PlaneGeometry(2.2, 0.55); g.userData.compartida = true; return g; })();
 const MAT_EST = {
   anden: new THREE.MeshStandardMaterial({ color: '#a7aaa8', roughness: 0.92, metalness: 0.02, side: THREE.DoubleSide }),
@@ -2347,19 +2376,24 @@ const viaductoReal = (enViaducto) => (enViaducto ? VIADUCTOS_REALES.get(enViaduc
 // ---- Estación de Villena AV (PK 435+526): zona que se modela aparte ----
 // Medidas de la cartografía 3D de Adif (andenes, marquesinas 030051, edificios 030001, vías de andén a ±8,7 m) y aspecto de
 // las fotos del proyecto de ejecución de INES Ingenieros para Adif (vestíbulo-puente sobre las vías bajo una gran cubierta).
+// Zonas (PK y desplazamiento) donde el edificio y las marquesinas los dibuja el modelo propio de la estación
+const ZONAS_ESTACION = [
+  { pk0: 435500, pk1: 435830, of0: -36, of1: 72 },    // Villena AV: andenes, puente, edificio, torre y pérgolas
+  { pk0: 485770, pk1: 486005, of0: -10, of1: 86 },    // Alicante: marquesina Polonceau y marquesinas de andén AV
+  { pk0: 485965, pk1: 486150, of0: -36, of1: 105 },   // Alicante: edificio de viajeros histórico (planta en U)
+];
+function enZonaEstacion(E, N) {
+  const q = Eje3D.proyUTM(E, N);
+  return ZONAS_ESTACION.some((z) => q.pk >= z.pk0 && q.pk <= z.pk1 && q.of >= z.of0 && q.of <= z.of1);
+}
 const ESTACION_VILLENA = {
-  pkIni: 435379, pkFin: 435828,
   cubre(g) {
     const cs = g.type === 'Polygon' ? g.coordinates[0] : g.type === 'LineString' ? g.coordinates : null;
     if (!cs?.length) return false;
     let sx = 0, sy = 0;
     for (const c of cs) { sx += c[0]; sy += c[1]; }
     const [E, N] = lonlatAUTM(sx / cs.length, sy / cs.length);
-    const q = Eje3D.proyUTM(E, N);
-    if (q.pk < 435470 || q.pk > 435830) return false;
-    const of = q.of;
-    // Marquesinas de andén y de aparcamiento; edificio de viajeros, puente y torre del otro andén
-    return (of > -36 && of < 72) && (q.pk > 435500);
+    return enZonaEstacion(E, N);
   },
 };
 
@@ -3171,6 +3205,113 @@ async function cargarTeselaKm(km) {
         }
       }
 
+      // 2g. Estación de Alicante-Terminal (fin del corredor)
+      if (pk0 <= 485980 && pk1 > 485980) {
+        const zR = Eje3D.enPk(485950).Z;                     // cota de carril en la playa de vías
+        const P = (pkP, of, z) => { const m = Eje3D.enPk(Math.min(pkP, Eje3D.pkFin)); const ex = Math.max(0, pkP - Eje3D.pkFin); return L(m.E - m.ty * of + m.tx * ex, m.N + m.tx * of + m.ty * ex, z); };
+        const Y = (z) => z - anclaZ;
+        const anillo = (lista) => { const a = lista.map(([pkP, of]) => { const q = P(pkP, of, 0); return [q[0], q[2]]; }); a.push(a[0]); return a; };
+        const M = {}; for (const k of Object.keys(MAT_ALI)) M[k] = new Malla();
+        // Andenes en los cinco huecos entre ejes de vía (050147) medidos a PK 485+800, 485+900 y 485+960; topes a 486+002
+        const ejesEn = { 485800: [-21.3, -13.6, -13.6, -5.4, -3.1, 26.6, 26.6, 36.2, 40.1, 66.8],
+          485900: [-24.1, -15.5, -10.8, -2.6, 2.2, 34.9, 37.1, 46.6, 50.6, 77.3],
+          485960: [-21.9, -13.8, -9.1, -0.9, 3.9, 38.8, 43.3, 53.0, 57.0, 83.5] };
+        const pks = [485790, 485800, 485900, 485960, 486000];
+        const ejes = (pkP) => ejesEn[pkP] || ejesEn[pkP < 485850 ? 485800 : 485960];
+        for (let i = 0; i < 5; i++) {
+          const av = i < 3, h = av ? 0.76 : 0.55, sep = av ? 1.72 : 1.68;
+          const izq = pks.map((k) => [k, ejes(k)[2 * i] + sep]);
+          const der = pks.map((k) => [k, Math.min(ejes(k)[2 * i + 1] - sep, ejes(k)[2 * i] + sep + 9)]);
+          prisma(M.anden, anillo([...izq, ...der.slice().reverse()]), Y(zR - 0.6), Y(zR + h));
+          const bandas = (lado, d0, d1) => anillo([...lado.map(([k, o]) => [k, o + d0]), ...lado.slice().reverse().map(([k, o]) => [k, o + d1])]);
+          prisma(M.bordeAnden, bandas(izq, 0.6, 0.8), Y(zR + h), Y(zR + h + 0.01));
+          prisma(M.bordeAnden, bandas(der, -0.8, -0.6), Y(zR + h), Y(zR + h + 0.01));
+        }
+        // Topes al final de cada vía
+        for (const of of ejesEn[485960]) {
+          const c = P(486003, of, 0), m = Eje3D.enPk(486000);
+          cajaOrientada(M.tope, c[0], c[2], Y(zR - 0.1), Y(zR + 1.1), m.tx, -m.ty, 0.8, 2.6);
+        }
+        // Marquesina Polonceau de dos aguas (030051): aleros a 26,3/62,3 m en 485+777 y 47/83,2 m en 485+977, lucernario central
+        const eave = Y(zR + 5.4), alto = 4.6;
+        const sh = (pkP, f) => { const t = (pkP - 485776) / 200; const a = 26.3 + 20.7 * t, b = 62.3 + 20.9 * t; return a + (b - a) * f; };
+        const tejado = (f0, f1, y0, y1) => {
+          const v = [];
+          for (const k of [485776, 485976]) for (const [f, y] of [[f0, y0], [f1, y1]]) { const q = P(k, sh(k, f), 0); v.push(M.chapaShed.v(q[0], y, q[2], k * 0.2, f * 10)); }
+          return v;
+        };
+        for (const [f0, f1] of [[0, 0.36], [0.64, 1]]) {
+          const yA0 = eave + alto * (f0 < 0.5 ? f0 / 0.5 : (1 - f0) / 0.5), yA1 = eave + alto * (f1 < 0.5 ? f1 / 0.5 : (1 - f1) / 0.5);
+          const v = tejado(f0, f1, yA0, yA1);
+          M.chapaShed.quad(v[0], v[1], v[3], v[2]);
+        }
+        // Lucernario: banda acristalada sobre la cumbrera (36 % al 64 % del ancho), elevada 0,9 m
+        {
+          const yL = eave + alto * 0.72 + 0.9, yC = eave + alto + 0.9;
+          const pts = [];
+          for (const k of [485776, 485976]) for (const [f, y] of [[0.36, yL], [0.5, yC], [0.64, yL]]) { const q = P(k, sh(k, f), 0); pts.push(M.lucernario.v(q[0], y, q[2], 0, 0)); }
+          M.lucernario.quad(pts[0], pts[1], pts[4], pts[3]);
+          M.lucernario.quad(pts[1], pts[2], pts[5], pts[4]);
+        }
+        // Cerchas Polonceau cada 10 m: pares, tirante, bielas y pilares de fundición en los aleros
+        for (let k = 485776; k <= 485976; k += 10) {
+          const m = Eje3D.enPk(k), ux = m.tx, uz = -m.ty;
+          const pa = P(k, sh(k, 0), 0), pb = P(k, sh(k, 1), 0), pc = P(k, sh(k, 0.5), 0);
+          const barra = (p0, y0, p1, y1, r) => {
+            const dx = p1[0] - p0[0], dz = p1[2] - p0[2], lh = Math.hypot(dx, dz);
+            const n = Math.max(1, Math.ceil(lh / 2));
+            for (let j = 0; j < n; j++) {
+              const t0 = j / n, t1 = (j + 1) / n;
+              cajaOrientada(M.hierro, p0[0] + dx * (t0 + t1) / 2, p0[2] + dz * (t0 + t1) / 2, y0 + (y1 - y0) * t0 - r, y0 + (y1 - y0) * t1 + r, dx / lh, dz / lh, lh / n, r * 2);
+            }
+          };
+          barra(pa, eave, pc, eave + alto, 0.12);
+          barra(pc, eave + alto, pb, eave, 0.12);
+          barra(pa, eave, pb, eave, 0.04);                                     // tirante
+          for (const f of [0.25, 0.75]) {                                       // bielas
+            const pf = P(k, sh(k, f), 0);
+            barra(pf, eave + alto * 0.5, pf, eave, 0.05);
+          }
+          for (const pp of [pa, pb]) cajaOrientada(M.hierro, pp[0], pp[2], Y(zR + 0.5), eave, ux, uz, 0.32, 0.32);
+        }
+        // Marquesinas de los andenes de alta velocidad (030051): blancas, sobre pilares
+        for (const [pa, pb, o0, o1, desde] of [[485901, 486001, 4.2, 9.9, 0], [485989, 486002, -6.2, -1.5, 0]]) {
+          void desde;
+          prisma(M.marqAV, anillo([[pa, o0], [pb, o0 + (pa === 485901 ? 2.9 : 0.4)], [pb, o1], [pa, o1 - (pa === 485901 ? 2.9 : 0)]]), Y(zR + 0.76 + 3.9), Y(zR + 0.76 + 4.2));
+          for (let k = pa + 3; k < pb; k += 9) {
+            const c = P(k, (o0 + o1) / 2, 0), m = Eje3D.enPk(k);
+            cajaOrientada(M.hierro, c[0], c[2], Y(zR + 0.76), Y(zR + 0.76 + 3.9), m.tx, -m.ty, 0.25, 0.25);
+          }
+        }
+        // Edificio de viajeros en U (030001): cuerpo central hacia la avenida de Salamanca, dos alas hacia las vías y
+        // vestíbulo acristalado entre ellas. Alturas de la cartografía: unos 12,4 m el cuerpo, 10 m las alas y 8,3 m el frente.
+        const cuerpo = [[486037, 20.1], [486118, 22.6], [486118, 38.7], [486133, 39], [486137, 36.2], [486137, 33.2], [486138, 32.2],
+          [486139, 23.2], [486140, 11], [486141, 3.6], [486142, -2.6], [486142, -10.2], [486142, -22.2], [486106, -23.4],
+          [486106, -30.4], [486092, -30.6], [486063, -30.7], [486039, -31.4], [486038, -17.5]];
+        const alaIzq = [[486009, -32.2], [486038, -31.2], [486038, -17.5], [486009, -17.5]];
+        const alaDer = [[485979, 43.6], [485974, 87], [486034, 93.2], [486036, 62.7], [486037, 46.6], [486007, 46.6]];
+        const vestibulo = [[486008, -17.5], [486037, -17.5], [486037, 46.6], [486007, 46.6]];
+        const yS = Y(zR - 0.4);
+        for (const [huella, hEd] of [[cuerpo, 12.4], [alaIzq, 10], [alaDer, 10]]) {
+          prisma(M.fachada, anillo(huella), yS, Y(zR + hEd));
+          prisma(M.cornisa, anillo(huella), Y(zR + hEd), Y(zR + hEd + 0.45));
+          prisma(M.cubiertaEd, anillo(huella), Y(zR + hEd + 0.45), Y(zR + hEd + 0.6));
+        }
+        prisma(M.vestibulo, anillo(vestibulo), yS, Y(zR + 8.3));
+        prisma(M.cornisa, anillo(vestibulo), Y(zR + 8.3), Y(zR + 8.7));
+        const fichaAli = {
+          capa: 'Estación de viajeros', nombre: 'Estación de Alicante-Terminal',
+          info: 'PK 485+975, fin de la L042. Edificio de viajeros de la MZA (1858), neoclásico y en planta en U, con su cuerpo central hacia la avenida de Salamanca; gran marquesina metálica de dos aguas tipo Polonceau sobre las vías convencionales; andenes de alta velocidad con marquesinas propias. Huellas, aleros y alturas de la cartografía 3D de Adif; fachada, lucernario, cerchas y cubierta del edificio, supuestos a partir de la descripción del catálogo municipal de protecciones.',
+        };
+        for (const [k, malla] of Object.entries(M)) {
+          if (malla.vacia || !grupos.edificios) continue;
+          const mesh = new THREE.Mesh(malla.construir(true), MAT_ALI[k]);
+          mesh.castShadow = k !== 'vestibulo' && k !== 'lucernario'; mesh.receiveShadow = true;
+          mesh.userData = fichaAli;
+          grupos.edificios.add(mesh);
+        }
+      }
+
       let tramoT = [];
       const cerrarTunel = () => {
         if (tramoT.length < 2) { tramoT = []; return; }
@@ -3680,9 +3821,28 @@ async function cargarTeselaKm(km) {
       } else if (g.type === 'LineString') {
         const cs = g.coordinates; if (cs.length < 2) continue;
         if (id === '050177') {
-          // Hilos de carril reales del DXF (desvíos, escapes y vías de apartado en PAET y estaciones)
+          // Hilos de carril reales del DXF (desvíos, escapes y vías de apartado en PAET y estaciones). La capa trae también los
+          // hilos de las vías generales, que ya se dibujan desde el eje: se quitan los tramos que caen sobre ellos (a < 0,3 m)
+          // para que cada vía tenga solo sus dos hilos.
           const ptsH = aLoc(cs, 'via');
-          carrilUIC60(mCarAlma, mCarCab, ptsH);
+          const dup = cs.map((c) => {
+            const [E, N] = lonlatAUTM(c[0], c[1]);
+            const q = Eje3D.proyUTM(E, N);
+            if (q.d > 7) return false;
+            const sep = Eje3D.enPk(q.pk).sep * 0.5;
+            return [sep - 0.7175, sep + 0.7175, -sep - 0.7175, -sep + 0.7175].some((o) => Math.abs(q.of - o) < 0.3);
+          });
+          let tramo = [];
+          for (let i = 0; i < ptsH.length; i++) {
+            if (!dup[i]) {
+              if (!tramo.length && i > 0) tramo.push(ptsH[i - 1]); // arranca desde el último punto común (desvío)
+              tramo.push(ptsH[i]);
+            } else {
+              if (tramo.length) { tramo.push(ptsH[i]); if (tramo.length >= 2) carrilUIC60(mCarAlma, mCarCab, tramo); }
+              tramo = [];
+            }
+          }
+          if (tramo.length >= 2) carrilUIC60(mCarAlma, mCarCab, tramo);
         } else if (id === '050207') {
           // Eje de vía convencional adyacente (ancho ibérico)
           const ptsIb = aLoc(cs, 'terreno', 0.16);
@@ -3979,6 +4139,7 @@ async function cargarTeselaKm(km) {
       const cE = sE / ptsUtm.length, cN = sN / ptsUtm.length;
       // Las instalaciones de Adif ya salen, con su forma propia, de la cartografía de la línea
       if (centrosPoligEdif.some(([e, n]) => (e - cE) ** 2 + (n - cN) ** 2 < 225)) continue;
+      if (enZonaEstacion(cE, cN)) continue;
       let zMin = Infinity;
       for (const [E, N] of ptsUtm) zMin = Math.min(zMin, cotaTerrenoUTM(E, N));
       const anillo = ptsUtm.map(([E, N]) => { const p = L(E, N, 0); return [p[0], p[2]]; });
