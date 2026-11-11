@@ -1148,18 +1148,18 @@
             border: 1.5px solid #ffffff;
         }
 
-        /* ESTILOS DE IMPRESIÓN Y PDF (HOJA HORIZONTAL, SIN SCROLL EN MESES) */
+        /* ESTILOS DE IMPRESIÓN Y PDF PROFESIONAL EN HORIZONTAL */
         @media print {
             @page {
                 size: landscape;
-                margin: 6mm 8mm;
+                margin: 6mm 8mm 6mm 8mm;
             }
 
             html, body {
                 overflow: visible !important;
                 background: #ffffff !important;
                 color: #000000 !important;
-                font-size: 10px !important;
+                font-size: 9.5px !important;
                 width: 100% !important;
                 max-width: 100% !important;
             }
@@ -1169,21 +1169,38 @@
             }
 
             .header {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
                 background: #07152B !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
-                padding: 0.75rem 1rem !important;
-                margin-bottom: 0.75rem !important;
+                padding: 0.5rem 1rem !important;
+                margin-bottom: 0.6rem !important;
+                border-radius: 6px !important;
                 box-shadow: none !important;
-                border: none !important;
+                border: 1px solid #0B2247 !important;
+            }
+
+            .brand-logo {
+                max-width: 110px !important;
+                height: auto !important;
+                filter: brightness(0) invert(1) !important;
             }
 
             .header-title-block h1 {
-                font-size: 1.5rem !important;
+                font-size: 1.25rem !important;
                 background: none !important;
                 -webkit-text-fill-color: #ffffff !important;
                 color: #ffffff !important;
                 text-shadow: none !important;
+                margin: 0 !important;
+            }
+
+            .header-subtitle {
+                font-size: 0.72rem !important;
+                color: #cbd5e1 !important;
+                margin: 0 !important;
             }
 
             .main-container {
@@ -1196,14 +1213,16 @@
             .calendar-container {
                 display: grid !important;
                 grid-template-columns: repeat(3, 1fr) !important;
-                gap: 0.65rem !important;
+                gap: 0.5rem !important;
+                row-gap: 0.65rem !important;
                 width: 100% !important;
             }
 
             /* SIN BARRAS DE SCROLL HORIZONTAL EN MESES */
             .month-block {
                 box-shadow: none !important;
-                border: 1px solid #94a3b8 !important;
+                border: 1px solid #64748b !important;
+                border-radius: 4px !important;
                 page-break-inside: avoid;
                 break-inside: avoid;
                 overflow: visible !important;
@@ -1222,42 +1241,111 @@
             }
 
             .month-header {
-                background: #12376E !important;
+                background: #0f2d59 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 color: #ffffff !important;
-                padding: 0.3rem 0.5rem !important;
-                font-size: 0.95rem !important;
+                padding: 0.25rem 0.5rem !important;
+                font-size: 0.85rem !important;
+                font-weight: 800 !important;
+                letter-spacing: 0.05em !important;
+                text-align: center !important;
+                border-bottom: 1px solid #1e293b !important;
             }
 
             .calendar-table {
                 width: 100% !important;
                 min-width: 0 !important;
                 table-layout: fixed !important;
+                border-collapse: collapse !important;
+            }
+
+            .calendar-table th {
+                background: #1e293b !important;
+                color: #ffffff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 2px 1px !important;
+                font-size: 0.68rem !important;
+                font-weight: 700 !important;
+                border: 1px solid #334155 !important;
+            }
+
+            .calendar-table td {
+                padding: 2px 1px !important;
+                font-size: 0.7rem !important;
+                border: 1px solid #cbd5e1 !important;
+                text-align: center !important;
             }
 
             .assignee-cell {
-                width: 68px !important;
+                width: 66px !important;
                 min-width: 0 !important;
                 font-size: 0.72rem !important;
-                padding: 2px !important;
+                padding: 2px 1px !important;
+                font-weight: 700 !important;
             }
 
             .week-number-cell {
-                width: 28px !important;
+                width: 26px !important;
                 min-width: 0 !important;
-                font-size: 0.72rem !important;
-                padding: 2px !important;
-            }
-
-            .calendar-table th, .calendar-table td {
+                font-size: 0.7rem !important;
                 padding: 2px 1px !important;
-                font-size: 0.72rem !important;
-            }
-
-            tr[class*="assigned-"] .day-cell, tr[class*="assigned-"] .assignee-cell {
+                font-weight: 700 !important;
+                background-color: #f8fafc !important;
+                color: #475569 !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+            }
+
+            /* COLORES PROFESIONALES DE TÉCNICOS EN IMPRESIÓN */
+            tr.assigned-raul td.assignee-cell {
+                background-color: #22c55e !important;
+                color: #ffffff !important;
+                font-weight: 800 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            tr.assigned-raul td.day-cell:not(.empty) {
+                background-color: #dcfce7 !important;
+                color: #14532d !important;
+                font-weight: 600 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            tr.assigned-carlos td.assignee-cell {
+                background-color: #f97316 !important;
+                color: #ffffff !important;
+                font-weight: 800 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            tr.assigned-carlos td.day-cell:not(.empty) {
+                background-color: #ffedd5 !important;
+                color: #7c2d12 !important;
+                font-weight: 600 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            tr.assigned-ivan td.assignee-cell {
+                background-color: #0ea5e9 !important;
+                color: #ffffff !important;
+                font-weight: 800 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            tr.assigned-ivan td.day-cell:not(.empty) {
+                background-color: #e0f2fe !important;
+                color: #0c4a6e !important;
+                font-weight: 600 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            td.day-cell.empty {
+                background-color: #ffffff !important;
             }
         }
 
@@ -1674,7 +1762,7 @@
                     📊 Excel (.xlsx)
                 </button>
                 <button id="printBtn" class="toolbar-btn" title="Imprimir o guardar cuadrante anual en PDF oficial (hoja horizontal)">
-                    🖨️ Imprimir / PDF
+                    PDF
                 </button>
                 <button id="openHistoryModalBtn" class="toolbar-btn" title="Ver historial de cambios e intercambios de turnos">
                     🕒 Historial (<span id="historyBadge">0</span>)
@@ -2454,12 +2542,11 @@
                 { key: 'start', width: 22 },
                 { key: 'end', width: 22 },
                 { key: 'tech', width: 24 },
-                { key: 'base', width: 22 },
                 { key: 'status', width: 22 }
             ];
 
             // Fila 1: Título Institucional Corporativo
-            sheet.mergeCells('A1:G1');
+            sheet.mergeCells('A1:F1');
             const titleCell = sheet.getCell('A1');
             titleCell.value = 'INECO · SISTEMA DE GUARDIAS DE TELECOMUNICACIONES';
             titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -2468,7 +2555,7 @@
             sheet.getRow(1).height = 30;
 
             // Fila 2: Subtítulo de Línea y Año
-            sheet.mergeCells('A2:G2');
+            sheet.mergeCells('A2:F2');
             const subCell = sheet.getCell('A2');
             subCell.value = `Cuadrante Oficial de Turnos Semanales - LAV Eje Este (Año ${year})`;
             subCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
@@ -2486,7 +2573,6 @@
                 'FECHA INICIO (LUNES)',
                 'FECHA FIN (DOMINGO)',
                 'TÉCNICO DE GUARDIA',
-                'BASE / LOCALIDAD',
                 'ESTADO COBERTURA'
             ];
             const headerRow = sheet.getRow(4);
@@ -2508,21 +2594,18 @@
             const techConfig = {
                 raul: {
                     name: 'Raúl',
-                    base: 'Albacete / Monforte',
                     bg: 'FFDCFCE7',
                     text: 'FF166534',
                     border: 'FF86EFAC'
                 },
                 carlos: {
                     name: 'Carlos',
-                    base: 'Valencia / Monforte',
                     bg: 'FFFFEDD5',
                     text: 'FF9A3412',
                     border: 'FFFDBA74'
                 },
                 ivan: {
                     name: 'Iván',
-                    base: 'Monforte del Cid',
                     bg: 'FFE0F2FE',
                     text: 'FF075985',
                     border: 'FF7DD3FC'
@@ -2575,29 +2658,34 @@
                 cEnd.font = { name: 'Calibri', size: 9.5 };
                 cEnd.alignment = { vertical: 'middle', horizontal: 'center' };
 
-                // Técnico
+                // Técnico (editable con desplegable de selección de los 3 técnicos)
                 const cTech = r.getCell(5);
-                cTech.value = isAssigned ? tInfo.name : '— Sin asignar —';
+                cTech.value = isAssigned ? tInfo.name : '';
                 cTech.font = {
                     name: 'Calibri',
                     size: 10,
                     bold: isAssigned,
-                    color: { argb: isAssigned ? tInfo.text : 'FF94A3B8' }
+                    color: { argb: isAssigned ? tInfo.text : 'FF0F172A' }
                 };
                 cTech.alignment = { vertical: 'middle', horizontal: 'center' };
+                cTech.dataValidation = {
+                    type: 'list',
+                    allowBlank: true,
+                    formulae: ['"Raúl,Carlos,Iván"'],
+                    showErrorMessage: true,
+                    errorTitle: 'Técnico no válido',
+                    error: 'Seleccione uno de los 3 técnicos autorizados: Raúl, Carlos o Iván.'
+                };
 
-                // Base
-                const cBase = r.getCell(6);
-                cBase.value = isAssigned ? tInfo.base : 'LAV Eje Este';
-                cBase.font = { name: 'Calibri', size: 9, color: { argb: 'FF475569' } };
-                cBase.alignment = { vertical: 'middle', horizontal: 'center' };
-
-                // Estado
-                const cStatus = r.getCell(7);
-                cStatus.value = isAssigned ? '✓ Asignada' : '⚠️ Pendiente';
+                // Estado cobertura (fórmula dinámica automática según celda de Técnico)
+                const cStatus = r.getCell(6);
+                cStatus.value = {
+                    formula: `IF(OR(ISBLANK(E${rowIdx}),TRIM(E${rowIdx})=""),"⚠️ Pendiente","✓ Asignada")`,
+                    result: isAssigned ? '✓ Asignada' : '⚠️ Pendiente'
+                };
                 cStatus.font = {
                     name: 'Calibri',
-                    size: 9,
+                    size: 9.5,
                     bold: true,
                     color: { argb: isAssigned ? 'FF166534' : 'FFB91C1C' }
                 };
@@ -2605,7 +2693,7 @@
 
                 // Fondos alternos y bordes finos
                 const rowBg = rowIdx % 2 === 0 ? 'FFF8FAFC' : 'FFFFFFFF';
-                for (let c = 1; c <= 7; c++) {
+                for (let c = 1; c <= 6; c++) {
                     const cell = r.getCell(c);
                     if (c === 5 && isAssigned) {
                         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: tInfo.bg } };
@@ -2621,153 +2709,6 @@
                 }
 
                 rowIdx++;
-            }
-
-            // 2. HOJA DE RESUMEN Y ESTADÍSTICAS
-            const statSheet = workbook.addWorksheet('Resumen y Estadísticas', {
-                pageSetup: { paperSize: 9, orientation: 'portrait' }
-            });
-
-            statSheet.columns = [
-                { width: 22 },
-                { width: 26 },
-                { width: 18 },
-                { width: 18 }
-            ];
-
-            statSheet.mergeCells('A1:D1');
-            const statTitle = statSheet.getCell('A1');
-            statTitle.value = `DISTRIBUCIÓN Y BALANCE DE GUARDIAS TELECO (${year})`;
-            statTitle.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
-            statTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF07152B' } };
-            statTitle.alignment = { vertical: 'middle', horizontal: 'center' };
-            statSheet.getRow(1).height = 28;
-
-            const statHeaders = ['TÉCNICO', 'BASE PRINCIPAL', 'TOTAL SEMANAS', '% COBERTURA'];
-            const shRow = statSheet.getRow(3);
-            statHeaders.forEach((h, idx) => {
-                const cell = shRow.getCell(idx + 1);
-                cell.value = h;
-                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E293B' } };
-                cell.alignment = { vertical: 'middle', horizontal: 'center' };
-                cell.border = {
-                    top: { style: 'thin', color: { argb: 'FF94A3B8' } },
-                    bottom: { style: 'medium', color: { argb: 'FF0F172A' } },
-                    left: { style: 'thin', color: { argb: 'FF94A3B8' } },
-                    right: { style: 'thin', color: { argb: 'FF94A3B8' } }
-                };
-            });
-            statSheet.getRow(3).height = 24;
-
-            let countRaul = 0, countCarlos = 0, countIvan = 0, countUnassigned = 0;
-            let totalWeeks = 0;
-            for (let w = 1; w <= 53; w++) {
-                const mon = getMondayOfISOWeek(w, year);
-                if (mon.getUTCFullYear() !== year && w === 53) continue;
-                totalWeeks++;
-                const a = assignments[w];
-                if (a === 'raul') countRaul++;
-                else if (a === 'carlos') countCarlos++;
-                else if (a === 'ivan') countIvan++;
-                else countUnassigned++;
-            }
-
-            const techStats = [
-                { name: 'Raúl', base: 'Albacete / Monforte', count: countRaul, cfg: techConfig.raul },
-                { name: 'Carlos', base: 'Valencia / Monforte', count: countCarlos, cfg: techConfig.carlos },
-                { name: 'Iván', base: 'Monforte del Cid', count: countIvan, cfg: techConfig.ivan }
-            ];
-
-            let sIdx = 4;
-            techStats.forEach(ts => {
-                const row = statSheet.getRow(sIdx);
-                row.height = 22;
-
-                const c1 = row.getCell(1);
-                c1.value = ts.name;
-                c1.font = { name: 'Calibri', size: 10, bold: true, color: { argb: ts.cfg.text } };
-                c1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ts.cfg.bg } };
-                c1.alignment = { vertical: 'middle', horizontal: 'center' };
-
-                const c2 = row.getCell(2);
-                c2.value = ts.base;
-                c2.font = { name: 'Calibri', size: 9.5 };
-                c2.alignment = { vertical: 'middle', horizontal: 'center' };
-
-                const c3 = row.getCell(3);
-                c3.value = ts.count;
-                c3.font = { name: 'Calibri', size: 10, bold: true };
-                c3.alignment = { vertical: 'middle', horizontal: 'center' };
-
-                const c4 = row.getCell(4);
-                const pct = totalWeeks > 0 ? ((ts.count / totalWeeks) * 100).toFixed(1) + '%' : '0%';
-                c4.value = pct;
-                c4.font = { name: 'Calibri', size: 9.5 };
-                c4.alignment = { vertical: 'middle', horizontal: 'center' };
-
-                for (let c = 1; c <= 4; c++) {
-                    row.getCell(c).border = {
-                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-                    };
-                }
-                sIdx++;
-            });
-
-            if (countUnassigned > 0) {
-                const row = statSheet.getRow(sIdx);
-                row.height = 22;
-                row.getCell(1).value = 'Pendiente de Asignar';
-                row.getCell(1).font = { name: 'Calibri', size: 9.5, italic: true, color: { argb: 'FFB91C1C' } };
-                row.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
-                row.getCell(2).value = '—';
-                row.getCell(2).alignment = { vertical: 'middle', horizontal: 'center' };
-                row.getCell(3).value = countUnassigned;
-                row.getCell(3).font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFB91C1C' } };
-                row.getCell(3).alignment = { vertical: 'middle', horizontal: 'center' };
-                const pct = totalWeeks > 0 ? ((countUnassigned / totalWeeks) * 100).toFixed(1) + '%' : '0%';
-                row.getCell(4).value = pct;
-                row.getCell(4).alignment = { vertical: 'middle', horizontal: 'center' };
-                for (let c = 1; c <= 4; c++) {
-                    row.getCell(c).border = {
-                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
-                    };
-                }
-                sIdx++;
-            }
-
-            const totalRow = statSheet.getRow(sIdx);
-            totalRow.height = 24;
-            totalRow.getCell(1).value = 'TOTAL DEL AÑO';
-            totalRow.getCell(1).font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF07152B' } };
-            totalRow.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
-
-            totalRow.getCell(2).value = 'LAV Eje Este';
-            totalRow.getCell(2).font = { name: 'Calibri', size: 9, italic: true };
-            totalRow.getCell(2).alignment = { vertical: 'middle', horizontal: 'center' };
-
-            totalRow.getCell(3).value = totalWeeks;
-            totalRow.getCell(3).font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF07152B' } };
-            totalRow.getCell(3).alignment = { vertical: 'middle', horizontal: 'center' };
-
-            totalRow.getCell(4).value = '100.0%';
-            totalRow.getCell(4).font = { name: 'Calibri', size: 9.5, bold: true };
-            totalRow.getCell(4).alignment = { vertical: 'middle', horizontal: 'center' };
-
-            for (let c = 1; c <= 4; c++) {
-                totalRow.getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
-                totalRow.getCell(c).border = {
-                    top: { style: 'thin', color: { argb: 'FF0F172A' } },
-                    bottom: { style: 'double', color: { argb: 'FF0F172A' } },
-                    left: { style: 'thin', color: { argb: 'FF94A3B8' } },
-                    right: { style: 'thin', color: { argb: 'FF94A3B8' } }
-                };
             }
 
             const buffer = await workbook.xlsx.writeBuffer();

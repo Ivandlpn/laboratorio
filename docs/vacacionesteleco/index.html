@@ -645,8 +645,8 @@
         }
 
         .month-card-title h3 {
-            font-size: 1.05rem;
-            font-weight: 800;
+            font-size: 1.55rem;
+            font-weight: 850;
             color: var(--text-main);
             letter-spacing: -0.01em;
             text-transform: uppercase;
@@ -1367,7 +1367,7 @@
                 border-radius: 12px;
             }
             .month-card-title h3 {
-                font-size: 1.05rem;
+                font-size: 1.35rem;
             }
             .matrix-day-cell {
                 height: 38px;
@@ -2535,6 +2535,91 @@
             border: 3px solid #38bdf8 !important;
             box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3), 0 2px 10px rgba(56, 189, 248, 0.45) !important;
         }
+
+        /* ==========================================================================
+           FORMATO OFICIAL DE IMPRESIÓN Y PDF HORIZONTAL
+           ========================================================================== */
+        @media print {
+            @page {
+                size: landscape;
+                margin: 6mm 8mm 6mm 8mm;
+            }
+
+            html, body {
+                overflow: visible !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-size: 9.5px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            .header-controls, .toolbar, .draft-bar, .painter-banner, .modal-overlay, #saveFeedback, .theme-toggle-btn, .edit-icon, .modal-guard-notice {
+                display: none !important;
+            }
+
+            .header {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: space-between !important;
+                background: #0B2247 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                padding: 0.5rem 1rem !important;
+                margin-bottom: 0.6rem !important;
+                border-radius: 6px !important;
+                box-shadow: none !important;
+            }
+
+            .header-title-block h1 {
+                font-size: 1.25rem !important;
+                color: #ffffff !important;
+                -webkit-text-fill-color: #ffffff !important;
+                margin: 0 !important;
+            }
+
+            .header-subtitle {
+                font-size: 0.72rem !important;
+                color: #cbd5e1 !important;
+                margin: 0 !important;
+            }
+
+            .main-container {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .matrix-view-container {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 0.8rem !important;
+                width: 100% !important;
+            }
+
+            .month-card {
+                box-shadow: none !important;
+                border: 1px solid #94a3b8 !important;
+                border-radius: 4px !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+                overflow: visible !important;
+                scrollbar-width: none !important;
+                width: 100% !important;
+                margin-bottom: 0.6rem !important;
+                padding: 0.75rem 0.9rem !important;
+            }
+
+            .matrix-table {
+                width: 100% !important;
+            }
+
+            .matrix-day-cell, th.matrix-header-day, th.matrix-header-num {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2654,16 +2739,8 @@
 
         <!-- BARRA DE HERRAMIENTAS Y VISTAS DE COORDINACIÓN -->
         <section class="toolbar toolbar-three-blocks">
-            <!-- BLOQUE 1 (IZQUIERDA): VISTAS Y FILTROS -->
+            <!-- BLOQUE 1 (IZQUIERDA): FILTRO DE TÉCNICOS -->
             <div class="toolbar-block-left">
-                <span class="toolbar-label">Vista:</span>
-                <div class="pill-group" id="viewSelectorGroup">
-                    <button class="pill-btn active" data-view="two-months" title="Vista inicial enfocada en el mes actual y el siguiente">📍 Actual + Siguiente</button>
-                    <button class="pill-btn" data-view="all-months" title="Ver los 14 meses completos">📅 14 Meses</button>
-                </div>
-
-                <div class="toolbar-divider-subtle"></div>
-
                 <span class="toolbar-label">Filtrar:</span>
                 <div class="pill-group" id="filterGroup">
                     <button class="pill-btn active" data-filter="all">Todos</button>
@@ -2696,16 +2773,13 @@
                 </div>
             </div>
 
-            <!-- BLOQUE 3 (DERECHA): ACCIONES DE EXPORTACIÓN SIMÉTRICAS -->
+            <!-- BLOQUE 3 (DERECHA): ACCIONES DE EXPORTACIÓN Y PDF -->
             <div class="toolbar-block-right">
-                <button id="openExportModalBtn" class="toolbar-btn" title="Exportar calendario a Outlook / Google Calendar">
-                    📅 .ics
-                </button>
                 <button id="exportCsvBtn" class="toolbar-btn" title="Descargar datos en CSV para Excel">
                     📊 Excel
                 </button>
-                <button id="printBtn" class="toolbar-btn" title="Imprimir cuadrante">
-                    🖨️ Imprimir
+                <button id="printBtn" class="toolbar-btn" title="Imprimir o guardar cuadrante en PDF">
+                    PDF
                 </button>
             </div>
         </section>
@@ -2829,31 +2903,7 @@
         </div>
     </div>
 
-    <!-- MODAL EXPORTAR .ICS -->
-    <div id="exportModal" class="modal-overlay">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title-group">
-                    <h3>Exportar Calendario (.ics)</h3>
-                    <div class="modal-subtitle">Compatible con Microsoft Outlook, Google Calendar y Apple Calendar</div>
-                </div>
-                <button id="closeExportModalBtn" class="modal-close-btn" aria-label="Cerrar">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="ics-export-options">
-                    <label class="toolbar-label">Seleccionar qué turnos incluir:</label>
-                    <select id="icsTechSelect">
-                        <option value="all">Todas las vacaciones del equipo</option>
-                        <option value="samuel">Solo vacaciones de Samuel</option>
-                        <option value="ivan">Solo vacaciones de Iván</option>
-                        <option value="carlos">Solo vacaciones de Carlos</option>
-                        <option value="raul">Solo vacaciones de Raúl</option>
-                    </select>
-                    <button id="downloadIcsBtn" class="btn-download-ics">Descargar archivo .ics</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- FIN MODAL DE ASIGNACIÓN -->
 
     <script>
     
@@ -3545,7 +3595,7 @@
     // VISTA INICIAL: MES ACTUAL + SIGUIENTE
     let currentYear = 2026;
     let activeFilter = 'all';
-    let currentView = 'two-months'; // 'two-months' (por defecto) o 'all-months'
+    let currentView = 'all-months';
     let isEditMode = false;
     let activePainter = null;
     let hasUnsavedChanges = false;
@@ -3944,19 +3994,7 @@
         const todayStr = formatDate(now.getFullYear(), now.getMonth(), now.getDate());
 
         const all14Months = getFourteenMonths(currentYear);
-
-        let monthsToDisplay = all14Months;
-        if (currentView === 'two-months') {
-            monthsToDisplay = all14Months.filter(item => {
-                const isCurrent = (item.year === currentYearNum && item.month === currentMonthIdx);
-                const nextMonthDate = new Date(currentYearNum, currentMonthIdx + 1, 1);
-                const isNext = (item.year === nextMonthDate.getFullYear() && item.month === nextMonthDate.getMonth());
-                return isCurrent || isNext;
-            });
-            if (monthsToDisplay.length === 0) {
-                monthsToDisplay = all14Months.slice(1, 3);
-            }
-        }
+        const monthsToDisplay = all14Months; // Siempre muestra los 14 meses completos
 
         monthsToDisplay.forEach((item, index) => {
             const daysInMonth = new Date(item.year, item.month + 1, 0).getDate();
@@ -4161,7 +4199,7 @@
             setTimeout(() => {
                 const curCard = document.querySelector('.month-card.is-current-month');
                 if (curCard) {
-                    curCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    curCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             }, 300);
         }
@@ -4323,15 +4361,20 @@
             initYear(e.target.value);
         });
 
-        // Selector de vista
-        document.getElementById('viewSelectorGroup').addEventListener('click', (e) => {
-            const btn = e.target.closest('.pill-btn');
-            if (!btn) return;
-            document.querySelectorAll('#viewSelectorGroup .pill-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentView = btn.dataset.view;
-            renderMatrixView();
-        });
+        // Leyenda de colores desplegable
+        const legendContainer = document.getElementById('legendDropdownContainer');
+        const legendToggle = document.getElementById('legendDropdownToggle');
+        if (legendToggle && legendContainer) {
+            legendToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                legendContainer.classList.toggle('active');
+            });
+            document.addEventListener('click', (e) => {
+                if (!legendContainer.contains(e.target)) {
+                    legendContainer.classList.remove('active');
+                }
+            });
+        }
 
         // Filtro de técnicos
         document.getElementById('filterGroup').addEventListener('click', (e) => {
@@ -4661,15 +4704,9 @@
     // MODALES Y ASIGNACIÓN MULTI-ESTADO
     function setupModals() {
         const dayModal = document.getElementById('dayModal');
-        const exportModal = document.getElementById('exportModal');
 
         document.getElementById('closeDayModalBtn').addEventListener('click', () => dayModal.classList.remove('active'));
-        document.getElementById('closeExportModalBtn').addEventListener('click', () => exportModal.classList.remove('active'));
-
         dayModal.addEventListener('click', (e) => { if (e.target === dayModal) dayModal.classList.remove('active'); });
-        exportModal.addEventListener('click', (e) => { if (e.target === exportModal) exportModal.classList.remove('active'); });
-
-        document.getElementById('openExportModalBtn').addEventListener('click', () => exportModal.classList.add('active'));
 
         // Cambio de estado individual en el modal de día ([Laborable] [Vacaciones] [Asuntos])
         document.getElementById('modalTechStatusList').addEventListener('click', (e) => {
@@ -4762,11 +4799,6 @@
             checkOverlaps();
             dayModal.classList.remove('active');
             showToast('✓ Rango de ' + countDays + ' días aplicado con éxito (' + status + ')');
-        });
-
-        document.getElementById('downloadIcsBtn').addEventListener('click', () => {
-            const filter = document.getElementById('icsTechSelect').value;
-            downloadICS(filter);
         });
 
         document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
