@@ -734,6 +734,12 @@ const Eje3D = (() => {
 })();
 
 // ---- Origen flotante (precisión submilimétrica en los 164 km) ----
+// Terminal de Alicante: al salir del falso túnel las vías reales se abren en abanico y ya no siguen el eje del corredor.
+// Desde aquí no se genera la doble vía desde el eje: las vías salen de la cartografía (ejes 050147/050117 y carriles 050177).
+const PK_TERMINAL = (() => {
+  const t = Eje3D.tuneles[Eje3D.tuneles.length - 1];
+  return t && t.pkFin > Eje3D.pkFin - 1500 ? t.pkFin + 10 : Infinity;
+})();
 const pkArranque = parsearPk(params.get('pk'), Eje3D.pkIni, Eje3D.pkFin) ?? 437020;
 const pIni = Eje3D.enPk(pkArranque);
 const origen = { E: pIni.E, N: pIni.N, Z: pIni.Z };
@@ -1698,6 +1704,11 @@ function fondoPasoInferior(E, N, q) {
 function cotaTerrenoUTM(E, N) {
   const q = Eje3D.proyUTM(E, N);
   if (PASOS_INF_TERRENO.length) { const zF = fondoPasoInferior(E, N, q); if (zF !== null) return zF; }
+  // Playa de vías de la terminal: el relieve (que bajo la marquesina recoge la cubierta) no puede tapar las vías
+  if (q.pk > PK_TERMINAL && q.pk < Eje3D.pkFin - 190 && q.of > -82 && q.of < 86) {
+    const zM = MdtCorredor.cota(E, N);
+    return Math.min(zM !== null ? zM : q.Z, q.Z - 0.5);
+  }
   const mDxf = q.d < 210 ? HashCotas.interpolar(E, N) : null;
   const zMdt = MdtCorredor.cota(E, N);
   const zBasePaisaje = zMdt !== null ? zMdt : (q.Z - 0.56);
@@ -2666,6 +2677,7 @@ async function cargarTeselaKm(km) {
       for (let pk = Math.max(Eje3D.pkIni, pk0 - PASO_M); pk <= Math.min(Eje3D.pkFin, pk1 + PASO_M); pk += PASO_M) {
         muestras.push(Eje3D.enPk(pk));
       }
+      const muestrasVia = muestras.filter((m) => m.pk <= PK_TERMINAL);
 
       // 2a. Subbalasto de coronación (13,8 m), canaletas longitudinales ADIF (±5,92 m), balasto y carriles UIC 60
       let trSub = [], trCanI = [], trCanD = [];
@@ -2675,7 +2687,7 @@ async function cargarTeselaKm(km) {
         if (trCanD.length >= 2) cinta(mCanaleta, trCanD, 0.50, -0.54, -0.28, 0.03, 0.35);
         trCanI = []; trCanD = [];
       };
-      for (const m of muestras) {
+      for (const m of muestrasVia) {
         if (!m.enViaducto && !m.enTunel) trSub.push(L(m.E, m.N, m.Z));
         else flushSub();
         if (!m.enTunel) {
@@ -2688,13 +2700,13 @@ async function cargarTeselaKm(km) {
       flushCan();
 
       for (const signo of [-1, 1]) {
-        const ptsVia = muestras.map((m) => {
+        const ptsVia = muestrasVia.map((m) => {
           const nx = -m.ty, ny = m.tx, off = signo * (m.sep * 0.5);
           return L(m.E + nx * off, m.N + ny * off, m.Z);
         });
         cinta(mBal, ptsVia, 3.45, -0.44, -0.23, 0.85, 0.25);
         for (const rOff of [-0.7175, 0.7175]) {
-          const ptsR = muestras.map((m) => {
+          const ptsR = muestrasVia.map((m) => {
             const nx = -m.ty, ny = m.tx, off = signo * (m.sep * 0.5) + rOff;
             return L(m.E + nx * off, m.N + ny * off, m.Z);
           });
@@ -2706,7 +2718,7 @@ async function cargarTeselaKm(km) {
           if (trContacto.length >= 2) cinta(mHiloContacto, trContacto, 0.024, 5.292, 5.312, 0, 0.5);
           trContacto = [];
         };
-        for (const m of muestras) {
+        for (const m of muestrasVia) {
           const nx = -m.ty, ny = m.tx, off = signo * (m.sep * 0.5);
           if (!m.enTunel) trContacto.push(L(m.E + nx * off, m.N + ny * off, m.Z));
           else flushContacto();
@@ -2715,7 +2727,7 @@ async function cargarTeselaKm(km) {
       }
 
       // 2b. Traviesas AI-04 + sujeciones Vossloh SKL-14 cada 1,25 m + arquetas cada 50 m + hitos PK
-      for (let pk = pk0; pk < pk1; pk += 1.25) {
+      for (let pk = pk0; pk < Math.min(pk1, PK_TERMINAL); pk += 1.25) {
         const m = Eje3D.enPk(pk);
         const yaw = Math.atan2(m.ty, m.tx), nx = -m.ty, ny = m.tx;
         for (const signo of [-1, 1]) {
@@ -2729,14 +2741,14 @@ async function cargarTeselaKm(km) {
           inst.sujecion.get(tramo).mats.push(mt);
         }
       }
-      for (let pkArq = Math.ceil(pk0 / 55) * 55 + 27.5; pkArq < pk1; pkArq += 55) {
+      for (let pkArq = Math.ceil(pk0 / 55) * 55 + 27.5; pkArq < Math.min(pk1, PK_TERMINAL); pkArq += 55) {
         const m = Eje3D.enPk(pkArq);
         if (m.enTunel) continue;
         const yaw = Math.atan2(m.ty, m.tx), nx = -m.ty, ny = m.tx, offC = m.sep * 0.5 + 3.57;
         const zArq = (m.enViaducto ? m.Z - 0.16 : m.Z - 0.34);
         for (const s of [-1, 1]) inst.arqueta.push(matInst(L(m.E + nx * s * offC, m.N + ny * s * offC, zArq), yaw));
       }
-      for (let pkH = Math.ceil(pk0 / 200) * 200; pkH < pk1; pkH += 200) {
+      for (let pkH = Math.ceil(pk0 / 200) * 200; pkH < Math.min(pk1, PK_TERMINAL); pkH += 200) {
         const m = Eje3D.enPk(pkH);
         const yaw = Math.atan2(m.ty, m.tx), nx = -m.ty, ny = m.tx;
         const pH = L(m.E + nx * (m.sep * 0.5 + 3.12), m.N + ny * (m.sep * 0.5 + 3.12), m.Z - 0.35);
@@ -3212,24 +3224,39 @@ async function cargarTeselaKm(km) {
         const Y = (z) => z - anclaZ;
         const anillo = (lista) => { const a = lista.map(([pkP, of]) => { const q = P(pkP, of, 0); return [q[0], q[2]]; }); a.push(a[0]); return a; };
         const M = {}; for (const k of Object.keys(MAT_ALI)) M[k] = new Malla();
-        // Andenes en los cinco huecos entre ejes de vía (050147) medidos a PK 485+800, 485+900 y 485+960; topes a 486+002
-        const ejesEn = { 485800: [-21.3, -13.6, -13.6, -5.4, -3.1, 26.6, 26.6, 36.2, 40.1, 66.8],
-          485900: [-24.1, -15.5, -10.8, -2.6, 2.2, 34.9, 37.1, 46.6, 50.6, 77.3],
-          485960: [-21.9, -13.8, -9.1, -0.9, 3.9, 38.8, 43.3, 53.0, 57.0, 83.5] };
-        const pks = [485790, 485800, 485900, 485960, 486000];
-        const ejes = (pkP) => ejesEn[pkP] || ejesEn[pkP < 485850 ? 485800 : 485960];
-        for (let i = 0; i < 5; i++) {
-          const av = i < 3, h = av ? 0.76 : 0.55, sep = av ? 1.72 : 1.68;
-          const izq = pks.map((k) => [k, ejes(k)[2 * i] + sep]);
-          const der = pks.map((k) => [k, Math.min(ejes(k)[2 * i + 1] - sep, ejes(k)[2 * i] + sep + 9)]);
+        // Vías de la terminal (desplazamiento del eje de cada vía en PK 485+800, 485+900, 485+960 y, las del lado izquierdo,
+        // 486+000), medidas en la cartografía. Por el ancho entre carriles: L1-L5 y R1 ibérico; R2-R6 ancho estándar (AV),
+        // bajo la marquesina histórica. Las del lado derecho acaban en topes en 485+977; las del izquierdo, en 486+007.
+        const VIAS = {
+          L1: [-24.8, -24.1, -21.9, -20.3], L2: [-21.3, -15.5, -13.8, -12.8], L3: [-13.6, -10.8, -9.1, -8.0],
+          L4: [-5.5, -2.5, -0.9, 0.2], L5: [-3.1, 2.2, 3.9, 5.0],
+          R1: [26.6, 37.1, 43.3], R2: [36.2, 46.7, 53.0], R3: [40.1, 50.6, 57.0], R4: [53.5, 64.0, 69.5], R5: [57.5, 68.0, 73.5], R6: [66.8, 77.3, 83.5],
+        };
+        const PKS_VIA = [485800, 485900, 485960, 486000];
+        const ofVia = (id, pkP) => {
+          const v = VIAS[id], n = v.length;
+          let i = 0;
+          while (i < n - 2 && pkP > PKS_VIA[i + 1]) i++;
+          return v[i] + (v[i + 1] - v[i]) * (pkP - PKS_VIA[i]) / (PKS_VIA[i + 1] - PKS_VIA[i]);
+        };
+        // Andenes entre vías: [vía izquierda, vía derecha (o ancho fijo), PK inicio, PK fin, altura sobre carril]
+        const ANDENES = [
+          ['L1', 'L2', 485872, 486006, 0.68], ['L3', 'L4', 485800, 486006, 0.68], ['L5', 5.7, 485890, 486006, 0.68],
+          ['R1', 'R2', 485790, 485976, 0.68], ['R3', 'R4', 485790, 485976, 0.76], ['R5', 'R6', 485790, 485976, 0.76],
+        ];
+        for (const [va, vb, pA, pB, h] of ANDENES) {
+          const ks = []; for (let k = pA; k < pB; k += 15) ks.push(k); ks.push(pB);
+          const izq = ks.map((k) => [k, ofVia(va, k) + 1.7]);
+          const der = ks.map((k) => [k, typeof vb === 'number' ? ofVia(va, k) + 1.7 + vb : ofVia(vb, k) - 1.7]);
           prisma(M.anden, anillo([...izq, ...der.slice().reverse()]), Y(zR - 0.6), Y(zR + h));
-          const bandas = (lado, d0, d1) => anillo([...lado.map(([k, o]) => [k, o + d0]), ...lado.slice().reverse().map(([k, o]) => [k, o + d1])]);
-          prisma(M.bordeAnden, bandas(izq, 0.6, 0.8), Y(zR + h), Y(zR + h + 0.01));
-          prisma(M.bordeAnden, bandas(der, -0.8, -0.6), Y(zR + h), Y(zR + h + 0.01));
+          const banda = (lado, d0, d1) => anillo([...lado.map(([k, o]) => [k, o + d0]), ...lado.slice().reverse().map(([k, o]) => [k, o + d1])]);
+          prisma(M.bordeAnden, banda(izq, 0.6, 0.8), Y(zR + h), Y(zR + h + 0.01));
+          prisma(M.bordeAnden, banda(der, -0.8, -0.6), Y(zR + h), Y(zR + h + 0.01));
         }
         // Topes al final de cada vía
-        for (const of of ejesEn[485960]) {
-          const c = P(486003, of, 0), m = Eje3D.enPk(486000);
+        for (const id of Object.keys(VIAS)) {
+          const pkT = id[0] === 'L' ? 486007 : 485977.5;
+          const c = P(pkT, ofVia(id, pkT), 0), m = Eje3D.enPk(pkT);
           cajaOrientada(M.tope, c[0], c[2], Y(zR - 0.1), Y(zR + 1.1), m.tx, -m.ty, 0.8, 2.6);
         }
         // Marquesina Polonceau de dos aguas (030051): aleros a 26,3/62,3 m en 485+777 y 47/83,2 m en 485+977, lucernario central
@@ -3259,11 +3286,13 @@ async function cargarTeselaKm(km) {
           const pa = P(k, sh(k, 0), 0), pb = P(k, sh(k, 1), 0), pc = P(k, sh(k, 0.5), 0);
           const barra = (p0, y0, p1, y1, r) => {
             const dx = p1[0] - p0[0], dz = p1[2] - p0[2], lh = Math.hypot(dx, dz);
-            const n = Math.max(1, Math.ceil(lh / 2));
-            for (let j = 0; j < n; j++) {
-              const t0 = j / n, t1 = (j + 1) / n;
-              cajaOrientada(M.hierro, p0[0] + dx * (t0 + t1) / 2, p0[2] + dz * (t0 + t1) / 2, y0 + (y1 - y0) * t0 - r, y0 + (y1 - y0) * t1 + r, dx / lh, dz / lh, lh / n, r * 2);
-            }
+            if (lh < 0.01) { cajaOrientada(M.hierro, p0[0], p0[2], Math.min(y0, y1), Math.max(y0, y1), ux, uz, r * 2, r * 2); return; }
+            const lx = -dz / lh * r, lz = dx / lh * r;      // lateral horizontal
+            const v = [];
+            for (const [q, y] of [[p0, y0], [p1, y1]]) for (const sy of [-r, r]) for (const sl of [-1, 1]) v.push(M.hierro.v(q[0] + lx * sl, y + sy, q[2] + lz * sl, 0, 0));
+            // v: 0-3 extremo 0 (abajo-, abajo+, arriba-, arriba+), 4-7 extremo 1
+            M.hierro.quad(v[0], v[4], v[5], v[1]); M.hierro.quad(v[2], v[3], v[7], v[6]);
+            M.hierro.quad(v[0], v[2], v[6], v[4]); M.hierro.quad(v[1], v[5], v[7], v[3]);
           };
           barra(pa, eave, pc, eave + alto, 0.12);
           barra(pc, eave + alto, pb, eave, 0.12);
@@ -3274,13 +3303,13 @@ async function cargarTeselaKm(km) {
           }
           for (const pp of [pa, pb]) cajaOrientada(M.hierro, pp[0], pp[2], Y(zR + 0.5), eave, ux, uz, 0.32, 0.32);
         }
-        // Marquesinas de los andenes de alta velocidad (030051): blancas, sobre pilares
+        // Marquesinas blancas de los andenes del lado izquierdo (030051), sobre pilares
         for (const [pa, pb, o0, o1, desde] of [[485901, 486001, 4.2, 9.9, 0], [485989, 486002, -6.2, -1.5, 0]]) {
           void desde;
-          prisma(M.marqAV, anillo([[pa, o0], [pb, o0 + (pa === 485901 ? 2.9 : 0.4)], [pb, o1], [pa, o1 - (pa === 485901 ? 2.9 : 0)]]), Y(zR + 0.76 + 3.9), Y(zR + 0.76 + 4.2));
+          prisma(M.marqAV, anillo([[pa, o0], [pb, o0 + (pa === 485901 ? 2.9 : 0.4)], [pb, o1], [pa, o1 - (pa === 485901 ? 2.9 : 0)]]), Y(zR + 0.68 + 3.9), Y(zR + 0.68 + 4.2));
           for (let k = pa + 3; k < pb; k += 9) {
             const c = P(k, (o0 + o1) / 2, 0), m = Eje3D.enPk(k);
-            cajaOrientada(M.hierro, c[0], c[2], Y(zR + 0.76), Y(zR + 0.76 + 3.9), m.tx, -m.ty, 0.25, 0.25);
+            cajaOrientada(M.hierro, c[0], c[2], Y(zR + 0.68), Y(zR + 0.68 + 3.9), m.tx, -m.ty, 0.25, 0.25);
           }
         }
         // Edificio de viajeros en U (030001): cuerpo central hacia la avenida de Salamanca, dos alas hacia las vías y
@@ -3301,7 +3330,7 @@ async function cargarTeselaKm(km) {
         prisma(M.cornisa, anillo(vestibulo), Y(zR + 8.3), Y(zR + 8.7));
         const fichaAli = {
           capa: 'Estación de viajeros', nombre: 'Estación de Alicante-Terminal',
-          info: 'PK 485+975, fin de la L042. Edificio de viajeros de la MZA (1858), neoclásico y en planta en U, con su cuerpo central hacia la avenida de Salamanca; gran marquesina metálica de dos aguas tipo Polonceau sobre las vías convencionales; andenes de alta velocidad con marquesinas propias. Huellas, aleros y alturas de la cartografía 3D de Adif; fachada, lucernario, cerchas y cubierta del edificio, supuestos a partir de la descripción del catálogo municipal de protecciones.',
+          info: 'PK 485+975, fin de la L042. Edificio de viajeros de la MZA (1858), neoclásico y en planta en U, con su cuerpo central hacia la avenida de Salamanca; gran marquesina metálica de dos aguas tipo Polonceau, bajo la que acaban las vías de ancho estándar (alta velocidad) según el ancho entre carriles de la cartografía; a su izquierda, las vías de ancho ibérico con marquesinas blancas. Seis andenes entre las vías reales y topes al final de cada una. Huellas, aleros y alturas de la cartografía 3D de Adif; fachada, lucernario, cerchas y cubierta del edificio, supuestos a partir de la descripción del catálogo municipal de protecciones.',
         };
         for (const [k, malla] of Object.entries(M)) {
           if (malla.vacia || !grupos.edificios) continue;
@@ -3367,7 +3396,7 @@ async function cargarTeselaKm(km) {
           inst.poste.push(mtP);
           inst.cimientoPoste.push(mtP);
           inst.placaPoste.push(mtP);
-          if (q.d > 12) return; // poste de otra línea o de un ramal: sin ménsula hacia esta vía
+          if (q.d > 12 || q.pk > PK_TERMINAL) return; // poste de otra línea, de un ramal o de la terminal: sin ménsula hacia esta vía
           if (iP % 20 === 0) inst.contrapeso.push(mtP);
           // Ménsula desde el poste hasta el eje de la vía más cercana (a sep/2 del eje de la línea)
           const alcance = Math.max(1.2, q.d - m.sep * 0.5);
@@ -3381,7 +3410,7 @@ async function cargarTeselaKm(km) {
       const pkVanoIni = Math.floor((pk0 - VANO) / VANO) * VANO;
       for (let pkA = pkVanoIni; pkA < pk1; pkA += VANO) {
         const pkB = pkA + VANO;
-        if (pkB <= Eje3D.pkIni || pkA >= Eje3D.pkFin) continue;
+        if (pkB <= Eje3D.pkIni || pkA >= Eje3D.pkFin || pkA >= PK_TERMINAL) continue;
         const a = Math.max(Eje3D.pkIni, pkA), b = Math.min(Eje3D.pkFin, pkB);
         const mA = Eje3D.enPk(a), mB = Eje3D.enPk(b);
         if (mA.enTunel || mB.enTunel) continue;
@@ -3820,7 +3849,32 @@ async function cargarTeselaKm(km) {
         }
       } else if (g.type === 'LineString') {
         const cs = g.coordinates; if (cs.length < 2) continue;
-        if (id === '050177') {
+        if ((id === '050147' || id === '050117') && PK_TERMINAL < Infinity) {
+          // Terminal: balasto y traviesas a lo largo de cada eje de vía real (los carriles llegan de la capa 050177)
+          const ptsEje = aLoc(cs, 'via').filter((_, i) => { const [E, N] = lonlatAUTM(cs[i][0], cs[i][1]); return Eje3D.proyUTM(E, N).pk > PK_TERMINAL; });
+          if (ptsEje.length >= 2) {
+            cinta(mBal, ptsEje, 3.45, -0.44, -0.23, 0.85, 0.25);
+            let resto = 0;
+            for (let i = 0; i < ptsEje.length - 1; i++) {
+              const a = ptsEje[i], b = ptsEje[i + 1];
+              const dx = b[0] - a[0], dz = b[2] - a[2], l = Math.hypot(dx, dz);
+              if (l < 0.01) continue;
+              const yaw = Math.atan2(-dz, dx);
+              let d = resto;
+              for (; d < l; d += 1.25) {
+                const t = d / l, pT = [a[0] + dx * t, a[1] + (b[1] - a[1]) * t - 0.16, a[2] + dz * t];
+                const mt = matInst(pT, yaw);
+                inst.traviesa.push(mt);
+                if (id === '050117') {
+                  const clave = 'T' + Math.floor(i / 4) + '|' + Math.round(a[0] / 100) + '|' + Math.round(a[2] / 100);
+                  if (!inst.sujecion.has(clave)) inst.sujecion.set(clave, { mats: [], p: pT });
+                  inst.sujecion.get(clave).mats.push(mt);
+                }
+              }
+              resto = d - l;
+            }
+          }
+        } else if (id === '050177') {
           // Hilos de carril reales del DXF (desvíos, escapes y vías de apartado en PAET y estaciones). La capa trae también los
           // hilos de las vías generales, que ya se dibujan desde el eje: se quitan los tramos que caen sobre ellos (a < 0,3 m)
           // para que cada vía tenga solo sus dos hilos.
@@ -3828,7 +3882,7 @@ async function cargarTeselaKm(km) {
           const dup = cs.map((c) => {
             const [E, N] = lonlatAUTM(c[0], c[1]);
             const q = Eje3D.proyUTM(E, N);
-            if (q.d > 7) return false;
+            if (q.d > 7 || q.pk > PK_TERMINAL) return false;
             const sep = Eje3D.enPk(q.pk).sep * 0.5;
             return [sep - 0.7175, sep + 0.7175, -sep - 0.7175, -sep + 0.7175].some((o) => Math.abs(q.of - o) < 0.3);
           });
@@ -5594,7 +5648,8 @@ function fotograma(ahora) {
   if (!pausaTrenes && grupoFlota.visible) {
     for (const tr of flota) {
       tr.pk += tr.sentido * tr.velBase * dt;
-      if (tr.pk > Eje3D.pkFin - 200) { tr.pk = Eje3D.pkFin - 200; tr.sentido = -1; }
+      const pkTope = Math.min(Eje3D.pkFin - 200, PK_TERMINAL - 150);
+      if (tr.pk > pkTope) { tr.pk = pkTope; tr.sentido = -1; }
       if (tr.pk < Eje3D.pkIni + 200) { tr.pk = Eje3D.pkIni + 200; tr.sentido = 1; }
       posicionarTren(tr);
     }
@@ -5605,7 +5660,8 @@ function fotograma(ahora) {
     const velBase = vistaActiva === 'cabina' ? 69.4 : 95.0;
     if (!params.has('quieto') && !recorridoPausado) {
       pkRecorrido += sentidoRecorrido * velBase * multVel * dt;
-      if (pkRecorrido > Eje3D.pkFin - 80) { pkRecorrido = Eje3D.pkFin - 80; sentidoRecorrido = -1; refrescarTextoSentido(); }
+      const pkFinRec = vistaActiva === 'cabina' ? Math.min(Eje3D.pkFin - 80, PK_TERMINAL - 30) : Eje3D.pkFin - 80;
+      if (pkRecorrido > pkFinRec) { pkRecorrido = pkFinRec; sentidoRecorrido = -1; refrescarTextoSentido(); }
       if (pkRecorrido < Eje3D.pkIni + 80) { pkRecorrido = Eje3D.pkIni + 80; sentidoRecorrido = 1; refrescarTextoSentido(); }
     }
     const p = Eje3D.enPk(pkRecorrido);
