@@ -3,7 +3,7 @@
   {
    "id": "teleco",
    "nombre": "Telecomunicaciones",
-   "descripcion": "Esquema de telecomunicaciones de la linea: arquetas, cables de fibra optica, DCO, camaras, BTS, edificios tecnicos, PICV y autotransformadores.",
+   "descripcion": "Esquema de telecomunicaciones de la línea: arquetas, cables de fibra óptica, DCO, cámaras, BTS, edificios técnicos, PICV y autotransformadores.",
    "fichero": "Tira TELECO ALBALI.pdf",
    "hojas": 20,
    "pkMin": 328611,
@@ -13,12 +13,12 @@
    "elementos": 948,
    "color": "#3463ac",
    "icono": "radio",
-   "generado": "2026-11-05"
+   "generado": "2026-11-07"
   },
   {
    "id": "iiss",
    "nombre": "Señalización (IISS)",
-   "descripcion": "Tira de señalizacion a escala con regla de PK: circuitos de via, balizas, cambios, casetas y detectores.",
+   "descripcion": "Tira de señalización a escala con regla de PK: circuitos de vía, balizas, cambios, casetas y detectores.",
    "fichero": "Tira IISS ALBALI.pdf",
    "hojas": 65,
    "pkMin": 324385,
@@ -28,12 +28,12 @@
    "elementos": 6281,
    "color": "#cb1823",
    "icono": "signal",
-   "generado": "2026-11-05"
+   "generado": "2026-11-07"
   },
   {
    "id": "750",
    "nombre": "Suministro 750 V",
-   "descripcion": "Esquema general de suministro de energia de la linea de 750 V: armarios de via, autotransformadores, subestaciones y casetas.",
+   "descripcion": "Esquema general de suministro de energía de la línea de 750 V: armarios de vía, autotransformadores, subestaciones y casetas.",
    "fichero": "Tira 750 ALBALI.pdf",
    "hojas": 15,
    "pkMin": 319643,
@@ -43,12 +43,12 @@
    "elementos": 776,
    "color": "#696d6d",
    "icono": "zap",
-   "generado": "2026-11-05"
+   "generado": "2026-11-07"
   },
   {
    "id": "lac",
    "nombre": "Línea aérea de contacto",
-   "descripcion": "Esquema electrico de la linea aerea de contacto Madrid-Levante: secciones, seccionadores, autotransformadores y subestaciones.",
+   "descripcion": "Esquema eléctrico de la línea aérea de contacto Madrid-Levante: secciones, seccionadores, autotransformadores y subestaciones.",
    "fichero": "Tira LAC ALBALI.pdf",
    "hojas": 35,
    "pkMin": null,
@@ -58,12 +58,12 @@
    "elementos": 2892,
    "color": "#1a4488",
    "icono": "cable",
-   "generado": "2026-11-05"
+   "generado": "2026-11-07"
   },
   {
    "id": "ic",
    "nombre": "Control de tráfico (IC)",
-   "descripcion": "Esquema de instalaciones de control de trafico: vector sin texto extraible (letras trazadas como curvas), pendiente de OCR.",
+   "descripcion": "Esquema de instalaciones de control de tráfico: vector sin texto extraíble (letras trazadas como curvas), pendiente de OCR.",
    "fichero": "Tira IC ALBALI.pdf",
    "hojas": 25,
    "pkMin": null,
@@ -73,7 +73,7 @@
    "elementos": 0,
    "color": "#6b96cf",
    "icono": "activity",
-   "generado": "2026-11-05"
+   "generado": "2026-11-07"
   }
  ]
 }
