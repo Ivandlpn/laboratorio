@@ -10,10 +10,10 @@
    "pkMax": 486123,
    "pkFiabilidad": "aproximada",
    "conTexto": true,
-   "elementos": 948,
+   "elementos": 933,
    "color": "#3463ac",
    "icono": "radio",
-   "generado": "2026-11-07"
+   "generado": "2026-11-13"
   },
   {
    "id": "iiss",
@@ -21,14 +21,14 @@
    "descripcion": "Tira de señalización a escala con regla de PK: circuitos de vía, balizas, cambios, casetas y detectores.",
    "fichero": "Tira IISS ALBALI.pdf",
    "hojas": 65,
-   "pkMin": 324385,
+   "pkMin": 324394,
    "pkMax": 486000,
    "pkFiabilidad": "exacta",
    "conTexto": true,
-   "elementos": 6281,
+   "elementos": 6263,
    "color": "#cb1823",
    "icono": "signal",
-   "generado": "2026-11-07"
+   "generado": "2026-11-13"
   },
   {
    "id": "750",
@@ -36,14 +36,14 @@
    "descripcion": "Esquema general de suministro de energía de la línea de 750 V: armarios de vía, autotransformadores, subestaciones y casetas.",
    "fichero": "Tira 750 ALBALI.pdf",
    "hojas": 15,
-   "pkMin": 319643,
+   "pkMin": 319644,
    "pkMax": 487092,
    "pkFiabilidad": "exacta",
    "conTexto": true,
-   "elementos": 776,
+   "elementos": 747,
    "color": "#696d6d",
    "icono": "zap",
-   "generado": "2026-11-07"
+   "generado": "2026-11-13"
   },
   {
    "id": "lac",
@@ -51,14 +51,14 @@
    "descripcion": "Esquema eléctrico de la línea aérea de contacto Madrid-Levante: secciones, seccionadores, autotransformadores y subestaciones.",
    "fichero": "Tira LAC ALBALI.pdf",
    "hojas": 35,
-   "pkMin": null,
-   "pkMax": null,
-   "pkFiabilidad": "ninguna",
+   "pkMin": 251571,
+   "pkMax": 485695,
+   "pkFiabilidad": "aproximada",
    "conTexto": true,
    "elementos": 2892,
    "color": "#1a4488",
    "icono": "cable",
-   "generado": "2026-11-07"
+   "generado": "2026-11-13"
   },
   {
    "id": "ic",
@@ -73,7 +73,7 @@
    "elementos": 0,
    "color": "#6b96cf",
    "icono": "activity",
-   "generado": "2026-11-07"
+   "generado": "2026-11-13"
   }
  ]
 }
