@@ -2,7 +2,7 @@
    secciones y grupos de capas plegables, contador de capas activas, «Mostrar todas / Ocultar todas» y leyenda flotante contextual.
    Los visores solo llaman a window.Leyenda3D.mostrar(titulo, [{ color, texto, detalle?, punto? }]) y .ocultar(). */
 (function () {
-  const clave = (t) => 'visorlav.3d.' + location.pathname + '.' + t;
+  const clave = (t) => 'visor3d.' + location.pathname + '.' + t;
   const leer = (k) => { try { return sessionStorage.getItem(clave(k)); } catch (e) { return null; } };
   const guardar = (k, v) => { try { sessionStorage.setItem(clave(k), v); } catch (e) { /* sin almacenamiento */ } };
 
@@ -116,7 +116,7 @@
     }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
-  window.addEventListener('load', () => { setTimeout(iniciar, 0); setInterval(contar, 800); });
+  window.addEventListener('load', () => { setTimeout(iniciar, 0); });
 
   let caja = null;
   function crear() {
