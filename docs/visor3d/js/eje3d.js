@@ -157,5 +157,21 @@ export function crearEje3D(ejeDatos, ramalesReales) {
   if (idxInsert >= 0) saltos.splice(idxInsert, 0, hitoAti);
   else saltos.push(hitoAti);
 
-  return { pkIni, pkFin, paso, n, E, N, Z, S, CURV, tuneles, viaductos, viaductosInfo, edificios, subestaciones, bts, btsInfo, saltos, enPk, proyUTM, proximoHito, buscarViaductoInfo };
+  function velocidadLimite(pk) {
+    const i0 = Math.max(0, Math.min(n - 1, Math.round((pk - pkIni) / paso)));
+    let maxCurv = 0;
+    for (let k = Math.max(0, i0 - 2); k <= Math.min(n - 1, i0 + 2); k++) {
+      maxCurv = Math.max(maxCurv, Math.abs(CURV[k]));
+    }
+    let vMax = 300;
+    if (maxCurv > 1e-5) {
+      const r = 1 / maxCurv;
+      vMax = Math.min(vMax, Math.sqrt(r * 1.35) * 3.6);
+    }
+    if (pk >= 435100 && pk <= 436300) vMax = Math.min(vMax, 220);
+    if (pk >= 484200) vMax = Math.min(vMax, pk >= 485400 ? 80 : 140);
+    return Math.max(60, Math.round(vMax / 5) * 5);
+  }
+
+  return { pkIni, pkFin, paso, n, E, N, Z, S, CURV, tuneles, viaductos, viaductosInfo, edificios, subestaciones, bts, btsInfo, saltos, enPk, proyUTM, proximoHito, buscarViaductoInfo, velocidadLimite };
 }

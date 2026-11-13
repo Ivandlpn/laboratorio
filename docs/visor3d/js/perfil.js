@@ -9,7 +9,34 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
   }
   zMinP = Math.max(0, zMinP - 25); zMaxP += 75;
 
+  let hoverPk = null;
+  let ultimoPkActual = Eje3D.pkIni;
+
+  const tip = document.createElement('div');
+  tip.id = 'perfilTooltip';
+  tip.hidden = true;
+  cvPerfil.parentElement?.appendChild(tip);
+
+  function fmtPkCorto(pk) {
+    const m = Math.round(pk);
+    return `${Math.floor(m / 1000)}+${String(m % 1000).padStart(3, '0')}`;
+  }
+
+  function hitoCercano(pk) {
+    const t = Eje3D.tuneles.find((x) => pk >= x.pkIni && pk <= x.pkFin);
+    if (t) return t.nombre || 'Túnel';
+    const v = Eje3D.viaductos.find(([a, b]) => pk >= a && pk <= b);
+    if (v) return 'Viaducto';
+    let mejor = null, dMin = 1800;
+    for (const s of (Eje3D.saltos || [])) {
+      const d = Math.abs(s.pk - pk);
+      if (d < dMin) { dMin = d; mejor = s.nombre; }
+    }
+    return mejor;
+  }
+
   function dibujarPerfil(pkActual) {
+    ultimoPkActual = pkActual;
     const dpr = Math.min(devicePixelRatio || 1, 2);
     const w = Math.max(240, cvPerfil.clientWidth), h = Math.max(36, cvPerfil.clientHeight);
     if (cvPerfil.width !== Math.round(w * dpr) || cvPerfil.height !== Math.round(h * dpr)) {
@@ -76,18 +103,41 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
     ctxP.beginPath(); ctxP.moveTo(xc, 2); ctxP.lineTo(xc, h - 10); ctxP.stroke();
     ctxP.fillStyle = '#f43f5e';
     ctxP.beginPath(); ctxP.arc(xc, yc, 3.6, 0, Math.PI * 2); ctxP.fill();
+
+    if (hoverPk !== null) {
+      const xh = xDePk(hoverPk);
+      ctxP.save();
+      ctxP.setLineDash([3, 3]);
+      ctxP.strokeStyle = 'rgba(248, 250, 252, 0.72)';
+      ctxP.lineWidth = 1.1;
+      ctxP.beginPath(); ctxP.moveTo(xh, 2); ctxP.lineTo(xh, h - 10); ctxP.stroke();
+      ctxP.restore();
+    }
   }
 
   let arrastrandoPerfil = false;
-  function saltarDesdeEventoPerfil(ev) {
+  function pkDesdeEvento(ev) {
     const r = cvPerfil.getBoundingClientRect();
     const u = Math.max(0, Math.min(1, (ev.clientX - r.left) / (r.width || 1)));
-    const pk = Eje3D.pkIni + u * (Eje3D.pkFin - Eje3D.pkIni);
-    onSaltarPk(pk);
+    return { pk: Eje3D.pkIni + u * (Eje3D.pkFin - Eje3D.pkIni), u, r };
   }
-  cvPerfil.addEventListener('pointerdown', (e) => { arrastrandoPerfil = true; cvPerfil.setPointerCapture(e.pointerId); saltarDesdeEventoPerfil(e); });
-  cvPerfil.addEventListener('pointermove', (e) => { if (arrastrandoPerfil) saltarDesdeEventoPerfil(e); });
+  function actualizarTooltip(ev) {
+    const { pk, u } = pkDesdeEvento(ev);
+    hoverPk = pk;
+    const p = Eje3D.enPk(pk);
+    const hito = hitoCercano(pk);
+    tip.textContent = `PK ${fmtPkCorto(pk)} · ${p.Z.toFixed(0)} m${hito ? ' · ' + hito : ''}`;
+    tip.style.left = `${Math.max(8, Math.min(92, u * 100)).toFixed(1)}%`;
+    tip.hidden = false;
+    dibujarPerfil(ultimoPkActual);
+  }
+  function saltarDesdeEventoPerfil(ev) {
+    onSaltarPk(pkDesdeEvento(ev).pk);
+  }
+  cvPerfil.addEventListener('pointerdown', (e) => { arrastrandoPerfil = true; cvPerfil.setPointerCapture(e.pointerId); saltarDesdeEventoPerfil(e); actualizarTooltip(e); });
+  cvPerfil.addEventListener('pointermove', (e) => { actualizarTooltip(e); if (arrastrandoPerfil) saltarDesdeEventoPerfil(e); });
   cvPerfil.addEventListener('pointerup', () => { arrastrandoPerfil = false; });
+  cvPerfil.addEventListener('pointerleave', () => { arrastrandoPerfil = false; hoverPk = null; tip.hidden = true; dibujarPerfil(ultimoPkActual); });
 
   return { dibujarPerfil };
 }

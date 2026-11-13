@@ -212,13 +212,68 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
   const faroCabina = new THREE.SpotLight(0xfff5d6, 0, 260, 0.44, 0.45, 1.1);
   escena.add(faroCabina, faroCabina.target);
 
+  const PARADAS_CORREDOR = [
+    { pk: 435650, nombre: 'Villena AV', espera: 14 },
+    { pk: 485800, nombre: 'Alicante-Terminal', espera: 16 },
+  ];
+
   const flota = [
-    { pk: pkArranque - 420, sentido: 1, velBase: 69.4, viaSigno: -1, modelo: crearModeloTren(6, 'renfe') },
-    { pk: pkArranque + 320, sentido: -1, velBase: 69.4, viaSigno: 1, modelo: crearModeloTren(6, 'iryo') },
-    { pk: 355400, sentido: 1, velBase: 75.0, viaSigno: -1, modelo: crearModeloTren(6, 'ouigo') },
-    { pk: 465200, sentido: -1, velBase: 66.0, viaSigno: 1, modelo: crearModeloTren(6, 'avlo') },
+    { pk: pkArranque - 420, sentido: 1, velBase: 83.3, velActual: 69.4, viaSigno: -1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(6, 'renfe') },
+    { pk: pkArranque + 320, sentido: -1, velBase: 83.3, velActual: 69.4, viaSigno: 1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(6, 'iryo') },
+    { pk: 355400, sentido: 1, velBase: 83.3, velActual: 75.0, viaSigno: -1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(6, 'ouigo') },
+    { pk: 465200, sentido: -1, velBase: 77.8, velActual: 66.0, viaSigno: 1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(6, 'avlo') },
   ];
   for (const tr of flota) grupoFlota.add(tr.modelo.grupo);
+
+  function actualizarFlota(dt, pkTerminal) {
+    const pkTope = Math.min(Eje3D.pkFin - 200, pkTerminal - 150);
+    for (const tr of flota) {
+      if (tr.paradaTimer > 0) {
+        tr.paradaTimer = Math.max(0, tr.paradaTimer - dt);
+        tr.velActual = 0;
+        tr.estadoTxt = `Estacionado en ${tr.ultimaParada?.nombre || 'estación'} (${Math.ceil(tr.paradaTimer)} s)`;
+        continue;
+      }
+
+      const vLimMs = (Eje3D.velocidadLimite ? Eje3D.velocidadLimite(tr.pk) : 300) / 3.6;
+      let vObj = Math.min(tr.velBase, vLimMs);
+      let proxParada = null;
+
+      for (const par of PARADAS_CORREDOR) {
+        const d = (par.pk - tr.pk) * tr.sentido;
+        if (d >= -10 && d < 1200 && tr.ultimaParada !== par) {
+          proxParada = par;
+          if (d <= 12) {
+            tr.paradaTimer = par.espera;
+            tr.ultimaParada = par;
+            tr.velActual = 0;
+            vObj = 0;
+          } else {
+            // Curva parabólica de frenado confortable (0,55 m/s²)
+            vObj = Math.min(vObj, Math.max(6, Math.sqrt(2 * 0.55 * d)));
+          }
+          break;
+        }
+      }
+      if (tr.ultimaParada && Math.abs(tr.pk - tr.ultimaParada.pk) > 1600) {
+        tr.ultimaParada = null;
+      }
+
+      if (tr.paradaTimer <= 0) {
+        const acel = vObj > tr.velActual ? 0.52 : 0.72;
+        if (tr.velActual < vObj) tr.velActual = Math.min(vObj, tr.velActual + acel * 12 * dt);
+        else tr.velActual = Math.max(vObj, tr.velActual - acel * 12 * dt);
+
+        tr.pk += tr.sentido * tr.velActual * dt;
+        if (tr.pk > pkTope) { tr.pk = pkTope; tr.sentido = -1; tr.velActual = Math.min(tr.velActual, 22); }
+        if (tr.pk < Eje3D.pkIni + 200) { tr.pk = Eje3D.pkIni + 200; tr.sentido = 1; tr.velActual = Math.min(tr.velActual, 22); }
+
+        const kmh = Math.round(tr.velActual * 3.6);
+        tr.estadoTxt = proxParada ? `Aproximación a ${proxParada.nombre} · ${kmh} km/h` : `En marcha · ${kmh} km/h`;
+      }
+      posicionarTren(tr);
+    }
+  }
 
   const _uX = new THREE.Vector3(), _uY = new THREE.Vector3(), _uZ = new THREE.Vector3(), _vUp = new THREE.Vector3(0, 1, 0), _matCoche = new THREE.Matrix4();
   function posicionarTren(tr) {
@@ -252,5 +307,5 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
   }
   for (const tr of flota) posicionarTren(tr);
 
-  return { grupoFlota, flota, faroCabina, posicionarTren };
+  return { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota };
 }

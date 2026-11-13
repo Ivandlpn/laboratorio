@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { fmtPk, lonlatAUTM } from './proyeccion.js';
+import { fmtPk, lonlatAUTM, utmALonlat } from './proyeccion.js';
 import { Malla, cinta, extruirSeccion, cajaOrientada, prisma, lamina, rectMinimo, cubiertaInclinada } from './geometria.js';
 import { decodificarArboles } from './arboles.js';
 import { hash2 } from './terreno.js';
+import { cargarEdificiosOsmKm } from './entorno-osm.js';
 
 export function crearGestorTeselas(ctx) {
   const {
@@ -165,6 +166,7 @@ export function crearGestorTeselas(ctx) {
         tronco: [], copa: [], copaOlivo: [], farola: [], foco: [], posteValla: [], lumTunel: [], cartelTunel: [], sujecion: new Map(),
       };
       const baculosCarto = [];
+      const baculosCctvMeta = [];
       const M4 = new THREE.Matrix4(), Q4 = new THREE.Quaternion(), V3 = new THREE.Vector3(), S3 = new THREE.Vector3();
       const EJE_Y = new THREE.Vector3(0, 1, 0);
       const matInst = (pos, yaw, sx = 1, sy = 1, sz = 1) => M4.compose(V3.set(pos[0], pos[1], pos[2]), Q4.setFromAxisAngle(EJE_Y, yaw), S3.set(sx, sy, sz)).clone();
@@ -1396,10 +1398,12 @@ export function crearGestorTeselas(ctx) {
             if (psCerca && Math.abs(q.of) >= 4.8 && Math.abs(q.of) <= 28) {
               const mPs = Eje3D.enPk(psCerca.pk);
               const yawCam = Math.atan2(-(mPs.N - N), mPs.E - E);
+              const zBac = Math.max(zTer, zDxf ?? zTer);
               inst.baculoCamara.push(matInst(pSup, yawCam));
               const pMira = L(mPs.E, mPs.N, mPs.Z + 5.2);
               agregarConoCamara(pSup[0] + Math.cos(yawCam) * 0.9, pSup[1] + 9.05, pSup[2] - Math.sin(yawCam) * 0.9, pMira[0], pMira[1], pMira[2]);
               baculosCarto.push({ pk: q.pk, lado: Math.sign(q.of) });
+              baculosCctvMeta.push({ pk: q.pk, E, N, Z: zBac, yaw: yawCam, miraE: mPs.E, miraN: mPs.N, miraZ: mPs.Z + 5.2, nombre: `Báculo CCTV · PS PK ${Math.round(psCerca.pk)}` });
             } else {
               inst.senalPoste.push(matInst(p, yawVia));
               inst.senalFoco.push(matInst(p, yawVia));
@@ -1497,7 +1501,12 @@ export function crearGestorTeselas(ctx) {
           } else if (id === '030175') {
             cinta(mEdif, aLoc(cs, 'terreno'), 0.28, -0.2, 1.85, 0, 0.25);
           } else if (id === '050150') {
-            cinta(mCanaleta, aLoc(cs, 'via', -0.32), 0.52, -0.26, 0.08, 0.04, 2.0);
+            const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
+            const qm = Eje3D.proyUTM(Em, Nm);
+            // La vía principal ya genera una única canaleta continua a cada lado; evitar duplicados de cartografía
+            if (qm.pk > PK_TERMINAL || qm.d >= 10) {
+              cinta(mCanaleta, aLoc(cs, 'via', -0.32), 0.52, -0.26, 0.08, 0.04, 2.0);
+            }
           } else if (id === '050185') {
             const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
             const qm = Eje3D.proyUTM(Em, Nm);
@@ -1745,11 +1754,13 @@ export function crearGestorTeselas(ctx) {
           const mB = Eje3D.enPk(pkB);
           const ofB = sPk > 0 ? 7.8 : -7.8;
           const EB = mB.E - mB.ty * ofB, NB = mB.N + mB.tx * ofB;
-          const pB = L(EB, NB, Math.max(mB.Z - 0.35, cotaTerrenoUTM(EB, NB)));
+          const zBac = Math.max(mB.Z - 0.35, cotaTerrenoUTM(EB, NB));
+          const pB = L(EB, NB, zBac);
           const yawCam = Math.atan2(-(mPs.N - NB), mPs.E - EB);
           inst.baculoCamara.push(matInst(pB, yawCam));
           const pMira = L(mPs.E, mPs.N, mPs.Z + 5.2);
           agregarConoCamara(pB[0] + Math.cos(yawCam) * 0.9, pB[1] + 9.05, pB[2] - Math.sin(yawCam) * 0.9, pMira[0], pMira[1], pMira[2]);
+          baculosCctvMeta.push({ pk: pkB, E: EB, N: NB, Z: zBac, yaw: yawCam, miraE: mPs.E, miraN: mPs.N, miraZ: mPs.Z + 5.2, nombre: `Báculo CCTV · PS PK ${Math.round(ps.pk)}` });
         }
       }
 
@@ -2063,7 +2074,7 @@ export function crearGestorTeselas(ctx) {
       addMalla(mAgua, mat('#2b7bbb', 0.88, { roughness: 0.12, metalness: 0.38 }), 'entorno', '020137', false, true);
 
       const addInst = (arr, geo, material, idGrupo, idCapaRef, sombra = false) => {
-        if (!arr.length || !grupos[idGrupo]) return;
+        if (!arr.length || !grupos[idGrupo]) return null;
         const im = new THREE.InstancedMesh(geo, material, arr.length);
         for (let i = 0; i < arr.length; i++) im.setMatrixAt(i, arr[i]);
         im.instanceMatrix.needsUpdate = true;
@@ -2071,6 +2082,7 @@ export function crearGestorTeselas(ctx) {
         im.receiveShadow = true;
         im.userData = fichaElemento(idCapaRef, null, pkCentro);
         grupos[idGrupo].add(im);
+        return im;
       };
 
       addInst(inst.traviesa, GEO.traviesa, matTraviesa, 'via', '050117');
@@ -2096,9 +2108,13 @@ export function crearGestorTeselas(ctx) {
         }
       }
       if (MODELOS.baculoCamara) {
-        for (const parte of MODELOS.baculoCamara) addInst(inst.baculoCamara, parte.geo, parte.mat, 'catenaria', '040235', parte.nombre === 'VerdeBaculo');
+        for (const parte of MODELOS.baculoCamara) {
+          const im = addInst(inst.baculoCamara, parte.geo, parte.mat, 'catenaria', '040235', parte.nombre === 'VerdeBaculo');
+          if (im) im.userData.baculosCctv = baculosCctvMeta;
+        }
       } else {
-        addInst(inst.baculoCamara, GEO.poste, mat('#169b4a', 1, { metalness: 0.3, roughness: 0.55 }), 'catenaria', '040235', true);
+        const im = addInst(inst.baculoCamara, GEO.poste, mat('#169b4a', 1, { metalness: 0.3, roughness: 0.55 }), 'catenaria', '040235', true);
+        if (im) im.userData.baculosCctv = baculosCctvMeta;
       }
       if (MODELOS.casetaVia) {
         for (const parte of MODELOS.casetaVia) addInst(inst.casetaVia, parte.geo, parte.mat, 'edificios', '030025', true);
@@ -2149,6 +2165,16 @@ export function crearGestorTeselas(ctx) {
 
       grupoTeselas.add(raiz);
       teselasCargadas.set(km, { km, anclaE, anclaN, anclaZ, raiz, grupos, etiquetas, etiquetasEdif, sujeciones, meshConosCamara });
+      if (!entornoReal && grupos.edificios) {
+        cargarEdificiosOsmKm({
+          km, anclaE, anclaN, anclaZ,
+          utmALonlat, lonlatAUTM, cotaTerrenoUTM,
+          enZonaEstacion, Eje3D,
+          THREE, Malla, prisma, lamina, matEdifCivil, matCubiertaPlana,
+          grupoEdificios: grupos.edificios,
+          vivo: () => teselasCargadas.has(km),
+        });
+      }
       if (ultimoKmCentral >= 0) recortarCacheTeselas(ultimoKmCentral);
     } catch (err) {
       console.error('Error al construir tesela ' + km + ':', err);
