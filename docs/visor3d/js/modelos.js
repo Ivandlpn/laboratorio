@@ -37,7 +37,17 @@ export function cargarCatalogoModelos(sinModelos = false) {
     cargarModelo('./comun/modelos/aislador.glb').then((m) => { MODELOS.aislador = m; }),
     cargarModelo('./comun/modelos/baculo-camara.glb').then((m) => { MODELOS.baculoCamara = m; }),
     cargarModelo('./comun/modelos/caseta-via.glb').then((m) => { MODELOS.casetaVia = m; }),
-  ]);
+  ]).then(() => {
+    // Igualar exactamente el verde de los báculos CCTV al verde RAL 6005 de los postes de catenaria
+    const partePosteVerde = MODELOS.poste?.find((p) => p.nombre === 'PinturaVerdeAdif');
+    const parteBaculoVerde = MODELOS.baculoCamara?.find((p) => p.nombre === 'VerdeBaculo');
+    if (partePosteVerde && parteBaculoVerde) {
+      parteBaculoVerde.mat.color.copy(partePosteVerde.mat.color);
+      parteBaculoVerde.mat.metalness = partePosteVerde.mat.metalness;
+      parteBaculoVerde.mat.roughness = partePosteVerde.mat.roughness;
+      parteBaculoVerde.mat.needsUpdate = true;
+    }
+  });
 
   return { MODELOS, pModelos };
 }

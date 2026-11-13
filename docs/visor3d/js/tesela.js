@@ -1495,9 +1495,27 @@ export function crearGestorTeselas(ctx) {
         } else if (g.type === 'LineString') {
           const cs = g.coordinates; if (cs.length < 2) continue;
           if ((id === '050147' || id === '050117') && PK_TERMINAL < Infinity) {
-            // Terminal: balasto y traviesas a lo largo de cada eje de vía real (los carriles llegan de la capa 050177)
-            const ptsEje = aLoc(cs, 'via').filter((_, i) => { const [E, N] = lonlatAUTM(cs[i][0], cs[i][1]); return Eje3D.proyUTM(E, N).pk > PK_TERMINAL; });
-            if (ptsEje.length >= 2) {
+            // Balasto y traviesas para ejes de vía reales en terminal (pk > PK_TERMINAL) y en desvíos / vías de apartado de PAET y PB
+            const ptsRaw = aLoc(cs, 'via');
+            const esExtra = cs.map((c) => {
+              const [E, N] = lonlatAUTM(c[0], c[1]);
+              const q = Eje3D.proyUTM(E, N);
+              if (q.pk > PK_TERMINAL) return true;
+              const sep = Eje3D.enPk(q.pk).sep * 0.5;
+              return Math.min(Math.abs(q.of - sep), Math.abs(q.of + sep)) > 0.85;
+            });
+            const tramos = [];
+            let cur = [];
+            for (let i = 0; i < ptsRaw.length; i++) {
+              if (esExtra[i]) {
+                if (!cur.length && i > 0) cur.push(ptsRaw[i - 1]);
+                cur.push(ptsRaw[i]);
+              } else {
+                if (cur.length) { cur.push(ptsRaw[i]); if (cur.length >= 2) tramos.push(cur); cur = []; }
+              }
+            }
+            if (cur.length >= 2) tramos.push(cur);
+            for (const ptsEje of tramos) {
               cinta(mBal, ptsEje, 3.45, -0.44, -0.23, 0.85, 0.25);
               let resto = 0;
               for (let i = 0; i < ptsEje.length - 1; i++) {
@@ -1520,9 +1538,8 @@ export function crearGestorTeselas(ctx) {
               }
             }
           } else if (id === '050177') {
-            // Hilos de carril reales del DXF (desvíos, escapes y vías de apartado en PAET y estaciones). La capa trae también los
-            // hilos de las vías generales, que ya se dibujan desde el eje: se quitan los tramos que caen sobre ellos para que cada
-            // vía tenga solo sus dos hilos (incluso si el entrevía DXF varía ligeramente respecto al nominal de Eje3D).
+            // Hilos de carril reales del DXF (desvíos, escapes y vías de apartado en PAET y estaciones).
+            // Umbral ajustado (0,22 m) para conservar íntegras las agujas y ramas divergentes de los desvíos.
             const ptsH = aLoc(cs, 'via');
             let maxDev = 0;
             const dup = cs.map((c) => {
@@ -1532,9 +1549,9 @@ export function crearGestorTeselas(ctx) {
               const sep = Eje3D.enPk(q.pk).sep * 0.5;
               const dMin = Math.min(...[sep - 0.7175, sep + 0.7175, -sep - 0.7175, -sep + 0.7175].map((o) => Math.abs(q.of - o)));
               if (dMin > maxDev) maxDev = dMin;
-              return dMin < 0.55;
+              return dMin < 0.22;
             });
-            if (maxDev < 0.85) continue;
+            if (maxDev < 0.30) continue;
             let tramo = [];
             for (let i = 0; i < ptsH.length; i++) {
               if (!dup[i]) {
@@ -2166,7 +2183,7 @@ export function crearGestorTeselas(ctx) {
           if (im) im.userData.baculosCctv = baculosCctvMeta;
         }
       } else {
-        const im = addInst(inst.baculoCamara, GEO.poste, mat('#169b4a', 1, { metalness: 0.3, roughness: 0.55 }), 'catenaria', '040235', true);
+        const im = addInst(inst.baculoCamara, GEO.poste, mat('#0f4336', 1, { metalness: 0.05, roughness: 0.5 }), 'catenaria', '040235', true);
         if (im) im.userData.baculosCctv = baculosCctvMeta;
       }
       if (MODELOS.casetaVia) {
