@@ -282,6 +282,7 @@ import { crearEje3D } from './js/eje3d.js';
 import { crearAudioAmbiental } from './js/audio.js';
 import { CLIMAS, aplicarColisionTerreno, crearGestorVuelo, crearEfectoCabina, actualizarBrujulaYEscala } from './js/realismo.js';
 import { calcularSolAstronomico, consultarMeteoReal } from './js/meteo.js';
+import { activarVentanaFlotante } from './js/ventanas.js';
 if (window.Rend3D) window.Rend3D.init(THREE, mergeGeometries);
 if (window.Trenes3D) window.Trenes3D.init(THREE);
 
@@ -1423,6 +1424,12 @@ btnAbrir.addEventListener('click', () => {
   const cerrado = panel.classList.toggle('cerrado');
   btnAbrir.setAttribute('aria-expanded', String(!cerrado));
 });
+activarVentanaFlotante(panel, { clave: 'panel' });
+activarVentanaFlotante(document.getElementById('inspector3D'));
+activarVentanaFlotante(document.getElementById('barraPerfil'), { clave: 'perfil' });
+activarVentanaFlotante(document.getElementById('medidaBadge'));
+activarVentanaFlotante(document.getElementById('cab'));
+activarVentanaFlotante(document.getElementById('brujula'), { botonPlegar: false });
 
 if (window.Camara3D?.configurar) {
   window.Camara3D.configurar(THREE, controles, { camara, escena, dom: render.domElement, limite: 3600 });

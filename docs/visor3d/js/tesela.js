@@ -1358,12 +1358,65 @@ export function crearGestorTeselas(ctx) {
       // Capas cuyas huellas la cartografía dibuja a menudo como líneas cerradas (no como polígonos): arquetas, armarios de
       // vía, edificios, casetas, marquesinas, naves y subestaciones. Se tratan como polígonos para levantarlas en su sitio.
       const CAPAS_HUELLA = new Set(['050134', '050035', '030001', '030025', '030051', '030067', '030129', '030235', '050012']);
-      for (const f of rGeo.features || []) {
+      // Coser segmentos LineString abiertos (p. ej. edificios técnicos/PB/PAET dibujados por aristas sueltas en DXF)
+      const featuresGeo = (rGeo.features || []).slice();
+      {
+        const porCapa = new Map();
+        for (const f of featuresGeo) {
+          const id = f.properties?.c;
+          if (!CAPAS_HUELLA.has(id) || f.geometry?.type !== 'LineString') continue;
+          const cs = f.geometry.coordinates;
+          if (!cs || cs.length < 2) continue;
+          const a = cs[0], b = cs[cs.length - 1];
+          if (cs.length >= 4 && Math.abs(a[0] - b[0]) < 1e-7 && Math.abs(a[1] - b[1]) < 1e-7) continue;
+          if (!porCapa.has(id)) porCapa.set(id, []);
+          porCapa.get(id).push({ f, cs });
+        }
+        for (const [id, lista] of porCapa) {
+          const usados = new Set();
+          for (let i = 0; i < lista.length; i++) {
+            if (usados.has(i)) continue;
+            usados.add(i);
+            const chain = lista[i].cs.slice();
+            let cambio = true;
+            while (cambio) {
+              cambio = false;
+              const fin = chain[chain.length - 1], ini = chain[0];
+              if (chain.length >= 4 && Math.hypot(fin[0] - ini[0], fin[1] - ini[1]) < 6e-6) break;
+              let bestJ = -1, bestRev = false, bestEnd = true, bestD = 7e-6;
+              for (let j = 0; j < lista.length; j++) {
+                if (usados.has(j)) continue;
+                const seg = lista[j].cs, s0 = seg[0], s1 = seg[seg.length - 1];
+                let d = Math.hypot(fin[0] - s0[0], fin[1] - s0[1]); if (d < bestD) { bestD = d; bestJ = j; bestRev = false; bestEnd = true; }
+                d = Math.hypot(fin[0] - s1[0], fin[1] - s1[1]); if (d < bestD) { bestD = d; bestJ = j; bestRev = true; bestEnd = true; }
+                d = Math.hypot(ini[0] - s1[0], ini[1] - s1[1]); if (d < bestD) { bestD = d; bestJ = j; bestRev = false; bestEnd = false; }
+                d = Math.hypot(ini[0] - s0[0], ini[1] - s0[1]); if (d < bestD) { bestD = d; bestJ = j; bestRev = true; bestEnd = false; }
+              }
+              if (bestJ >= 0) {
+                usados.add(bestJ);
+                const seg = lista[bestJ].cs.slice();
+                if (bestRev) seg.reverse();
+                if (bestEnd) chain.push(...seg.slice(1));
+                else chain.unshift(...seg.slice(0, -1));
+                cambio = true;
+              }
+            }
+            if (chain.length >= 4 && Math.hypot(chain[0][0] - chain[chain.length - 1][0], chain[0][1] - chain[chain.length - 1][1]) < 2.2e-5) {
+              chain[chain.length - 1] = chain[0];
+              featuresGeo.push({ type: 'Feature', properties: { ...lista[i].f.properties, c: id }, geometry: { type: 'Polygon', coordinates: [chain] } });
+            }
+          }
+        }
+      }
+      for (const f of featuresGeo) {
         const id = f.properties?.c;
         let g = f.geometry;
         if (!id || !g) continue;
         // En las bocas de túnel la cartografía dibuja la boquilla como contorno de edificio: la boquilla ya tiene su modelo
-        if ((id === '030001' || id === '030051') && ESTACION_VILLENA.cubre(g)) continue;
+        if ((id === '030001' || id === '030051') && ESTACION_VILLENA.cubre(g)) {
+          const pkF = f.properties?.pk ?? 0;
+          if (id === '030051' || (pkF >= 435640 && pkF <= 435750)) continue;
+        }
         if (id === '030001' || id === '030175') {
           const cs0 = g.type === 'Polygon' ? g.coordinates[0] : g.type === 'LineString' ? g.coordinates : null;
           if (cs0?.length) {
