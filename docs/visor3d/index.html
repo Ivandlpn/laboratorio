@@ -362,13 +362,9 @@ render.setSize(innerWidth, innerHeight);
 cont.appendChild(render.domElement);
 
 // Mapa de entorno PBR equirectangular (cielo Rayleigh + sol Mie + nubes + terreno mediterráneo) para reflejos reales en carriles, trenes, vidrio y cobre.
-// three r160 no tiene escena.environmentIntensity (llegó en r163): la intensidad por hora se hornea en el propio mapa,
-// atenuado por un factor (1 = día). Caché por factor: como mucho uno por tema de TEMAS_SOL.
-const ENTORNOS_PMREM = new Map();
-function entornoPara(factor) {
-  const f = Math.min(1, Math.max(0, factor));
-  const clave = f.toFixed(3);
-  if (ENTORNOS_PMREM.has(clave)) return ENTORNOS_PMREM.get(clave);
+// Va siempre a plena intensidad: las luces de TEMAS_SOL (amanecer, tarde, noche) se ajustaron a ojo con él así
+// (three r160 no tiene escena.environmentIntensity; atenuarlo por hora dejó la noche casi negra, 2026-11-13).
+{
   const pmrem = new THREE.PMREMGenerator(render);
   const cvE = document.createElement('canvas'); cvE.width = 512; cvE.height = 256;
   const xe = cvE.getContext('2d');
@@ -389,19 +385,11 @@ function entornoPara(factor) {
   for (let i = 0; i < 24; i++) {
     xe.beginPath(); xe.ellipse(((i * 73) % 512), 92 + (i % 5) * 5, 28 + (i % 4) * 12, 5 + (i % 3) * 2, 0, 0, Math.PI * 2); xe.fill();
   }
-  // Atenuación: el lienzo es sRGB, así que el negro se mezcla con alfa 1 − f^(1/2.2) para escalar la radiancia lineal por f
-  if (f < 1) {
-    xe.globalAlpha = 1 - Math.pow(f, 1 / 2.2);
-    xe.fillStyle = '#000'; xe.fillRect(0, 0, 512, 256);
-    xe.globalAlpha = 1;
-  }
   const texEq = new THREE.CanvasTexture(cvE);
   texEq.mapping = THREE.EquirectangularReflectionMapping;
   texEq.colorSpace = THREE.SRGBColorSpace;
-  const entorno = pmrem.fromEquirectangular(texEq).texture;
+  escena.environment = pmrem.fromEquirectangular(texEq).texture;
   texEq.dispose(); pmrem.dispose();
-  ENTORNOS_PMREM.set(clave, entorno);
-  return entorno;
 }
 
 const renderEtq = new CSS2DRenderer();
@@ -555,7 +543,6 @@ function aplicarTema() {
   luzHemi.color.set(tm.hemiCol);
   sol.intensity = tm.solInt * cl.solMult;
   sol.color.set(tm.solCol);
-  escena.environment = entornoPara(tm.envInt / TEMAS_SOL.dia.envInt);
   expBaseSol = tm.exp;
   render.toneMappingExposure = tm.exp;
   if (_matCarrilCabezaRef) {

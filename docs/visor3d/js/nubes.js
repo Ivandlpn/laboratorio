@@ -11,6 +11,22 @@ export function crearGestorNubes({ escena, W, origen }) {
     vertexColors: true,
     sizeAttenuation: true,
   });
+  // Los puntos están sobre el suelo real y la malla del terreno (interpolada cada 2-10 m) queda a ras o por encima:
+  // sin ayuda la nube sale tapada o moteada. Se acerca cada punto a la cámara a lo largo de su rayo de visión
+  // (1,5 m + 1 % de la distancia), así se dibuja en el mismo píxel y en su posición real, pero gana al terreno en
+  // profundidad. Y un tamaño mínimo en pantalla para que la nube se lea también de lejos (0,22 m a 400 m es < 1 px).
+  mat.onBeforeCompile = (sh) => {
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <project_vertex>', `#include <project_vertex>
+        float dNube = -mvPosition.z;
+        if (dNube > 0.0) {
+          float acercar = min(dNube * 0.5, 1.5 + dNube * 0.01);
+          mvPosition.xyz *= (dNube - acercar) / dNube;
+          gl_Position = projectionMatrix * mvPosition;
+        }`)
+      .replace('#include <logdepthbuf_vertex>', `gl_PointSize = max(gl_PointSize, 1.6);
+        #include <logdepthbuf_vertex>`);
+  };
 
   let zonas = [];
   let visible = true;
