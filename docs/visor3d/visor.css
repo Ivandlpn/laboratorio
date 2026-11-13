@@ -246,11 +246,15 @@
   #badgePkLinea .pk {
     font: 700 19px/1.1 var(--mono); letter-spacing: 0.02em; color: #ffffff;
   }
+  #btnCarrusel {
+    top: calc(74px + env(safe-area-inset-top, 0px)) !important;
+  }
 
   @media (max-width: 760px) {
     #badgePkLinea { padding: 6px 10px; min-width: 138px; }
     #badgePkLinea .linea { font-size: 9.5px; }
     #badgePkLinea .pk { font-size: 15px; }
+    #btnCarrusel { top: calc(62px + env(safe-area-inset-top, 0px)) !important; }
     #panel.cerrado { display: none; }
     #abrir { display: inline-flex; align-items: center; }
     #panel { top: calc(52px + env(safe-area-inset-top, 0px)); max-height: calc(100% - 148px); }
