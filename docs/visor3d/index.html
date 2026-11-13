@@ -283,6 +283,7 @@ import { crearAudioAmbiental } from './js/audio.js';
 import { CLIMAS, aplicarColisionTerreno, crearGestorVuelo, crearEfectoCabina, actualizarBrujulaYEscala } from './js/realismo.js';
 import { calcularSolAstronomico, consultarMeteoReal } from './js/meteo.js';
 import { activarVentanaFlotante } from './js/ventanas.js';
+import { crearGestorNubes } from './js/nubes.js';
 if (window.Rend3D) window.Rend3D.init(THREE, mergeGeometries);
 if (window.Trenes3D) window.Trenes3D.init(THREE);
 
@@ -872,6 +873,10 @@ const { teselasCargadas, grupoTeselas, cargarTeselaKm, recortarCacheTeselas, ges
 // ---- Flota de trenes de alta velocidad ----
 const { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota } = crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkArranque });
 
+// ---- Nubes de puntos LiDAR / fotogramétricas ----
+const Nubes = crearGestorNubes({ escena, W, origen });
+Nubes.pIndice.then(() => Nubes.actualizar(origen.E, origen.N));
+
 // ---- Controles, modos de vista, cabina envolvente S-112 y origen flotante ----
 const controles = new OrbitControls(camara, render.domElement);
 controlesListos = true;
@@ -893,6 +898,7 @@ function recentrarOrigen(nuevoE, nuevoN, nuevoZ) {
   controles.target.x -= dX; controles.target.y -= dY; controles.target.z -= dZ;
   for (const t of teselasCargadas.values()) t.raiz.position.copy(W(t.anclaE, t.anclaN, t.anclaZ));
   reubicarTerreno();
+  Nubes.reubicar();
   for (const tr of flota) posicionarTren(tr);
 }
 
@@ -1022,6 +1028,42 @@ for (const s of Eje3D.saltos) {
   contSaltos.appendChild(b);
   botonesSalto.push(b);
 }
+Nubes.pIndice.then((zonasNube) => {
+  if (!zonasNube?.length) return;
+  const saltosNube = [
+    {
+      nombre: 'Nube L042 · PK 374',
+      sub: 'PK 374+700',
+      accion: () => irAPk(374700, vistaActiva === 'cabina' || vistaActiva === 'dron' ? 'cerca' : vistaActiva),
+    },
+    {
+      nombre: 'Nube L048 · Z1–Z4',
+      sub: 'Ramal L048',
+      accion: () => {
+        setModoVista('aerea');
+        pkRecorrido = 463520;
+        gestionarStreaming(463520);
+        recentrarOrigen(699400, 4252500, 265);
+        controles.target.set(0, 0, 0);
+        camara.position.set(240, 220, 320);
+        controles.update();
+        Nubes.actualizar(699400, 4252500);
+      },
+    },
+  ];
+  for (const s of saltosNube) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = `<span>${s.nombre}</span><small>${s.sub}</small>`;
+    b.addEventListener('click', () => {
+      for (const x of botonesSalto) x.setAttribute('aria-pressed', 'false');
+      b.setAttribute('aria-pressed', 'true');
+      s.accion();
+    });
+    contSaltos.appendChild(b);
+    botonesSalto.push(b);
+  }
+});
 
 // ---- Buscador: PK o emplazamiento (datos/emplazamientos.json, exportado de VisorLAV) ----
 const inpPk = document.getElementById('inpPk');
@@ -1258,6 +1300,15 @@ for (const g of meta.grupos) {
   });
   const sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = COLORES_GRUPO[g.id] || '#10b981';
   lb.append(chk, sw, document.createTextNode(g.nombre));
+  contCapas.appendChild(lb);
+}
+{
+  const lb = document.createElement('label');
+  const chk = document.createElement('input');
+  chk.type = 'checkbox'; chk.checked = true;
+  chk.addEventListener('change', () => { Nubes.setVisible(chk.checked); });
+  const sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = '#a855f7';
+  lb.append(chk, sw, document.createTextNode('Nubes de puntos (RGB)'));
   contCapas.appendChild(lb);
 }
 
@@ -1923,6 +1974,8 @@ function fotograma(ahora) {
   if (acumUi > 0.18) {
     acumUi = 0;
     gestionarStreaming(pkObservado);
+    const camU = UTMdeMundo(camara.position);
+    Nubes.actualizar(camU.E, camU.N);
     actualizarUI(pkObservado);
     actualizarEnlaceGsmr(pkObservado);
     actualizarBrujulaYEscala({
