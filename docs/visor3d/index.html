@@ -27,6 +27,7 @@
 <div id="lienzo"></div>
 <div id="cargando"><b>Corredor 3D · Albacete – Alicante</b><span>Cargando eje 3D continuo (164,2 km), MDT LiDAR y teselas…</span></div>
 <div id="medidaBadge" hidden><span id="medidaTxt">Medidor 3D: pulsa 2 puntos</span><button type="button" id="btnLimpiarMedida">✕</button></div>
+<div id="badgePkLinea" aria-live="polite"><span class="linea">Línea L042 · Albacete–Alicante</span><span class="pk" id="badgePkValor">PK 437+020</span></div>
 <button id="abrir" type="button" aria-controls="panel" aria-expanded="false">Capas y PK</button>
 <!-- Cuadro de mandos y decisor CCO (hudGemelo) retirado el 2026-11-11 a petición del usuario: sus valores eran simulados.
      La lógica que mueve el haz GSM-R tren-torre sigue en actualizarGemeloDigital(). -->
@@ -1434,6 +1435,8 @@ function actualizarUI(pk) {
     : p.enViaducto ? ` · <span style="color:#10b981">Viaducto (${Math.round(p.enViaducto[1] - p.enViaducto[0])} m)</span>` : '';
   const nOrto = [...bloquesTerreno.values()].filter((b) => b.texOrto).length;
   const txtOrto = ortofotoActiva ? ` · ${{ proyecto: 'Ortofoto', pnoa: 'PNOA', esri: 'Satélite' }[fondoTerreno]} ${nOrto}/${bloquesTerreno.size}` : '';
+  const badgePkValor = document.getElementById('badgePkValor');
+  if (badgePkValor) badgePkValor.textContent = `PK ${fmtPk(pk)}`;
   txtPosicion.innerHTML = `<strong>PK ${fmtPk(pk)}</strong> · cota ${p.Z.toFixed(1)} m · pend ${(p.pend >= 0 ? '+' : '') + p.pend.toFixed(1)} ‰ · ${teselasCargadas.size} km activos · ${Math.round(fpsSuave)} fps${txtOrto}${ctx}`;
   dibujarPerfil(pk);
 }
