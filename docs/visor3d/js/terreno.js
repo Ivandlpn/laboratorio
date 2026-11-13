@@ -56,6 +56,7 @@ export function crearTerreno({
   let rayosXActivo = false;
   let mallaRegional = null, bxRegPrev = -1e9, byRegPrev = -1e9;
   let bxObsActual = 0, byObsActual = 0;
+  let genOrto = 0; // generación de la fuente de ortofoto; sube en cada reiniciarOrtofoto()
 
   function setPasosInfTerreno(pasos) { pasosInfTerreno = pasos; }
   function registrarHuecos(lista) { for (const h of lista) HUECOS.push(h); }
@@ -225,18 +226,32 @@ export function crearTerreno({
     };
     grupoTerrenoMalla.add(mesh);
 
-    const entry = { bx, by, anclaE, anclaN, anclaZ, mesh, fino, texOrto: texOrtoPrevia, matOrto: matOrtoPrevia, zoomOrto: viejo?.zoomOrto || 0 };
+    const zoomBase = esCentral === 2 && !esGpuSoftware ? 18 : esCentral ? 17 : 16;
+    const zoomDeseado = fino && esCentral && !esGpuSoftware ? zoomBase + 1 : zoomBase;
+
+    // La entrada nueva hereda la descarga en vuelo del bloque viejo (su .then la resuelve
+    // sobre bloquesTerreno.get(clave)), para no pedir dos veces la misma ortofoto.
+    const entry = {
+      bx, by, anclaE, anclaN, anclaZ, mesh, fino, texOrto: texOrtoPrevia, matOrto: matOrtoPrevia,
+      zoomOrto: viejo?.zoomOrto || 0, cargandoOrto: viejo?.cargandoOrto || false, zoomOrtoDeseado: zoomDeseado,
+    };
     bloquesTerreno.set(clave, entry);
     actualizarMaterialBloque(entry);
 
-    const zoomBase = esCentral === 2 && !esGpuSoftware ? 18 : esCentral ? 17 : 16;
-    const zoomDeseado = fino && esCentral && !esGpuSoftware ? zoomBase + 1 : zoomBase;
     if (getOrtofotoActiva() && entry.zoomOrto < zoomDeseado && !entry.cargandoOrto) {
       entry.cargandoOrto = true;
+      const gen = genOrto;
+      // Respuesta de una fuente anterior (reiniciarOrtofoto la saltó): se vuelve a pedir.
+      const reencolarSiObsoleta = () => {
+        if (gen === genOrto) return false;
+        if (getOrtofotoActiva()) colaBloques.add(clave);
+        return true;
+      };
       Ortofoto3D.generarTexturaBloque(E0, N0, TAM_BLOQUE, zoomDeseado).then((tex) => {
         const act = bloquesTerreno.get(clave);
         if (!act) { if (tex) tex.dispose(); return; }
         act.cargandoOrto = false;
+        if (reencolarSiObsoleta()) { if (tex) tex.dispose(); return; }
         if (!tex) return;
         if (act.texOrto) act.texOrto.dispose();
         act.texOrto = tex;
@@ -244,6 +259,14 @@ export function crearTerreno({
         if (act.matOrto) { act.matOrto.map = tex; act.matOrto.needsUpdate = true; }
         actualizarMaterialBloque(act);
         programarRepintadoPausa();
+        // Si mientras volaba el bloque pasó a querer más zoom (se reconstruyó más cerca), se vuelve a pedir.
+        if (act.zoomOrtoDeseado > act.zoomOrto && getOrtofotoActiva()) colaBloques.add(clave);
+      }).catch((err) => {
+        console.warn('Ortofoto del bloque', clave, err);
+        const act = bloquesTerreno.get(clave);
+        if (!act) return;
+        act.cargandoOrto = false;
+        reencolarSiObsoleta();
       });
     }
   }
@@ -414,6 +437,9 @@ export function crearTerreno({
 
   function reiniciarOrtofoto() {
     const orto = getOrtofotoActiva();
+    genOrto++;
+    // Los bloques con descarga en vuelo no se encolan aquí: al llegar, su respuesta (ya obsoleta)
+    // se descarta y el propio bloque se vuelve a encolar, sin duplicar descargas.
     for (const [k, b] of bloquesTerreno) {
       if (b.texOrto) { b.texOrto.dispose(); b.texOrto = null; }
       if (b.matOrto) { b.matOrto.dispose(); b.matOrto = null; }

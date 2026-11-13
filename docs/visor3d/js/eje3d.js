@@ -140,14 +140,16 @@ export function crearEje3D(ejeDatos, ramalesReales) {
     if (ed) return { pk: pkBts, e: ed.e, n: ed.n, nombre: ed.nombre, sub: ed.sub || `GSM-R · PK ${fmtPk(pkBts)}`, cat: 'bts', id: ed.id || codBts };
     const m = enPk(pkBts);
     const nx = -m.ty, ny = m.tx;
+    // Sin edificio BTS en la cartografía: posición (18,5 m a la izquierda del eje) y código supuestos
     return {
       pk: pkBts,
       e: m.E + nx * 18.5,
       n: m.N + ny * 18.5,
       nombre: `Caseta BTS ${codBts}`,
-      sub: `GSM-R · PK ${fmtPk(pkBts)}`,
+      sub: `GSM-R · PK ${fmtPk(pkBts)} · posición y código supuestos`,
       cat: 'bts',
       id: codBts,
+      supuesto: true,
     };
   });
 

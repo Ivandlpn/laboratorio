@@ -270,14 +270,14 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { crearFlota } from './js/flota.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
-import { crearArboles, decodificarArboles } from './js/arboles.js';
-import { crearMatTejaArabe, rectMinimo, cubiertaInclinada, Malla, cinta, extruirSeccion, cajaOrientada, prisma, lamina } from './js/geometria.js';
+import { crearArboles } from './js/arboles.js';
+import { crearMatTejaArabe } from './js/geometria.js';
 import { crearMdtCorredor, crearHashCotas } from './js/mdt.js';
 import { crearOrtofoto3D } from './js/ortofoto.js';
 import { conHuecos, crearTerreno } from './js/terreno.js';
 import { crearMateriales } from './js/materiales.js';
 import { crearGestorTeselas } from './js/tesela.js';
-import { fmtPk, parsearPk, b64Int16, lonlatAUTM, utmALonlat, lonlatAMercPx } from './js/proyeccion.js';
+import { fmtPk, parsearPk, lonlatAUTM, utmALonlat } from './js/proyeccion.js';
 import { crearEje3D } from './js/eje3d.js';
 import { crearAudioAmbiental } from './js/audio.js';
 import { CLIMAS, aplicarColisionTerreno, crearGestorVuelo, crearEfectoCabina, actualizarBrujulaYEscala } from './js/realismo.js';
@@ -361,8 +361,14 @@ render.toneMappingExposure = 1.07;
 render.setSize(innerWidth, innerHeight);
 cont.appendChild(render.domElement);
 
-// Mapa de entorno PBR equirectangular (cielo Rayleigh + sol Mie + nubes + terreno mediterráneo) para reflejos reales en carriles, trenes, vidrio y cobre
-{
+// Mapa de entorno PBR equirectangular (cielo Rayleigh + sol Mie + nubes + terreno mediterráneo) para reflejos reales en carriles, trenes, vidrio y cobre.
+// three r160 no tiene escena.environmentIntensity (llegó en r163): la intensidad por hora se hornea en el propio mapa,
+// atenuado por un factor (1 = día). Caché por factor: como mucho uno por tema de TEMAS_SOL.
+const ENTORNOS_PMREM = new Map();
+function entornoPara(factor) {
+  const f = Math.min(1, Math.max(0, factor));
+  const clave = f.toFixed(3);
+  if (ENTORNOS_PMREM.has(clave)) return ENTORNOS_PMREM.get(clave);
   const pmrem = new THREE.PMREMGenerator(render);
   const cvE = document.createElement('canvas'); cvE.width = 512; cvE.height = 256;
   const xe = cvE.getContext('2d');
@@ -383,11 +389,19 @@ cont.appendChild(render.domElement);
   for (let i = 0; i < 24; i++) {
     xe.beginPath(); xe.ellipse(((i * 73) % 512), 92 + (i % 5) * 5, 28 + (i % 4) * 12, 5 + (i % 3) * 2, 0, 0, Math.PI * 2); xe.fill();
   }
+  // Atenuación: el lienzo es sRGB, así que el negro se mezcla con alfa 1 − f^(1/2.2) para escalar la radiancia lineal por f
+  if (f < 1) {
+    xe.globalAlpha = 1 - Math.pow(f, 1 / 2.2);
+    xe.fillStyle = '#000'; xe.fillRect(0, 0, 512, 256);
+    xe.globalAlpha = 1;
+  }
   const texEq = new THREE.CanvasTexture(cvE);
   texEq.mapping = THREE.EquirectangularReflectionMapping;
   texEq.colorSpace = THREE.SRGBColorSpace;
-  escena.environment = pmrem.fromEquirectangular(texEq).texture;
+  const entorno = pmrem.fromEquirectangular(texEq).texture;
   texEq.dispose(); pmrem.dispose();
+  ENTORNOS_PMREM.set(clave, entorno);
+  return entorno;
 }
 
 const renderEtq = new CSS2DRenderer();
@@ -541,7 +555,7 @@ function aplicarTema() {
   luzHemi.color.set(tm.hemiCol);
   sol.intensity = tm.solInt * cl.solMult;
   sol.color.set(tm.solCol);
-  escena.environmentIntensity = tm.envInt;
+  escena.environment = entornoPara(tm.envInt / TEMAS_SOL.dia.envInt);
   expBaseSol = tm.exp;
   render.toneMappingExposure = tm.exp;
   if (_matCarrilCabezaRef) {
@@ -864,7 +878,7 @@ const { teselasCargadas, grupoTeselas, cargarTeselaKm, recortarCacheTeselas, ges
   ESTACION_VILLENA, enZonaEstacion, PASOS_INF, PASOS_SUP, enPasoSuperior, RAMALES,
   CENTROS_TRACCION_CORREDOR, edificiosPorKm, COLOR_CAT_EDIF, fichaElemento,
   datosDePunto: (...a) => datosDePunto(...a),
-  abrirFicha: (...a) => abrirFicha(...a),
+  mostrarFicha: (...a) => mostrarFicha(...a),
   irAPk: (...a) => irAPk(...a),
   getConosCamara: () => conosCamaraActivos,
   ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO,
@@ -1041,6 +1055,8 @@ Nubes.pIndice.then((zonasNube) => {
       sub: 'Ramal L048',
       accion: () => {
         setModoVista('aerea');
+        // La cámara se coloca a mano: el vuelo animado de setModoVista la pisaría (y con el origen viejo)
+        gestorVuelo.cancelar();
         pkRecorrido = 463520;
         gestionarStreaming(463520);
         recentrarOrigen(699400, 4252500, 265);
@@ -1189,8 +1205,14 @@ document.getElementById('formPk').addEventListener('submit', (e) => {
   e.preventDefault();
   if (!listaSug.hidden && sugeridos.length) { irAEmplazamiento(sugeridos[Math.max(selSug, 0)]); return; }
   const v = parsearPk(inpPk.value, Eje3D.pkIni, Eje3D.pkFin);
-  if (v !== null) irAPk(v, vistaActiva === 'cabina' || vistaActiva === 'dron' ? 'viaducto' : vistaActiva);
-  if (vistaActiva === 'cabina' || vistaActiva === 'dron') setModoVista('viaducto');
+  if (v === null) return;
+  // Primero se sale de cabina/dron (setModoVista vuela al PK de controles.target) y después se vuela al PK pedido
+  if (vistaActiva === 'cabina' || vistaActiva === 'dron') {
+    setModoVista('viaducto');
+    irAPk(v, 'viaducto');
+  } else {
+    irAPk(v, vistaActiva);
+  }
 });
 
 // Pausa del recorrido automático (cabina y dron), centrado y zoom por teclado
@@ -1335,7 +1357,14 @@ document.getElementById('chkTrenes').addEventListener('change', (e) => { grupoFl
 document.getElementById('chkSubsuelo').addEventListener('change', (e) => {
   aplicarRayosX(e.target.checked);
 });
+// Elegir hora o clima a mano apaga el modo «En vivo» (si no, el sol seguiría en su posición astronómica con otro tema)
+function salirModoVivo() {
+  modoVivo = false;
+  solVivoDesvio = null;
+  document.getElementById('btnIslaVivo')?.setAttribute('aria-pressed', 'false');
+}
 document.getElementById('chkNoche').addEventListener('change', (e) => {
+  salirModoVivo();
   horaSol = e.target.checked ? 'noche' : 'dia';
   aplicarTema();
 });
@@ -1347,12 +1376,14 @@ document.getElementById('chkConosCamara')?.addEventListener('change', (e) => {
 });
 for (const b of document.querySelectorAll('#ctrlHoraSol button')) {
   b.addEventListener('click', () => {
+    salirModoVivo();
     horaSol = b.dataset.hora || 'dia';
     aplicarTema();
   });
 }
 for (const b of document.querySelectorAll('#ctrlClima button')) {
   b.addEventListener('click', () => {
+    salirModoVivo();
     climaActual = b.dataset.clima || 'despejado';
     aplicarTema();
   });
@@ -1362,14 +1393,12 @@ for (const b of document.querySelectorAll('#ctrlClima button')) {
 const ORDEN_SOL = ['amanecer', 'dia', 'atardecer', 'noche'];
 const ORDEN_CLIMA = ['despejado', 'bruma', 'nublado', 'lluvia'];
 document.getElementById('btnIslaSol')?.addEventListener('click', () => {
-  modoVivo = false;
-  document.getElementById('btnIslaVivo')?.setAttribute('aria-pressed', 'false');
+  salirModoVivo();
   horaSol = ORDEN_SOL[(ORDEN_SOL.indexOf(horaSol) + 1) % ORDEN_SOL.length];
   aplicarTema();
 });
 document.getElementById('btnIslaClima')?.addEventListener('click', () => {
-  modoVivo = false;
-  document.getElementById('btnIslaVivo')?.setAttribute('aria-pressed', 'false');
+  salirModoVivo();
   climaActual = ORDEN_CLIMA[(ORDEN_CLIMA.indexOf(climaActual) + 1) % ORDEN_CLIMA.length];
   aplicarTema();
 });
@@ -1436,13 +1465,19 @@ for (const b of document.querySelectorAll('#ctrlFov button')) {
     const fov = Number(b.dataset.fov) || 52;
     camara.fov = fov;
     camara.updateProjectionMatrix();
-    for (const x of document.querySelectorAll('#ctrlFov button')) x.classList.toggle('activo', x === b);
+    for (const x of document.querySelectorAll('#ctrlFov button')) {
+      x.classList.toggle('activo', x === b);
+      x.setAttribute('aria-pressed', String(x === b));
+    }
   });
 }
 for (const b of document.querySelectorAll('#ctrlCalidad button')) {
   b.addEventListener('click', () => {
-    calidadGrafica = b.dataset.calidad || 'alta';
-    for (const x of document.querySelectorAll('#ctrlCalidad button')) x.classList.toggle('activo', x === b);
+    calidadGrafica = b.dataset.cal || 'alta';
+    for (const x of document.querySelectorAll('#ctrlCalidad button')) {
+      x.classList.toggle('activo', x === b);
+      x.setAttribute('aria-pressed', String(x === b));
+    }
     const prBase = esGpuSoftware ? 1 : (window.Rend3D ? window.Rend3D.pixelRatio() : Math.min(devicePixelRatio, 2));
     if (calidadGrafica === 'alta') {
       render.setPixelRatio(prBase);
@@ -1585,9 +1620,14 @@ function actualizarMedida3D(ptMundo) {
     medidaTxt.textContent = 'Medidor 3D: pulsa el segundo punto';
   }
 }
+// Estado del medidor y del botón: el CSS marca la selección con aria-pressed
+function marcarMedidor(activo) {
+  midiendo3D = activo;
+  btnMedir3D?.classList.toggle('activo', activo);
+  btnMedir3D?.setAttribute('aria-pressed', String(activo));
+}
 btnMedir3D?.addEventListener('click', () => {
-  midiendo3D = !midiendo3D;
-  btnMedir3D.classList.toggle('activo', midiendo3D);
+  marcarMedidor(!midiendo3D);
   if (medidaBadge) medidaBadge.hidden = !midiendo3D && puntosMedida.length === 0;
   if (midiendo3D && puntosMedida.length === 0 && medidaTxt) {
     medidaTxt.textContent = 'Medidor 3D: pulsa 2 puntos en el modelo';
@@ -1595,15 +1635,14 @@ btnMedir3D?.addEventListener('click', () => {
 });
 document.getElementById('btnLimpiarMedida')?.addEventListener('click', () => {
   limpiarMedida3D();
-  midiendo3D = false;
-  btnMedir3D?.classList.remove('activo');
+  marcarMedidor(false);
   if (medidaBadge) medidaBadge.hidden = true;
 });
 function capturarPNG() {
   render.render(escena, camara);
   const a = document.createElement('a');
   a.href = render.domElement.toDataURL('image/png');
-  a.download = `visor3d-pk-${Math.round(pkObservado)}.png`;
+  a.download = `visor3d-pk-${Math.round(pkActualUI)}.png`;
   a.click();
 }
 document.getElementById('btnCaptura')?.addEventListener('click', capturarPNG);
@@ -1654,8 +1693,7 @@ document.getElementById('btnInspOrbitar')?.addEventListener('click', () => {
 });
 document.getElementById('btnInspMedir')?.addEventListener('click', () => {
   if (!inspCtx) return;
-  midiendo3D = true;
-  btnMedir3D?.classList.add('activo');
+  marcarMedidor(true);
   if (medidaBadge) medidaBadge.hidden = false;
   limpiarMedida3D();
   actualizarMedida3D(W(inspCtx.u.E, inspCtx.u.N, inspCtx.u.Z));

@@ -8,7 +8,7 @@ import { cargarEdificiosOsmKm } from './entorno-osm.js';
 
 export function crearGestorTeselas(ctx) {
   const {
-    RUTA, meta, capasMeta, gruposVisibles, entornoKms, escena, Eje3D, MdtCorredor, HashCotas, W, cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja, MODELOS, ARB, matTejaArabe, PK_TERMINAL, VIADUCTOS_REALES, viaductoReal, PERFIL_VIADUCTO, PERFIL_CAJON_VIAD, ESTACION_VILLENA, enZonaEstacion, PASOS_INF, PASOS_SUP, enPasoSuperior, RAMALES, CENTROS_TRACCION_CORREDOR, edificiosPorKm, COLOR_CAT_EDIF, fichaElemento, datosDePunto, abrirFicha, irAPk, ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO,
+    RUTA, meta, capasMeta, gruposVisibles, entornoKms, escena, Eje3D, MdtCorredor, HashCotas, W, cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja, MODELOS, ARB, matTejaArabe, PK_TERMINAL, VIADUCTOS_REALES, viaductoReal, PERFIL_VIADUCTO, PERFIL_CAJON_VIAD, ESTACION_VILLENA, enZonaEstacion, PASOS_INF, PASOS_SUP, enPasoSuperior, RAMALES, CENTROS_TRACCION_CORREDOR, edificiosPorKm, COLOR_CAT_EDIF, fichaElemento, datosDePunto, mostrarFicha, irAPk, ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO,
   } = ctx;
 
   const teselasDisponibles = new Set();
@@ -2266,6 +2266,8 @@ export function crearGestorTeselas(ctx) {
       for (const e of t.etiquetasEdif || []) t.raiz.remove(e);
       t.raiz.traverse((o) => {
         if ((o.isMesh || o.isLineSegments) && o.geometry && !o.geometry.userData?.compartida) o.geometry.dispose();
+        // InstancedMesh guarda su propia textura de matrices (y de colores): se libera aparte de la geometría
+        if (o.isInstancedMesh) o.dispose();
       });
       grupoTeselas.remove(t.raiz);
       teselasCargadas.delete(kmBorrar);
