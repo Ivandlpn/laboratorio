@@ -99,8 +99,7 @@
   <section>
     <h2>Etiquetas</h2>
     <div class="lista">
-      <label><input type="checkbox" id="chkEmplazamientos" checked> Emplazamientos</label>
-      <label><input type="checkbox" id="chkNombresEdif" checked> Nombres de edificios</label>
+      <label><input type="checkbox" id="chkNombresEdif" checked> Edificios y emplazamientos</label>
       <label><input type="checkbox" id="chkEtiquetas" checked> Etiquetas de PK</label>
     </div>
   </section>
@@ -1275,6 +1274,7 @@ let EMPLAZAMIENTOS = [];
 fetch('./datos/emplazamientos.json').then((r) => (r.ok ? r.json() : null)).then((d) => {
   if (!d) return;
   EMPLAZAMIENTOS = d.emplazamientos.filter((e) => e.enCorredor).map((e) => ({ ...e, clave: normalizarTexto(`${e.nombre} ${e.tipo} ${e.pkTexto} ${e.base}`) }));
+  fusionarEmplazamientosConEdificios();
   crearMarcasEmplazamientos();
   actualizarUI(pkActualUI);
 }).catch(() => {});
@@ -1284,10 +1284,48 @@ const COLOR_TIPO_EMP = {
   'Centro Transformación': '#f97316', 'Estación': '#38bdf8', 'PAET/PB (Desvíos)': '#c084fc', 'PICV': '#c084fc', 'PBL/PCA/CS': '#c084fc',
   'DCC': '#eab308', 'CRC': '#eab308', 'Base ADIF': '#38bdf8',
 };
+// Un mismo sitio venía dos o tres veces: la etiqueta del edificio de la cartografía (en su posición real) y una o
+// dos marcas del inventario de emplazamientos (BTS + Caseta de Operadora, ET, PCA, autotransformador…) puestas
+// por PK sobre el eje. Se deja una sola etiqueta por sitio: la del edificio cartografiado, que lleva además los
+// datos del inventario en su ficha (ed.emp). El inventario solo dibuja marca propia donde no hay edificio,
+// y una sola por sitio aunque el listado lo repita con otro tipo.
+const FAMILIA_EMP = {
+  'BTS': 'bts', 'Caseta de Operadora': 'bts',
+  'Autotransformador': 'energia', 'Subestación': 'energia',
+  'ET': 'et', 'PBL/PCA/CS': 'et', 'Centro Transformación': 'et',
+  'Estación': 'estacion', 'Base ADIF': 'base',
+};
+function fusionarEmplazamientosConEdificios() {
+  const edificios = [...edificiosPorKm.values()].flat();
+  for (const e of EMPLAZAMIENTOS) {
+    const fam = FAMILIA_EMP[e.tipo];
+    if (!fam) continue;
+    const pkC = (e.pk + (e.pkFin ?? e.pk)) / 2;
+    const codigo = normalizarTexto(String(e.nombre).replace(/_/g, ' ')).trim();
+    let mejor = null, dMejor = Infinity;
+    for (const ed of edificios) {
+      const catOk = ed.cat === fam || (fam === 'et' && ed.cat === 'energia') || (fam === 'energia' && ed.cat === 'et');
+      if (!catOk) continue;
+      const mismoCodigo = codigo.length >= 4 && normalizarTexto(ed.nombre).includes(codigo);
+      const d = Math.abs(ed.pk - pkC) - (mismoCodigo ? 500 : 0);
+      if (d < dMejor) { dMejor = d; mejor = ed; }
+    }
+    if (mejor && dMejor <= 150) {
+      (mejor.emp ||= []).push(e);
+      e.edificio = mejor;
+    }
+  }
+}
 const marcasEmp = [];
 let mostrarEmplazamientos = true;
 function crearMarcasEmplazamientos() {
+  const yaPuestos = [];
   for (const e of EMPLAZAMIENTOS) {
+    if (e.edificio) continue;
+    const pkE = (e.pk + (e.pkFin ?? e.pk)) / 2;
+    const fam = FAMILIA_EMP[e.tipo] || e.tipo;
+    if (yaPuestos.some((o) => o.fam === fam && o.nombre === e.nombre && Math.abs(o.pk - pkE) < 80)) continue;
+    yaPuestos.push({ fam, nombre: e.nombre, pk: pkE });
     const pkC = Math.min(Math.max((e.pk + (e.pkFin ?? e.pk)) / 2, Eje3D.pkIni), Eje3D.pkFin);
     const p = Eje3D.enPk(pkC);
     const el = document.createElement('div');
@@ -1331,7 +1369,6 @@ function colocarMarcasEmplazamientos(enTun) {
     if (vis) m.position.copy(W(d.E, d.N, d.Z + 16));
   }
 }
-document.getElementById('chkEmplazamientos').addEventListener('change', (ev) => { mostrarEmplazamientos = ev.target.checked; actualizarUI(pkActualUI); });
 function normalizarTexto(t) { return String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
 let sugeridos = [], selSug = -1;
 function cerrarSugerencias() { listaSug.hidden = true; inpPk.setAttribute('aria-expanded', 'false'); selSug = -1; }
@@ -1593,7 +1630,12 @@ for (const r of document.querySelectorAll('#fondos input[name="fondo"]')) {
   r.addEventListener('change', () => { if (r.checked) cambiarFondo(r.value); });
 }
 document.getElementById('chkEtiquetas').addEventListener('change', (e) => renderEtq.domElement.classList.toggle('sin-etiquetas', !e.target.checked));
-document.getElementById('chkNombresEdif').addEventListener('change', (e) => renderEtq.domElement.classList.toggle('sin-nombres-edif', !e.target.checked));
+// Una sola casilla para edificios cartografiados y emplazamientos del inventario (ya fusionados)
+document.getElementById('chkNombresEdif').addEventListener('change', (e) => {
+  renderEtq.domElement.classList.toggle('sin-nombres-edif', !e.target.checked);
+  mostrarEmplazamientos = e.target.checked;
+  actualizarUI(pkActualUI);
+});
 document.getElementById('chkTrenes').addEventListener('change', (e) => { grupoFlota.visible = e.target.checked; });
 document.getElementById('chkSubsuelo').addEventListener('change', (e) => {
   aplicarRayosX(e.target.checked);

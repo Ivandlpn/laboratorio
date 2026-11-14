@@ -2284,13 +2284,24 @@ export function crearGestorTeselas(ctx) {
         el.addEventListener('click', (ev) => {
           ev.stopPropagation();
           const pt = datosDePunto(ed.e, ed.n, cotaTerrenoUTM(ed.e, ed.n));
+          // Datos del inventario de emplazamientos fusionados con este edificio (ver fusionarEmplazamientosConEdificios)
+          const filasEmp = [];
+          if (ed.emp?.length) {
+            filasEmp.push(['Inventario', [...new Set(ed.emp.map((x) => x.tipo))].join(' · ')]);
+            const ids = [...new Set(ed.emp.map((x) => x.id).filter(Boolean))];
+            if (ids.length) filasEmp.push(['ID Pidame', ids.join(' · ')]);
+            const base = ed.emp.find((x) => x.base)?.base;
+            if (base) filasEmp.push(['Base', base]);
+            const vias = ed.emp.find((x) => x.vias)?.vias;
+            if (vias) filasEmp.push(['Vías', vias]);
+          }
           mostrarFicha(
             ed.cat === 'energia' ? 'Tracción y Autotransformación 2×25 kV' : ed.cat === 'bts' ? 'Comunicaciones GSM-R' : 'Edificación / Instalación ADIF',
             ed.nombre,
             ed.cat === 'energia'
               ? `${ed.sub || ''} · Centro técnico de tracción 2×25 kV 50 Hz. Alimentación directa a hilo de contacto (+25 kV), retorno de carril neutro (0 kV) y feeder (-25 kV).`
               : (ed.sub || ''),
-            pt.filas, pt);
+            [...filasEmp, ...pt.filas], pt);
         });
         const obj = new CSS2DObject(el);
         const pLbl = L(ed.e, ed.n, zSuelo + (ed.h || 4.5));
