@@ -1808,6 +1808,11 @@ export function crearGestorTeselas(ctx) {
               cinta(mCanaleta, aLoc(cs, 'via', -0.32), 0.52, -0.26, 0.08, 0.04, 2.0);
             }
           } else if (id === '050185') {
+            // Pantalla que cruza el eje: es la del borde de un paso superior (o del cajón / falso túnel), a la cota
+            // de su tablero (campo z), no a la del carril. Bajada a la vía salía como un muro verde de 3,65 m
+            // atravesando la plataforma. El paso superior ya modela sus pantallas (DCO), así que se descarta.
+            const ofs = cs.map((c) => Eje3D.proyUTM(...lonlatAUTM(c[0], c[1])).of);
+            if (Math.min(...ofs) < -2 && Math.max(...ofs) > 2) continue;
             const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
             const qm = Eje3D.proyUTM(Em, Nm);
             const ptsP = aLoc(cs, qm.d < 12 ? 'via' : 'terreno');
