@@ -593,20 +593,22 @@ const sound = new SoundEngine();
 // 3.1. MOTOR HÁPTICO MULTI-SENSORIAL
 // ==========================================
 const haptics = {
+  on: (() => { try { return localStorage.getItem('ineco_haptics') !== '0'; } catch (_) { return true; } })(),
+  _v(p) { if (this.on && navigator.vibrate) navigator.vibrate(p); },
   trainJoint() {
-    if (navigator.vibrate) navigator.vibrate([25, 35, 25]);
+    haptics._v([25, 35, 25]);
   },
   scratch() {
-    if (navigator.vibrate) navigator.vibrate(12);
+    haptics._v(12);
   },
   horn() {
-    if (navigator.vibrate) navigator.vibrate([180, 60, 260]);
+    haptics._v([180, 60, 260]);
   },
   fanfare() {
-    if (navigator.vibrate) navigator.vibrate([40, 50, 40, 50, 100, 40, 160]);
+    haptics._v([40, 50, 40, 50, 100, 40, 160]);
   },
   chime() {
-    if (navigator.vibrate) navigator.vibrate(30);
+    haptics._v(30);
   }
 };
 
@@ -634,7 +636,7 @@ class Snowfall {
   }
 
   setTheme(themeName) {
-    this.theme = themeName === 'mediterranean' ? 'mediterranean' : 'arctic';
+    this.theme = (themeName === 'mediterranean' || themeName === 'light') ? themeName : 'arctic';
     this.initFlakes();
   }
 
@@ -663,13 +665,15 @@ class Snowfall {
   }
 
   animate() {
-    if (this.active && this.ctx) {
+    if (this.active && this.ctx && !document.hidden) {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.flakes.forEach(f => {
         this.ctx.beginPath();
         this.ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
 
-        if (this.theme === 'mediterranean') {
+        if (this.theme === 'light') {
+          this.ctx.fillStyle = f.colorType === 0 ? `rgba(59, 130, 246, ${f.opacity * 0.55})` : `rgba(100, 116, 139, ${f.opacity * 0.45})`;
+        } else if (this.theme === 'mediterranean') {
           if (f.colorType === 0) {
             this.ctx.fillStyle = `rgba(252, 211, 77, ${f.opacity * 0.9})`;
           } else if (f.colorType === 1) {
@@ -881,6 +885,7 @@ class SantaRailTracker {
       if (this.onPoint) this.onPoint(pt);
     }
 
+    if (this.onChange) this.onChange(this.progressPct);
     const pctText = Math.round(this.progressPct) + '%';
     if (this.pctDisplay) this.pctDisplay.innerText = pctText;
     if (this.pctBar) this.pctBar.style.width = this.progressPct + '%';
@@ -1209,6 +1214,7 @@ class RailMapControls {
     this.t.stop();
     this.t.animateTo(parseFloat(st.dataset.pct));
     sound.playChime();
+    if (this.t.onStation) this.t.onStation(parseFloat(st.dataset.pct));
     this.setFollow(false);
     this.flyTo(parseFloat(st.dataset.x), parseFloat(st.dataset.y), Math.max(this.zoom, 2.6));
   }
@@ -1638,7 +1644,21 @@ class ColleagueGiftBox {
 
   init() {
     this.renderButtons();
-    this.select(COLLEAGUES[0]);
+    let saved = null;
+    try { saved = localStorage.getItem('ineco_colleague'); } catch (_) { /* noop */ }
+    this.select(COLLEAGUES.find(c => c.name === saved) || COLLEAGUES[0]);
+  }
+
+  // Resalta el botón del compañero activo (también cuando se cambia con anterior/siguiente).
+  highlight(name) {
+    if (!this.container) return;
+    const off = 'px-3 py-2 rounded-xl text-xs font-medium transition-all text-left flex items-center justify-between gap-2 border select-none bg-slate-800/70 text-slate-300 border-slate-700/60 hover:bg-slate-700/70';
+    const on = 'px-3 py-2 rounded-xl text-xs font-medium transition-all text-left flex items-center justify-between gap-2 border select-none bg-blue-800/95 text-white border-amber-400 shadow-md ring-2 ring-amber-400/40';
+    this.container.querySelectorAll('button').forEach(b => {
+      const isOn = b.getAttribute('data-name') === name;
+      b.className = isOn ? on : off;
+      b.setAttribute('aria-pressed', String(isOn));
+    });
   }
 
   renderButtons() {
@@ -1669,11 +1689,6 @@ class ColleagueGiftBox {
         sound.playChime();
         this.select(c);
 
-        this.container.querySelectorAll('button').forEach(b => {
-          b.className = 'px-3 py-2 rounded-xl text-xs font-medium transition-all text-left flex items-center justify-between gap-2 border select-none bg-slate-800/70 text-slate-300 border-slate-700/60 hover:bg-slate-700/70';
-        });
-        btn.className = 'px-3 py-2 rounded-xl text-xs font-medium transition-all text-left flex items-center justify-between gap-2 border select-none bg-blue-800/95 text-white border-amber-400 shadow-md ring-2 ring-amber-400/40';
-
         if (window.innerWidth < 1024 && this.detailsCard) {
           this.detailsCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -1685,11 +1700,11 @@ class ColleagueGiftBox {
 
   select(colleague) {
     this.selectedColleague = colleague;
+    try { localStorage.setItem('ineco_colleague', colleague.name); } catch (_) { /* noop */ }
+    this.highlight(colleague.name);
     if (!this.detailsCard) return;
 
     const currentIndex = COLLEAGUES.findIndex(c => c.name === colleague.name);
-    const prevColleague = COLLEAGUES[(currentIndex - 1 + COLLEAGUES.length) % COLLEAGUES.length];
-    const nextColleague = COLLEAGUES[(currentIndex + 1) % COLLEAGUES.length];
 
     this.detailsCard.innerHTML = `
       <div class="space-y-6">
@@ -1764,20 +1779,8 @@ class ColleagueGiftBox {
         <!-- ============================================== -->
         <!-- BARRA DE ACCIONES EJECUTIVA DEL BILLETE        -->
         <!-- ============================================== -->
-        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 border border-slate-700/80 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="bg-slate-900/90 backdrop-blur-md rounded-2xl p-4 border border-slate-700/80 shadow-xl flex flex-col sm:flex-row items-center justify-end gap-3">
           
-          <!-- Selector rápido entre compañeros -->
-          <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button id="ticket-prev-colleague-btn" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-600/50 transition flex items-center justify-center gap-1.5 active:scale-95" title="Ver billete de ${prevColleague.name}">
-              <span>◀</span>
-              <span>${prevColleague.name}</span>
-            </button>
-            <button id="ticket-next-colleague-btn" class="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-600/50 transition flex items-center justify-center gap-1.5 active:scale-95" title="Ver billete de ${nextColleague.name}">
-              <span>${nextColleague.name}</span>
-              <span>▶</span>
-            </button>
-          </div>
-
           <!-- Acciones principales: Guardar y Copiar -->
           <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
             <button id="ticket-copy-btn" class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-amber-300 border border-amber-400/40 transition flex items-center justify-center gap-2 active:scale-95">
@@ -1860,25 +1863,6 @@ class ColleagueGiftBox {
         }).catch(() => {
           sound.playChime();
         });
-      };
-    }
-
-    // Navegación entre compañeros
-    const prevBtn = document.getElementById('ticket-prev-colleague-btn');
-    if (prevBtn) {
-      prevBtn.onclick = () => {
-        sound.playChime();
-        this.select(prevColleague);
-        this.updateActiveSelectorButton(prevColleague.name);
-      };
-    }
-
-    const nextBtn = document.getElementById('ticket-next-colleague-btn');
-    if (nextBtn) {
-      nextBtn.onclick = () => {
-        sound.playChime();
-        this.select(nextColleague);
-        this.updateActiveSelectorButton(nextColleague.name);
       };
     }
 
@@ -2764,25 +2748,40 @@ class ThemeManager {
   constructor(snowInstance) {
     this.snow = snowInstance;
     this.btn = document.getElementById('toggle-theme-btn');
-    this.isMed = false;
+    this.modes = ['polar', 'mediterraneo', 'claro'];
+    this.labels = { polar: 'Noche polar', mediterraneo: 'Atardecer mediterráneo', claro: 'Modo claro' };
+    this.icons = { polar: '🌓', mediterraneo: '🌇', claro: '☀️' };
+    this.mode = 'polar';
     this.init();
   }
 
   init() {
+    let saved = Prefs.get('ineco_theme');
+    if (!this.modes.includes(saved)) {
+      saved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'claro' : 'polar';
+    }
+    this.apply(saved);
+    if (this.btn) this.btn.onclick = () => this.toggle();
+  }
+
+  apply(mode) {
+    this.mode = mode;
+    document.body.classList.toggle('theme-mediterraneo', mode === 'mediterraneo');
+    document.body.classList.toggle('theme-claro', mode === 'claro');
+    document.documentElement.style.colorScheme = mode === 'claro' ? 'light' : 'dark';
+    if (this.snow && this.snow.setTheme) this.snow.setTheme(mode === 'claro' ? 'light' : (mode === 'mediterraneo' ? 'mediterranean' : 'arctic'));
     if (this.btn) {
-      this.btn.onclick = () => this.toggle();
+      const next = this.modes[(this.modes.indexOf(mode) + 1) % this.modes.length];
+      this.btn.innerHTML = '<span>' + this.icons[mode] + '</span>';
+      this.btn.title = this.labels[mode] + ' · pulsa para cambiar a ' + this.labels[next];
+      this.btn.setAttribute('aria-label', this.btn.title);
     }
   }
 
   toggle() {
-    this.isMed = !this.isMed;
-    document.body.classList.toggle('theme-mediterraneo', this.isMed);
-    if (this.snow) {
-      this.snow.setTheme(this.isMed ? 'mediterranean' : 'arctic');
-    }
-    if (this.btn) {
-      this.btn.innerHTML = this.isMed ? '<span>☀️</span>' : '<span>🌓</span>';
-    }
+    const next = this.modes[(this.modes.indexOf(this.mode) + 1) % this.modes.length];
+    this.apply(next);
+    Prefs.set('ineco_theme', next);
     sound.playChime();
     haptics.chime();
   }
@@ -2792,6 +2791,13 @@ class ThemeManager {
 // 13. MINIJUEGO: EL MAQUINISTA SOLIDARIO MEJORADO
 // Combos x2/x3, Aceleración, HUD Alta Visibilidad, Swipe & Partículas
 // ==========================================
+const GAME_DIFFS = {
+  easy:   { label: 'Fácil',   icon: '🌱', time: 55, ice: 0.22, sp: 0.95, minSp: 0.5,  v0: 0.42, v1: 0.30 },
+  normal: { label: 'Normal',  icon: '🚄', time: 45, ice: 0.34, sp: 0.82, minSp: 0.34, v0: 0.50, v1: 0.42 },
+  hard:   { label: 'Experto', icon: '🔥', time: 38, ice: 0.42, sp: 0.70, minSp: 0.28, v0: 0.58, v1: 0.50 }
+};
+const GAME_DIFF_ORDER = ['easy', 'normal', 'hard'];
+
 class SolidaryDriverGame {
   constructor() {
     const $ = (id) => document.getElementById(id);
@@ -2813,10 +2819,12 @@ class SolidaryDriverGame {
     this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
 
     this.GOAL = 9;
-    this.TOTAL_TIME = 45;
+    let savedDiff = null;
+    try { savedDiff = localStorage.getItem('ineco_game_diff'); } catch (_) { /* noop */ }
+    // Quien aún no tiene récord empieza en Fácil.
+    this.setDiff(GAME_DIFFS[savedDiff] ? savedDiff : (localStorage.getItem('ineco_game_hi') ? 'normal' : 'easy'), false);
     this.state = 'idle'; // idle | countdown | playing | paused | over
     this.W = 360; this.H = 560; this.dpr = 1;
-    this.highScore = parseInt(localStorage.getItem('ineco_game_hi') || '0', 10);
     this.giftIcons = ['🫒', '🐟', '🌶️', '🥫', '🍫', '☕', '🃏', '🧦', '💌'];
     this.stars = [];
     this.flakes = [];
@@ -2825,8 +2833,19 @@ class SolidaryDriverGame {
     this.last = 0;
     this.timers = [];
     this.pointerActive = false;
+    this.demoOpen = false;
     this.resetRun();
     this.init();
+  }
+
+  hiKey() { return this.diff === 'normal' ? 'ineco_game_hi' : 'ineco_game_hi_' + this.diff; }
+  setDiff(d, persist = true) {
+    this.diff = GAME_DIFFS[d] ? d : 'normal';
+    this.cfg = GAME_DIFFS[this.diff];
+    this.TOTAL_TIME = this.cfg.time;
+    this.highScore = parseInt(localStorage.getItem(this.hiKey()) || '0', 10);
+    if (persist) { try { localStorage.setItem('ineco_game_diff', this.diff); } catch (_) { /* noop */ } }
+    if (this.timeLeft !== undefined && this.state === 'idle') this.timeLeft = this.TOTAL_TIME;
   }
 
   resetRun() {
@@ -2901,6 +2920,8 @@ class SolidaryDriverGame {
         if (!b) return;
         const act = b.dataset.act;
         if (act === 'start' || act === 'restart') this.startCountdown();
+        else if (act === 'diff') { this.setDiff(b.dataset.diff); this.resetRun(); this.syncHud(true); this.showStart(this.demoOpen); }
+        else if (act === 'howto') { this.demoOpen = !this.demoOpen; this.showStart(this.demoOpen); }
         else if (act === 'resume') this.resume();
         else if (act === 'close') this.close();
       });
@@ -2980,6 +3001,7 @@ class SolidaryDriverGame {
   later(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
 
   startCountdown() {
+    try { localStorage.setItem('ineco_game_tut', '1'); } catch (_) { /* noop */ }
     this.clearTimers();
     this.resetRun();
     this.resize();
@@ -3024,27 +3046,44 @@ class SolidaryDriverGame {
   showOverlay(html) { if (this.overlay) { this.overlay.innerHTML = html; this.overlay.classList.remove('hidden'); } }
   hideOverlay() { if (this.overlay) this.overlay.classList.add('hidden'); }
 
-  showStart() {
+  showStart(forceDemo) {
+    let seen = false;
+    try { seen = !!localStorage.getItem('ineco_game_tut'); } catch (_) { /* noop */ }
+    const demo = forceDemo === true || !seen;
+    this.demoOpen = forceDemo === true;
+    const diffs = GAME_DIFFS;
+    const seg = GAME_DIFF_ORDER.map((k) => `<button type="button" data-act="diff" data-diff="${k}" class="game-seg-btn${k === this.diff ? ' on' : ''}" aria-pressed="${k === this.diff}"><span>${diffs[k].icon}</span>${diffs[k].label}</button>`).join('');
+    const demoHtml = `
+      <div class="g-demo" aria-hidden="true">
+        <div class="g-demo-lanes"><i></i><i></i><i></i></div>
+        <span class="g-demo-item g-demo-gift">🎁</span>
+        <span class="g-demo-item g-demo-ice">❄️</span>
+        <span class="g-demo-train">🚄</span>
+        <span class="g-demo-finger">👆</span>
+      </div>`;
     this.showOverlay(`
-      <div class="text-5xl mb-3">🚄 🎁</div>
-      <h3 class="text-xl font-black text-white font-poppins mb-1">El Maquinista Solidario 2027</h3>
+      <div class="text-3xl mb-1">🚄 🎁</div>
+      <h3 class="text-lg font-black text-white font-poppins mb-1">El Maquinista Solidario 2027</h3>
       <p class="text-xs text-blue-200 max-w-xs mb-3 leading-relaxed">
         Guía el AVE por las 3 vías y entrega los <strong class="text-amber-300">9 regalos solidarios</strong> antes de que se acabe el tiempo.
       </p>
-      <ul class="text-[11px] text-slate-300 mb-4 bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-700 space-y-1 text-left">
+      ${demo ? demoHtml : ''}
+      <ul class="game-rules">
         <li>👆 <b>Toca o arrastra</b> para cambiar de vía</li>
-        <li>❄️ Los bloques de hielo restan puntos y tiempo</li>
+        <li>❄️ El hielo resta puntos y tiempo</li>
         <li>⏱️ +tiempo · 🛡️ escudo · ⚡ puntos dobles</li>
       </ul>
-      <button id="start-game-btn" data-act="start" class="game-btn-primary">¡COMENZAR DESAFÍO!</button>
-      <p class="text-[10px] text-slate-400 mt-3 font-mono">Récord: ${this.highScore} pts</p>`);
+      <div class="game-seg" role="group" aria-label="Dificultad">${seg}</div>
+      <p class="text-[11px] text-slate-400 mb-3">${this.cfg.time} s · Récord ${this.cfg.label}: <b class="text-amber-300 font-mono">${this.highScore}</b> pts</p>
+      <button id="start-game-btn" data-act="start" class="game-btn-primary">${seen ? '¡COMENZAR DESAFÍO!' : '¡Entendido, a jugar!'}</button>
+      ${seen ? `<button data-act="howto" class="game-btn-ghost mt-2">${forceDemo === true ? 'Ocultar tutorial' : '❓ Cómo se juega'}</button>` : ''}`);
   }
 
   // ---------- partida ----------
   spawn() {
     const r = Math.random();
     let type = 'gift';
-    if (r < 0.34) type = 'ice';
+    if (r < this.cfg.ice) type = 'ice';
     else if (r > 0.93) type = 'turbo';
     else if (r > 0.87) type = 'shield';
     else if (r > 0.81) type = 'time';
@@ -3075,12 +3114,12 @@ class SolidaryDriverGame {
     this.flash = Math.max(0, this.flash - dt * 2.2);
     this.shake = Math.max(0, this.shake - dt * 30);
     const ramp = Math.min(1, this.elapsed / 35);
-    this.speed = this.H * (0.5 + 0.42 * ramp) * (this.turboT > 0 ? 1.12 : 1);
+    this.speed = this.H * (this.cfg.v0 + this.cfg.v1 * ramp) * (this.turboT > 0 ? 1.12 : 1);
 
     this.spawnTimer -= dt;
     if (this.spawnTimer <= 0) {
       this.spawn();
-      this.spawnTimer = Math.max(0.34, 0.82 - this.elapsed * 0.011);
+      this.spawnTimer = Math.max(this.cfg.minSp, this.cfg.sp - this.elapsed * 0.011);
     }
 
     const tx = this.laneX(this.targetLane);
@@ -3173,11 +3212,17 @@ class SolidaryDriverGame {
     this.pointerActive = false;
     this.clearTimers();
     const isRecord = this.score > this.highScore;
-    if (isRecord) { this.highScore = this.score; localStorage.setItem('ineco_game_hi', String(this.highScore)); }
+    if (isRecord) { this.highScore = this.score; localStorage.setItem(this.hiKey(), String(this.highScore)); }
     sound.playConfettiFanfare();
     haptics.fanfare();
     if (victory && typeof confetti === 'function') confetti({ particleCount: 140, spread: 90, origin: { y: 0.55 }, zIndex: 9999 });
 
+    const hiNow = this.highScore;
+    let promo = '';
+    if (victory) {
+      const nxt = GAME_DIFF_ORDER[GAME_DIFF_ORDER.indexOf(this.diff) + 1];
+      if (nxt) { this.setDiff(nxt); promo = `<span class="text-[11px] text-amber-200 block mt-1">🔓 ¡Reto superado! Próxima partida en modo ${GAME_DIFFS[nxt].label}.</span>`; this.state = 'over'; }
+    }
     const starCount = victory ? (this.timeLeft >= 12 ? 3 : 2) : (this.collected >= 5 ? 1 : 0);
     const stars = '⭐'.repeat(starCount) + '☆'.repeat(3 - starCount);
     const title = victory ? '¡ENTREGA EXITOSA EN MONFORTE!' : (this.collected >= 5 ? '¡CASI LLEGAS A MONFORTE!' : '¡SE ACABÓ EL TIEMPO!');
@@ -3189,7 +3234,8 @@ class SolidaryDriverGame {
       <p class="text-xs text-white max-w-xs mt-2 mb-4 leading-relaxed">
         Has entregado <strong class="text-amber-400 font-black text-sm">${this.collected} de ${this.GOAL} regalos solidarios</strong>.<br>
         <span class="text-emerald-400 font-bold text-sm block mt-1">Puntuación: ${this.score} pts${isRecord ? ' · ¡NUEVO RÉCORD!' : ''}</span>
-        <span class="text-slate-400 text-[10px] block font-mono">Récord: ${this.highScore} pts · Mejor combo: x${this.bestCombo} · Choques: ${this.hits}</span>
+        <span class="text-slate-400 text-[10px] block font-mono">Récord: ${hiNow} pts · Mejor combo: x${this.bestCombo} · Choques: ${this.hits}</span>
+        ${promo}
         <span class="text-[11px] text-blue-200 block mt-1">¡Feliz y próspero año 2027!</span>
       </p>
       <button data-act="restart" class="game-btn-primary">🔄 Volver a jugar</button>
@@ -3426,6 +3472,369 @@ class SolidaryDriverGame {
 }
 
 // ==========================================
+// 13b. MEJORAS DE EXPERIENCIA (UX) E INTERFAZ (UI)
+//      progreso guardado · navegación · ficha de hito · cuenta atrás útil
+//      tema claro/oscuro · microanimaciones
+// ==========================================
+const Prefs = {
+  get(k, d = null) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, String(v)); } catch (_) { /* noop */ } },
+  del(k) { try { localStorage.removeItem(k); } catch (_) { /* noop */ } }
+};
+const prefersReducedMotion = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+// Hitos de la ruta (coinciden con las estaciones del mapa: 0 / 50 / 75 / 100 %).
+const MILESTONES = [
+  { pct: 0,   key: 'laponia',  icon: '🎅', name: 'Salida de Laponia', place: 'Círculo Polar Ártico', date: '2026-11-08T09:00:00+01:00',
+    text: 'El taller ártico carga los lotes solidarios y el tren sale por la red polar rumbo al sur.' },
+  { pct: 50,  key: 'europe',   icon: '🚄', name: 'Corredor europeo (París)', place: 'Corredor TEN-T', date: '2026-11-24T09:00:00+01:00',
+    text: 'Tránsito por el corredor de alta velocidad europeo, camino del eje atlántico y de los Pirineos.' },
+  { pct: 75,  key: 'madrid',   icon: '🏢', name: 'Sede de Ineco en Madrid', place: 'Paseo de la Habana 138, Madrid', date: '2026-12-01T12:00:00+01:00',
+    text: 'Escala técnica y felicitación institucional. Aquí se desbloquea el calendario de adviento.' },
+  { pct: 100, key: 'monforte', icon: '🎁', name: 'Llegada a Monforte del Cid', place: 'Base de Monforte del Cid', date: '2026-12-14T09:00:00+01:00',
+    text: 'Entrega oficial del Regalo Solidario, de 09:00 a 15:00 h. ¡Feliz Navidad y próspero 2027!' }
+];
+
+const fmtLong = (iso) => new Date(iso).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+function relativeTo(iso, now = Date.now()) {
+  const diff = new Date(iso).getTime() - now;
+  const day = 86400000;
+  if (diff <= -day) return { cls: 'past', text: 'Completado' };
+  if (diff <= 0) return { cls: 'now', text: 'Hoy' };
+  const days = Math.ceil(diff / day);
+  if (diff < day) return { cls: 'now', text: 'Hoy' };
+  if (days === 1) return { cls: 'soon', text: 'Mañana' };
+  return { cls: days <= 7 ? 'soon' : 'future', text: `Faltan ${days} días` };
+}
+
+// ---- Avisos breves (toast) ----
+function toast(msg, opts = {}) {
+  const region = document.getElementById('toast-region');
+  if (!region) return;
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.setAttribute('role', 'status');
+  const ico = document.createElement('span'); ico.className = 'toast-ico'; ico.textContent = opts.icon || '✨';
+  const txt = document.createElement('span'); txt.className = 'toast-msg'; txt.textContent = msg;
+  el.append(ico, txt);
+  const kill = () => { el.classList.remove('in'); setTimeout(() => el.remove(), 320); };
+  if (opts.action) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'toast-act'; b.textContent = opts.action;
+    b.onclick = () => { kill(); if (opts.onAction) opts.onAction(); };
+    el.append(b);
+  }
+  const x = document.createElement('button'); x.type = 'button'; x.className = 'toast-x'; x.setAttribute('aria-label', 'Cerrar aviso'); x.textContent = '✕';
+  x.onclick = kill; el.append(x);
+  region.append(el);
+  requestAnimationFrame(() => el.classList.add('in'));
+  setTimeout(kill, opts.ms || 7000);
+}
+
+// ---- Ficha de hito: hoja inferior en móvil, panel flotante en PC ----
+class StationSheet {
+  constructor(tracker, controls) {
+    this.t = tracker;
+    this.c = controls;
+    this.el = document.getElementById('station-sheet');
+    this.index = -1;
+    if (!this.el) return;
+    this.body = this.el.querySelector('.sheet-body');
+    this.el.querySelector('.sheet-close').addEventListener('click', () => this.close());
+    window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && this.isOpen()) this.close(); });
+    this.bindDrag();
+  }
+
+  isOpen() { return !!this.el && this.el.classList.contains('open'); }
+
+  open(pct) {
+    if (!this.el) return;
+    const i = MILESTONES.findIndex((m) => m.pct === pct);
+    if (i < 0) return;
+    this.index = i;
+    this.render();
+    this.el.style.transform = '';
+    this.el.classList.add('open');
+    this.el.setAttribute('aria-hidden', 'false');
+  }
+
+  close() {
+    if (!this.el) return;
+    this.el.classList.remove('open');
+    this.el.style.transform = '';
+    this.el.setAttribute('aria-hidden', 'true');
+  }
+
+  render() {
+    const m = MILESTONES[this.index];
+    const rel = relativeTo(m.date);
+    const prev = MILESTONES[this.index - 1];
+    const next = MILESTONES[this.index + 1];
+    this.body.innerHTML = '';
+    const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+    const head = mk('div', 'sheet-head');
+    head.append(mk('span', 'sheet-ico', m.icon));
+    const ht = mk('div', 'sheet-headtxt');
+    ht.append(mk('span', 'sheet-eyebrow', `Hito ${this.index + 1} de ${MILESTONES.length}`), mk('h3', 'sheet-title', m.name));
+    head.append(ht);
+    const meta = mk('div', 'sheet-meta');
+    meta.append(mk('span', 'sheet-chip', '📍 ' + m.place), mk('span', 'sheet-chip', '🗓️ ' + fmtLong(m.date)), mk('span', 'sheet-chip is-' + rel.cls, rel.text));
+    const p = mk('p', 'sheet-text', m.text);
+    const acts = mk('div', 'sheet-actions');
+    if (prev) { const b = mk('button', 'rail-btn rail-btn-ghost', '← ' + prev.name.split(' (')[0]); b.type = 'button'; b.onclick = () => this.go(prev); acts.append(b); }
+    if (next) { const b = mk('button', 'rail-btn', 'Siguiente hito →'); b.type = 'button'; b.onclick = () => this.go(next); acts.append(b); }
+    this.body.append(head, meta, p, acts);
+  }
+
+  go(m) {
+    this.t.stop();
+    this.t.animateTo(m.pct);
+    sound.playChime();
+    haptics.chime();
+    const wp = this.t.waypoints.find((w) => w.pct === m.pct);
+    if (this.c && this.c.flyTo && wp) { this.c.setFollow && this.c.setFollow(false); this.c.flyTo(wp.x, wp.y, Math.max(this.c.zoom || 1, 2.6)); }
+    this.open(m.pct);
+  }
+
+  // Arrastrar la ficha hacia abajo la cierra (móvil).
+  bindDrag() {
+    const grip = this.el.querySelector('.sheet-grip');
+    if (!grip) return;
+    let y0 = null, dy = 0;
+    grip.addEventListener('pointerdown', (e) => { y0 = e.clientY; dy = 0; try { grip.setPointerCapture(e.pointerId); } catch (_) { /* noop */ } this.el.style.transition = 'none'; });
+    grip.addEventListener('pointermove', (e) => {
+      if (y0 === null) return;
+      dy = Math.max(0, e.clientY - y0);
+      this.el.style.transform = `translateY(${dy}px)`;
+    });
+    const end = () => {
+      if (y0 === null) return;
+      y0 = null;
+      this.el.style.transition = '';
+      if (dy > 70) this.close(); else this.el.style.transform = '';
+    };
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  }
+}
+
+// ---- Panel de viaje: próximo hito, calendario, juego y archivo .ics ----
+class TravelRail {
+  constructor(tracker, sheet, advent, game) {
+    this.t = tracker;
+    this.sheet = sheet;
+    this.advent = advent;
+    this.game = game;
+    this.$ = (id) => document.getElementById(id);
+    if (!this.$('travel-rail')) return;
+    this.bind();
+    this.update();
+    setInterval(() => this.update(), 60000);
+    this.mirrorDiscovered();
+    this.bindDots();
+  }
+
+  nextMilestone(now = Date.now()) { return MILESTONES.find((m) => new Date(m.date).getTime() > now); }
+
+  update() {
+    const now = Date.now();
+    const next = this.nextMilestone(now);
+    const t = this.$('next-ms-title'), w = this.$('next-ms-when'), bar = this.$('next-ms-bar');
+    if (!t) return;
+    if (!next) {
+      t.textContent = '🎉 ¡Regalo entregado!';
+      w.textContent = 'El Regalo Solidario ya está en Monforte del Cid.';
+      bar.style.width = '100%';
+      return;
+    }
+    const i = MILESTONES.indexOf(next);
+    const prev = MILESTONES[i - 1];
+    t.textContent = `${next.icon} ${next.name}`;
+    const rel = relativeTo(next.date, now);
+    w.textContent = `${fmtLong(next.date)} · ${rel.text}`;
+    const start = prev ? new Date(prev.date).getTime() : new Date('2026-11-01T00:00:00+01:00').getTime();
+    const end = new Date(next.date).getTime();
+    bar.style.width = Math.max(4, Math.min(100, ((now - start) / (end - start)) * 100)) + '%';
+    this.nextRef = next;
+  }
+
+  bind() {
+    const show = this.$('next-ms-show');
+    if (show) show.onclick = () => {
+      const m = this.nextRef || MILESTONES[MILESTONES.length - 1];
+      this.t.jumpTo(m.key);
+      const box = this.$('radar-map-box');
+      if (box) box.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
+      this.sheet.open(m.pct);
+    };
+    const ics = this.$('ics-btn');
+    if (ics) ics.onclick = () => this.downloadICS();
+    const door = this.$('rail-next-door');
+    if (door) door.onclick = () => this.goToNextDoor();
+    const play = this.$('panel-game-btn');
+    if (play) play.onclick = () => this.game && this.game.open();
+    this.refreshGameCard();
+    const old = this.game && this.game.close;
+    if (this.game && old) this.game.close = (...a) => { old.apply(this.game, a); this.refreshGameCard(); };
+  }
+
+  refreshGameCard() {
+    const el = this.$('panel-hi');
+    if (!el || !this.game) return;
+    const d = this.game.cfg ? this.game.cfg.label : 'Normal';
+    el.textContent = this.game.highScore > 0 ? `Tu récord (${d}): ${this.game.highScore} pts` : 'Aún sin récord: ¡sé el primero!';
+  }
+
+  goToNextDoor() {
+    const opened = this.advent && this.advent.openedDays ? this.advent.openedDays : new Set();
+    let day = null;
+    for (let d = 1; d <= 9; d++) { if (!opened.has(d)) { day = d; break; } }
+    const card = day ? document.getElementById(`gift-card-${day}`) : document.getElementById('seccion-calendario');
+    if (!card) return;
+    card.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'center' });
+    card.classList.remove('nudge'); void card.offsetWidth; card.classList.add('nudge');
+  }
+
+  // Refleja "X de 9" del calendario en el panel.
+  mirrorDiscovered() {
+    const src = this.$('discovered-count');
+    const sync = () => {
+      const txt = src ? src.textContent : '0 de 9';
+      const n = parseInt(txt, 10) || 0;
+      const c = this.$('rail-count'), b = this.$('rail-count-bar'), btn = this.$('rail-next-door');
+      if (c) c.textContent = txt;
+      if (b) b.style.width = (n / 9 * 100) + '%';
+      if (btn) btn.textContent = n >= 9 ? '🎊 Ver el calendario' : (n === 0 ? '🎁 Abrir la primera puerta' : '🎁 Abrir la siguiente puerta');
+      if (this.lastCount !== undefined && n > this.lastCount && n >= 9) this.celebrateAll();
+      this.lastCount = n;
+    };
+    if (src && window.MutationObserver) new MutationObserver(sync).observe(src, { childList: true, characterData: true, subtree: true });
+    sync();
+  }
+
+  celebrateAll() {
+    toast('¡Has descubierto los 9 regalos solidarios!', { icon: '🎊', ms: 9000 });
+    if (typeof confetti === 'function') confetti({ particleCount: 220, spread: 110, origin: { y: 0.6 }, disableForReducedMotion: true, zIndex: 9999 });
+    haptics.fanfare();
+  }
+
+  bindDots() {
+    const track = this.$('rail-track'), dots = Array.from(document.querySelectorAll('#rail-dots i'));
+    if (!track || !dots.length) return;
+    track.addEventListener('scroll', () => {
+      const cards = Array.from(track.children);
+      const mid = track.scrollLeft + track.clientWidth / 2;
+      let best = 0, bd = Infinity;
+      cards.forEach((c, i) => { const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = i; } });
+      dots.forEach((d, i) => d.classList.toggle('on', i === best));
+    }, { passive: true });
+  }
+
+  // Archivo de calendario (.ics) con los hitos que quedan y un aviso el día anterior.
+  downloadICS() {
+    const esc = (s) => String(s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    const stamp = (d) => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const now = Date.now();
+    let list = MILESTONES.filter((m) => new Date(m.date).getTime() > now);
+    if (!list.length) list = [MILESTONES[MILESTONES.length - 1]];
+    const ev = list.map((m) => {
+      const start = new Date(m.date).getTime();
+      const end = start + (m.pct === 100 ? 6 : 1) * 3600000;
+      return ['BEGIN:VEVENT', `UID:regalo-ineco-2026-${m.key}@regaloineco`, `DTSTAMP:${stamp(now)}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`,
+        `SUMMARY:${esc('🎁 ' + m.name + ' · Regalo Solidario Ineco')}`, `DESCRIPTION:${esc(m.text)}`, `LOCATION:${esc(m.place)}`,
+        'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', `DESCRIPTION:${esc('Mañana: ' + m.name)}`, 'END:VALARM', 'END:VEVENT'].join('\r\n');
+    });
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Ineco//Regalo Solidario 2026//ES', 'CALSCALE:GREGORIAN', ...ev, 'END:VCALENDAR'].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'regalo-solidario-ineco.ics';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast(`Calendario descargado con ${list.length} ${list.length === 1 ? 'fecha' : 'fechas'} y un aviso el día antes.`, { icon: '📅' });
+    haptics.chime();
+  }
+}
+
+// ---- Navegación: sección activa, volver arriba y avance de lectura ----
+function initNavigation() {
+  const links = Array.from(document.querySelectorAll('.mobile-bottom-nav a[href^="#"]'));
+  const top = document.getElementById('back-to-top');
+  const ids = links.map((a) => a.getAttribute('href').slice(1));
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const vh = window.innerHeight;
+    let active = null;
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (!el || !el.offsetParent) return;
+      const r = el.getBoundingClientRect();
+      if (r.top <= vh * 0.4 && r.bottom > vh * 0.4) active = id;
+    });
+    links.forEach((a) => {
+      const on = a.getAttribute('href') === '#' + active;
+      a.classList.toggle('is-active', on);
+      if (on) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current');
+    });
+    if (top) top.classList.toggle('show', window.scrollY > 700);
+  };
+  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  window.addEventListener('resize', update);
+  if (top) top.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' }); haptics.chime(); });
+  update();
+}
+
+// ---- Aparición suave al hacer scroll (se desactiva con "reducir movimiento") ----
+function initReveal() {
+  if (prefersReducedMotion() || !('IntersectionObserver' in window)) return;
+  const targets = Array.from(document.querySelectorAll('#advent-grid > *, #seccion-mi-regalo > div, .rail-card, #seccion-calendario > .text-center'));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      const el = en.target;
+      io.unobserve(el);
+      requestAnimationFrame(() => {
+        el.classList.add('in');
+        // Al terminar se retiran las clases para no pisar los efectos propios de cada tarjeta.
+        setTimeout(() => { el.classList.remove('reveal', 'in'); el.style.removeProperty('--rd'); }, 900);
+      });
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
+  targets.forEach((el, i) => {
+    el.classList.add('reveal');
+    el.style.setProperty('--rd', Math.min(i % 3, 2) * 70 + 'ms');
+    io.observe(el);
+  });
+}
+
+// ---- Persistencia del viaje y bienvenida ----
+function initPersistence(tracker, advent, sheet) {
+  let saved = parseFloat(Prefs.get('ineco_map_pct'));
+  if (isFinite(saved) && saved >= 0 && saved <= 100) tracker.setProgress(saved);
+  let timer = null;
+  tracker.onChange = (pct) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => Prefs.set('ineco_map_pct', Math.round(pct * 10) / 10), 400);
+  };
+
+  const last = parseInt(Prefs.get('ineco_last_visit'), 10);
+  Prefs.set('ineco_last_visit', Date.now());
+  const visible = () => { const el = document.getElementById('seccion-calendario'); return !!(el && el.offsetParent); };
+  setTimeout(() => {
+    if (!visible()) return;
+    const n = advent && advent.openedDays ? advent.openedDays.size : 0;
+    if (isFinite(last) && (n > 0 || saved > 5)) {
+      const where = saved > 5 ? ` · el tren va por ${Math.round(saved)} % de la ruta` : '';
+      toast(`Bienvenido de nuevo: ${n} de 9 regalos descubiertos${where}.`, {
+        icon: '👋', action: n < 9 ? 'Continuar' : null,
+        onAction: () => { const b = document.getElementById('rail-next-door'); if (b) b.click(); }
+      });
+    } else if (!isFinite(last)) {
+      toast('Toca cada puerta del calendario para descubrir tu regalo.', { icon: '🎄', ms: 6000 });
+    }
+  }, 1400);
+}
+
+// ==========================================
 // 14. INICIALIZACIÓN GLOBAL
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -3441,6 +3850,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const themeMgr = new ThemeManager(snow);
   const driverGame = new SolidaryDriverGame();
   window.driverGame = driverGame;
+
+  // Mejoras UX/UI
+  const stationSheet = new StationSheet(santaRadar, railMap);
+  window.stationSheet = stationSheet;
+  const prevJump = santaRadar.onJump;
+  santaRadar.onJump = (pct) => { if (prevJump) prevJump(pct); stationSheet.open(pct); };
+  santaRadar.onStation = (pct) => stationSheet.open(pct);
+  new TravelRail(santaRadar, stationSheet, advent, driverGame);
+  initNavigation();
+  initPersistence(santaRadar, advent, stationSheet);
+  initReveal();
 
   const unlockAudioOnGesture = () => {
     sound.init();
@@ -3487,8 +3907,31 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btnGoMadrid) btnGoMadrid.onclick = () => santaRadar.jumpTo('madrid');
   if (btnGoMonforte) btnGoMonforte.onclick = () => santaRadar.jumpTo('monforte');
 
+  const gameSoundBtn = document.getElementById('game-sound-btn');
+  const gameVibBtn = document.getElementById('game-vib-btn');
+  const updateVibUI = () => {
+    if (!gameVibBtn) return;
+    gameVibBtn.textContent = haptics.on ? '📳' : '📴';
+    gameVibBtn.setAttribute('aria-pressed', String(haptics.on));
+    gameVibBtn.title = haptics.on ? 'Vibración activada' : 'Vibración desactivada';
+  };
+  if (gameVibBtn) {
+    if (!navigator.vibrate) gameVibBtn.classList.add('hidden');
+    updateVibUI();
+    gameVibBtn.onclick = () => {
+      haptics.on = !haptics.on;
+      Prefs.set('ineco_haptics', haptics.on ? '1' : '0');
+      updateVibUI();
+      haptics.chime();
+    };
+  }
   const updateSoundUI = (active) => {
     const icon = active ? '🔊' : '🔇';
+    if (gameSoundBtn) {
+      gameSoundBtn.textContent = icon;
+      gameSoundBtn.setAttribute('aria-pressed', String(active));
+      gameSoundBtn.title = active ? 'Sonido activado' : 'Sonido desactivado';
+    }
     [soundBtn, mobileSoundBtn].forEach(btn => {
       if (!btn) return;
       const iconEl = btn.querySelector('.sound-icon') || btn.querySelector('span');
@@ -3503,6 +3946,8 @@ document.addEventListener('DOMContentLoaded', () => {
     haptics.chime();
   };
 
+  if (gameSoundBtn) gameSoundBtn.onclick = handleToggleSound;
+  updateSoundUI(!sound.muted);
   if (soundBtn) soundBtn.onclick = handleToggleSound;
   if (mobileSoundBtn) mobileSoundBtn.onclick = handleToggleSound;
 
@@ -3519,8 +3964,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const handleToggleSnow = () => {
     const active = snow.toggle();
     updateSnowUI(active);
+    Prefs.set('ineco_snow', active ? '1' : '0');
     haptics.scratch();
   };
+  // Nieve: se respeta lo guardado; sin preferencia, se apaga si el sistema pide menos movimiento.
+  const savedSnow = Prefs.get('ineco_snow');
+  if (savedSnow === '0' || (savedSnow === null && prefersReducedMotion())) {
+    if (snow.active) snow.toggle();
+    updateSnowUI(false);
+  }
 
   if (snowBtn) snowBtn.onclick = handleToggleSnow;
   if (mobileSnowBtn) mobileSnowBtn.onclick = handleToggleSnow;

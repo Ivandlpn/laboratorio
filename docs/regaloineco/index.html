@@ -676,6 +676,41 @@
       <!-- ========================================== -->
       <!-- SECCIÓN 2: CALENDARIO DE ADVIENTO (9 DÍAS) -->
       <!-- ========================================== -->
+      <div class="content-grid">
+      <!-- PANEL DE VIAJE: próximo hito, calendario y juego (carrusel en móvil, columna fija en pantallas muy anchas) -->
+      <div class="travel-rail" id="travel-rail" role="complementary" aria-label="Resumen de tu viaje">
+        <div class="rail-track" id="rail-track">
+          <article class="rail-card rail-card-next">
+            <div class="rail-eyebrow">📍 Próximo hito</div>
+            <h3 id="next-ms-title" class="rail-title">Calculando…</h3>
+            <p id="next-ms-when" class="rail-sub">&nbsp;</p>
+            <div class="rail-bar" aria-hidden="true"><i id="next-ms-bar"></i></div>
+            <div class="rail-actions">
+              <button type="button" id="next-ms-show" class="rail-btn">🗺️ Ver en el mapa</button>
+              <button type="button" id="ics-btn" class="rail-btn rail-btn-ghost">📅 Añadir al calendario</button>
+            </div>
+          </article>
+          <article class="rail-card rail-card-cal">
+            <div class="rail-eyebrow">🎄 Tu calendario</div>
+            <div id="rail-count" class="rail-big">0 de 9</div>
+            <p class="rail-sub">regalos solidarios descubiertos</p>
+            <div class="rail-bar" aria-hidden="true"><i id="rail-count-bar"></i></div>
+            <div class="rail-actions">
+              <button type="button" id="rail-next-door" class="rail-btn">🎁 Abrir la primera puerta</button>
+            </div>
+          </article>
+          <article class="rail-card rail-card-game">
+            <div class="rail-eyebrow">🎮 Minijuego</div>
+            <h3 class="rail-title">El Maquinista Solidario</h3>
+            <p id="panel-hi" class="rail-sub">&nbsp;</p>
+            <div class="rail-actions">
+              <button type="button" id="panel-game-btn" class="rail-btn rail-btn-hot">▶ Jugar ahora</button>
+            </div>
+          </article>
+        </div>
+        <div class="rail-dots" id="rail-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+      </div>
+      <div class="content-col">
       <section id="seccion-calendario" class="scroll-mt-6">
         <div class="text-center mb-6">
           <span class="px-3 py-1 rounded-full bg-red-600/20 text-red-400 border border-red-500/30 text-xs font-bold uppercase tracking-wider">
@@ -730,6 +765,9 @@
         </div>
       </section>
 
+      </div>
+      </div>
+
       <!-- PIE DE PÁGINA LIMPIO -->
       <footer class="border-t border-slate-800 bg-[#030914] py-8 px-4 text-center text-xs text-slate-400 rounded-2xl">
         <div class="max-w-xl mx-auto space-y-2">
@@ -779,6 +817,17 @@
   <!-- ========================================== -->
   <!-- MODAL: DETALLES DEL REGALO                 -->
   <!-- ========================================== -->
+  <!-- Ficha de hito (hoja inferior en móvil · panel flotante en PC) -->
+  <div id="station-sheet" class="station-sheet" role="dialog" aria-label="Detalle del hito de la ruta" aria-hidden="true">
+    <div class="sheet-grip" aria-hidden="true"><span></span></div>
+    <button type="button" class="sheet-close" aria-label="Cerrar ficha">✕</button>
+    <div class="sheet-body"></div>
+  </div>
+
+  <!-- Avisos breves y botón de volver arriba -->
+  <div id="toast-region" class="toast-region" aria-live="polite"></div>
+  <button type="button" id="back-to-top" class="back-top" aria-label="Volver arriba" title="Volver arriba">↑</button>
+
   <div id="gift-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 modal-backdrop" role="dialog" aria-modal="true" aria-label="Detalles del Regalo Solidario">
     <div class="bg-slate-900/98 border-2 border-amber-400/60 rounded-3xl w-[85vw] max-w-[85vw] p-5 sm:p-7 md:p-8 shadow-2xl max-h-[92vh] overflow-y-auto modal-dialog-responsive relative" id="gift-modal-dialog">
       <div id="gift-modal-body">
@@ -796,11 +845,13 @@
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-xl">🎮</span>
           <div class="min-w-0">
-            <h3 class="text-sm font-black font-poppins text-white truncate">El Maquinista Solidario 2027</h3>
+            <h3 class="text-sm font-black font-poppins text-white truncate">Maquinista Solidario 2027</h3>
             <p class="text-[10px] text-amber-300 truncate">Entrega los 9 regalos esquivando el hielo</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
+          <button id="game-sound-btn" class="game-icon-btn" aria-label="Activar o silenciar el sonido" title="Sonido" aria-pressed="false">🔇</button>
+          <button id="game-vib-btn" class="game-icon-btn" aria-label="Activar o desactivar la vibración" title="Vibración" aria-pressed="true">📳</button>
           <button id="game-pause-btn" class="game-icon-btn" aria-label="Pausa" title="Pausa (P)">⏸</button>
           <button id="close-game-btn" class="game-icon-btn" aria-label="Cerrar juego">✕</button>
         </div>
