@@ -91,7 +91,9 @@ export function crearTerreno({
   function cotaTerrenoUTM(E, N) {
     const q = Eje3D.proyUTM(E, N);
     if (pasosInfTerreno.length) { const zF = fondoPasoInferior(E, N, q); if (zF !== null) return zF; }
-    if (q.pk > PK_TERMINAL && q.pk < Eje3D.pkFin - 190 && q.of > -82 && q.of < 86) {
+    // Playa de vías de Alicante (PK y desplazamiento en el marco de la terminal): el terreno queda bajo el carril
+    const qT = q.pk > PK_TERMINAL - 30 ? Eje3D.marcoTerminal.proyUTM(E, N) : null;
+    if (qT && qT.pk > PK_TERMINAL && qT.pk < Eje3D.pkFin - 190 && qT.of > -82 && qT.of < 86) {
       const zM = MdtCorredor.cota(E, N);
       return Math.min(zM !== null ? zM : q.Z, q.Z - 0.5);
     }
@@ -122,14 +124,18 @@ export function crearTerreno({
     if (q.enViaducto) {
       const [va, vb] = q.enViaducto;
       const vr = VIADUCTOS_REALES.get(va);
-      if (vr || MdtCorredor.tieneFina(Math.floor(E / TAM_BLOQUE), Math.floor(N / TAM_BLOQUE))) {
-        const fondo = vr ? vr.cotaFondo : 3.10;
-        return q.d < 9 ? Math.min(zNat, q.Z - fondo - 0.6) : zNat;
-      }
+      const fondo = vr ? vr.cotaFondo : 3.10;
       const dEst = Math.min(q.pk - va, vb - q.pk);
-      if (dEst > 8) {
-        const profMin = Math.min(15, 3.8 + dEst * 0.16);
-        return Math.min(zNat, q.Z - profMin);
+      if (dEst > 6) {
+        // En viaducto el terreno queda por debajo del tablero (canto + gálibo inferior, adaptado al relieve real)
+        const profMin = Math.min(16, fondo + 0.9 + Math.min(dEst, 80) * 0.12);
+        const zHondonada = Math.min(zNat, q.Z - profMin);
+        if (q.d < 8.5) return zHondonada;
+        if (q.d < 22) {
+          const u = (q.d - 8.5) / 13.5, s = u * u * (3 - 2 * u);
+          return zHondonada * (1 - s) + zNat * s;
+        }
+        return zNat;
       }
     }
     if (q.d <= 7.4) return q.Z - 0.56;

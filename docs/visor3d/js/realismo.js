@@ -8,6 +8,8 @@ export const CLIMAS = {
   bruma:     { nombre: 'Calima',    fogNear: 780,  fogFar: 5200,  fogColor: '#d9d3c7', solMult: 0.86, hemiMult: 1.05, railRough: 0.26 },
   nublado:   { nombre: 'Nublado',   fogNear: 950,  fogFar: 6400,  fogColor: '#b9c6d4', solMult: 0.56, hemiMult: 1.25, railRough: 0.28 },
   lluvia:    { nombre: 'Lluvia',    fogNear: 420,  fogFar: 3100,  fogColor: '#8d9dad', solMult: 0.38, hemiMult: 1.15, railRough: 0.11 },
+  nieve:     { nombre: 'Nieve',     fogNear: 340,  fogFar: 2600,  fogColor: '#d8e2ec', solMult: 0.48, hemiMult: 1.32, railRough: 0.18 },
+  tormenta:  { nombre: 'Tormenta',  fogNear: 260,  fogFar: 2000,  fogColor: '#4b5563', solMult: 0.22, hemiMult: 0.85, railRough: 0.08 },
 };
 
 // UX 1: Evita que la cámara libre atraviese el terreno MDT LiDAR (salvo en modo Rayos X o dentro de túnel)
@@ -52,9 +54,6 @@ export function crearGestorVuelo({ camara, controles, Eje3D, origen, W, recentra
     } else if (modoVista === 'cerca') {
       objE = p.E + p.tx * 36; objN = p.N + p.ty * 36; objZ = p.Z + 2.0;
       posE = p.E + nx * 5.8 - p.tx * 16; posN = p.N + ny * 5.8 - p.ty * 16; posZ = p.Z + 2.65;
-    } else if (modoVista === 'helicoptero') {
-      objE = p.E + p.tx * 45; objN = p.N + p.ty * 45; objZ = p.Z + 2.0;
-      posE = p.E + nx * 135 - p.tx * 155; posN = p.N + ny * 135 - p.ty * 155; posZ = p.Z + 82;
     } else if (modoVista === 'lateral') {
       objZ = p.Z + 3.0;
       posE = p.E + nx * 92; posN = p.N + ny * 92; posZ = p.Z + 14;
@@ -125,11 +124,13 @@ export function crearGestorVuelo({ camara, controles, Eje3D, origen, W, recentra
   };
 }
 
-// UX 4: Micro-vibración de rodadura, inclinación en curvas (peralte) y exposición adaptativa en túnel
+// UX 4: Micro-vibración de rodadura, inclinación en curvas (peralte), cabeceo y onda de presión en cruces
 export function crearEfectoCabina() {
   let fase = 0;
   let rollSuave = 0;
+  let pitchSuave = 0;
   let expActual = null;
+  let sacudidaCruce = 0;
 
   function actualizar({ camara, Eje3D, pk, sentido, multVel, dt, reducido, pausado, enTunel, render, expBase }) {
     // Transición suave de exposición al entrar o salir de túnel
@@ -142,29 +143,43 @@ export function crearEfectoCabina() {
     const pA = Eje3D.enPk(Math.max(Eje3D.pkIni, pk - 24));
     const pB = Eje3D.enPk(Math.min(Eje3D.pkFin, pk + 24));
     const cross = (pA.tx * pB.ty - pA.ty * pB.tx) * sentido;
-    const rollObj = reducido ? 0 : Math.max(-0.032, Math.min(0.032, cross * 2.2));
+    const rollObj = reducido ? 0 : Math.max(-0.038, Math.min(0.038, cross * 2.4));
     rollSuave += (rollObj - rollSuave) * Math.min(1, dt * 4.5);
+
+    // Cabeceo por rasante (pendientes y aceleración)
+    const pendiente = (pB.Z - pA.Z) / 48.0;
+    const pitchObj = reducido ? 0 : Math.max(-0.024, Math.min(0.024, pendiente * 0.8));
+    pitchSuave += (pitchObj - pitchSuave) * Math.min(1, dt * 3.2);
 
     const dir = camara.getWorldDirection(new camara.position.constructor());
     const right = new camara.position.constructor().crossVectors(dir, { x: 0, y: 1, z: 0 }).normalize();
     camara.up.set(0, 1, 0).addScaledVector(right, rollSuave).normalize();
 
-    // Micro-vibración sutil proporcional a la velocidad
+    // Micro-vibración sutil proporcional a la velocidad y amortiguación de onda de presión en cruce
     if (!reducido && !pausado) {
-      const amp = Math.min(0.014, 0.004 + multVel * 0.0014);
+      const amp = Math.min(0.016, 0.004 + multVel * 0.0016) + sacudidaCruce * 0.035;
       fase += dt * (18 + multVel * 5);
       camara.position.y += Math.sin(fase) * amp;
-      camara.position.x += Math.cos(fase * 0.63) * (amp * 0.45);
+      camara.position.x += Math.cos(fase * 0.63) * (amp * 0.5) + (Math.sin(fase * 2.1) * sacudidaCruce * 0.025);
     }
+    if (sacudidaCruce > 0) {
+      sacudidaCruce = Math.max(0, sacudidaCruce - dt * 1.8);
+    }
+  }
+
+  function sacudirPorCruce() {
+    sacudidaCruce = 1.0;
   }
 
   function reiniciar(camara) {
     rollSuave = 0;
+    pitchSuave = 0;
+    sacudidaCruce = 0;
     expActual = null;
     camara.up.set(0, 1, 0);
   }
 
-  return { actualizar, reiniciar };
+  return { actualizar, sacudirPorCruce, reiniciar };
 }
 
 // UI 5: Actualiza brújula (Norte real), altitud de cámara y barra de escala dinámica

@@ -175,5 +175,35 @@ export function crearEje3D(ejeDatos, ramalesReales) {
     return Math.max(60, Math.round(vMax / 5) * 5);
   }
 
-  return { pkIni, pkFin, paso, n, E, N, Z, S, CURV, tuneles, viaductos, viaductosInfo, edificios, subestaciones, bts, btsInfo, saltos, enPk, proyUTM, proximoHito, buscarViaductoInfo, velocidadLimite };
+  // Marco de la terminal de Alicante: el eje anterior a llevarlo sobre las vías de alta velocidad (eje-3d.json,
+  // `marcoTerminal`). La estación y la playa de vías están medidas en PK y desplazamiento de este marco, no del eje.
+  const marcoTerminal = (() => {
+    const mt = ejeDatos.marcoTerminal;
+    if (!mt?.e?.length) return { pkIni: pkFin - 900, enPk, proyUTM };   // eje-3d.json antiguo: el marco es el propio eje
+    const { e, n: nn, pkIni: pk0, paso: ps } = mt, m = e.length;
+    const tramo = (i) => { const vx = e[i + 1] - e[i], vy = nn[i + 1] - nn[i], l = Math.hypot(vx, vy) || 1; return [vx / l, vy / l, l]; };
+    return {
+      pkIni: pk0,
+      // Fuera de los extremos se prolonga en recta
+      enPk(pk) {
+        const f = (pk - pk0) / ps, i = Math.max(0, Math.min(m - 2, Math.floor(f)));
+        const [tx, ty, l] = tramo(i), s = (f - i) * l;
+        return { pk, E: e[i] + tx * s, N: nn[i] + ty * s, tx, ty };
+      },
+      proyUTM(px, py) {
+        let mejor = null;
+        for (let i = 0; i < m - 1; i++) {
+          const [tx, ty, l] = tramo(i), dx = px - e[i], dy = py - nn[i];
+          let t = (dx * tx + dy * ty) / l;
+          if (i > 0) t = Math.max(0, t);
+          if (i < m - 2) t = Math.min(1, t);
+          const qx = dx - tx * t * l, qy = dy - ty * t * l, d2 = qx * qx + qy * qy;
+          if (!mejor || d2 < mejor.d2) mejor = { d2, pk: pk0 + (i + t) * ps, of: -ty * dx + tx * dy };
+        }
+        return { pk: mejor.pk, of: mejor.of, d: Math.sqrt(mejor.d2) };
+      },
+    };
+  })();
+
+  return { marcoTerminal, pkIni, pkFin, paso, n, E, N, Z, S, CURV, tuneles, viaductos, viaductosInfo, edificios, subestaciones, bts, btsInfo, saltos, enPk, proyUTM, proximoHito, buscarViaductoInfo, velocidadLimite };
 }

@@ -8,18 +8,62 @@ import { cargarEdificiosOsmKm } from './entorno-osm.js';
 
 export function crearGestorTeselas(ctx) {
   const {
-    RUTA, meta, capasMeta, gruposVisibles, entornoKms, escena, Eje3D, MdtCorredor, HashCotas, W, cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja, MODELOS, ARB, matTejaArabe, PK_TERMINAL, VIADUCTOS_REALES, viaductoReal, PERFIL_VIADUCTO, PERFIL_CAJON_VIAD, ESTACION_VILLENA, enZonaEstacion, PASOS_INF, PASOS_SUP, enPasoSuperior, RAMALES, CENTROS_TRACCION_CORREDOR, edificiosPorKm, COLOR_CAT_EDIF, fichaElemento, datosDePunto, mostrarFicha, irAPk, ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO,
+    RUTA, meta, capasMeta, gruposVisibles, entornoKms, escena, Eje3D, MdtCorredor, HashCotas, W, cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja, MODELOS, ARB, matTejaArabe, PK_TERMINAL, VIADUCTOS_REALES, viaductoReal, PERFIL_VIADUCTO, PERFIL_CAJON_VIAD, ESTACION_VILLENA, enZonaEstacion, PASOS_INF, PASOS_SUP, enPasoSuperior, RAMALES, CENTROS_TRACCION_CORREDOR, edificiosPorKm, COLOR_CAT_EDIF, fichaElemento, datosDePunto, mostrarFicha, ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matTunelBoveda, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, GEO,
   } = ctx;
 
   const teselasDisponibles = new Set();
   for (let k = Math.floor(Eje3D.pkIni / 1000); k <= Math.floor(Eje3D.pkFin / 1000); k++) teselasDisponibles.add(k);
   const teselasCargadas = new Map();
   const teselasEnVuelo = new Set();
+  const caminosPorKm = new Map();
   const grupoTeselas = new THREE.Group();
   escena.add(grupoTeselas);
   const MAX_TESELAS_CACHE = 12;
   const RADIO_TESELAS = 2;
   let ultimoKmCentral = -1;
+
+  // Placas azules de PK Adif con letras blancas sobre los postes de catenaria (cacheadas por hectómetro)
+  const GEO_PLACA_PK = new THREE.PlaneGeometry(0.42, 0.54);
+  const cacheMatPlacaPk = new Map();
+  function materialPlacaPk(pkM) {
+    const pkRed = Math.round(pkM / 100) * 100;
+    let m = cacheMatPlacaPk.get(pkRed);
+    if (m) return m;
+    const kmStr = String(Math.floor(pkRed / 1000));
+    const hmStr = String(Math.abs(pkRed % 1000)).padStart(3, '0');
+    const cv = document.createElement('canvas');
+    cv.width = 128; cv.height = 160;
+    const x = cv.getContext('2d');
+    x.fillStyle = '#134e9b';
+    x.fillRect(0, 0, 128, 160);
+    x.strokeStyle = '#ffffff';
+    x.lineWidth = 6;
+    x.strokeRect(5, 5, 118, 150);
+    x.fillStyle = '#ffffff';
+    x.textAlign = 'center';
+    x.textBaseline = 'middle';
+    x.font = 'bold 52px "IBM Plex Mono", monospace';
+    x.fillText(kmStr, 64, 54);
+    x.fillRect(22, 86, 84, 3);
+    x.font = 'bold 40px "IBM Plex Mono", monospace';
+    x.fillText(hmStr, 64, 122);
+    const tex = new THREE.CanvasTexture(cv);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    m = new THREE.MeshBasicMaterial({ map: tex });
+    cacheMatPlacaPk.set(pkRed, m);
+    return m;
+  }
+
+  // Puertas de acceso en el vallado perimetral (provisionales aleatorias; sustituibles por listado exacto PK + lado)
+  const PUERTAS_VALLADO = (() => {
+    const lista = [];
+    let s = 1337;
+    const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+    for (let pk = Eje3D.pkIni + 650; pk < Eje3D.pkFin - 750; pk += 1100 + Math.round(rnd() * 650)) {
+      lista.push({ pk, lado: rnd() < 0.5 ? 1 : -1 });
+    }
+    return lista;
+  })();
 
   // ---- Niveles de detalle del entorno real (distancias en m desde la cámara al centro de cada celda de 300 m) ----
   const CELDA_LOD = 300;
@@ -136,6 +180,19 @@ export function crearGestorTeselas(ctx) {
       const mPantalla = new Malla(), mValla = new Malla(), mPuerta = new Malla(), mAlambreValla = new Malla();
       const mEdif = new Malla(), mEdifTec = new Malla(), mCubierta = new Malla(), mTejaAdif = new Malla(), mMarquesina = new Malla(), mAnden = new Malla();
       const mArmarioVia = new Malla(), mSubest = new Malla(), mTrafo = new Malla(), mAisladorAT = new Malla(), mCajaControl = new Malla(), mAgua = new Malla();
+      const caminosKm = [];
+      const registrarCamino = (seg, zOff = 0.08) => {
+        if (!seg || seg.length < 2) return;
+        const pts = [];
+        let sAc = 0;
+        for (let k = 0; k < seg.length; k++) {
+          const [E, N] = lonlatAUTM(seg[k][0], seg[k][1]);
+          const Z = cotaTerrenoUTM(E, N) + zOff;
+          if (k > 0) sAc += Math.hypot(E - pts[k - 1].E, N - pts[k - 1].N);
+          pts.push({ E, N, Z, s: sAc });
+        }
+        if (sAc >= 45) caminosKm.push({ km, pts, len: sAc });
+      };
       const mConoCamara = new Malla();
       const agregarConoCamara = (ox, oy, oz, tx, ty, tz) => {
         const dx = tx - ox, dy = ty - oy, dz = tz - oz;
@@ -157,13 +214,16 @@ export function crearGestorTeselas(ctx) {
       };
 
       // Acumuladores de hilos 3D (LineSegments en coordenadas locales)
-      const segContacto = [], segSustent = [], segPendolas = [], segFeeder = [];
+      const segContacto = [], segSustent = [], segPendolas = [], segFeeder = [], segLineaElec = [];
+      const viasTerminal = [];   // ejes de vía cartografiados de la terminal de Alicante: { pts: [E, N, Z], acum, apoyos }
+      const torresElecCarto = [], lineasElecCarto = [];
       const linSeg = (arr, a, b) => { arr.push(a[0], a[1], a[2], b[0], b[1], b[2]); };
 
       const inst = {
         traviesa: [], placaAsiento: [], poste: [], cimientoPoste: [], placaPoste: [], contrapeso: [], mensula: [], aislador: [],
         senalPoste: [], senalFoco: [], baculoCamara: [], casetaVia: [], baliza: [], armario: [], arqueta: [], hitoPk: [],
-        tronco: [], copa: [], copaOlivo: [], farola: [], foco: [], posteValla: [], lumTunel: [], cartelTunel: [], sujecion: new Map(),
+        tronco: [], copa: [], copaOlivo: [], farola: [], foco: [], posteValla: [], lumTunel: [], cartelTunel: [],
+        torreElectrica: [], sujecion: new Map(),
       };
       const baculosCarto = [];
       const baculosCctvMeta = [];
@@ -352,32 +412,38 @@ export function crearGestorTeselas(ctx) {
               }
             }
           }
-          const pIniPila = Math.ceil((Math.max(pk0, va + 18)) / 42) * 42;
-          for (let pkP = pIniPila; pkP <= Math.min(pk1 - 0.01, vb - 18); pkP += 42) {
+          const largoViad = vb - va;
+          const vanos = Math.max(2, Math.round(largoViad / 36));
+          const pasoLuz = largoViad / vanos;
+          for (let iv = 1; iv < vanos; iv++) {
+            const pkP = va + iv * pasoLuz;
+            if (pkP < pk0 || pkP >= pk1) continue;
             const vp = Eje3D.enPk(pkP), pC = L(vp.E, vp.N, vp.Z);
             const zMinPier = Math.min(
               cotaTerrenoUTM(vp.E, vp.N),
               cotaTerrenoUTM(vp.E - vp.ty * 4.2, vp.N + vp.tx * 4.2),
               cotaTerrenoUTM(vp.E + vp.ty * 4.2, vp.N - vp.tx * 4.2),
             );
-            const yTer = (zMinPier - 1.4) - anclaZ;
             const yCajon = pC[1] - 3.10;
-            if (yCajon - yTer < 1.2) continue;
+            const yTer = Math.min((zMinPier - 1.2) - anclaZ, yCajon - 2.8);
             const ux = vp.tx, uz = -vp.ty, nx = -uz, nz = ux;
             // Aparatos de apoyo elastoméricos / pot entre capitel y cajón
             const yTopCap = yCajon - 0.22;
             for (const s of [-1, 1]) {
               cajaOrientada(mApoyoViad, pC[0] + nx * s * 2.15, pC[2] + nz * s * 2.15, yTopCap, yCajon + 0.03, ux, uz, 0.96, 0.96);
             }
-            // Capitel abocinado superior
-            const yBaseCap = Math.max(yTer + 0.6, yTopCap - 1.95);
-            cajaOrientada(mViadTablero, pC[0], pC[2], yBaseCap, yTopCap + 0.02, ux, uz, 2.6, 4.8, 3.5, 8.8);
-            // Fuste troncopiramidal esbelto
-            if (yBaseCap > yTer + 0.9) {
-              cajaOrientada(mViadTablero, pC[0], pC[2], yTer + 0.9, yBaseCap + 0.04, ux, uz, 2.9, 5.4, 2.45, 4.6);
+            // Capitel abocinado superior con imposta biselada
+            const yBaseCap = Math.max(yTer + 0.8, yTopCap - 1.85);
+            cajaOrientada(mViadTablero, pC[0], pC[2], yBaseCap, yTopCap + 0.02, ux, uz, 2.7, 5.0, 3.6, 9.2);
+            // Fuste esbelto achaflanado de hormigón visto hasta terreno
+            if (yBaseCap > yTer + 0.35) {
+              cajaOrientada(mViadTablero, pC[0], pC[2], yTer + 0.35, yBaseCap + 0.04, ux, uz, 2.9, 5.4, 2.5, 4.8);
+              if (yBaseCap - yTer > 14) {
+                cajaOrientada(mApoyoViad, pC[0], pC[2], yTer + 0.35, yBaseCap - 2.0, ux, uz, 3.0, 0.45);
+              }
             }
-            // Zapata de cimentación enterrada en ladera
-            cajaOrientada(mHormigonObra, pC[0], pC[2], yTer - 0.8, yTer + 0.92, ux, uz, 5.4, 8.2);
+            // Zapata masiva de cimentación enterrada
+            cajaOrientada(mHormigonObra, pC[0], pC[2], yTer - 1.8, yTer + 0.45, ux, uz, 5.8, 9.2);
           }
         }
 
@@ -494,6 +560,17 @@ export function crearGestorTeselas(ctx) {
               for (const i of [t[0], t[t.length - 1]]) {
                 const [tx, ty] = tangente(i), c = pt(i, off - 0.2, 0);
                 cajaOrientada(mCajaDco, c[0], c[2], c[1] + 0.92, c[1] + 1.32, tx, -ty, 0.24, 0.32);
+              }
+            }
+            // Visera de protección eléctrica de catenaria sobre las vías (25 kV): faldón inferior y bandeja metálica volada 0,85 m
+            for (const t of tramos((i) => Math.abs(P[i][4]) < 8.5)) {
+              cinta(mAceroGalv, t.map((i) => pt(i, off + 0.04, 0)), 0.06, -0.26, 0.05, 0, 0.5);
+              let prevV = null;
+              for (const i of t) {
+                const vIn = pt(i, off + 0.04, 0.02), vOut = pt(i, off + 0.88, -0.06);
+                const aV = mAceroGalv.v(vIn[0], vIn[1], vIn[2]), bV = mAceroGalv.v(vOut[0], vOut[1], vOut[2]);
+                if (prevV) { mAceroGalv.quad(prevV[0], aV, bV, prevV[1]); mAceroGalv.quad(prevV[1], bV, aV, prevV[0]); }
+                prevV = [aV, bV];
               }
             }
           }
@@ -694,6 +771,20 @@ export function crearGestorTeselas(ctx) {
               cajaOrientada(M.pilar, c[0], c[2], yA + 3.3, yA + 4.2, m.tx, -m.ty, 0.06, 0.06);
               rotulos.push({ x: c[0], y: yA + 3.02, z: c[2], yaw: Math.atan2(m.ty, m.tx) });
             }
+            // Mobiliario de andén: bancos, papeleras y paneles informativos bajo la marquesina
+            for (let k = pmA + 12; k < pmB - 8; k += 24) {
+              const m = Eje3D.enPk(k);
+              const cb = P(k, sg * 15.1, 0);
+              cajaOrientada(M.pilar, cb[0], cb[2], yA, yA + 0.44, m.tx, -m.ty, 2.4, 0.52);
+              cajaOrientada(M.chapa, cb[0], cb[2], yA + 0.44, yA + 0.50, m.tx, -m.ty, 2.5, 0.56);
+              const cp = P(k + 2.2, sg * 15.3, 0);
+              cajaOrientada(M.pilar, cp[0], cp[2], yA, yA + 0.85, m.tx, -m.ty, 0.42, 0.42);
+            }
+            for (let k = pmA + 32; k < pmB - 12; k += 50) {
+              const m = Eje3D.enPk(k), ci = P(k, sg * 13.8, 0);
+              cajaOrientada(M.pilar, ci[0], ci[2], yA + 3.1, yA + 4.2, m.tx, -m.ty, 0.06, 0.06);
+              cajaOrientada(M.chapa, ci[0], ci[2], yA + 2.75, yA + 3.25, m.tx, -m.ty, 1.8, 0.14);
+            }
           }
           // Vestíbulo-puente sobre las cuatro vías (PK 435+684 a 435+720, de -17,6 a +18,4 m): losa, fachadas de vidrio, cubierta
           const yP0 = Y(zR + 7.0), yP1 = Y(zR + 7.6), yP2 = Y(zR + 10.3);
@@ -715,6 +806,19 @@ export function crearGestorTeselas(ctx) {
           prisma(M.vidrio, anillo([[435664.2, 24.6], [435676.8, 24.6], [435676.8, 33.9], [435664.2, 33.9]]), Y(zSueloEd), Y(zR + 3.4));
           // Torre de escaleras y ascensores del otro andén (huella real), de vidrio blanco
           prisma(M.vidrioBlanco, anillo([[435684, -17.6], [435720, -17.7], [435720, -29.5], [435688, -29.6], [435688, -29], [435684, -28.8], [435684, -19.5], [435688, -19.4], [435688, -17.6]]), Y(zR - 0.5), yP2);
+          // Núcleos interiores de comunicación vertical (escaleras y huecos de ascensor) en ambos lados del vestíbulo-puente
+          {
+            const mV = Eje3D.enPk(435702);
+            for (const ofCore of [-23.5, 21.8]) {
+              const cAsc = P(435692, ofCore, 0);
+              cajaOrientada(M.pilar, cAsc[0], cAsc[2], yA, yP2 - 0.3, mV.tx, -mV.ty, 2.6, 2.6);
+              cajaOrientada(M.chapa, cAsc[0], cAsc[2], yA + 0.2, yA + 2.5, mV.tx, -mV.ty, 2.1, 2.1);
+              for (let e = 0; e < 16; e++) {
+                const u = e / 16, ce = P(435699 + u * 16, ofCore, 0);
+                cajaOrientada(M.anden, ce[0], ce[2], yA + u * (yP0 - yA), yA + (u + 0.08) * (yP0 - yA), mV.tx, -mV.ty, 1.3, 2.2);
+              }
+            }
+          }
           // Gran cubierta de celosía sobre puente y edificio: losa oscura con rejilla de vigas en diagonal por debajo
           const cub = [[435676, -32], [435728, -32], [435728, 70], [435676, 70]];
           prisma(M.cubierta, anillo(cub), Y(zR + 10.6), Y(zR + 11.0));
@@ -797,7 +901,8 @@ export function crearGestorTeselas(ctx) {
         // 2g. Estación de Alicante-Terminal (fin del corredor)
         if (pk0 <= 485980 && pk1 > 485980) {
           const zR = Eje3D.enPk(485950).Z;                     // cota de carril en la playa de vías
-          const P = (pkP, of, z) => { const m = Eje3D.enPk(Math.min(pkP, Eje3D.pkFin)); const ex = Math.max(0, pkP - Eje3D.pkFin); return L(m.E - m.ty * of + m.tx * ex, m.N + m.tx * of + m.ty * ex, z); };
+          // PK y desplazamiento en el marco de la terminal (el eje anterior), en el que se midió la estación
+          const P = (pkP, of, z) => { const m = Eje3D.marcoTerminal.enPk(pkP); return L(m.E - m.ty * of, m.N + m.tx * of, z); };
           const Y = (z) => z - anclaZ;
           const anillo = (lista) => { const a = lista.map(([pkP, of]) => { const q = P(pkP, of, 0); return [q[0], q[2]]; }); a.push(a[0]); return a; };
           const M = {}; for (const k of Object.keys(MAT_ALI)) M[k] = new Malla();
@@ -921,7 +1026,7 @@ export function crearGestorTeselas(ctx) {
         let tramoT = [];
         const cerrarTunel = () => {
           if (tramoT.length < 2) { tramoT = []; return; }
-          const NA = 18, R_INT = 6.85, R_EXT = 7.38;
+          const NA = 28, R_INT = 6.85, R_EXT = 7.38;
           const profBov = [];
           for (let k = 0; k <= NA; k++) {
             const ang = -0.13 + (Math.PI + 0.26) * (k / NA);
@@ -932,22 +1037,42 @@ export function crearGestorTeselas(ctx) {
             profBov.push([Math.cos(ang) * R_EXT, 1.20 + Math.sin(ang) * 6.72]);
           }
           const ptsT = tramoT.map((m) => L(m.E, m.N, m.Z));
-          extruirSeccion(mTunelBoveda, ptsT, profBov, true, 0.1);
+          extruirSeccion(mTunelBoveda, ptsT, profBov, true, 0.14);
+          // Solera de hormigón continuo de vía en placa
           cinta(mHormigonObra, ptsT, 13.8, -0.62, -0.43, 0, 0.2);
+          // Pasillos de evacuación a ambos lados (hastial izquierdo y derecho) con acera elevada, bordillo amarillo, barandilla y bandejas de cables
           for (const s of [-1, 1]) {
             const ptsAc = tramoT.map((m) => L(m.E + (-m.ty) * s * 5.80, m.N + m.tx * s * 5.80, m.Z));
-            cinta(mTunelAcera, ptsAc, 1.35, -0.50, 0.34, 0, 0.2);
-            const ptsBar = tramoT.map((m) => L(m.E + (-m.ty) * s * 5.16, m.N + m.tx * s * 5.16, m.Z));
-            cinta(mBarandillaTunel, ptsBar, 0.06, 0.34, 1.38, 0, 0.2);
+            cinta(mTunelAcera, ptsAc, 1.45, -0.50, 0.35, 0, 0.2);
+            const ptsBord = tramoT.map((m) => L(m.E + (-m.ty) * s * 5.06, m.N + m.tx * s * 5.06, m.Z));
+            cinta(mBarandillaTunel, ptsBord, 0.14, 0.34, 0.38, 0, 0.2);
+            const ptsBar = tramoT.map((m) => L(m.E + (-m.ty) * s * 5.12, m.N + m.tx * s * 5.12, m.Z));
+            cinta(mBarandillaTunel, ptsBar, 0.08, 0.35, 1.38, 0, 0.2);
+            cinta(mBarandillaTunel, ptsBar, 0.05, 0.82, 0.88, 0, 0.2);
+            // Bandejas portacables de señalización y fibra óptica en el hastial
+            const ptsBand = tramoT.map((m) => L(m.E + (-m.ty) * s * 6.45, m.N + m.tx * s * 6.45, m.Z));
+            cinta(mAceroGalv, ptsBand, 0.28, 1.48, 1.54, 0, 0.2);
+            cinta(mAceroGalv, ptsBand, 0.22, 1.92, 1.97, 0, 0.2);
           }
+          // Luminarias en ambos hastiales del túnel, soportes de bóveda de catenaria cada 20 m y carteles de salida de emergencia cada 60 m
           for (let i = 0; i < tramoT.length; i += 4) {
             const m = tramoT[i], yaw = Math.atan2(m.ty, m.tx);
-            const pL = L(m.E, m.N, m.Z + 6.95);
-            inst.lumTunel.push(matInst(pL, yaw));
-            if (Math.round(m.pk) % 100 === 0) {
+            const ux = m.tx, uz = -m.ty, nx = -m.ty, ny = m.tx;
+            // Soportes metálicos de suspensión de catenaria anclados en la clave de la bóveda
+            for (const s of [-1, 1]) {
+              const pS = L(m.E + nx * s * (m.sep * 0.5), m.N + ny * s * (m.sep * 0.5), m.Z);
+              cajaOrientada(mAceroGalv, pS[0], pS[2], pS[1] + 5.75, pS[1] + 7.25, ux, uz, 0.14, 0.18);
+            }
+            // Luminarias en el hastial izquierdo y derecho (a 2,65 m sobre carril en la pared curva)
+            for (const s of [-1, 1]) {
+              const pL = L(m.E + nx * s * 6.48, m.N + ny * s * 6.48, m.Z + 2.65);
+              inst.lumTunel.push(matInst(pL, yaw + (s > 0 ? Math.PI * 0.5 : -Math.PI * 0.5)));
+            }
+            // Carteles luminosos verdes de salida de emergencia cada 60 m
+            if (i % 12 === 0) {
               for (const s of [-1, 1]) {
-                const pCart = L(m.E + (-m.ty) * s * 6.38, m.N + m.tx * s * 6.38, m.Z + 2.35);
-                inst.cartelTunel.push(matInst(pCart, yaw));
+                const pCart = L(m.E + nx * s * 6.55, m.N + ny * s * 6.55, m.Z + 2.05);
+                inst.cartelTunel.push(matInst(pCart, yaw + (s > 0 ? Math.PI * 0.5 : -Math.PI * 0.5)));
               }
             }
           }
@@ -961,11 +1086,75 @@ export function crearGestorTeselas(ctx) {
         // se generan cada 55 m como antes.
         const postesCarto = (rGeo.features || []).filter((f) => f.properties?.c === '040242' && f.properties?.b === '2253' && f.geometry?.type === 'Point');
         const usarPostesCarto = postesCarto.length > 0;
+
+        // Terminal de Alicante: ejes de vía de la cartografía (050147 y 050117) con su longitud acumulada, para colgar
+        // la catenaria de los postes reales y para descartar los «árboles» del LiDAR que caen sobre las vías.
+        if (pk1 > PK_TERMINAL) for (const f of rGeo.features || []) {
+          const c = f.properties?.c;
+          if ((c !== '050147' && c !== '050117') || f.geometry?.type !== 'LineString') continue;
+          const pts = f.geometry.coordinates.map((q) => {
+            const [E, N] = lonlatAUTM(q[0], q[1]);
+            return [E, N, q.length > 2 && Number.isFinite(q[2]) && q[2] > 5 ? q[2] : Eje3D.proyUTM(E, N).Z];
+          });
+          const acum = [0];
+          for (let k = 1; k < pts.length; k++) acum.push(acum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
+          if (acum[acum.length - 1] > 1 && Eje3D.proyUTM(pts[pts.length >> 1][0], pts[pts.length >> 1][1]).pk > PK_TERMINAL) viasTerminal.push({ pts, acum, apoyos: [] });
+        }
+        // Punto de una vía a la distancia s de su origen
+        const enVia = (via, d) => {
+          const { pts, acum } = via;
+          let k = 1;
+          while (k < pts.length - 1 && acum[k] < d) k++;
+          const t = Math.max(0, Math.min(1, (d - acum[k - 1]) / (acum[k] - acum[k - 1] || 1))), a = pts[k - 1], b = pts[k];
+          return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+        };
+        // Ménsula de un poste de la terminal: sale en la dirección del giro del bloque en la cartografía y llega a las
+        // vías que encuentra (SUPUESTO: hasta 10 m y dos vías, como las ménsulas dobles de estación).
+        const mensulaTerminal = (E, N, giro) => {
+          if (!Number.isFinite(giro) || !viasTerminal.length) return;
+          const ang = giro * Math.PI / 180, dx = Math.cos(ang), dy = Math.sin(ang);
+          const cortes = [];
+          for (const via of viasTerminal) {
+            let mejor = null;
+            for (let k = 1; k < via.pts.length; k++) {
+              const ax = via.pts[k - 1][0] - E, ay = via.pts[k - 1][1] - N, bx = via.pts[k][0] - E, by = via.pts[k][1] - N;
+              const la = -ax * dy + ay * dx, lb = -bx * dy + by * dx;
+              if (la * lb > 0 || la === lb) continue;
+              const u = la / (la - lb), t = (ax + u * (bx - ax)) * dx + (ay + u * (by - ay)) * dy;
+              if (t > 1 && t <= 10 && (!mejor || t < mejor.t)) mejor = { t, via, d: via.acum[k - 1] + u * (via.acum[k] - via.acum[k - 1]) };
+            }
+            if (mejor) cortes.push(mejor);
+          }
+          if (!cortes.length) return;
+          cortes.sort((a, b) => a.t - b.t);
+          const t1 = cortes[0].t;
+          const segunda = cortes.find((c) => c.t >= t1 + 3 && c.t <= t1 + 5.5);
+          const tFin = segunda ? segunda.t : t1;
+          // Apoyo en cada vía alcanzada (las que casi coinciden con otra son ramas del mismo desvío)
+          for (const c of cortes) if (c.t <= tFin + 1.5) c.via.apoyos.push(c.d);
+          const zHilo = enVia(cortes[0].via, cortes[0].d)[2];
+          inst.mensula.push(matInst(L(E + dx * tFin * 0.5, N + dy * tFin * 0.5, zHilo + 5.55), ang + Math.PI, tFin, 1, 1));
+          for (const h of [5.55, 6.32]) inst.aislador.push(matInst(L(E + dx * 0.42, N + dy * 0.42, zHilo + h), ang));
+        };
+        const agregarPlacaPkPoste = (E, N, zBase, tx, ty, yaw, pkM) => {
+          if (!grupos.catenaria) return;
+          const matP = materialPlacaPk(pkM);
+          for (const dir of [1, -1]) {
+            const pPl = L(E + tx * dir * 0.185, N + ty * dir * 0.185, zBase + 3.6);
+            const mesh = new THREE.Mesh(GEO_PLACA_PK, matP);
+            mesh.position.set(pPl[0], pPl[1], pPl[2]);
+            mesh.rotation.y = yaw + (dir > 0 ? Math.PI * 0.5 : -Math.PI * 0.5);
+            mesh.userData = { capa: 'Catenaria y señalización', nombre: `Placa PK ${fmtPk(Math.round(pkM / 100) * 100)}`, info: `PK ${fmtPk(pkM)} · Placa hectométrica azul Adif en poste de catenaria.` };
+            grupos.catenaria.add(mesh);
+          }
+        };
         if (usarPostesCarto) {
           postesCarto.forEach((f, iP) => {
             const c = f.geometry.coordinates, [E, N] = lonlatAUTM(c[0], c[1]);
             const q = Eje3D.proyUTM(E, N);
-            if (q.enTunel) return;
+            if (q.enTunel || q.d < 3.2) return;
+            if (PASOS_SUP.some((ps) => Math.abs(ps.pk - q.pk) < 16 && q.d < 5.8)) return;
+            if (Eje3D.tuneles.some((t) => Math.min(Math.abs(q.pk - t.pkIni), Math.abs(q.pk - t.pkFin)) < 14 && q.d < 6.5)) return;
             const m = Eje3D.enPk(q.pk), yaw = Math.atan2(m.ty, m.tx), nx = -m.ty, ny = m.tx;
             const s = Math.sign((E - m.E) * nx + (N - m.N) * ny) || 1;   // lado de la vía (+ izquierda)
             const zBase = Number.isFinite(f.properties.z) && f.properties.z > 5 ? f.properties.z : m.Z - 0.35;
@@ -973,7 +1162,9 @@ export function crearGestorTeselas(ctx) {
             inst.poste.push(mtP);
             inst.cimientoPoste.push(mtP);
             inst.placaPoste.push(mtP);
-            if (q.d > 12 || q.pk > PK_TERMINAL) return; // poste de otra línea, de un ramal o de la terminal: sin ménsula hacia esta vía
+            if (q.d <= 12) agregarPlacaPkPoste(E, N, zBase, m.tx, m.ty, yaw, q.pk);
+            if (q.pk > PK_TERMINAL) { mensulaTerminal(E, N, f.properties.g); return; }
+            if (q.d > 12) return; // poste de otra línea o de un ramal: sin ménsula hacia esta vía
             if (iP % 20 === 0) inst.contrapeso.push(mtP);
             // Ménsula desde el poste hasta el eje de la vía más cercana (a sep/2 del eje de la línea)
             const alcance = Math.max(1.2, q.d - m.sep * 0.5);
@@ -983,6 +1174,28 @@ export function crearGestorTeselas(ctx) {
             for (const h of [5.55, 6.32]) inst.aislador.push(matInst(L(E - nx * s * 0.42, N - ny * s * 0.42, zHilo + h), yaw + Math.PI * 0.5));
           });
         }
+        // Hilos de la terminal: sobre el eje de cada vía, de apoyo en apoyo. Fuera de los apoyos (hasta la boca del túnel
+        // y hasta 6 m antes del final de la vía, bajo las marquesinas) solo hilo de contacto, SUPUESTO.
+        for (const via of viasTerminal) {
+          const ap = via.apoyos.sort((a, b) => a - b).filter((d, k, l) => k === 0 || d - l[k - 1] > 5);
+          if (ap.length < 2) continue;
+          const largo = via.acum[via.acum.length - 1];
+          const tramo = (dA, dB, conSustentador) => {
+            const nSub = Math.max(2, Math.round((dB - dA) / 4.5)), flecha = 0.38 * Math.min(1, (dB - dA) / 55) ** 2;
+            let c0 = null, s0 = null;
+            for (let k = 0; k <= nSub; k++) {
+              const u = k / nSub, q = enVia(via, dA + (dB - dA) * u);
+              const c1 = L(q[0], q[1], q[2] + 5.30), s1 = L(q[0], q[1], q[2] + 6.46 - flecha * 4 * u * (1 - u));
+              if (c0) { linSeg(segContacto, c0, c1); if (conSustentador) linSeg(segSustent, s0, s1); }
+              if (conSustentador && k > 0 && k < nSub) linSeg(segPendolas, c1, s1);
+              c0 = c1; s0 = s1;
+            }
+          };
+          for (let k = 1; k < ap.length; k++) tramo(ap[k - 1], ap[k], ap[k] - ap[k - 1] <= 80);
+          if (ap[0] > 9 && ap[0] < 256) tramo(6, ap[0], false);
+          if (largo - ap[ap.length - 1] > 9 && largo - ap[ap.length - 1] < 256) tramo(ap[ap.length - 1], largo - 6, false);
+        }
+
         const VANO = 55;
         const pkVanoIni = Math.floor((pk0 - VANO) / VANO) * VANO;
         for (let pkA = pkVanoIni; pkA < pk1; pkA += VANO) {
@@ -1005,6 +1218,7 @@ export function crearGestorTeselas(ctx) {
               inst.poste.push(mtP);
               inst.cimientoPoste.push(mtP);
               inst.placaPoste.push(mtP);
+              agregarPlacaPkPoste(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.35, mA.tx, mA.ty, yaw, pkA);
               if (idxVano % 20 === 0) inst.contrapeso.push(mtP);
               const pMen = L(mA.E + nx * (offPoste - s * alcance * 0.5), mA.N + ny * (offPoste - s * alcance * 0.5), mA.Z + 5.55);
               inst.mensula.push(matInst(pMen, yaw + (s > 0 ? Math.PI * 0.5 : -Math.PI * 0.5), alcance, 1, 1));
@@ -1045,6 +1259,20 @@ export function crearGestorTeselas(ctx) {
             }
           }
         }
+
+
+        // 2h. Puertas de acceso en el vallado perimetral (provisionales; sustituibles por listado exacto PK + lado)
+        for (const pv of PUERTAS_VALLADO) {
+          if (pv.pk < pk0 || pv.pk >= pk1) continue;
+          const m = Eje3D.enPk(pv.pk);
+          if (m.enTunel || m.enViaducto) continue;
+          const eP = m.E + (-m.ty) * pv.lado * 11.4, nP = m.N + m.tx * pv.lado * 11.4;
+          const zS = cotaTerrenoUTM(eP, nP);
+          const pC = L(eP, nP, zS), yaw = Math.atan2(m.ty, m.tx);
+          cajaOrientada(mPuerta, pC[0], pC[2], pC[1], pC[1] + 2.2, m.tx, -m.ty, 4.0, 0.14);
+          cajaOrientada(mHormigonObra, pC[0], pC[2], pC[1] - 0.15, pC[1] + 0.04, m.tx, -m.ty, 4.6, 1.4);
+          for (const sg of [-1, 1]) inst.posteValla.push(matInst(L(eP + m.tx * sg * 2.05, nP + m.ty * sg * 2.05, zS), yaw));
+        }
       }
 
       // 3. Cartografía vectorial 3D de Adif (201 teselas DXF: viales, drenaje, estructuras, BTS, subestaciones, señalización, cultivos…)
@@ -1062,7 +1290,7 @@ export function crearGestorTeselas(ctx) {
       function construirComplejoBtsGsmr(cx, cz, zSuelo, ux, uz, nombreBts, pkBts) {
         const activo = document.getElementById('chkBtsModelos')?.checked ?? true;
         if (!activo) return;
-        const nx = -uz, nz = ux;
+        const nz = ux; void -uz;
 
         // Coordenadas canónicas relativas (Torre centrada en tx, tz = cx, cz):
         // - Torre de 30 m: exactamente en el centro (0, 0)
@@ -1471,6 +1699,8 @@ export function crearGestorTeselas(ctx) {
           } else if (id === '040191' || f.properties?.b === '2405' || f.properties?.b === '2409') {
             inst.farola.push(matInst(pSup, yawVia));
             inst.foco.push(matInst([pSup[0] + Math.cos(yawVia) * 1.1, pSup[1] + 7.45, pSup[2] - Math.sin(yawVia) * 1.1], 0, 0.72, 0.45, 0.72));
+          } else if (id === '040023') {
+            torresElecCarto.push({ E, N, z: zTer, giro: f.properties?.g, span: 3.1 });
           } else if (id === '090092') {
             if (entornoReal) continue;
             // Parcela agrícola mediterránea (olivar / almendral en marco real de plantación)
@@ -1589,13 +1819,16 @@ export function crearGestorTeselas(ctx) {
             const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
             const qm = Eje3D.proyUTM(Em, Nm);
             if (qm.enViaducto && qm.d < 18) continue;
-            // Evitar que vallados de pasos superiores o cartografía crucen por encima de las vías
+            // Vallado perimetral: nunca cruzar por encima de las vías ni invadir bocas de túnel o pasos superiores
             const ptsV = aLoc(cs, 'terreno');
             let seg = [];
             for (let i = 0; i < cs.length; i++) {
               const [Ev, Nv] = lonlatAUTM(cs[i][0], cs[i][1]);
               const qv = Eje3D.proyUTM(Ev, Nv);
-              if (qv.d >= 7.5 || qv.enTunel) {
+              const cercaBocaValla = Eje3D.tuneles.some((t) => Math.min(Math.abs(qv.pk - t.pkIni), Math.abs(qv.pk - t.pkFin)) < 24);
+              const cercaPSValla = PASOS_SUP.some((ps) => Math.abs(ps.pk - qv.pk) < 18);
+              const libreDeVia = qv.d >= 7.8 && !cercaBocaValla && !(cercaPSValla && qv.d < 12);
+              if (libreDeVia) {
                 seg.push(ptsV[i]);
               } else {
                 if (seg.length >= 2) valla(mValla, mAlambreValla, inst.posteValla, seg, ALTO_VALLA, matInst);
@@ -1663,17 +1896,76 @@ export function crearGestorTeselas(ctx) {
               }
             }
           } else if (id === '040011' || id === '050235') {
-            cinta(mHormigonObra, aLoc(cs, 'terreno', 0.12), 8.2, -0.85, -0.02, 0.15, 0.15);
-            cinta(mAsfalto, aLoc(cs, 'terreno', 0.12), 7.4, -0.02, 0.08, 0, 0.15);
+            const partirFueraGalibo = (coords) => {
+              const out = []; let cur = [];
+              for (const c of coords) {
+                const [Ev, Nv] = lonlatAUTM(c[0], c[1]);
+                const qv = Eje3D.proyUTM(Ev, Nv);
+                const cercaBoca = Eje3D.tuneles.some((t) => Math.min(Math.abs(qv.pk - t.pkIni), Math.abs(qv.pk - t.pkFin)) < 24);
+                const cercaPS = PASOS_SUP.some((ps) => Math.abs(ps.pk - qv.pk) < 18);
+                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8)) {
+                  cur.push(c);
+                } else {
+                  if (cur.length >= 2) out.push(cur);
+                  cur = [];
+                }
+              }
+              if (cur.length >= 2) out.push(cur);
+              return out;
+            };
+            for (const seg of partirFueraGalibo(cs)) {
+              cinta(mHormigonObra, aLoc(seg, 'terreno', 0.12), 8.2, -0.85, -0.02, 0.15, 0.15);
+              cinta(mAsfalto, aLoc(seg, 'terreno', 0.12), 7.4, -0.02, 0.08, 0, 0.15);
+              registrarCamino(seg, 0.09);
+            }
           } else if (id === '040031' || id === '040217' || id === '030197') {
             // El eje de la carretera que va sobre un paso superior ya lo lleva su tablero (si no, saldría a ras de suelo bajo él)
             if (PASOS_SUP.length) {
               const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
               if (enPasoSuperior(Em, Nm, km)) continue;
             }
-            cinta(mAsfalto, aLoc(cs, 'terreno', 0.06), id === '040031' ? 9.5 : 6.4, -0.14, 0.05, 0.22, 0.15);
+            const partirFueraGalibo = (coords) => {
+              const out = []; let cur = [];
+              for (const c of coords) {
+                const [Ev, Nv] = lonlatAUTM(c[0], c[1]);
+                const qv = Eje3D.proyUTM(Ev, Nv);
+                const cercaBoca = Eje3D.tuneles.some((t) => Math.min(Math.abs(qv.pk - t.pkIni), Math.abs(qv.pk - t.pkFin)) < 24);
+                const cercaPS = PASOS_SUP.some((ps) => Math.abs(ps.pk - qv.pk) < 18);
+                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8)) {
+                  cur.push(c);
+                } else {
+                  if (cur.length >= 2) out.push(cur);
+                  cur = [];
+                }
+              }
+              if (cur.length >= 2) out.push(cur);
+              return out;
+            };
+            for (const seg of partirFueraGalibo(cs)) {
+              cinta(mAsfalto, aLoc(seg, 'terreno', 0.06), id === '040031' ? 9.5 : 6.4, -0.14, 0.05, 0.22, 0.15);
+              registrarCamino(seg, 0.06);
+            }
           } else if (id === '010127' || id === '050021' || id === '010047') {
-            cinta(mCuneta, aLoc(cs, 'terreno', -0.18), 1.15, -0.35, 0.04, 0.35, 0.25);
+            const partirFueraGalibo = (coords) => {
+              const out = []; let cur = [];
+              for (const c of coords) {
+                const [Ev, Nv] = lonlatAUTM(c[0], c[1]);
+                const qv = Eje3D.proyUTM(Ev, Nv);
+                const cercaBoca = Eje3D.tuneles.some((t) => Math.min(Math.abs(qv.pk - t.pkIni), Math.abs(qv.pk - t.pkFin)) < 24);
+                const cercaPS = PASOS_SUP.some((ps) => Math.abs(ps.pk - qv.pk) < 18);
+                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8)) {
+                  cur.push(c);
+                } else {
+                  if (cur.length >= 2) out.push(cur);
+                  cur = [];
+                }
+              }
+              if (cur.length >= 2) out.push(cur);
+              return out;
+            };
+            for (const seg of partirFueraGalibo(cs)) {
+              cinta(mCuneta, aLoc(seg, 'terreno', -0.18), 1.15, -0.35, 0.04, 0.35, 0.25);
+            }
           } else if (id === '050135' && PASOS_INF.some((pi) => Math.abs((f.properties.pk ?? 0) - pi.pk) < (pi.pkFin - pi.pkIni) / 2 + Math.max(pi.finIzq, pi.finDer) + 5)) {
             continue;
           } else if (id === '050135' || id === '030020' || id === '030203') {
@@ -1681,7 +1973,26 @@ export function crearGestorTeselas(ctx) {
             const qm = Eje3D.proyUTM(Em, Nm);
             if (qm.enViaducto && qm.d < 15) continue;
             const altoMuro = id === '030203' ? 2.85 : 1.35;
-            cinta(mHormigonObra, aLoc(cs, 'terreno', 0), id === '030203' ? 0.55 : 1.15, -0.95, altoMuro, 0.12, 0.18);
+            const partirFueraGalibo = (coords) => {
+              const out = []; let cur = [];
+              for (const c of coords) {
+                const [Ev, Nv] = lonlatAUTM(c[0], c[1]);
+                const qv = Eje3D.proyUTM(Ev, Nv);
+                const cercaBoca = Eje3D.tuneles.some((t) => Math.min(Math.abs(qv.pk - t.pkIni), Math.abs(qv.pk - t.pkFin)) < 24);
+                const cercaPS = PASOS_SUP.some((ps) => Math.abs(ps.pk - qv.pk) < 18);
+                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8)) {
+                  cur.push(c);
+                } else {
+                  if (cur.length >= 2) out.push(cur);
+                  cur = [];
+                }
+              }
+              if (cur.length >= 2) out.push(cur);
+              return out;
+            };
+            for (const seg of partirFueraGalibo(cs)) {
+              cinta(mHormigonObra, aLoc(seg, 'terreno', 0), id === '030203' ? 0.55 : 1.15, -0.95, altoMuro, 0.12, 0.18);
+            }
           } else if ((id === '050012' || id === '030240') && cs.length >= 4 && cs[0][0] === cs[cs.length - 1][0] && cs[0][1] === cs[cs.length - 1][1]) {
             let sE = 0, sN = 0, sZ = 0, nP = 0;
             for (const c of cs) {
@@ -1705,6 +2016,22 @@ export function crearGestorTeselas(ctx) {
                 construirCentroAutotransformador(cLoc[0], cLoc[2], zBase, ux, uz, ctCercano.nombre, `PK ${fmtPk(ctCercano.pk)}`, ctCercano.tipo);
               }
             }
+          } else if (id === '040023') {
+            let sE = 0, sN = 0, minE = Infinity, maxE = -Infinity, minN = Infinity, maxN = -Infinity;
+            const nV = cs.length > 2 && cs[0][0] === cs[cs.length - 1][0] && cs[0][1] === cs[cs.length - 1][1] ? cs.length - 1 : cs.length;
+            for (let i = 0; i < nV; i++) {
+              const [E, N] = lonlatAUTM(cs[i][0], cs[i][1]);
+              sE += E; sN += N;
+              if (E < minE) minE = E; if (E > maxE) maxE = E;
+              if (N < minN) minN = N; if (N > maxN) maxN = N;
+            }
+            const cE = sE / nV, cN = sN / nV;
+            torresElecCarto.push({ E: cE, N: cN, z: cotaTerrenoUTM(cE, cN), giro: null, span: Math.max(maxE - minE, maxN - minN) });
+          } else if (id === '040230') {
+            lineasElecCarto.push(cs.map((c) => {
+              const [E, N] = lonlatAUTM(c[0], c[1]);
+              return [E, N, cotaTerrenoUTM(E, N)];
+            }));
           }
         } else if (g.type === 'Polygon') {
           const ext = g.coordinates[0]; if (!ext || ext.length < 4) continue;
@@ -1805,10 +2132,80 @@ export function crearGestorTeselas(ctx) {
           } else if (id === '020005' || id === '020135' || id === '020137' || id === '020153') {
             lamina(mAgua, pts2, zBase + 0.12);
           } else if (id === '030080' && !entornoReal) {
+            const qArb = Eje3D.proyUTM(cE, cN);
+            if (qArb.d < 7.2 || qArb.enTunel || qArb.enViaducto) continue;
+            const cercaBocaArb = Eje3D.tuneles.some((t) => Math.min(Math.abs(qArb.pk - t.pkIni), Math.abs(qArb.pk - t.pkFin)) < 30);
+            if (cercaBocaArb && qArb.d < 14) continue;
+            const cercaPSArb = PASOS_SUP.some((ps) => Math.abs(ps.pk - qArb.pk) < 22 && qArb.d < 12);
+            if (cercaPSArb) continue;
             const pArb = L(cE, cN, cotaTerrenoUTM(cE, cN));
             const hArb = 4.5 + (Math.abs(cE * 0.13 + cN * 0.17) % 3.5);
             inst.tronco.push(matInst(pArb, 0, 1.1, hArb * 0.45, 1.1));
             inst.copa.push(matInst([pArb[0], pArb[1] + hArb * 0.38, pArb[2]], cE % 3.14, hArb * 0.52, hArb * 0.56, hArb * 0.52));
+          } else if (id === '040023') {
+            let minE = Infinity, maxE = -Infinity, minN = Infinity, maxN = -Infinity;
+            for (const c of ext) {
+              const [E, N] = lonlatAUTM(c[0], c[1]);
+              if (E < minE) minE = E; if (E > maxE) maxE = E;
+              if (N < minN) minN = N; if (N > maxN) maxN = N;
+            }
+            torresElecCarto.push({ E: cE, N: cN, z: cotaTerrenoUTM(cE, cN), giro: null, span: Math.max(maxE - minE, maxN - minN) });
+          }
+        }
+      }
+
+      // Torres metálicas de líneas eléctricas (040023): agrupar punto + huella/cruz en una sola torre por apoyo
+      {
+        const torresUnicas = [];
+        for (const t of torresElecCarto) {
+          const ex = torresUnicas.find((u) => Math.hypot(u.E - t.E, u.N - t.N) < 7);
+          if (ex) {
+            if (ex.giro == null && t.giro != null) ex.giro = t.giro;
+            if (t.span > ex.span) ex.span = t.span;
+          } else {
+            torresUnicas.push({ ...t });
+          }
+        }
+        for (const t of torresUnicas) {
+          let yaw = Number.isFinite(t.giro) ? (t.giro * Math.PI) / 180 : null;
+          if (yaw == null) {
+            let bestD = 30;
+            for (const ln of lineasElecCarto) {
+              for (let i = 1; i < ln.length; i++) {
+                const ax = ln[i - 1][0], ay = ln[i - 1][1], bx = ln[i][0], by = ln[i][1];
+                const dx = bx - ax, dy = by - ay, l2 = dx * dx + dy * dy || 1;
+                const u = Math.max(0, Math.min(1, ((t.E - ax) * dx + (t.N - ay) * dy) / l2));
+                const d = Math.hypot(t.E - (ax + u * dx), t.N - (ay + u * dy));
+                if (d < bestD) { bestD = d; yaw = Math.atan2(dy, dx); }
+              }
+            }
+          }
+          if (yaw == null) {
+            const mRef = Eje3D.enPk(Eje3D.proyUTM(t.E, t.N).pk);
+            yaw = Math.atan2(mRef.ty, mRef.tx);
+          }
+          const sBase = Math.max(0.75, Math.min(1.5, (t.span || 3.1) / 3.1));
+          inst.torreElectrica.push(matInst(L(t.E, t.N, t.z), yaw, sBase, 1, sBase));
+        }
+        // Conductores aéreos de líneas eléctricas (040230): 6 fases en 3 crucetas + cable de tierra en cúpula
+        const FASES = [[11.1, -3.1], [11.1, 3.1], [13.7, -3.5], [13.7, 3.5], [16.1, -2.7], [16.1, 2.7], [19.4, 0]];
+        for (const ln of lineasElecCarto) {
+          for (let i = 1; i < ln.length; i++) {
+            const [e0, n0, z0] = ln[i - 1], [e1, n1, z1] = ln[i];
+            const len = Math.hypot(e1 - e0, n1 - n0);
+            if (len < 2) continue;
+            const nx = -(n1 - n0) / len, ny = (e1 - e0) / len;
+            const nSub = Math.max(3, Math.min(14, Math.round(len / 20)));
+            const flecha = Math.min(4.5, 0.015 * len);
+            for (const [hC, off] of FASES) {
+              let p0 = null;
+              for (let k = 0; k <= nSub; k++) {
+                const u = k / nSub;
+                const p1 = L(e0 + (e1 - e0) * u + nx * off, n0 + (n1 - n0) * u + ny * off, z0 + (z1 - z0) * u + hC - flecha * 4 * u * (1 - u));
+                if (p0) linSeg(segLineaElec, p0, p1);
+                p0 = p1;
+              }
+            }
           }
         }
       }
@@ -1979,8 +2376,25 @@ export function crearGestorTeselas(ctx) {
         // Especie (no la da el LiDAR): por encima de 6 m pino carrasco; por debajo, olivo o almendro, igual en toda
         // la parcela (celdas de ~45 m en la orientación dominante de los bancales) para que cada finca sea homogénea
         const cTmp = new THREE.Color();
+        // Terminal de Alicante: el LiDAR toma por árboles los postes y pórticos de la playa de vías. Se descarta todo
+        // «árbol» a menos de 3,2 m de un eje de vía de la cartografía (050147 y 050117).
+        const sobreVia = (E, N) => viasTerminal.some(({ pts }) => {
+          for (let k = 1; k < pts.length; k++) {
+            const ax = pts[k - 1][0], ay = pts[k - 1][1], vx = pts[k][0] - ax, vy = pts[k][1] - ay;
+            const t = Math.max(0, Math.min(1, ((E - ax) * vx + (N - ay) * vy) / (vx * vx + vy * vy || 1)));
+            if ((E - ax - t * vx) ** 2 + (N - ay - t * vy) ** 2 < 3.2 * 3.2) return true;
+          }
+          return false;
+        });
         for (let i = 0; i < n; i++) {
           const E = e0 + dat[i * 4] * 0.1, N = n0 + dat[i * 4 + 1] * 0.1, r = dat[i * 4 + 3] * 0.1;
+          if (viasTerminal.length && sobreVia(E, N)) continue;
+          const qArb = Eje3D.proyUTM(E, N);
+          if (qArb.d < 7.2 || qArb.enTunel || qArb.enViaducto) continue;
+          const cercaBocaArb = Eje3D.tuneles.some((t) => Math.min(Math.abs(qArb.pk - t.pkIni), Math.abs(qArb.pk - t.pkFin)) < 30);
+          if (cercaBocaArb && qArb.d < 14) continue;
+          const cercaPSArb = PASOS_SUP.some((ps) => Math.abs(ps.pk - qArb.pk) < 22 && qArb.d < 12);
+          if (cercaPSArb) continue;
           // El MDS normalizado viene en metros enteros: un olivo de 2,4 m llega como 2. Copa nunca más plana que 0,9 × radio
           const h = Math.max(1.4, dat[i * 4 + 2] * 0.1 + 0.4, r * 1.25);
           const p = L(E, N, cotaTerrenoUTM(E, N));
@@ -2108,7 +2522,7 @@ export function crearGestorTeselas(ctx) {
       addMalla(mApoyoViad, mat('#272b33', 1, { metalness: 0.55, roughness: 0.45 }), 'estructuras', '050025');
       addMalla(mPretil, mat('#cbd5e1', 0.78, { roughness: 0.35, metalness: 0.25 }), 'estructuras', '050025');
       addMalla(mAceroGalv, mat('#94a3b8', 1, { metalness: 0.65, roughness: 0.35 }), 'estructuras', '050025', true);
-      addMalla(mTunelBoveda, mat('#64707d', 1, { roughness: 0.88 }), 'estructuras', '050020', false, true);
+      addMalla(mTunelBoveda, matTunelBoveda, 'estructuras', '050020', false, true);
       addMalla(mTunelAcera, mat('#9ca3af', 1, { roughness: 0.85 }), 'estructuras', '050020', false, true);
       addMalla(mBarandillaTunel, mat('#eab308', 1, { metalness: 0.35, roughness: 0.4 }), 'estructuras', '050020');
       addMalla(mHormigonObra, matHormigonViad, 'estructuras', '030203', true, true);
@@ -2117,6 +2531,7 @@ export function crearGestorTeselas(ctx) {
       addHilos(segSustent, '#475569', 'catenaria', 'Cable sustentador y celosía EAC-350', `PK ${fmtPk(pkCentro)} · Sustentador de bronce compensado mecánicamente y arriostramientos.`);
       addHilos(segPendolas, '#64748b', 'catenaria', 'Péndolas equipotenciales EAC-350', `PK ${fmtPk(pkCentro)} · Péndolas verticales de bronce cada 4,6 m entre sustentador e hilo de contacto.`);
       addHilos(segFeeder, '#334155', 'catenaria', 'Feeder negativo 2×25 kV', `PK ${fmtPk(pkCentro)} · Conductor de retorno/alimentación suspendido en cabeza de poste.`);
+      addHilos(segLineaElec, '#1e293b', 'catenaria', 'Línea eléctrica aérea (040230)', `PK ${fmtPk(pkCentro)} · Conductores aéreos de alta/media tensión sobre apoyos de celosía metálica.`);
 
       addMalla(mCanaleta, matCanaleta, 'plataforma', '050150', false, true);
       addMalla(mCuneta, mat('#9ba3ab'), 'plataforma', '010127', false, true);
@@ -2129,7 +2544,7 @@ export function crearGestorTeselas(ctx) {
       // Vallado: malla de simple torsión con textura en rombo (como el entorno de la caseta GSM-R)
       addMalla(mValla, MAT_MALLA_VALLA, 'viales', '030002', false, true);
       addMalla(mAlambreValla, mat('#9aa3a6', 1, { metalness: 0.5, roughness: 0.45 }), 'viales', '030002');
-      addMalla(mPuerta, mat('#10b981', 1, { metalness: 0.35, roughness: 0.45 }), 'viales', '050215', true);
+      addMalla(mPuerta, MAT_PUERTA_VALLA, 'viales', '050215', true);
       addMalla(mEdif, matEdifCivil, 'edificios', '030001', true, true);
       addMalla(mEdifTec, matEdifTecnico, 'edificios', '030235', true, true);
       addMalla(mCubierta, matCubiertaPlana, 'edificios', '030001', true, true);
@@ -2221,6 +2636,7 @@ export function crearGestorTeselas(ctx) {
       addInst(inst.foco, GEO.foco, inst.foco.length === 1 ? matBalizaRoja : matFoco, 'viales', '040191');
       addInst(inst.lumTunel, GEO.lumTunel, matLumTunel, 'estructuras', '050020');
       addInst(inst.cartelTunel, GEO.cartelTunel, matSalidaEmerg, 'estructuras', '050020');
+      addInst(inst.torreElectrica, GEO.torreElectrica, mat('#64748b', 1, { metalness: 0.72, roughness: 0.36 }), 'catenaria', '040023', true);
 
       let meshConosCamara = null;
       if (!mConoCamara.vacia) {
@@ -2245,6 +2661,7 @@ export function crearGestorTeselas(ctx) {
           vivo: () => teselasCargadas.has(km),
         });
       }
+      caminosPorKm.set(km, caminosKm);
       if (ultimoKmCentral >= 0) recortarCacheTeselas(ultimoKmCentral);
     } catch (err) {
       console.error('Error al construir tesela ' + km + ':', err);
@@ -2271,6 +2688,7 @@ export function crearGestorTeselas(ctx) {
       });
       grupoTeselas.remove(t.raiz);
       teselasCargadas.delete(kmBorrar);
+      caminosPorKm.delete(kmBorrar);
       HashCotas.quitarKm(kmBorrar);
     }
   }
@@ -2292,6 +2710,7 @@ export function crearGestorTeselas(ctx) {
 
   return {
     teselasCargadas,
+    caminosPorKm,
     grupoTeselas,
     cargarTeselaKm,
     recortarCacheTeselas,

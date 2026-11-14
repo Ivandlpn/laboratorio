@@ -87,10 +87,10 @@
   .sub { color: var(--muted); font: 500 11.5px/1.35 var(--mono); }
   .ir-pk { display: flex; gap: 6px; margin-top: 6px; }
   .ir-pk input {
-    flex: 1; min-width: 0; min-height: 32px; padding: 4px 8px; border-radius: 5px; border: 1px solid var(--line);
-    background: color-mix(in srgb, var(--bg) 70%, transparent); color: var(--fg); font: 500 12px/1 var(--mono);
+    flex: 1; min-width: 0; min-height: 34px; padding: 4px 9px; border-radius: 7px; border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 70%, transparent); color: var(--fg); font: 500 11.2px/1 var(--mono);
   }
-  .ir-pk button { min-height: 32px; padding: 0 11px; font-weight: 600; background: var(--accent); border-color: var(--accent); color: #fff; }
+  .ir-pk button { min-height: 34px; padding: 0 12px; border-radius: 7px; font-weight: 600; background: var(--accent); border-color: var(--accent); color: #fff; }
   .buscador { position: relative; }
   #sugerencias {
     position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 30; margin: 0; padding: 4px; list-style: none;
@@ -121,10 +121,96 @@
   .fondos span { display: grid; gap: 2px; }
   .fondos b { font: 600 13px/1.2 var(--sans); }
   .fondos small { color: var(--muted); font: 500 11px/1.3 var(--sans); }
-  .saltos { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-  .saltos button { text-align: left; padding: 6px 8px; display: grid; gap: 1px; min-height: 36px; }
-  .saltos button small { font: 400 10px/1.15 var(--mono); color: var(--muted); }
+  .saltos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .saltos button {
+    text-align: left; padding: 7px 9px; display: flex; flex-direction: column; gap: 2px; min-height: 40px; border-radius: 8px;
+    background: color-mix(in srgb, var(--fg) 3%, transparent); transition: background .14s, border-color .14s;
+    min-width: 0; overflow: hidden; box-sizing: border-box;
+  }
+  .saltos button:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .saltos button span {
+    white-space: normal; line-height: 1.2; word-break: break-word; overflow: hidden;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  }
+  .saltos button small { font: 400 10px/1.15 var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .saltos button[aria-pressed="true"] small { color: rgba(255,255,255,0.9); }
+  #cabVelMult {
+    padding: 3px 8px; border-radius: 5px; background: rgba(15, 23, 30, 0.72);
+    border: 1px solid rgba(56, 189, 248, 0.35); color: #e0f2fe; font: 600 11px/1.2 var(--mono); white-space: nowrap;
+  }
+  /* Radar flotante de ±5 emplazamientos (cabina y dron) */
+  #panelEmplazamientos {
+    position: fixed; z-index: 6;
+    right: calc(14px + env(safe-area-inset-right, 0px));
+    top: calc(114px + env(safe-area-inset-top, 0px));
+    width: 292px; max-width: calc(100vw - 24px);
+    background: rgba(10, 16, 26, 0.90); color: #f1f5f9;
+    border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45); backdrop-filter: blur(12px);
+    overflow: hidden; font: 500 11.5px/1.25 var(--sans);
+  }
+  #panelEmplazamientos.ventana-plegada #empLista { display: none; }
+  .emp-cab {
+    display: flex; align-items: center; gap: 7px; padding: 7px 10px;
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.18), rgba(56, 189, 248, 0.12));
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+    font: 700 10px/1 var(--mono); letter-spacing: 0.05em; text-transform: uppercase; color: #cbd5e1;
+    cursor: grab;
+  }
+  .emp-cab:active { cursor: grabbing; }
+  .emp-cab-ico { font-size: 11px; }
+  .emp-cab-tit { font-weight: 700; color: #f8fafc; }
+  .emp-cab small {
+    margin-left: auto; color: #38bdf8; font: 700 9.5px/1 var(--mono);
+    background: rgba(56, 189, 248, 0.14); padding: 2.5px 6px; border-radius: 4px;
+    border: 1px solid rgba(56, 189, 248, 0.28);
+  }
+  #empLista { display: grid; gap: 2.5px; padding: 6px; max-height: min(440px, 70vh); overflow-y: auto; }
+  .emp-item {
+    all: unset; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    padding: 5px 8px; border-radius: 7px; transition: background 0.12s, transform 0.1s, border-color 0.12s;
+    border: 1px solid transparent; min-width: 0; width: 100%; box-sizing: border-box; overflow: hidden;
+  }
+  .emp-item:hover { background: rgba(56, 189, 248, 0.14); transform: translateX(2px); }
+  .emp-item.ant { opacity: 0.58; }
+  .emp-item.emp-inminente {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.38);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.18);
+  }
+  .emp-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 7px currentColor; }
+  .emp-cuerpo { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; overflow: hidden; }
+  .emp-fila-arr { display: flex; align-items: center; gap: 6px; min-width: 0; width: 100%; overflow: hidden; }
+  .emp-tipo-badge {
+    font: 700 8.5px/1 var(--mono); padding: 2px 4.5px; border-radius: 3px; border: 1px solid;
+    text-transform: uppercase; flex-shrink: 0; letter-spacing: 0.02em;
+  }
+  .emp-nom { font-weight: 600; font-size: 11.5px; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1; }
+  .emp-fila-abj { display: flex; justify-content: space-between; align-items: center; font: 500 9.5px/1 var(--mono); min-width: 0; width: 100%; overflow: hidden; }
+  .emp-meta { color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 175px; }
+  .emp-dist { font-weight: 700; color: #34d399; white-space: nowrap; flex-shrink: 0; margin-left: 6px; }
+  .emp-item.ant .emp-dist { color: #94a3b8; }
+  .emp-sep {
+    display: flex; align-items: center; gap: 7px; margin: 4px 0; padding: 4px 8px;
+    background: linear-gradient(90deg, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.22), rgba(56, 189, 248, 0.1));
+    border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 6px;
+  }
+  .emp-sep-radar-pulse {
+    width: 6px; height: 6px; border-radius: 50%; background: #38bdf8;
+    box-shadow: 0 0 6px #38bdf8; animation: radarPulso 1.4s ease-out infinite; flex-shrink: 0;
+  }
+  @keyframes radarPulso {
+    0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.85); }
+    70% { box-shadow: 0 0 0 6px rgba(56, 189, 248, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+  }
+  .emp-sep-txt { font: 700 8.5px/1 var(--mono); color: #94a3b8; letter-spacing: 0.08em; }
+  .emp-sep-pk { margin-left: auto; font: 700 11px/1 var(--mono); color: #38bdf8; }
+  body.limpio #panelEmplazamientos, body.modo-cine #panelEmplazamientos { display: none !important; }
+  /* Limpiaparabrisas animado en Cabina AVE */
+  #limpiaCabina { transform-box: fill-box; transform-origin: 50% 100%; transition: opacity 0.25s; }
+  #limpiaCabina.activo { opacity: 0.85; animation: barridoLimpia 1.15s ease-in-out infinite alternate; }
+  @keyframes barridoLimpia { from { transform: rotate(-42deg); } to { transform: rotate(42deg); } }
   button {
     font: 500 12.5px/1.15 var(--sans); color: var(--fg); background: transparent; border: 1px solid var(--line);
     border-radius: 5px; padding: 7px 9px; min-height: 32px; cursor: pointer;
@@ -153,35 +239,108 @@
 
   /* UI 1: HUD minimalista de cabina / seguimiento en la base */
   #cab {
-    position: fixed; z-index: 6; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%);
-    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 12px;
-    padding: 7px 14px; border-radius: 12px; max-width: calc(100vw - 24px); box-sizing: border-box;
-    background: rgba(11, 17, 24, 0.86); color: #e2e8f0; border: 1px solid rgba(56, 189, 248, 0.28);
-    font: 500 12px/1.2 var(--mono); box-shadow: 0 12px 32px rgba(4, 9, 16, .45); backdrop-filter: blur(12px);
+    position: fixed; z-index: 6; bottom: calc(122px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%);
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 8px;
+    padding: 5px 12px; border-radius: 12px; max-width: calc(100vw - 24px); box-sizing: border-box;
+    background: rgba(11, 17, 24, 0.90); color: #e2e8f0; border: 1px solid rgba(56, 189, 248, 0.28);
+    font: 500 11.5px/1.2 var(--mono); box-shadow: 0 12px 32px rgba(4, 9, 16, .45); backdrop-filter: blur(12px);
   }
   #cab[hidden] { display: none; }
   #cab b { color: #38bdf8; }
-  #cab .controles-cab { display: inline-flex; gap: 4px; align-items: center; }
-  #cab .controles-cab button { min-height: 28px; padding: 4px 8px; font: 600 11px/1 var(--mono); background: rgba(255,255,255,.07); color: #e2e8f0; border-color: rgba(255,255,255,.14); }
+  #cab .controles-cab { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; justify-content: center; }
+  #cab .controles-cab button { min-height: 26px; padding: 3px 7px; font: 600 10.5px/1 var(--mono); background: rgba(255,255,255,.07); color: #e2e8f0; border-color: rgba(255,255,255,.14); white-space: nowrap; }
   #cab .controles-cab button[aria-pressed="true"] { background: #0284c7; color: #fff; border-color: transparent; }
-  #cabProx { color: #94a3b8; font-size: 11px; }
+  #cab .controles-cab button.bocina-activa { background: #eab308; color: #0f172a; border-color: #fde047; transform: scale(1.08); }
+  #cabProx { color: #94a3b8; font-size: 11px; white-space: nowrap; }
 
-  /* Marco envolvente de cabina de conducción S-112 + pupitre DMI ERTMS */
+  /* Marco envolvente de cabina de conducción S-112 + pupitre DMI ERTMS Nivel 2 */
   #marcoCabina {
     position: fixed; inset: 0; z-index: 3; pointer-events: none;
   }
   #marcoCabina svg { width: 100%; height: 100%; display: block; }
-  #pupitreDmi {
-    position: fixed; z-index: 4; left: 50%; transform: translateX(-50%);
-    bottom: calc(150px + env(safe-area-inset-bottom, 0px));
-    display: flex; align-items: center; gap: 14px; padding: 8px 16px; border-radius: 10px;
-    background: rgba(11, 17, 24, 0.88); border: 1px solid rgba(56, 189, 248, 0.35);
-    color: #e2e8f0; font: 600 11.5px/1.1 var(--mono); box-shadow: 0 12px 28px rgba(0,0,0,.45);
-    backdrop-filter: blur(8px); max-width: calc(100vw - 24px); box-sizing: border-box;
+
+  /* Viñeteado dinámico de velocidad (motion blur periférico a alta velocidad) */
+  #vignetteVelocidad {
+    position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0;
+    background: radial-gradient(ellipse at center, transparent 48%, rgba(15, 23, 42, 0.42) 78%, rgba(2, 6, 23, 0.82) 100%);
+    transition: opacity 0.25s ease-out;
   }
-  #pupitreDmi .vel-num { font-size: 20px; font-weight: 700; color: #38bdf8; min-width: 52px; text-align: right; }
-  #pupitreDmi .etcs-badge { padding: 3px 7px; border-radius: 4px; background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; font-size: 10.5px; }
-  #pupitreDmi .sep-dmi { width: 1px; height: 22px; background: rgba(148, 163, 184, 0.25); }
+  #vignetteVelocidad.activo {
+    opacity: var(--vignette-op, 0.65);
+  }
+
+  /* Pupitre DMI oficial ERTMS/ETCS N2 interactivo */
+  #pupitreDmi {
+    position: fixed; z-index: 5; left: 50%; transform: translateX(-50%);
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    padding: 8px 12px; border-radius: 12px;
+    background: rgba(9, 14, 22, 0.94); border: 1.5px solid rgba(56, 189, 248, 0.38);
+    color: #e2e8f0; font: 600 11.5px/1.1 var(--mono); box-shadow: 0 16px 36px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,0.1);
+    backdrop-filter: blur(12px); max-width: calc(100vw - 24px); box-sizing: border-box;
+    cursor: grab;
+  }
+  #pupitreDmi:active { cursor: grabbing; }
+  .dmi-marco { display: flex; align-items: center; gap: 14px; }
+  .dmi-reloj { position: relative; width: 78px; height: 78px; flex-shrink: 0; }
+  .dmi-dial-svg { width: 100%; height: 100%; transform: rotate(135deg); }
+  .dmi-dial-bg { fill: rgba(15, 23, 42, 0.85); stroke: rgba(148, 163, 184, 0.25); stroke-width: 4; }
+  .dmi-arc-perm { fill: none; stroke: #38bdf8; stroke-width: 6; stroke-dasharray: 245; stroke-dashoffset: 45; stroke-linecap: round; }
+  .dmi-arc-actual { fill: none; stroke: #facc15; stroke-width: 6; stroke-dasharray: 245; stroke-dashoffset: 80; stroke-linecap: round; transition: stroke-dashoffset 0.15s; }
+  .dmi-needle { stroke: #f8fafc; stroke-width: 2.5; stroke-linecap: round; transform-origin: 70px 70px; transition: transform 0.15s ease-out; }
+  .dmi-needle-hub { fill: #facc15; stroke: #0f172a; stroke-width: 1.5; }
+  .dmi-dial-center {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .dmi-vel-val { font: 800 18px/1 var(--mono); color: #f8fafc; text-shadow: 0 0 8px rgba(250, 204, 21, 0.4); }
+  .dmi-vel-unit { font: 600 8.5px/1 var(--mono); color: #94a3b8; margin-top: 1px; }
+  .dmi-info { display: flex; flex-direction: column; gap: 6px; min-width: 175px; }
+  .dmi-fila-estados { display: flex; align-items: center; gap: 5px; }
+  .dmi-box-fs {
+    padding: 2.5px 6px; border-radius: 3px; background: #065f46; border: 1px solid #10b981;
+    color: #6ee7b7; font: 800 9.5px/1 var(--mono); letter-spacing: 0.05em;
+  }
+  .dmi-box-l2 {
+    padding: 2.5px 6px; border-radius: 3px; background: #075985; border: 1px solid #38bdf8;
+    color: #7dd3fc; font: 800 9.5px/1 var(--mono); letter-spacing: 0.05em;
+  }
+  .dmi-box-gsm {
+    margin-left: auto; padding: 2px 5px; border-radius: 3px; background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font: 700 9px/1 var(--mono);
+  }
+  .dmi-fila-datos { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; }
+  .dmi-dato { display: flex; flex-direction: column; gap: 1px; }
+  .dmi-dato small { font-size: 8.5px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+  .dmi-dato strong { font: 700 11px/1 var(--mono); color: #f8fafc; }
+  .dmi-barra-freno {
+    width: 100%; height: 4px; background: rgba(148, 163, 184, 0.2); border-radius: 2px; overflow: hidden;
+  }
+  .dmi-freno-fill {
+    width: 65%; height: 100%; background: linear-gradient(90deg, #10b981, #facc15);
+    border-radius: 2px; transition: width 0.2s;
+  }
+
+  /* Minimapa orbital HUD con radar de vía y perfil sincronizado */
+  #panelMinimapa {
+    position: fixed; z-index: 6;
+    left: calc(16px + env(safe-area-inset-left, 0px));
+    bottom: calc(122px + env(safe-area-inset-bottom, 0px));
+    width: 172px; background: rgba(10, 16, 26, 0.90);
+    border: 1.5px solid rgba(56, 189, 248, 0.32); border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.45); backdrop-filter: blur(10px);
+    overflow: hidden; font: 500 11px/1.2 var(--sans);
+  }
+  #panelMinimapa.ventana-plegada #cvMinimapa { display: none; }
+  .minimapa-cab {
+    display: flex; align-items: center; justify-content: space-between; padding: 5px 8px;
+    background: linear-gradient(90deg, rgba(56, 189, 248, 0.16), rgba(16, 185, 129, 0.12));
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+    font: 700 9px/1 var(--mono); color: #cbd5e1; letter-spacing: 0.05em;
+    cursor: grab;
+  }
+  .minimapa-cab:active { cursor: grabbing; }
+  .minimapa-cab small { color: #38bdf8; font: 700 9px/1 var(--mono); }
+  #cvMinimapa { display: block; width: 172px; height: 172px; background: #070c14; }
 
   /* Barra inferior interactiva: perfil altimétrico de los 164,2 km */
   #barraPerfil {
@@ -208,7 +367,8 @@
   .leyenda-p { display: inline-flex; flex: none; gap: 8px; font-size: 10.5px; }
   .leyenda-p span { display: inline-flex; align-items: center; gap: 4px; }
   .leyenda-p i { width: 9px; height: 4px; border-radius: 1px; display: inline-block; }
-  #cvPerfil { width: 100%; height: 46px; display: block; cursor: ew-resize; touch-action: none; border-radius: 4px; }
+  .leyenda-p .pend i { width: 14px; background: linear-gradient(90deg, #10b981 0 33%, #f59e0b 33% 66%, #ef4444 66%); }
+  #cvPerfil { width: 100%; height: 84px; display: block; cursor: ew-resize; touch-action: none; border-radius: 4px; }
 
   /* UI 5: Mini-brújula Norte real + altitud + escala gráfica dinámica */
   #brujula {
@@ -286,20 +446,145 @@
   #cruceta .abajo { grid-column: 2; grid-row: 2; }
   #cruceta .der { grid-column: 3; grid-row: 2; }
 
+  /* ---- Pantalla de carga: túnel a alta velocidad (siempre oscura, como el interior de un túnel) ---- */
   #cargando {
-    position: fixed; inset: 0; z-index: 8; display: grid; place-content: center; gap: 8px; text-align: center;
-    background: var(--bg); font: 500 13px/1.4 var(--mono); color: var(--muted); padding: 20px;
+    position: fixed; inset: 0; z-index: 100; overflow: hidden; color: #eef3f1;
+    background: radial-gradient(ellipse 90% 70% at 50% 52%, #142026 0%, #0a1115 45%, #040607 100%);
+    font: 500 12px/1.4 var(--mono);
+    transition: opacity .75s ease;
   }
-  #cargando b { font: 700 21px/1.15 var(--sans); color: var(--fg); }
+  #cargando.fuera { opacity: 0; pointer-events: none; }
+  #cargando .tunel { position: absolute; inset: 0; perspective: 520px; perspective-origin: 50% 52%; }
+  #cargando .tunel-escena { position: absolute; left: 50%; top: 52%; width: 0; height: 0; transform-style: preserve-3d; }
+  /* Anillos del túnel (bóveda + hastiales) con sus luminarias, de lejos hacia la cámara */
+  #cargando .anillos { position: absolute; transform-style: preserve-3d; }
+  #cargando .anillos i {
+    position: absolute; left: -380px; top: -340px; width: 760px; height: 560px; box-sizing: border-box;
+    border: 3px solid rgba(132, 162, 172, .3); border-bottom: 0;
+    border-radius: 380px 380px 0 0 / 300px 300px 0 0;
+    animation: carga-anillo 7.2s linear infinite; will-change: transform, opacity;
+  }
+  #cargando .anillos i::before, #cargando .anillos i::after {
+    content: ""; position: absolute; top: 48%; width: 16px; height: 5px; border-radius: 3px;
+    background: #ffe2b0; box-shadow: 0 0 14px 5px rgba(255, 186, 102, .7);
+  }
+  #cargando .anillos i::before { left: -9px; }
+  #cargando .anillos i::after { right: -9px; }
+  #cargando .anillos i:nth-child(1) { animation-delay: 0s; }
+  #cargando .anillos i:nth-child(2) { animation-delay: -0.45s; }
+  #cargando .anillos i:nth-child(3) { animation-delay: -0.9s; }
+  #cargando .anillos i:nth-child(4) { animation-delay: -1.35s; }
+  #cargando .anillos i:nth-child(5) { animation-delay: -1.8s; }
+  #cargando .anillos i:nth-child(6) { animation-delay: -2.25s; }
+  #cargando .anillos i:nth-child(7) { animation-delay: -2.7s; }
+  #cargando .anillos i:nth-child(8) { animation-delay: -3.15s; }
+  #cargando .anillos i:nth-child(9) { animation-delay: -3.6s; }
+  #cargando .anillos i:nth-child(10) { animation-delay: -4.05s; }
+  #cargando .anillos i:nth-child(11) { animation-delay: -4.5s; }
+  #cargando .anillos i:nth-child(12) { animation-delay: -4.95s; }
+  #cargando .anillos i:nth-child(13) { animation-delay: -5.4s; }
+  #cargando .anillos i:nth-child(14) { animation-delay: -5.85s; }
+  #cargando .anillos i:nth-child(15) { animation-delay: -6.3s; }
+  #cargando .anillos i:nth-child(16) { animation-delay: -6.75s; }
+  @keyframes carga-anillo {
+    0% { transform: translateZ(-3600px); opacity: 0; }
+    14% { opacity: 1; }
+    100% { transform: translateZ(480px); opacity: 1; }
+  }
+  /* Plataforma: balasto, dos carriles continuos y traviesas que corren hacia la cámara */
+  #cargando .suelo {
+    position: absolute; left: -150px; top: 220px; width: 300px; height: 4100px; overflow: hidden;
+    transform-origin: 50% 0; transform: translateZ(480px) rotateX(-90deg);
+    background:
+      linear-gradient(90deg, transparent 0 101px, #a9bec7 101px 107px, transparent 107px 193px, #a9bec7 193px 199px, transparent 199px),
+      linear-gradient(90deg, transparent 0 30px, #1a2124 30px 270px, transparent 270px);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
+  }
+  #cargando .traviesas {
+    position: absolute; left: 62px; right: 62px; top: 0; bottom: -1200px;
+    background: repeating-linear-gradient(180deg, #4a5357 0 34px, transparent 34px 120px);
+    animation: carga-traviesas 2.12s linear infinite; will-change: transform;
+  }
+  @keyframes carga-traviesas { from { transform: translateY(0); } to { transform: translateY(-1200px); } }
+  /* Hilo de contacto de la catenaria sobre el eje */
+  #cargando .hilo {
+    position: absolute; left: -1px; top: -250px; width: 3px; height: 4100px;
+    transform-origin: 50% 0; transform: translateZ(480px) rotateX(-90deg);
+    background: linear-gradient(180deg, rgba(200, 225, 232, 0) 0%, rgba(200, 225, 232, .5) 9%, rgba(200, 225, 232, 0) 100%);
+  }
+  /* Luz de la boca de salida en el punto de fuga */
+  #cargando .boca {
+    position: absolute; left: 50%; top: 52%; width: 240px; height: 240px; border-radius: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    background: radial-gradient(circle, rgba(255, 252, 240, .95) 0%, rgba(255, 236, 196, .55) 18%, rgba(255, 220, 160, .12) 45%, transparent 70%);
+    animation: carga-latido 2.4s ease-in-out infinite;
+  }
+  @keyframes carga-latido { 50% { transform: translate(-50%, -50%) scale(1.12); } }
+  /* Marca */
+  #cargando .marca {
+    position: absolute; left: 0; right: 0; top: calc(13% + env(safe-area-inset-top, 0px)); text-align: center; padding: 0 16px;
+    animation: carga-entrada 1.3s cubic-bezier(.16, 1, .3, 1) both; transition: opacity .35s ease, transform .6s ease;
+  }
+  @keyframes carga-entrada {
+    from { opacity: 0; transform: translateY(26px) scale(.92); letter-spacing: .25em; filter: blur(6px); }
+    to { opacity: 1; transform: none; filter: none; }
+  }
+  #cargando .logo {
+    font: 700 clamp(52px, 13vw, 136px)/.92 var(--sans); letter-spacing: .02em; color: #f4f7f5;
+    text-shadow: 0 1px 0 #b7c2bd, 0 2px 0 #9aa6a1, 0 3px 0 #7e8a85, 0 4px 0 #64706b, 0 6px 2px rgba(0, 0, 0, .5),
+      0 14px 30px rgba(0, 0, 0, .6);
+  }
+  #cargando .logo span {
+    color: #10b981;
+    text-shadow: 0 1px 0 #0c8a60, 0 2px 0 #0a7450, 0 3px 0 #085e41, 0 4px 0 #064832, 0 0 28px rgba(16, 185, 129, .55),
+      0 14px 30px rgba(0, 0, 0, .6);
+  }
+  #cargando .lema {
+    display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px;
+    font: 600 clamp(12px, 2.6vw, 17px)/1 var(--mono); letter-spacing: .5em; text-transform: uppercase; color: #d7e4df;
+    padding-left: .5em; /* compensa el espaciado de la última letra */
+  }
+  #cargando .lema::before, #cargando .lema::after {
+    content: ""; width: clamp(24px, 8vw, 70px); height: 2px; flex: none;
+    background: linear-gradient(90deg, transparent, #10b981);
+  }
+  #cargando .lema::after { background: linear-gradient(90deg, #10b981, transparent); }
+  #cargando .linea { margin-top: 12px; font: 500 11.5px/1.3 var(--mono); letter-spacing: .08em; color: #8b9a94; }
+  /* Velocímetro: la aguja sube con la carga real */
+  #cargando .velo {
+    position: absolute; left: 50%; bottom: calc(6% + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    width: 260px; text-align: center; transition: opacity .35s ease;
+  }
+  #cargando .velo::before {
+    content: ""; position: absolute; left: 50%; top: 68px; width: 240px; height: 200px; transform: translate(-50%, -50%);
+    background: radial-gradient(closest-side, rgba(4, 7, 8, .82), rgba(4, 7, 8, 0)); z-index: -1;
+  }
+  #cargando .velo svg { display: block; width: 136px; height: 136px; margin: 0 auto; transform: rotate(135deg); }
+  #cargando .velo circle { fill: none; stroke-width: 6; stroke-linecap: round; }
+  #cargando .velo-fondo { stroke: rgba(255, 255, 255, .12); stroke-dasharray: 75 100; }
+  #cargando .velo-arco {
+    stroke: #10b981; stroke-dasharray: 0 100;
+    filter: drop-shadow(0 0 5px rgba(16, 185, 129, .8));
+  }
+  #cargando .velo-num { position: absolute; left: 0; right: 0; top: 40px; display: grid; justify-items: center; }
+  #cargando .velo-num b { font: 700 36px/1 var(--mono); font-variant-numeric: tabular-nums; color: #f4f7f5; }
+  #cargando .velo-num small { margin-top: 3px; font: 600 10px/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: #8b9a94; }
+  #cargando .velo-fase { margin-top: -14px; min-height: 2.8em; color: #a9b6b1; font-size: 11.5px; }
+  /* Salida del túnel: la boca crece hasta llenar la pantalla y la escena aparece debajo */
+  #cargando.saliendo .boca { animation: none; transform: translate(-50%, -50%) scale(16); transition: transform 1s cubic-bezier(.55, 0, .85, .35); }
+  #cargando.saliendo .marca { opacity: 0; transform: scale(1.15); }
+  #cargando.saliendo .velo { opacity: 0; }
+  /* Error: el túnel se para y se muestra el motivo */
+  #cargando.error .anillos i, #cargando.error .traviesas { animation-play-state: paused; }
+  #cargando.error .velo-arco { stroke: #f87171; filter: none; }
+  #cargando.error .velo-fase { color: #fca5a5; }
+  @media (prefers-reduced-motion: reduce) {
+    #cargando .anillos i, #cargando .traviesas, #cargando .boca { animation-play-state: paused; }
+    #cargando .marca { animation: none; }
+    #cargando.saliendo .boca { transition: none; }
+  }
 
-  .seg-wrap { display: grid; gap: 4px; margin-top: 6px; }
-  .seg-wrap > span { font: 600 10.5px/1 var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
-  .seg-ctrl { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; }
-  .seg-ctrl button { padding: 5px 6px; font-size: 11px; text-align: center; }
-  .seg-ctrl button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: transparent; }
-  .herr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
-  .herr-grid button { padding: 7px 8px; font-size: 11.5px; }
-  .herr-grid button[aria-pressed="true"] { background: #0284c7; color: #fff; border-color: transparent; }
   #medidaBadge {
     position: fixed; z-index: 7; top: calc(58px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
     background: rgba(12, 19, 31, .92); color: #e2e8f0; border: 1px solid rgba(56, 189, 248, .55);
@@ -308,6 +593,22 @@
     max-width: calc(100vw - 24px); box-sizing: border-box;
   }
   #medidaBadge[hidden] { display: none; }
+  /* Aviso de descarga de las nubes de puntos */
+  #avisoNube {
+    position: fixed; z-index: 7; top: calc(100px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 8px; max-width: calc(100vw - 32px);
+    background: rgba(12, 19, 31, .92); color: #e2e8f0; border: 1px solid rgba(168, 85, 247, .6);
+    border-radius: 999px; padding: 7px 14px; font: 500 11.5px/1.3 var(--mono); backdrop-filter: blur(8px);
+    pointer-events: none;
+  }
+  #avisoNube[hidden] { display: none; }
+  #avisoNube .giro {
+    flex: none; width: 11px; height: 11px; border-radius: 50%;
+    border: 2px solid rgba(168, 85, 247, .35); border-top-color: #a855f7; animation: giroNube .8s linear infinite;
+  }
+  @keyframes giroNube { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { #avisoNube .giro { animation: none; } }
+  body.limpio #avisoNube, body.modo-cine #avisoNube { display: none !important; }
   #medidaBadge button { padding: 3px 7px; font-size: 11px; }
 
   /* Contenedores de información movibles y contraíbles/expandibles */
@@ -366,9 +667,10 @@
     #cab { bottom: calc(82px + env(safe-area-inset-bottom, 0px)); top: auto; max-width: calc(100vw - 24px); padding: 6px 10px; font-size: 11px; }
     #islaRapida { top: calc(52px + env(safe-area-inset-top, 0px)); max-width: calc(100vw - 24px); overflow-x: auto; }
     #medidaBadge { top: calc(96px + env(safe-area-inset-top, 0px)); }
+    #avisoNube { top: calc(138px + env(safe-area-inset-top, 0px)); font-size: 10.5px; }
     #pupitreDmi { display: none !important; }
     #barraPerfil { right: calc(12px + env(safe-area-inset-right, 0px)); padding: 6px 9px; }
     .leyenda-p { display: none; }
-    #cvPerfil { height: 38px; }
+    #cvPerfil { height: 62px; }
     #brujula { display: none; }
   }

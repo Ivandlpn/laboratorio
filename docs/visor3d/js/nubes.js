@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 
 // Gestor de nubes de puntos LiDAR/fotogramétricas preprocesadas (public/datos/albali/nubes/)
-export function crearGestorNubes({ escena, W, origen }) {
+// alProgreso({ zonas, leidos, total }): avisa mientras se descargan nubes (zonas = 0 cuando ya no queda ninguna)
+export function crearGestorNubes({ escena, W, origen, alProgreso = null }) {
   const grupo = new THREE.Group();
   grupo.name = 'nubesPuntos';
   escena.add(grupo);
@@ -40,14 +41,46 @@ export function crearGestorNubes({ escena, W, origen }) {
     })
     .catch(() => []);
 
+  // Progreso de las descargas en curso: id -> [bytes leídos, bytes totales]
+  const progreso = new Map();
+  function avisarProgreso() {
+    if (!alProgreso) return;
+    let leidos = 0, total = 0;
+    for (const [l, t] of progreso.values()) { leidos += l; total += t; }
+    alProgreso({ zonas: progreso.size, leidos, total });
+  }
+
+  // Lee el fichero por trozos para poder contar lo descargado. El total sale del índice (tamBytes o puntos × 15),
+  // no de Content-Length: GitHub Pages sirve comprimido y esa cabecera da el tamaño comprimido.
+  async function leerConProgreso(resp, z) {
+    const total = z.tamBytes || z.puntos * 15;
+    progreso.set(z.id, [0, total]);
+    avisarProgreso();
+    if (!resp.body?.getReader) return resp.arrayBuffer();
+    const lector = resp.body.getReader();
+    const bytes = new Uint8Array(total);
+    let off = 0;
+    for (;;) {
+      const { done, value } = await lector.read();
+      if (done) break;
+      if (off + value.length > total) throw new Error(`nube ${z.id}: el fichero es mayor que lo indicado en el índice`);
+      bytes.set(value, off);
+      off += value.length;
+      progreso.set(z.id, [off, total]);
+      avisarProgreso();
+    }
+    if (off !== total) throw new Error(`nube ${z.id}: ${off} de ${total} bytes`);
+    return bytes.buffer;
+  }
+
   async function cargarZona(z) {
     if (cargadas.has(z.id)) return;
     const reg = { zona: z, estado: 'cargando', puntos: null };
     cargadas.set(z.id, reg);
     try {
       const resp = await fetch(`./datos/albali/nubes/${z.fichero}`);
-      if (!resp.ok) { cargadas.delete(z.id); return; }
-      const buf = await resp.arrayBuffer();
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const buf = await leerConProgreso(resp, z);
       const n = z.puntos;
       const pos = new Float32Array(buf, 0, n * 3);
       const col = new Uint8Array(buf, n * 12, n * 3);
@@ -64,8 +97,14 @@ export function crearGestorNubes({ escena, W, origen }) {
       reg.estado = 'lista';
       grupo.add(pts);
       actualizar(origen.E, origen.N);
-    } catch {
-      cargadas.delete(z.id);
+    } catch (err) {
+      // Sin esto actualizar() la volvería a pedir cada 0,18 s: se reintenta como pronto a los 30 s
+      console.warn('No se pudo cargar la nube de puntos', z.id, err);
+      reg.estado = 'error';
+      reg.reintento = performance.now() + 30000;
+    } finally {
+      progreso.delete(z.id);
+      avisarProgreso();
     }
   }
 
@@ -78,6 +117,7 @@ export function crearGestorNubes({ escena, W, origen }) {
       if (dist < 3200 + (z.radio || 0)) {
         if (!reg) cargarZona(z);
         else if (reg.puntos) reg.puntos.visible = true;
+        else if (reg.estado === 'error' && performance.now() > reg.reintento) { cargadas.delete(z.id); cargarZona(z); }
       } else if (reg?.puntos && dist > 4800 + (z.radio || 0)) {
         reg.puntos.visible = false;
       }

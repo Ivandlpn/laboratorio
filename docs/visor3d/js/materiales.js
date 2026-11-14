@@ -21,7 +21,7 @@ export function crearMateriales({ conHuecos }) {
         if (azar() < 0.3) { x.fillStyle = 'rgba(210,230,235,0.35)'; x.fillRect(fx * 32 + 3, fy * 48 + 3, 26, 20); }
       }
     }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     t.repeat.set(1 / 6, 1 / 3.6);
     return t;
   })();
@@ -42,7 +42,7 @@ export function crearMateriales({ conHuecos }) {
     x.fillStyle = '#ffffff'; x.font = '600 54px "IBM Plex Sans Condensed", Arial, sans-serif'; x.textBaseline = 'middle';
     x.fillText(texto, 24, sub ? 50 : 64);
     if (sub) { x.font = '500 26px "IBM Plex Sans Condensed", Arial, sans-serif'; x.fillStyle = '#b8c4cf'; x.fillText(sub, 26, 100); }
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     return t;
   }
   // ---- Estación de Alicante-Terminal: edificio de la MZA (1858), neoclásico, planta en U, y marquesina Polonceau ----
@@ -58,7 +58,7 @@ export function crearMateriales({ conHuecos }) {
       x.fillStyle = '#2b3036'; x.beginPath(); x.moveTo(42, y0 + 88); x.lineTo(42, y0 + 28); x.arc(64, y0 + 28, 22, Math.PI, 0); x.lineTo(86, y0 + 88); x.fill();
       x.strokeStyle = '#8a8f93'; x.lineWidth = 2; x.beginPath(); x.moveTo(64, y0 + 8); x.lineTo(64, y0 + 88); x.moveTo(42, y0 + 50); x.lineTo(86, y0 + 50); x.stroke();
     }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     return t;
   })();
   const MAT_ALI = {
@@ -189,19 +189,62 @@ export function crearMateriales({ conHuecos }) {
   const matSubbalasto = new THREE.MeshStandardMaterial({ map: texSubbalasto, bumpMap: texSubbalasto, bumpScale: 0.5, roughness: 0.92, metalness: 0.02, side: THREE.DoubleSide });
 
   const texHormigon = (() => {
-    const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+    const c = document.createElement('canvas'); c.width = c.height = 512; const x = c.getContext('2d');
     let sd = 313; const az = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-    x.fillStyle = '#cbc7be'; x.fillRect(0, 0, 256, 256);
-    for (let y = 0; y < 256; y += 32) { x.fillStyle = 'rgba(90,88,82,0.16)'; x.fillRect(0, y, 256, 1.5); }
-    for (let i = 0; i < 1200; i++) {
-      const v = 175 + (az() * 52 | 0);
-      x.fillStyle = `rgba(${v},${v - 1},${v - 4},0.35)`;
-      x.fillRect(az() * 256, az() * 256, 1 + az() * 3, 1 + az() * 3);
+    x.fillStyle = '#c5c2b8'; x.fillRect(0, 0, 512, 512);
+    for (let y = 0; y < 512; y += 64) {
+      x.fillStyle = 'rgba(60, 58, 52, 0.28)'; x.fillRect(0, y, 512, 2);
+      x.fillStyle = 'rgba(255, 255, 255, 0.18)'; x.fillRect(0, y + 2, 512, 1);
+      for (let px = 32; px < 512; px += 64) {
+        x.fillStyle = 'rgba(40, 38, 32, 0.45)';
+        x.beginPath(); x.arc(px, y + 32, 2.8, 0, Math.PI * 2); x.fill();
+        x.fillStyle = 'rgba(255, 255, 255, 0.15)';
+        x.beginPath(); x.arc(px + 0.5, y + 33, 1.8, 0, Math.PI * 2); x.fill();
+      }
+    }
+    for (let i = 0; i < 4000; i++) {
+      const v = 160 + (az() * 75 | 0);
+      x.fillStyle = `rgba(${v}, ${v - 2}, ${v - 6}, 0.28)`;
+      x.fillRect(az() * 512, az() * 512, 1 + az() * 2.5, 1 + az() * 2.5);
     }
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace;
+    t.repeat.set(1 / 16, 1 / 16);
+    t.anisotropy = 8;
     return t;
   })();
-  const matHormigonViad = new THREE.MeshStandardMaterial({ map: texHormigon, bumpMap: texHormigon, bumpScale: 0.4, roughness: 0.78, metalness: 0.05, side: THREE.DoubleSide });
+  const matHormigonViad = new THREE.MeshStandardMaterial({ map: texHormigon, bumpMap: texHormigon, bumpScale: 0.35, roughness: 0.74, metalness: 0.05, side: THREE.DoubleSide });
+
+  // Revestimiento dovelado de túnel ferroviario ADIF AV (anillos prefabricados de hormigón + juntas + cajetines)
+  const matTunelBoveda = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 512; const x = c.getContext('2d');
+    let sd = 733; const az = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    x.fillStyle = '#7b848e'; x.fillRect(0, 0, 512, 512);
+    // Anillos transversales (cada 64 px) y dovelas alternas al tresbolillo
+    for (let y = 0; y < 512; y += 64) {
+      x.fillStyle = 'rgba(24, 28, 34, 0.55)'; x.fillRect(0, y, 512, 3);
+      x.fillStyle = 'rgba(210, 220, 230, 0.14)'; x.fillRect(0, y + 3, 512, 1.5);
+      const desfase = ((y / 64) % 2) * 64;
+      for (let px = desfase; px < 512; px += 128) {
+        x.fillStyle = 'rgba(24, 28, 34, 0.45)'; x.fillRect(px, y, 2.5, 64);
+        // Cajetines de inyección / atornillado de dovela
+        x.fillStyle = 'rgba(20, 24, 30, 0.5)';
+        x.fillRect(px + 28, y + 26, 8, 12);
+        x.fillRect(px + 92, y + 26, 8, 12);
+      }
+    }
+    // Textura mineral, microfisuras y ligera pátina de humedad/hollín
+    for (let i = 0; i < 4200; i++) {
+      const v = 96 + (az() * 58 | 0);
+      x.fillStyle = `rgba(${v}, ${v + 4}, ${v + 10}, 0.25)`;
+      x.fillRect(az() * 512, az() * 512, 1 + az() * 3, 1 + az() * 3);
+    }
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.repeat.set(0.18, 0.18);
+    t.anisotropy = 8;
+    return new THREE.MeshStandardMaterial({ map: t, bumpMap: t, bumpScale: 0.42, roughness: 0.80, metalness: 0.06, side: THREE.DoubleSide });
+  })();
 
   // Materiales arquitectónicos fieles a la realidad (muros y cubiertas técnicas ADIF, sin vanos ni tejas inventadas)
   const matEdifCivil = (() => {
@@ -285,7 +328,7 @@ export function crearMateriales({ conHuecos }) {
     const t = new THREE.CanvasTexture(c);
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
     t.colorSpace = THREE.SRGBColorSpace;
-    t.anisotropy = 4;
+    t.anisotropy = 8;
     return new THREE.MeshStandardMaterial({ map: t, roughness: 0.88, metalness: 0.05, side: THREE.DoubleSide });
   })();
 
@@ -295,7 +338,7 @@ export function crearMateriales({ conHuecos }) {
     let s = 13; const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
     for (let i = 0; i < 65; i++) { const v = 208 + r() * 42 | 0; x.fillStyle = `rgba(${v},${v},${v},0.32)`; x.beginPath(); x.arc(r() * 256, r() * 256, 6 + r() * 20, 0, 7); x.fill(); }
     for (let i = 0; i < 5500; i++) { const v = 160 + r() * 92 | 0; x.fillStyle = `rgba(${v},${v},${v},0.48)`; x.fillRect(r() * 256, r() * 256, 1 + r() * 2, 1 + r() * 2); }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     return t;
   })();
   const matTerrenoTopo = new THREE.MeshStandardMaterial({ vertexColors: true, map: texGrano, roughness: 0.98, metalness: 0, side: THREE.DoubleSide });
@@ -452,9 +495,49 @@ export function crearMateriales({ conHuecos }) {
     posteValla: (() => { const g = new THREE.CylinderGeometry(0.03, 0.03, 2.3, 6).translate(0, 1.15, 0); g.userData.compartida = true; return g; })(),
     lumTunel: (() => { const g = new THREE.BoxGeometry(1.5, 0.12, 0.18); g.userData.compartida = true; return g; })(),
     cartelTunel: (() => { const g = new THREE.BoxGeometry(0.65, 0.32, 0.05); g.userData.compartida = true; return g; })(),
+    // Torre metálica de línea eléctrica de alta tensión (capa 040023): celosía troncopiramidal, tres crucetas y aisladores
+    torreElectrica: (() => {
+      const partes = [];
+      const up = new THREE.Vector3(0, 1, 0);
+      const barra = (p0, p1, w) => {
+        const a = new THREE.Vector3(...p0), b = new THREE.Vector3(...p1), d = b.clone().sub(a), len = d.length();
+        if (len < 0.05) return;
+        const g = new THREE.BoxGeometry(w, len, w);
+        g.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(up, d.normalize())));
+        g.translate((a.x + b.x) * 0.5, (a.y + b.y) * 0.5, (a.z + b.z) * 0.5);
+        partes.push(g);
+      };
+      const niveles = [[0, 1.55], [3.6, 1.24], [7.2, 0.96], [10.8, 0.72], [14.0, 0.52], [16.8, 0.40]];
+      const signos = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+      for (let i = 0; i < niveles.length - 1; i++) {
+        const [y0, r0] = niveles[i], [y1, r1] = niveles[i + 1];
+        for (let k = 0; k < 4; k++) {
+          const [sx, sz] = signos[k], [nx, nz] = signos[(k + 1) % 4];
+          barra([sx * r0, y0, sz * r0], [sx * r1, y1, sz * r1], 0.12);
+          barra([sx * r1, y1, sz * r1], [nx * r1, y1, nz * r1], 0.07);
+          barra([sx * r0, y0, sz * r0], [nx * r1, y1, nz * r1], 0.06);
+          barra([nx * r0, y0, nz * r0], [sx * r1, y1, sz * r1], 0.06);
+        }
+      }
+      // Cúpula para cable de tierra
+      for (const [sx, sz] of signos) barra([sx * 0.40, 16.8, sz * 0.40], [0, 19.4, 0], 0.09);
+      // Tres crucetas transversales (en Z) con tirantes y cadenas de aisladores
+      for (const [yC, span] of [[11.6, 3.1], [14.2, 3.5], [16.6, 2.7]]) {
+        const r = 1.55 - (1.55 - 0.40) * (yC / 16.8);
+        for (const s of [-1, 1]) {
+          barra([0, yC, 0], [0, yC, s * span], 0.10);
+          barra([0, yC + 0.85, s * r], [0, yC, s * span], 0.06);
+          partes.push(new THREE.CylinderGeometry(0.11, 0.11, 0.95, 6).translate(0, yC - 0.50, s * span));
+        }
+      }
+      const g = mergeGeometries(partes, false);
+      for (const p of partes) p.dispose();
+      g.userData.compartida = true;
+      return g;
+    })(),
   };
   matSubbalasto.polygonOffset = true;
   matSubbalasto.polygonOffsetFactor = -1;
   matSubbalasto.polygonOffsetUnits = -1;
-  return { ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO };
+  return { ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matTunelBoveda, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO };
 }

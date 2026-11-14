@@ -15,7 +15,7 @@
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="./visor.css?v=2">
+<link rel="stylesheet" href="./visor.css?v=5">
 <link rel="stylesheet" href="./comun/panel.css">
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
@@ -25,8 +25,33 @@
 </head>
 <body>
 <div id="lienzo"></div>
-<div id="cargando"><b>Corredor 3D · Albacete – Alicante</b><span>Cargando eje 3D continuo (164,2 km), MDT LiDAR y teselas…</span></div>
+<!-- Pantalla de carga: viaje por un túnel que acelera con la carga real y sale a la luz al terminar.
+     Animación solo con transformaciones CSS (la mueve la gráfica aunque el hilo principal esté ocupado). -->
+<div id="cargando" role="status" aria-live="polite" aria-label="Cargando VISOR3D">
+  <div class="tunel" aria-hidden="true">
+    <div class="tunel-escena">
+      <div class="anillos"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="suelo"><div class="traviesas"></div></div>
+      <div class="hilo"></div>
+    </div>
+    <div class="boca"></div>
+  </div>
+  <div class="marca">
+    <div class="logo">VISOR<span>3D</span></div>
+    <div class="lema">Alta Velocidad</div>
+    <div class="linea">L042 · Albacete – Alicante · 164,2 km</div>
+  </div>
+  <div class="velo">
+    <svg viewBox="0 0 120 120" aria-hidden="true">
+      <circle class="velo-fondo" cx="60" cy="60" r="50" pathLength="100"/>
+      <circle class="velo-arco" id="veloArco" cx="60" cy="60" r="50" pathLength="100"/>
+    </svg>
+    <div class="velo-num"><b id="veloNum">0</b><small>km/h</small></div>
+    <div class="velo-fase" id="cargandoFase">Preparando el visor…</div>
+  </div>
+</div>
 <div id="medidaBadge" hidden><span id="medidaTxt">Medidor 3D: pulsa 2 puntos</span><button type="button" id="btnLimpiarMedida">✕</button></div>
+<div id="avisoNube" role="status" aria-live="polite" hidden><span class="giro" aria-hidden="true"></span><span id="avisoNubeTxt">Cargando nube de puntos…</span></div>
 <div id="badgePkLinea" aria-live="polite"><span class="linea">Línea L042 · Albacete–Alicante</span><span class="pk" id="badgePkValor">PK 437+020</span></div>
 <button id="abrir" type="button" aria-controls="panel" aria-expanded="false">Capas y PK</button>
 <!-- Cuadro de mandos y decisor CCO (hudGemelo) retirado el 2026-11-11 a petición del usuario: sus valores eran simulados.
@@ -74,7 +99,7 @@
   <section>
     <h2>Etiquetas</h2>
     <div class="lista">
-      <label><input type="checkbox" id="chkEmplazamientos" checked> Emplazamientos (Pidame)</label>
+      <label><input type="checkbox" id="chkEmplazamientos" checked> Emplazamientos</label>
       <label><input type="checkbox" id="chkNombresEdif" checked> Nombres de edificios</label>
       <label><input type="checkbox" id="chkEtiquetas" checked> Etiquetas de PK</label>
     </div>
@@ -84,55 +109,10 @@
     <h2>Escena</h2>
     <div class="lista">
       <label><input type="checkbox" id="chkTrenes" checked> Trenes en circulación</label>
-      <label><input type="checkbox" id="chkGsmrEnlace" checked> Enlace GSM-R tren–torre</label>
-      <label><input type="checkbox" id="chkBtsModelos" checked> Casetas y torres GSM-R (al cargar cada km)</label>
       <label><input type="checkbox" id="chkSubsuelo"> Monte en rayos X (túneles)</label>
-      <label><input type="checkbox" id="chkConosCamara"> Conos de visión CCTV (báculos)</label>
-      <label><input type="checkbox" id="chkNoche"> Modo noche y luminarias</label>
       <label><input type="checkbox" id="chkPerfil" checked> Perfil longitudinal (164 km)</label>
     </div>
-    <div class="seg-wrap">
-      <span>Hora solar / Iluminación</span>
-      <div class="seg-ctrl" id="ctrlHoraSol">
-        <button type="button" data-hora="amanecer">Amanecer</button>
-        <button type="button" data-hora="dia" aria-pressed="true">Día</button>
-        <button type="button" data-hora="atardecer">Tarde</button>
-        <button type="button" data-hora="noche">Noche</button>
-      </div>
-    </div>
-    <div class="seg-wrap">
-      <span>Atmósfera / Clima</span>
-      <div class="seg-ctrl" id="ctrlClima">
-        <button type="button" data-clima="despejado" aria-pressed="true">Despejado</button>
-        <button type="button" data-clima="bruma">Calima</button>
-        <button type="button" data-clima="nublado">Nublado</button>
-        <button type="button" data-clima="lluvia">Lluvia</button>
-      </div>
-    </div>
-    <div class="seg-wrap">
-      <span>Óptica de cámara (FOV)</span>
-      <div class="seg-ctrl" id="ctrlFov">
-        <button type="button" data-fov="38">38° Tele</button>
-        <button type="button" data-fov="52" aria-pressed="true">52° Norm</button>
-        <button type="button" data-fov="72">72° Gran</button>
-      </div>
-    </div>
-    <div class="seg-wrap">
-      <span>Calidad gráfica</span>
-      <div class="seg-ctrl" id="ctrlCalidad">
-        <button type="button" data-cal="alta" aria-pressed="true">Alta</button>
-        <button type="button" data-cal="media">Media</button>
-        <button type="button" data-cal="eco">Eco</button>
-      </div>
-    </div>
-    <div class="herr-grid">
-      <button type="button" id="btnMedir3D" aria-pressed="false" title="Pulsa dos puntos en el 3D para medir distancia y desnivel">📏 Medir 3D</button>
-      <button type="button" id="btnCaptura" title="Descargar captura PNG del visor (tecla P)">📷 Captura PNG</button>
-    </div>
   </section>
-
-  <p class="ayuda" id="ayuda">Arrastra para girar, rueda o pellizco para acercar. Pulsa o arrastra sobre el perfil inferior para volar a cualquier PK de los 164 km; toca un elemento para ver su ficha o el terreno para leer su PK y sus coordenadas.</p>
-  <p class="ayuda" style="font-size:11px">Fuentes reales: cartografía 3D y rasante de Adif (201 teselas) + relieve MDT25 LiDAR y ortofoto PNOA © IGN España (CC BY 4.0). Secciones de carril/balasto, alturas de postes/edificios, pilas y bóveda interior de túneles: modelo tipo ingenieril.</p>
 
   <div id="ficha" hidden>
     <span class="capa" id="fichaCapa"></span>
@@ -152,16 +132,24 @@
   <span id="cabCota">— m</span>
   <span id="cabPend">— ‰</span>
   <div class="controles-cab">
-    <button type="button" id="btnPausaRecorrido" aria-pressed="false" title="Pausar o seguir el recorrido (barra espaciadora)">⏸ Pausa</button>
-    <button type="button" id="btnCentrarRecorrido" title="Volver a centrar la cámara en el recorrido (tecla R)">↺ Centrar</button>
+    <button type="button" id="btnPausaRecorrido" aria-pressed="false" title="Pausar o seguir el recorrido (Espacio)">⏸</button>
+    <button type="button" id="btnCentrarRecorrido" title="Volver a centrar la cámara en el recorrido (R)">↺</button>
     <button type="button" id="btnSentido" title="Invertir sentido de marcha">→ Alicante</button>
+    <button type="button" id="btnVelMenos" title="Reducir velocidad (-)">−</button>
+    <span id="cabVelMult" title="Multiplicador de velocidad y velocidad actual">1× · 250 km/h</span>
+    <button type="button" id="btnVelMas" title="Aumentar velocidad (+)">+</button>
     <button type="button" data-vel="1" aria-pressed="true">1×</button>
     <button type="button" data-vel="3">3×</button>
     <button type="button" data-vel="8">8×</button>
-    <button type="button" id="btnMarcoCab" aria-pressed="true" title="Mostrar u ocultar parabrisas y pupitre DMI">DMI</button>
+    <button type="button" id="btnFaros" aria-pressed="true" title="Faros del tren: Cortas / Largas / Off (L)">💡 Cortas</button>
+    <button type="button" id="btnModoNoche" title="Alternar modo noche y día (N)">🌙 Noche</button>
+    <button type="button" id="btnMarcoCab" aria-pressed="true" title="Mostrar u ocultar pupitre DMI">DMI</button>
+    <button type="button" id="btnMinimapa" aria-pressed="false" title="Mostrar u ocultar minimapa orbital (M)">🗺️ Radar</button>
   </div>
   <span id="cabProx"></span>
 </div>
+
+<div id="vignetteVelocidad" aria-hidden="true"></div>
 
 <div id="marcoCabina" hidden aria-hidden="true">
   <svg viewBox="0 0 1600 900" preserveAspectRatio="none">
@@ -178,22 +166,79 @@
     <path d="M1600,0 L1482,0 L1548,900 L1600,900 Z" fill="#0d131a" opacity="0.82"/>
     <path d="M118,0 L128,0 L62,900 L52,900 Z" fill="#1e293b" opacity="0.65"/>
     <path d="M1482,0 L1472,0 L1538,900 L1548,900 Z" fill="#1e293b" opacity="0.65"/>
+    <!-- Limpiaparabrisas animado en lluvia, nieve o tormenta -->
+    <g id="limpiaCabina" opacity="0">
+      <line x1="800" y1="895" x2="800" y2="335" stroke="#0f172a" stroke-width="11" stroke-linecap="round"/>
+      <line x1="800" y1="535" x2="800" y2="270" stroke="#334155" stroke-width="16" stroke-linecap="round"/>
+    </g>
   </svg>
   <div id="pupitreDmi">
-    <span class="etcs-badge">ERTMS N2 · FS</span>
-    <span class="sep-dmi"></span>
-    <span><span class="vel-num" id="dmiVel">250</span> <small style="color:#94a3b8">km/h</small></span>
-    <span class="sep-dmi"></span>
-    <span style="color:#94a3b8">V<sub>máx</sub> <strong id="dmiVmax" style="color:#f8fafc">300</strong></span>
-    <span class="sep-dmi"></span>
-    <span style="color:#94a3b8">25 kV ~ 50 Hz</span>
+    <div class="dmi-marco">
+      <!-- Indicador analógico circular con aguja y escala ERTMS -->
+      <div class="dmi-reloj">
+        <svg class="dmi-dial-svg" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="58" class="dmi-dial-bg" />
+          <path id="dmiArcoVmax" d="M 28 112 A 58 58 0 1 1 112 112" class="dmi-arc-perm" />
+          <path id="dmiArcoVel" d="M 28 112 A 58 58 0 0 1 70 12" class="dmi-arc-actual" />
+          <line id="dmiAguja" x1="70" y1="70" x2="70" y2="20" class="dmi-needle" />
+          <circle cx="70" cy="70" r="6" class="dmi-needle-hub" />
+        </svg>
+        <div class="dmi-dial-center">
+          <span class="dmi-vel-val" id="dmiVel">250</span>
+          <span class="dmi-vel-unit">km/h</span>
+        </div>
+      </div>
+      <!-- Panel de datos y estados ETCS -->
+      <div class="dmi-info">
+        <div class="dmi-fila-estados">
+          <span class="dmi-box-fs" title="Modo Full Supervision">FS</span>
+          <span class="dmi-box-l2" title="Nivel ERTMS/ETCS 2">L2</span>
+          <span class="dmi-box-gsm" title="Enlace por radio GSM-R activo">📡 GSM-R</span>
+        </div>
+        <div class="dmi-fila-datos">
+          <div class="dmi-dato">
+            <small>V. MÁX</small>
+            <strong id="dmiVmax">300</strong>
+          </div>
+          <div class="dmi-dato">
+            <small>CATENARIA</small>
+            <strong id="dmiVolt">25.0 kV</strong>
+          </div>
+          <div class="dmi-dato">
+            <small>OBJETIVO</small>
+            <strong id="dmiDistObj">— m</strong>
+          </div>
+        </div>
+        <div class="dmi-barra-freno">
+          <div id="dmiBarraFrenoProg" class="dmi-freno-fill"></div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
+
+<div id="panelMinimapa" hidden>
+  <div class="minimapa-cab">
+    <span>RADAR DE VÍA 4 KM</span>
+    <small id="minimapaPendTxt">+0.0 ‰</small>
+  </div>
+  <canvas id="cvMinimapa" width="172" height="172" aria-label="Minimapa orbital del trazado"></canvas>
+</div>
+
+<div id="panelEmplazamientos" hidden>
+  <div class="emp-cab">
+    <span class="emp-cab-ico">📡</span>
+    <span class="emp-cab-tit">Radar de hitos</span>
+    <small id="empModoTxt">▶ Alicante</small>
+  </div>
+  <div id="empLista"></div>
 </div>
 
 <div id="barraPerfil">
   <div class="perfil-cab">
     <span id="txtPosicion"><strong>PK 437+020</strong> · cota — m · cargando teselas…</span>
     <span class="leyenda-p">
+      <span class="pend" title="Pendiente de la rasante: verde &lt; 10 ‰, ámbar 10-20 ‰, rojo &gt; 20 ‰"><i></i>pendiente</span>
       <span><i style="background:#10b981"></i><span id="nViaductos">17</span> viaductos</span>
       <span><i style="background:#0ea5e9"></i>5 túneles</span>
       <span><i style="background:#f59e0b"></i>5 subestaciones</span>
@@ -267,6 +312,11 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { Sky } from 'three/addons/objects/Sky.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { crearFlota } from './js/flota.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
@@ -284,6 +334,7 @@ import { CLIMAS, aplicarColisionTerreno, crearGestorVuelo, crearEfectoCabina, ac
 import { calcularSolAstronomico, consultarMeteoReal } from './js/meteo.js';
 import { activarVentanaFlotante } from './js/ventanas.js';
 import { crearGestorNubes } from './js/nubes.js';
+import { crearVidaEscena } from './js/vida.js';
 if (window.Rend3D) window.Rend3D.init(THREE, mergeGeometries);
 if (window.Trenes3D) window.Trenes3D.init(THREE);
 
@@ -296,6 +347,58 @@ const reducido = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---- Carga inicial: metadatos + columna vertebral 3D + índice MDT LiDAR ----
 const cargando = document.getElementById('cargando');
+
+// ---- Pantalla de carga (túnel): el velocímetro (0-300 km/h) y el ritmo del túnel siguen el avance real ----
+const Carga = (() => {
+  const elNum = document.getElementById('veloNum');
+  const elArco = document.getElementById('veloArco');
+  const elFase = document.getElementById('cargandoFase');
+  const animTunel = () => cargando.getAnimations({ subtree: true })
+    .filter((a) => a.animationName === 'carga-anillo' || a.animationName === 'carga-traviesas');
+  let objetivo = 0, mostrado = 0, ultimoRitmo = 1, raf = 0;
+  function pintar() {
+    mostrado += (objetivo - mostrado) * 0.1;
+    if (Math.abs(objetivo - mostrado) < 0.002) mostrado = objetivo;
+    elNum.textContent = String(Math.round(mostrado * 300));
+    elArco.style.strokeDasharray = `${(mostrado * 75).toFixed(2)} 100`;
+    // De 1× (tren parado arrancando) a 5× a 300 km/h; updatePlaybackRate cambia el ritmo sin saltos
+    const ritmo = Math.round((1 + mostrado * 4) * 10) / 10;
+    if (!reducido && ritmo !== ultimoRitmo) {
+      ultimoRitmo = ritmo;
+      for (const a of animTunel()) { if (a.updatePlaybackRate) a.updatePlaybackRate(ritmo); else a.playbackRate = ritmo; }
+    }
+    raf = mostrado === objetivo ? 0 : requestAnimationFrame(pintar);
+  }
+  function avance(p, fase) {
+    objetivo = Math.max(objetivo, Math.min(1, p));
+    if (fase) elFase.textContent = fase;
+    if (!raf) raf = requestAnimationFrame(pintar);
+  }
+  return {
+    avance,
+    paso(d) { avance(objetivo + d); },
+    // Envuelve una promesa (o un valor) para que sume `d` al terminar
+    contar(p, d) { return Promise.resolve(p).then((v) => { avance(objetivo + d); return v; }); },
+    error(msg) {
+      cargando.classList.add('error');
+      elFase.textContent = 'No se pudo iniciar el corredor 3D · ' + msg;
+    },
+    // 300 km/h, la boca se abre hasta llenar la pantalla y el visor aparece debajo
+    cerrar() {
+      avance(1, 'Saliendo del túnel…');
+      const t = reducido ? [0, 0, 0] : [550, 650, 800];
+      setTimeout(() => {
+        cargando.classList.add('saliendo');
+        setTimeout(() => {
+          cargando.classList.add('fuera');
+          setTimeout(() => { cargando.hidden = true; cargando.style.display = 'none'; cancelAnimationFrame(raf); }, t[2]);
+        }, t[1]);
+      }, t[0]);
+    },
+  };
+})();
+Carga.avance(0.03, 'Leyendo eje 3D y cartografía de Adif…');
+
 let meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales;
 try {
   [meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales] = await Promise.all([
@@ -315,11 +418,12 @@ try {
     params.has('sinEstructuras') ? null : fetch(`${RUTA}/pasos-superiores.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
     // Pasos inferiores deducidos de impostas y aletas de la cartografía (scripts/importar-pasos-inferiores.py)
     params.has('sinEstructuras') ? null : fetch(`${RUTA}/pasos-inferiores.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
-  ]);
+  ].map((p) => Carga.contar(p, 0.035)));
 } catch (err) {
-  cargando.innerHTML = '<b>No se pudo iniciar el corredor 3D</b><span>' + String(err.message || err) + '</span>';
+  Carga.error(String(err.message || err));
   throw err;
 }
+Carga.avance(0.36, 'Construyendo vía, catenaria y estructuras…');
 
 const entornoKms = new Set(entornoIndex?.kms || []);
 
@@ -329,7 +433,8 @@ const entornoKms = new Set(entornoIndex?.kms || []);
 const Eje3D = crearEje3D(ejeDatos, ramalesReales);
 
 // ---- Origen flotante (precisión submilimétrica en los 164 km) ----
-// Terminal de Alicante: al salir del falso túnel las vías reales se abren en abanico y ya no siguen el eje del corredor.
+// Terminal de Alicante: al salir del falso túnel las vías reales se abren en abanico. El eje sigue las dos vías de alta
+// velocidad (R4 y R5) hasta los topes; el resto de la playa de vías no lo sigue.
 // Desde aquí no se genera la doble vía desde el eje: las vías salen de la cartografía (ejes 050147/050117 y carriles 050177).
 const PK_TERMINAL = (() => {
   const t = Eje3D.tuneles[Eje3D.tuneles.length - 1];
@@ -426,6 +531,30 @@ const cupulaCielo = new THREE.Mesh(new THREE.SphereGeometry(12500, 48, 28), matC
 cupulaCielo.renderOrder = -10;
 cupulaCielo.frustumCulled = false;
 escena.add(cupulaCielo);
+
+const skyShader = new Sky();
+skyShader.scale.setScalar(45000);
+skyShader.frustumCulled = false;
+escena.add(skyShader);
+
+let composer = null;
+let bloomPass = null;
+if (!esGpuSoftware) {
+  composer = new EffectComposer(render);
+  composer.setPixelRatio(render.getPixelRatio());
+  composer.setSize(innerWidth, innerHeight);
+  composer.addPass(new RenderPass(escena, camara));
+  bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.20, 0.35, 0.90);
+  composer.addPass(bloomPass);
+  composer.addPass(new OutputPass());
+}
+function usarPostproceso() {
+  return Boolean(composer) && !esGpuSoftware && !reducido && calidadGrafica !== 'baja';
+}
+function renderizarEscena() {
+  if (usarPostproceso()) composer.render();
+  else render.render(escena, camara);
+}
 
 const TEMAS_SOL = {
   amanecer: {
@@ -545,6 +674,22 @@ function aplicarTema() {
   sol.color.set(tm.solCol);
   expBaseSol = tm.exp;
   render.toneMappingExposure = tm.exp;
+  if (skyShader) {
+    skyShader.visible = !modoNoche;
+    cupulaCielo.visible = modoNoche;
+    if (!modoNoche) {
+      const skyU = skyShader.material.uniforms;
+      const cubierto = climaActual === 'tormenta' || climaActual === 'lluvia' || climaActual === 'nieve' || climaActual === 'nublado';
+      skyU.turbidity.value = cubierto ? 11.5 : (climaActual === 'bruma' ? 8.5 : (horaSol === 'dia' ? 3.2 : 6.5));
+      skyU.rayleigh.value = cubierto ? 0.85 : (horaSol === 'dia' ? 1.65 : 2.8);
+      skyU.mieCoefficient.value = climaActual === 'bruma' ? 0.014 : 0.0045;
+      skyU.mieDirectionalG.value = 0.82;
+      skyU.sunPosition.value.copy(SOL_DESVIO).normalize();
+    }
+  }
+  if (bloomPass) {
+    bloomPass.strength = modoNoche ? 0.34 : (climaActual === 'despejado' ? 0.20 : 0.16);
+  }
   if (_matCarrilCabezaRef) {
     _matCarrilCabezaRef.roughness = cl.railRough;
   }
@@ -555,22 +700,24 @@ function aplicarTema() {
   }
   const btnIClima = document.getElementById('btnIslaClima');
   if (btnIClima) {
-    const icoC = { despejado: '🌤 Despejado', bruma: '🌫 Calima', nublado: '☁️ Nublado', lluvia: '🌧 Lluvia' };
+    const icoC = { despejado: '🌤 Despejado', bruma: '🌫 Calima', nublado: '☁️ Nublado', lluvia: '🌧 Lluvia', nieve: '❄️ Nieve', tormenta: '⛈️ Tormenta' };
     const tTxt = (modoVivo && meteoViva?.temp != null) ? ` ${Math.round(meteoViva.temp)}°C` : '';
     btnIClima.textContent = (icoC[climaActual] || '🌤 Despejado') + tTxt;
   }
+  const elLimpia = document.getElementById('limpiaCabina');
+  if (elLimpia) elLimpia.classList.toggle('activo', climaActual === 'lluvia' || climaActual === 'nieve' || climaActual === 'tormenta');
   if (controlesListos) {
     sol.target.position.copy(controles.target);
     sol.position.copy(controles.target).add(SOL_DESVIO);
   }
-  if (params.has('pausaLoop') && controlesListos) render.render(escena, camara);
+  if (params.has('pausaLoop') && controlesListos) renderizarEscena();
 }
 aplicarTema();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', aplicarTema);
 new MutationObserver(aplicarTema).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 // ---- Materiales compartidos y texturas procedurales PBR de ingeniería y arquitectura ----
 const {
-  ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO,
+  ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matTunelBoveda, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO,
 } = crearMateriales({ conHuecos });
 _matCarrilCabezaRef = matCarrilCabeza;
 
@@ -643,6 +790,8 @@ function fichaElemento(idCapa, props, pkAprx) {
     '050197': ['Paso superior sobre la LAV', `${sub}. Estructura transversal con tablero asfaltado, biondas y pantallas antivandálicas azules de Adif.`],
     '040243': ['Barrera bionda de seguridad vial', `${sub}. Defensa metálica galvanizada en viales y accesos.`],
     '050215': ['Puerta de acceso de emergencia y mantenimiento', `${sub}. Acceso perimetral al recinto ferroviario de Adif.`],
+    '040023': ['Torre metálica de línea eléctrica', `${sub}. Apoyo de celosía metálica galvanizada con crucetas y cadenas de aisladores.`],
+    '040230': ['Línea eléctrica aérea', `${sub}. Tendido eléctrico de alta/media tensión en su trazado cartografiado.`],
   };
   if (descripciones[idCapa]) return { capa: g ? g.nombre : c.grupo, nombre: descripciones[idCapa][0], info: descripciones[idCapa][1] };
   return {
@@ -751,12 +900,17 @@ const {
 // Zonas (PK y desplazamiento) donde el edificio y las marquesinas los dibuja el modelo propio de la estación
 const ZONAS_ESTACION = [
   { pk0: 435500, pk1: 435830, of0: -36, of1: 72 },    // Villena AV: andenes, puente, edificio, torre y pérgolas
-  { pk0: 485770, pk1: 486005, of0: -10, of1: 86 },    // Alicante: marquesina Polonceau y marquesinas de andén AV
-  { pk0: 485965, pk1: 486150, of0: -36, of1: 105 },   // Alicante: edificio de viajeros histórico (planta en U)
+  // Alicante: PK y desplazamiento en el marco de la terminal (Eje3D.marcoTerminal), no en el eje
+  { pk0: 485770, pk1: 486005, of0: -10, of1: 86, terminal: true },    // marquesina Polonceau y marquesinas de andén AV
+  { pk0: 485965, pk1: 486150, of0: -36, of1: 105, terminal: true },   // edificio de viajeros histórico (planta en U)
 ];
 function enZonaEstacion(E, N) {
   const q = Eje3D.proyUTM(E, N);
-  return ZONAS_ESTACION.some((z) => q.pk >= z.pk0 && q.pk <= z.pk1 && q.of >= z.of0 && q.of <= z.of1);
+  const qT = q.pk > Eje3D.marcoTerminal.pkIni ? Eje3D.marcoTerminal.proyUTM(E, N) : null;
+  return ZONAS_ESTACION.some((z) => {
+    const p = z.terminal ? qT : q;
+    return p && p.pk >= z.pk0 && p.pk <= z.pk1 && p.of >= z.of0 && p.of <= z.of1;
+  });
 }
 const ESTACION_VILLENA = {
   cubre(g) {
@@ -856,7 +1010,7 @@ const RAMALES = (() => {
 const { MODELOS, pModelos } = cargarCatalogoModelos(params.has('sinModelos'));
 
 // ---- Streaming progresivo de teselas kilométricas con superestructura e ingeniería de detalle ----
-const { teselasCargadas, grupoTeselas, cargarTeselaKm, recortarCacheTeselas, gestionarStreaming } = crearGestorTeselas({
+const { teselasCargadas, caminosPorKm, grupoTeselas, cargarTeselaKm, recortarCacheTeselas, gestionarStreaming } = crearGestorTeselas({
   RUTA, meta, capasMeta, gruposVisibles, entornoKms,
   escena, Eje3D, MdtCorredor, HashCotas, W,
   cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja,
@@ -868,14 +1022,27 @@ const { teselasCargadas, grupoTeselas, cargarTeselaKm, recortarCacheTeselas, ges
   mostrarFicha: (...a) => mostrarFicha(...a),
   irAPk: (...a) => irAPk(...a),
   getConosCamara: () => conosCamaraActivos,
-  ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO,
+  ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matPilotoRojo, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matTunelBoveda, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, matTerrenoTopo, matTerrenoRegional, GEO,
 });
 
 // ---- Flota de trenes de alta velocidad ----
 const { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota } = crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkArranque });
+const Vida = crearVidaEscena({ escena, Eje3D, W, cotaTerrenoUTM, caminosPorKm });
 
 // ---- Nubes de puntos LiDAR / fotogramétricas ----
-const Nubes = crearGestorNubes({ escena, W, origen });
+// Aviso mientras bajan (las de la L048 son unos 19 MB: en la web tardan del orden de medio minuto)
+const elAvisoNube = document.getElementById('avisoNube');
+const elAvisoNubeTxt = document.getElementById('avisoNubeTxt');
+const mb = (b) => (b / 1e6).toFixed(1).replace('.', ',');
+const Nubes = crearGestorNubes({
+  escena, W, origen,
+  alProgreso({ zonas, leidos, total }) {
+    elAvisoNube.hidden = zonas === 0;
+    if (!zonas) return;
+    const pc = total ? Math.min(99, Math.floor((100 * leidos) / total)) : 0;
+    elAvisoNubeTxt.textContent = `Cargando nube de puntos${zonas > 1 ? ` (${zonas} zonas)` : ''} · ${pc} % · ${mb(leidos)} de ${mb(total)} MB`;
+  },
+});
 Nubes.pIndice.then(() => Nubes.actualizar(origen.E, origen.N));
 
 // ---- Controles, modos de vista, cabina envolvente S-112 y origen flotante ----
@@ -916,10 +1083,23 @@ const elCabPk = document.getElementById('cabPk');
 const elCabCota = document.getElementById('cabCota');
 const elCabPend = document.getElementById('cabPend');
 const elCabProx = document.getElementById('cabProx');
+const elDmiArcoVel = document.getElementById('dmiArcoVel');
+const elDmiAguja = document.getElementById('dmiAguja');
+const elDmiVolt = document.getElementById('dmiVolt');
+const elDmiDistObj = document.getElementById('dmiDistObj');
+const elDmiBarraFrenoProg = document.getElementById('dmiBarraFrenoProg');
+const elVignetteVel = document.getElementById('vignetteVelocidad');
+const elPanelMinimapa = document.getElementById('panelMinimapa');
+const btnMinimapa = document.getElementById('btnMinimapa');
+const cvMinimapa = document.getElementById('cvMinimapa');
+const ctxMinimapa = cvMinimapa?.getContext('2d');
+const elMinimapaPendTxt = document.getElementById('minimapaPendTxt');
+let minimapaActivo = false;
+let lastJuntaIdx = -1;
 
 function actualizarVisibilidadMarcoCab() {
   elMarcoCab.hidden = !(vistaActiva === 'cabina' && marcoCabActivo && !document.body.classList.contains('limpio'));
-  elDmiVel.textContent = String(Math.round(250 * multVel));
+  if (elDmiVel) elDmiVel.textContent = String(Math.round(250 * multVel));
 }
 
 function aplicarRayosX(activo) {
@@ -957,18 +1137,33 @@ function irACctv(baculo) {
   });
 }
 
-function irAPk(pkDestino, modoVista = vistaActiva, opts = {}) {
+function irAPk(pkDestino, modoVista = vistaActiva) {
   const pk = Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, pkDestino));
   pkRecorrido = pk;
-  const pose = gestorVuelo.poseParaPk(pk, modoVista);
-  gestorVuelo.volarAPose({ ...pose, pk, inmediato: Boolean(opts.inmediato) });
+  gestorVuelo.cancelar();
+
+  const p = Eje3D.enPk(pk);
+  if (p.enTunel && !rayosXActivo) aplicarRayosX(true);
+
+  recentrarOrigen(p.E, p.N, p.Z);
+  gestionarStreaming(pk);
+
+  if (modoVista === 'cabina' || modoVista === 'dron') {
+    centrarCamaraRecorrido(modoVista);
+  } else {
+    const pose = gestorVuelo.poseParaPk(pk, modoVista);
+    camara.position.copy(W(pose.posE, pose.posN, pose.posZ));
+    controles.target.copy(W(pose.objE, pose.objN, pose.objZ));
+    camara.lookAt(controles.target);
+    controles.update();
+  }
+  actualizarUI(pk);
 }
 
 const VISTAS = [
   { id: 'viaducto', nombre: 'Perspectiva' },
   { id: 'aerea', nombre: 'Aérea' },
   { id: 'cerca', nombre: 'Ras de vía' },
-  { id: 'helicoptero', nombre: 'Helicóptero' },
   { id: 'lateral', nombre: 'Vista lateral' },
   { id: 'cabina', nombre: 'Cabina AVE' },
   { id: 'dron', nombre: 'Vuelo dron' },
@@ -980,8 +1175,10 @@ function setModoVista(id) {
   for (const [k, b] of botonesVista) b.setAttribute('aria-pressed', String(k === id));
   const enRecorrido = id === 'cabina' || id === 'dron';
   elCab.hidden = !enRecorrido || document.body.classList.contains('limpio');
+  const elPanelEmp = document.getElementById('panelEmplazamientos');
+  if (elPanelEmp) elPanelEmp.hidden = !enRecorrido || document.body.classList.contains('limpio');
   actualizarVisibilidadMarcoCab();
-  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-112' : 'DRON CORREDOR';
+  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-112' : 'DRON · SOBRE AVE S-112';
   controles.enabled = true;
   if (!enRecorrido) {
     faroCabina.intensity = 0;
@@ -1017,14 +1214,7 @@ for (const s of Eje3D.saltos) {
   b.addEventListener('click', () => {
     for (const x of botonesSalto) x.setAttribute('aria-pressed', 'false');
     b.setAttribute('aria-pressed', 'true');
-    if (vistaActiva === 'cabina' || vistaActiva === 'dron') {
-      pkRecorrido = s.pk;
-      const p = Eje3D.enPk(s.pk);
-      if (Math.hypot(p.E - origen.E, p.N - origen.N) > 2500) recentrarOrigen(p.E, p.N, p.Z);
-      gestionarStreaming(s.pk);
-    } else {
-      irAPk(s.pk, vistaActiva);
-    }
+    irAPk(s.pk, vistaActiva);
   });
   contSaltos.appendChild(b);
   botonesSalto.push(b);
@@ -1035,7 +1225,17 @@ Nubes.pIndice.then((zonasNube) => {
     {
       nombre: 'Nube L042 · PK 374',
       sub: 'PK 374+700',
-      accion: () => irAPk(374700, vistaActiva === 'cabina' || vistaActiva === 'dron' ? 'cerca' : vistaActiva),
+      accion: () => {
+        setModoVista('aerea');
+        gestorVuelo.cancelar();
+        pkRecorrido = 374700;
+        gestionarStreaming(374700);
+        recentrarOrigen(646063, 4305952, 885);
+        controles.target.set(0, 0, 0);
+        camara.position.set(110, 95, 140);
+        controles.update();
+        Nubes.actualizar(646063, 4305952);
+      },
     },
     {
       nombre: 'Nube L048 · Z1–Z4',
@@ -1209,16 +1409,31 @@ let prevRefObj = null;
 function calcularPoseRecorrido(modo, pk) {
   const p = Eje3D.enPk(pk);
   const nx = -p.ty, ny = p.tx;
+  const offVia = (sentidoRecorrido > 0 ? -1 : 1) * (p.sep * 0.5);
   if (modo === 'cabina') {
-    const offVia = (sentidoRecorrido > 0 ? -1 : 1) * (p.sep * 0.5);
     const pos = W(p.E + nx * offVia, p.N + ny * offVia, p.Z + 3.12);
     const pMirar = Eje3D.enPk(Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, pk + sentidoRecorrido * 12)));
     const obj = W(pMirar.E + (-pMirar.ty) * offVia, pMirar.N + pMirar.tx * offVia, pMirar.Z + 2.95);
     return { p, pos, obj };
   }
-  const pAtras = Eje3D.enPk(Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, pk - sentidoRecorrido * 65)));
-  const pAdel = Eje3D.enPk(Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, pk + sentidoRecorrido * 85)));
-  return { p, pos: W(pAtras.E + nx * 36, pAtras.N + ny * 36, pAtras.Z + 42), obj: W(pAdel.E, pAdel.N, pAdel.Z + 2) };
+  if (p.enTunel) {
+    const pAtras = Eje3D.enPk(Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, pk - sentidoRecorrido * 44)));
+    const pAdel = Eje3D.enPk(Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, pk + sentidoRecorrido * 10)));
+    const nAx = -pAtras.ty, nAy = pAtras.tx, nDx = -pAdel.ty, nDy = pAdel.tx;
+    return {
+      p,
+      pos: W(pAtras.E + nAx * offVia, pAtras.N + nAy * offVia, pAtras.Z + 5.15),
+      obj: W(pAdel.E + nDx * offVia, pAdel.N + nDy * offVia, pAdel.Z + 2.4),
+    };
+  }
+  const pAtras = Eje3D.enPk(Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, pk - sentidoRecorrido * 58)));
+  const pAdel = Eje3D.enPk(Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, pk + sentidoRecorrido * 24)));
+  const nAx = -pAtras.ty, nAy = pAtras.tx, nDx = -pAdel.ty, nDy = pAdel.tx;
+  return {
+    p,
+    pos: W(pAtras.E + nAx * (offVia + 18), pAtras.N + nAy * (offVia + 18), pAtras.Z + 14.5),
+    obj: W(pAdel.E + nDx * offVia, pAdel.N + nDy * offVia, pAdel.Z + 2.2),
+  };
 }
 function centrarCamaraRecorrido(modo = vistaActiva) {
   if (modo !== 'cabina' && modo !== 'dron') return;
@@ -1264,6 +1479,31 @@ addEventListener('keydown', (ev) => {
     centrarCamaraRecorrido();
     return;
   }
+  if ((ev.key === '+' || ev.key === '=' || ev.code === 'NumpadAdd') && (vistaActiva === 'cabina' || vistaActiva === 'dron')) {
+    ev.preventDefault();
+    document.getElementById('btnVelMas')?.click();
+    return;
+  }
+  if ((ev.key === '-' || ev.key === '_' || ev.code === 'NumpadSubtract') && (vistaActiva === 'cabina' || vistaActiva === 'dron')) {
+    ev.preventDefault();
+    document.getElementById('btnVelMenos')?.click();
+    return;
+  }
+  if (ev.code === 'KeyM') {
+    ev.preventDefault();
+    document.getElementById('btnMinimapa')?.click();
+    return;
+  }
+  if (ev.code === 'KeyL') {
+    ev.preventDefault();
+    document.getElementById('btnFaros')?.click();
+    return;
+  }
+  if (ev.code === 'KeyN') {
+    ev.preventDefault();
+    document.getElementById('btnModoNoche')?.click();
+    return;
+  }
   if (ev.code !== 'Space' || (vistaActiva !== 'cabina' && vistaActiva !== 'dron')) return;
   if (ev.target instanceof HTMLElement && ev.target.closest('button')) return;
   ev.preventDefault();
@@ -1277,12 +1517,26 @@ btnSentido.addEventListener('click', () => {
   refrescarTextoSentido();
   centrarCamaraRecorrido();
 });
+const elCabVelMult = document.getElementById('cabVelMult');
+const VEL_PASOS = [0.25, 0.5, 1, 1.5, 2, 3, 5, 8, 12];
+function setMultVel(v) {
+  multVel = Math.max(0.25, Math.min(12, v));
+  for (const x of document.querySelectorAll('#cab button[data-vel]')) {
+    x.setAttribute('aria-pressed', String(Number(x.dataset.vel) === multVel));
+  }
+  if (elCabVelMult) elCabVelMult.textContent = `${multVel}× · ${Math.round(velCabinaKmh * multVel)} km/h`;
+  actualizarVisibilidadMarcoCab();
+}
+document.getElementById('btnVelMenos')?.addEventListener('click', () => {
+  const prev = [...VEL_PASOS].reverse().find((x) => x < multVel - 1e-4) ?? VEL_PASOS[0];
+  setMultVel(prev);
+});
+document.getElementById('btnVelMas')?.addEventListener('click', () => {
+  const sig = VEL_PASOS.find((x) => x > multVel + 1e-4) ?? VEL_PASOS[VEL_PASOS.length - 1];
+  setMultVel(sig);
+});
 for (const b of document.querySelectorAll('#cab button[data-vel]')) {
-  b.addEventListener('click', () => {
-    multVel = Number(b.dataset.vel) || 1;
-    for (const x of document.querySelectorAll('#cab button[data-vel]')) x.setAttribute('aria-pressed', String(x === b));
-    actualizarVisibilidadMarcoCab();
-  });
+  b.addEventListener('click', () => setMultVel(Number(b.dataset.vel) || 1));
 }
 const btnMarcoCab = document.getElementById('btnMarcoCab');
 btnMarcoCab.addEventListener('click', () => {
@@ -1350,7 +1604,7 @@ function salirModoVivo() {
   solVivoDesvio = null;
   document.getElementById('btnIslaVivo')?.setAttribute('aria-pressed', 'false');
 }
-document.getElementById('chkNoche').addEventListener('change', (e) => {
+document.getElementById('chkNoche')?.addEventListener('change', (e) => {
   salirModoVivo();
   horaSol = e.target.checked ? 'noche' : 'dia';
   aplicarTema();
@@ -1378,7 +1632,7 @@ for (const b of document.querySelectorAll('#ctrlClima button')) {
 
 // UI 4 + UX 5: Isla flotante de controles rápidos y Modo Cine (tecla H)
 const ORDEN_SOL = ['amanecer', 'dia', 'atardecer', 'noche'];
-const ORDEN_CLIMA = ['despejado', 'bruma', 'nublado', 'lluvia'];
+const ORDEN_CLIMA = ['despejado', 'bruma', 'nublado', 'lluvia', 'nieve', 'tormenta'];
 document.getElementById('btnIslaSol')?.addEventListener('click', () => {
   salirModoVivo();
   horaSol = ORDEN_SOL[(ORDEN_SOL.indexOf(horaSol) + 1) % ORDEN_SOL.length];
@@ -1477,19 +1731,184 @@ for (const b of document.querySelectorAll('#ctrlCalidad button')) {
       sol.castShadow = false;
     }
     render.setSize(innerWidth, innerHeight);
+    if (composer) {
+      composer.setPixelRatio(render.getPixelRatio());
+      composer.setSize(innerWidth, innerHeight);
+    }
   });
 }
 document.getElementById('chkPerfil').addEventListener('change', (e) => {
   document.getElementById('barraPerfil').hidden = !e.target.checked;
 });
 
-// Conmutadores de la sección «Gemelo Digital Multifuente» (el cuadro de mandos se retiró el 2026-11-11)
-document.getElementById('chkGsmrEnlace')?.addEventListener('change', (e) => {
-  if (typeof lineaEnlaceGsmr !== 'undefined' && lineaEnlaceGsmr) {
-    lineaEnlaceGsmr.visible = e.target.checked;
+// UI 2: Faros de haz regulable (Cortas / Largas / Off) y Modo Noche rápido
+let modoFaros = 1; // 0: Off, 1: Cortas, 2: Largas
+function conmutarFaros() {
+  modoFaros = (modoFaros + 1) % 3;
+  const btn = document.getElementById('btnFaros');
+  const nombres = ['💡 Off', '💡 Cortas', '💡 Largas'];
+  if (btn) {
+    btn.textContent = nombres[modoFaros];
+    btn.setAttribute('aria-pressed', String(modoFaros > 0));
   }
-});
+}
+document.getElementById('btnFaros')?.addEventListener('click', () => conmutarFaros());
 
+function conmutarModoNoche() {
+  horaSol = horaSol === 'noche' ? 'dia' : 'noche';
+  aplicarTema();
+  const btn = document.getElementById('btnModoNoche');
+  if (btn) {
+    btn.textContent = horaSol === 'noche' ? '☀️ Día' : '🌙 Noche';
+    btn.setAttribute('aria-pressed', String(horaSol === 'noche'));
+  }
+}
+document.getElementById('btnModoNoche')?.addEventListener('click', () => conmutarModoNoche());
+
+// UI & UX ferroviarias: Minimapa y DMI ETCS
+function alternarMinimapa(forzar) {
+  minimapaActivo = typeof forzar === 'boolean' ? forzar : !minimapaActivo;
+  if (elPanelMinimapa) elPanelMinimapa.hidden = !minimapaActivo;
+  btnMinimapa?.setAttribute('aria-pressed', String(minimapaActivo));
+}
+btnMinimapa?.addEventListener('click', () => alternarMinimapa());
+
+function actualizarDmiEtcs(velKmh, vLimKmh, distNextObj) {
+  const vClamp = Math.max(0, Math.min(400, velKmh));
+  const rotDeg = -135 + (vClamp / 400) * 270;
+  if (elDmiAguja) {
+    elDmiAguja.setAttribute('transform', `rotate(${rotDeg.toFixed(1)}, 70, 70)`);
+  }
+  if (elDmiArcoVel) {
+    if (vClamp <= 2) {
+      elDmiArcoVel.setAttribute('d', '');
+    } else {
+      const rad = rotDeg * (Math.PI / 180);
+      const x = (70 + 58 * Math.sin(rad)).toFixed(1);
+      const y = (70 - 58 * Math.cos(rad)).toFixed(1);
+      const largeArc = (vClamp / 400) * 270 > 180 ? 1 : 0;
+      elDmiArcoVel.setAttribute('d', `M 28.9 111.0 A 58 58 0 ${largeArc} 1 ${x} ${y}`);
+    }
+  }
+  if (elDmiVolt) {
+    const volt = (24.9 + Math.sin(performance.now() * 0.003) * 0.22).toFixed(1);
+    elDmiVolt.textContent = `${volt} kV`;
+  }
+  if (elDmiDistObj) {
+    elDmiDistObj.textContent = distNextObj != null ? `${Math.round(distNextObj)} m` : '— m';
+  }
+  if (elDmiBarraFrenoProg) {
+    const ratio = Math.max(0, Math.min(1, velKmh / Math.max(10, vLimKmh)));
+    elDmiBarraFrenoProg.style.width = `${(ratio * 100).toFixed(0)}%`;
+    elDmiBarraFrenoProg.style.background = ratio > 1.02 ? '#ef4444' : (ratio > 0.95 ? '#eab308' : '#10b981');
+  }
+}
+
+function dibujarTrazoMinimapa(ctx, pts, tipo) {
+  if (pts.length < 2) return;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  if (tipo === 'tunel') {
+    ctx.strokeStyle = '#64748b';
+    ctx.setLineDash([4, 3]);
+  } else if (tipo === 'viaducto') {
+    ctx.strokeStyle = '#06b6d4';
+    ctx.setLineDash([]);
+  } else {
+    ctx.strokeStyle = '#10b981';
+    ctx.setLineDash([]);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function actualizarMinimapaOrbital(pkCentro, pendActual) {
+  if (!minimapaActivo || !ctxMinimapa || !cvMinimapa) return;
+  const w = 172, h = 172, cx = 86, cy = 86;
+  ctxMinimapa.clearRect(0, 0, w, h);
+
+  ctxMinimapa.fillStyle = 'rgba(11, 18, 28, 0.92)';
+  ctxMinimapa.fillRect(0, 0, w, h);
+
+  ctxMinimapa.strokeStyle = 'rgba(56, 189, 248, 0.16)';
+  ctxMinimapa.lineWidth = 1;
+  ctxMinimapa.beginPath();
+  ctxMinimapa.arc(cx, cy, 38, 0, Math.PI * 2);
+  ctxMinimapa.arc(cx, cy, 76, 0, Math.PI * 2);
+  ctxMinimapa.stroke();
+
+  ctxMinimapa.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctxMinimapa.beginPath();
+  ctxMinimapa.moveTo(cx, 10); ctxMinimapa.lineTo(cx, h - 10);
+  ctxMinimapa.moveTo(10, cy); ctxMinimapa.lineTo(w - 10, cy);
+  ctxMinimapa.stroke();
+
+  const pCentro = Eje3D.enPk(pkCentro);
+  const tang = pCentro.tang || { E: 0, N: 1 };
+  const ang = Math.atan2(tang.E * sentidoRecorrido, tang.N * sentidoRecorrido);
+  const cosA = Math.cos(-ang);
+  const sinA = Math.sin(-ang);
+  const escala = 0.038;
+
+  const span = 2000;
+  const pIniK = Math.max(Eje3D.pkIni, pkCentro - span);
+  const pFinK = Math.min(Eje3D.pkFin, pkCentro + span);
+
+  ctxMinimapa.lineWidth = 3;
+  let subTramo = [];
+  let estadoPrev = null;
+
+  for (let k = pIniK; k <= pFinK; k += 40) {
+    const pt = Eje3D.enPk(k);
+    const dE = pt.E - pCentro.E;
+    const dN = pt.N - pCentro.N;
+    const xr = dE * cosA - dN * sinA;
+    const yr = dE * sinA + dN * cosA;
+    const sx = cx + xr * escala;
+    const sy = cy - yr * escala;
+
+    const estado = pt.enTunel ? 'tunel' : (pt.enViaducto ? 'viaducto' : 'via');
+    if (estadoPrev && estado !== estadoPrev) {
+      dibujarTrazoMinimapa(ctxMinimapa, subTramo, estadoPrev);
+      subTramo = [{ x: sx, y: sy }];
+    }
+    subTramo.push({ x: sx, y: sy });
+    estadoPrev = estado;
+  }
+  if (subTramo.length > 1) {
+    dibujarTrazoMinimapa(ctxMinimapa, subTramo, estadoPrev);
+  }
+
+  const viaCabAct = sentidoRecorrido > 0 ? -1 : 1;
+  for (const tr of flota) {
+    if (Math.abs(tr.pk - pkCentro) > span) continue;
+    if (tr.viaSigno === viaCabAct && Math.abs(tr.pk - pkCentro) < 50) continue;
+    const pt = Eje3D.enPk(tr.pk);
+    const dE = pt.E - pCentro.E;
+    const dN = pt.N - pCentro.N;
+    const xr = dE * cosA - dN * sinA;
+    const yr = dE * sinA + dN * cosA;
+    const sx = cx + xr * escala;
+    const sy = cy - yr * escala;
+    ctxMinimapa.fillStyle = '#ef4444';
+    ctxMinimapa.beginPath();
+    ctxMinimapa.arc(sx, sy, 3.5, 0, Math.PI * 2);
+    ctxMinimapa.fill();
+  }
+
+  ctxMinimapa.fillStyle = '#eab308';
+  ctxMinimapa.beginPath();
+  ctxMinimapa.moveTo(cx, cy - 7);
+  ctxMinimapa.lineTo(cx - 5, cy + 6);
+  ctxMinimapa.lineTo(cx + 5, cy + 6);
+  ctxMinimapa.closePath();
+  ctxMinimapa.fill();
+
+  if (elMinimapaPendTxt) {
+    elMinimapaPendTxt.textContent = (pendActual >= 0 ? '+' : '') + pendActual.toFixed(1) + ' ‰';
+  }
+}
 
 const panel = document.getElementById('panel'), btnAbrir = document.getElementById('abrir');
 if (innerWidth <= 760) panel.classList.add('cerrado');
@@ -1502,6 +1921,9 @@ activarVentanaFlotante(document.getElementById('inspector3D'));
 activarVentanaFlotante(document.getElementById('barraPerfil'), { clave: 'perfil' });
 activarVentanaFlotante(document.getElementById('medidaBadge'));
 activarVentanaFlotante(document.getElementById('cab'));
+activarVentanaFlotante(document.getElementById('panelEmplazamientos'), { asa: document.querySelector('#panelEmplazamientos .emp-cab'), clave: 'emplazamientos' });
+activarVentanaFlotante(document.getElementById('panelMinimapa'), { asa: document.querySelector('.minimapa-cab'), clave: 'minimapa' });
+activarVentanaFlotante(document.getElementById('pupitreDmi'), { clave: 'dmi' });
 activarVentanaFlotante(document.getElementById('brujula'), { botonPlegar: false });
 
 if (window.Camara3D?.configurar) {
@@ -1739,8 +2161,77 @@ render.domElement.addEventListener('pointerup', (e) => {
 const txtPosicion = document.getElementById('txtPosicion');
 const flecha = document.getElementById('flecha');
 let pkActualUI = Eje3D.pkIni;
+const elPanelEmp = document.getElementById('panelEmplazamientos');
+const elEmpLista = document.getElementById('empLista');
+const elEmpModoTxt = document.getElementById('empModoTxt');
+function fmtDistEmp(m) {
+  const s = m >= 0 ? '+' : '−';
+  const a = Math.abs(m);
+  return a >= 1000 ? `${s}${(a / 1000).toFixed(2).replace('.', ',')} km` : `${s}${Math.round(a)} m`;
+}
+function actualizarRadarEmplazamientos(pk) {
+  if (!elPanelEmp || elPanelEmp.hidden || !EMPLAZAMIENTOS.length) return;
+  const ant = [], sig = [];
+  for (const e of EMPLAZAMIENTOS) {
+    if (!Number.isFinite(e.pk)) continue;
+    const d = (e.pk - pk) * sentidoRecorrido;
+    if (d < -5) ant.push({ e, d });
+    else sig.push({ e, d });
+  }
+  ant.sort((a, b) => b.d - a.d);
+  sig.sort((a, b) => a.d - b.d);
+  const top5 = sig.slice(0, 5).reverse();
+  const bot5 = ant.slice(0, 5);
+  if (elEmpModoTxt) {
+    const dest = sentidoRecorrido > 0 ? 'Alicante' : 'Albacete';
+    const ico = sentidoRecorrido > 0 ? '▶' : '◀';
+    elEmpModoTxt.textContent = `${ico} ${dest}`;
+  }
+  const inminentePk = sig.length ? sig[0].e.pk : null;
+  const fila = ({ e, d }, cls) => {
+    const col = COLOR_TIPO_EMP[e.tipo] || '#94a3b8';
+    const pkTxt = e.pkTexto || fmtPk(e.pk);
+    const tipo = e.tipo || 'Hito';
+    const isInminente = e.pk === inminentePk;
+    const inminenteCls = isInminente ? ' emp-inminente' : '';
+    return `<button type="button" class="emp-item ${cls}${inminenteCls}" data-pk="${e.pk}" title="${e.nombre} (${tipo} · PK ${pkTxt})">`
+      + `<span class="emp-dot" style="background:${col};color:${col}"></span>`
+      + `<div class="emp-cuerpo">`
+      + `<div class="emp-fila-arr">`
+      + `<span class="emp-tipo-badge" style="color:${col};background:${col}1a;border-color:${col}4d">${tipo}</span>`
+      + `<span class="emp-nom">${e.nombre}</span>`
+      + `</div>`
+      + `<div class="emp-fila-abj">`
+      + `<span class="emp-meta">PK ${pkTxt}</span>`
+      + `<span class="emp-dist">${fmtDistEmp(d)}</span>`
+      + `</div>`
+      + `</div>`
+      + `</button>`;
+  };
+  elEmpLista.innerHTML = [
+    ...top5.map((x) => fila(x, 'sig')),
+    `<div class="emp-sep">`
+    + `<span class="emp-sep-radar-pulse"></span>`
+    + `<span class="emp-sep-txt">POSICIÓN ACTUAL</span>`
+    + `<span class="emp-sep-pk">PK ${fmtPk(pk)}</span>`
+    + `</div>`,
+    ...bot5.map((x) => fila(x, 'ant')),
+  ].join('');
+}
+elEmpLista?.addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-pk]');
+  if (!b) return;
+  const pkDest = Number(b.dataset.pk);
+  if (!Number.isFinite(pkDest)) return;
+  pkRecorrido = pkDest;
+  prevRefPos = null;
+  prevRefObj = null;
+  centrarCamaraRecorrido();
+});
+
 function actualizarUI(pk) {
   pkActualUI = pk;
+  actualizarRadarEmplazamientos(pk);
   const p = Eje3D.enPk(pk);
   const enTun = Boolean(p.enTunel);
   colocarMarcasEmplazamientos(enTun);
@@ -1774,13 +2265,16 @@ function actualizarUI(pk) {
 
 // ---- Arranque sincronizado: MDT LiDAR + teselas iniciales + bloques de terreno + ortofoto opcional ----
 const kmIni = Math.floor(pkArranque / 1000);
+Carga.avance(0.5, 'Cargando modelos 3D (postes, aisladores, casetas)…');
 await pModelos; // los modelos de Blender, antes de construir la primera tesela
+Carga.avance(0.6, `Montando el corredor en torno al km ${kmIni} y su relieve LiDAR…`);
 await Promise.all([
   MdtCorredor.asegurarEntorno(pIni.E, pIni.N),
   cargarTeselaKm(kmIni),
   cargarTeselaKm(kmIni - 1),
   cargarTeselaKm(kmIni + 1),
-]);
+].map((p) => Carga.contar(p, 0.08)));
+Carga.avance(0.94, 'Preparando terreno, ortofoto y cámara…');
 actualizarVentanaTerreno(pIni.E, pIni.N);
 procesarColaTerreno(false);
 setModoVista(VISTAS.some((v) => v.id === vistaActiva) ? vistaActiva : 'viaducto');
@@ -1792,12 +2286,11 @@ if (params.has('esperarOrto') && ortofotoActiva) {
     await new Promise((r) => setTimeout(r, 60));
   }
 }
-cargando.hidden = true;
-cargando.style.display = 'none';
+Carga.cerrar();
 
 if (window.Carrusel3D && !document.body.classList.contains('limpio')) {
   window.Carrusel3D.iniciar({
-    ids: ['viaducto', 'aerea', 'cerca', 'helicoptero', 'lateral', 'cabina', 'dron'],
+    ids: ['viaducto', 'aerea', 'cerca', 'lateral', 'cabina', 'dron'],
     inicio: vistaActiva,
     sinArranque: true,
     irA: (id) => setModoVista(id),
@@ -1810,50 +2303,10 @@ addEventListener('resize', () => {
   camara.aspect = innerWidth / innerHeight;
   camara.updateProjectionMatrix();
   render.setSize(innerWidth, innerHeight);
+  if (composer) composer.setSize(innerWidth, innerHeight);
   renderEtq.setSize(innerWidth, innerHeight);
   dibujarPerfil(pkRecorrido);
 });
-
-// ---- Haz de radioenlace GSM-R tren-torre ----
-const geoEnlaceGsmr = new THREE.BufferGeometry();
-const posEnlaceGsmr = new Float32Array(6);
-geoEnlaceGsmr.setAttribute('position', new THREE.BufferAttribute(posEnlaceGsmr, 3));
-const matEnlaceGsmr = new THREE.LineDashedMaterial({
-  color: 0x38bdf8,
-  dashSize: 12,
-  gapSize: 6,
-  transparent: true,
-  opacity: 0.88,
-  depthTest: false,
-});
-const lineaEnlaceGsmr = new THREE.Line(geoEnlaceGsmr, matEnlaceGsmr);
-lineaEnlaceGsmr.renderOrder = 999;
-escena.add(lineaEnlaceGsmr);
-
-let btsActiva = null;
-function actualizarEnlaceGsmr(pkObs) {
-  if (!lineaEnlaceGsmr.visible) return;
-  const pObs = Eje3D.enPk(pkObs);
-  let btsOptima = null, distMinBts = Infinity;
-  for (const b of (Eje3D.btsInfo || [])) {
-    const d = Math.abs(b.pk - pkObs);
-    if (d < distMinBts) { distMinBts = d; btsOptima = b; }
-  }
-  if (!btsActiva) {
-    btsActiva = btsOptima;
-  } else if (btsOptima && btsOptima !== btsActiva) {
-    if (distMinBts < Math.abs(btsActiva.pk - pkObs) - 500) btsActiva = btsOptima;
-  }
-  if (!btsActiva) return;
-  const pAntenaTren = vistaActiva === 'cabina' ? camara.position : W(pObs.E, pObs.N, pObs.Z + 4.3);
-  const zSueloTorre = cotaTerrenoUTM(btsActiva.e, btsActiva.n);
-  const pCimaTorre = W(btsActiva.e, btsActiva.n, zSueloTorre + 29.5);
-  const pos = lineaEnlaceGsmr.geometry.attributes.position.array;
-  pos[0] = pAntenaTren.x; pos[1] = pAntenaTren.y; pos[2] = pAntenaTren.z;
-  pos[3] = pCimaTorre.x;   pos[4] = pCimaTorre.y;   pos[5] = pCimaTorre.z;
-  lineaEnlaceGsmr.geometry.attributes.position.needsUpdate = true;
-  lineaEnlaceGsmr.computeLineDistances();
-}
 
 // ---- Bucle principal en tiempo real ----
 let tPrev = performance.now(), acumUi = 0;
@@ -1891,23 +2344,45 @@ function fotograma(ahora) {
 
   // Circulación realista de trenes AVE (frenado en curvas, paradas en Villena AV y Alicante)
   if (!pausaTrenes && grupoFlota.visible) {
-    actualizarFlota(dt, PK_TERMINAL);
+    actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' ? flota[0] : null);
   }
 
   let pkObservado = pkRecorrido;
   if (vistaActiva === 'cabina' || vistaActiva === 'dron') {
-    const vLimKmh = vistaActiva === 'cabina' ? Eje3D.velocidadLimite(pkRecorrido) : 340;
+    const vLimKmh = Eje3D.velocidadLimite(pkRecorrido);
     const pPend = Eje3D.enPk(pkRecorrido).pend * sentidoRecorrido;
-    const vObjKmh = vistaActiva === 'cabina' ? Math.max(60, Math.min(300, vLimKmh - Math.max(0, pPend) * 0.35)) : 340;
+    const vObjKmh = Math.max(60, Math.min(300, vLimKmh - Math.max(0, pPend) * 0.35));
     velCabinaKmh += (vObjKmh - velCabinaKmh) * Math.min(1, dt * 1.4);
     const velBase = velCabinaKmh / 3.6;
     if (elDmiVmax) elDmiVmax.textContent = String(vLimKmh);
-    if (elDmiVel && vistaActiva === 'cabina') elDmiVel.textContent = String(Math.round(velCabinaKmh * multVel));
+    const vEfectiva = Math.round(velCabinaKmh * multVel);
+    if (elDmiVel && vistaActiva === 'cabina') elDmiVel.textContent = String(vEfectiva);
+    if (elCabVelMult) elCabVelMult.textContent = `${multVel}× · ${vEfectiva} km/h`;
+    if (elVignetteVel) {
+      const enCab = vistaActiva === 'cabina' && !recorridoPausado;
+      const opac = enCab && vEfectiva > 210 ? Math.min(0.85, (vEfectiva - 210) / 140) : 0;
+      elVignetteVel.style.opacity = opac.toFixed(2);
+    }
+    if (vistaActiva === 'cabina') {
+      const proxObj = Eje3D.proximoHito(pkRecorrido, sentidoRecorrido);
+      actualizarDmiEtcs(vEfectiva, vLimKmh, proxObj?.d);
+    }
     if (!params.has('quieto') && !recorridoPausado) {
       pkRecorrido += sentidoRecorrido * velBase * multVel * dt;
-      const pkFinRec = vistaActiva === 'cabina' ? Math.min(Eje3D.pkFin - 80, PK_TERMINAL - 30) : Eje3D.pkFin - 80;
+      // La cabina y el dron llegan hasta los andenes (topes de las vías de alta velocidad en PK 485+977)
+      const pkFinRec = Math.min(Eje3D.pkFin - 80, PK_TERMINAL + 620);
       if (pkRecorrido > pkFinRec) { pkRecorrido = pkFinRec; sentidoRecorrido = -1; refrescarTextoSentido(); }
       if (pkRecorrido < Eje3D.pkIni + 80) { pkRecorrido = Eje3D.pkIni + 80; sentidoRecorrido = 1; refrescarTextoSentido(); }
+    }
+    if (vistaActiva === 'dron' && flota[0]) {
+      const trenDron = flota[0];
+      trenDron.viaSigno = sentidoRecorrido > 0 ? -1 : 1;
+      trenDron.sentido = sentidoRecorrido;
+      trenDron.pk = pkRecorrido;
+      trenDron.velActual = velBase * multVel;
+      trenDron.paradaTimer = 0;
+      trenDron.modelo.grupo.visible = true;
+      posicionarTren(trenDron);
     }
     const pCheck = Eje3D.enPk(pkRecorrido);
     if (Math.hypot(pCheck.E - origen.E, pCheck.N - origen.N) > 2500) {
@@ -1948,12 +2423,17 @@ function fotograma(ahora) {
     controles.update();
 
     if (vistaActiva === 'cabina') {
-      // Encender faro de cabina dentro de túneles o en modo noche
-      const usarFaro = Boolean(p.enTunel || modoNoche);
-      faroCabina.intensity = usarFaro ? 42 : 0;
+      const usarFaro = modoFaros > 0 || Boolean(p.enTunel || modoNoche);
       if (usarFaro) {
+        if (modoFaros === 2) {
+          faroCabina.intensity = 115; faroCabina.distance = 460; faroCabina.angle = 0.35; faroCabina.penumbra = 0.45;
+        } else {
+          faroCabina.intensity = 55; faroCabina.distance = 180; faroCabina.angle = 0.52; faroCabina.penumbra = 0.6;
+        }
         faroCabina.position.copy(pos);
         faroCabina.target.position.copy(obj);
+      } else {
+        faroCabina.intensity = 0;
       }
     } else {
       faroCabina.intensity = 0;
@@ -1979,16 +2459,47 @@ function fotograma(ahora) {
   }
 
   // Ocultar en modo cabina cualquier tren que ocupe nuestra misma vía a menos de 240 m para no solapar con el morro propio
+  // Detección de cruce con trenes en vía contraria a alta velocidad
   const viaCabAct = sentidoRecorrido > 0 ? -1 : 1;
   for (const tr of flota) {
-    tr.modelo.grupo.visible = !(vistaActiva === 'cabina' && tr.viaSigno === viaCabAct && Math.abs(tr.pk - pkRecorrido) < 240);
+    const mismoMorro = vistaActiva === 'cabina' && tr.viaSigno === viaCabAct && Math.abs(tr.pk - pkRecorrido) < 240;
+    tr.modelo.grupo.visible = !mismoMorro;
+    if (vistaActiva === 'cabina' && tr.viaSigno !== viaCabAct) {
+      const dist = Math.abs(tr.pk - pkRecorrido);
+      if (dist < 48 && !tr.haCruzado) {
+        tr.haCruzado = true;
+        audioAmbiental.reproducirCruceTren();
+        efectoCabina.sacudirPorCruce();
+      } else if (dist > 180) {
+        tr.haCruzado = false;
+      }
+    }
+  }
+
+  // Juntas de dilatación en estribos y vanos de viaductos
+  const pAct = Eje3D.enPk(pkRecorrido);
+  const juntaIdx = Math.floor(pkRecorrido / 75);
+  if (pAct.enViaducto && juntaIdx !== lastJuntaIdx) {
+    lastJuntaIdx = juntaIdx;
+    if (vistaActiva === 'cabina' && !recorridoPausado) {
+      audioAmbiental.reproducirJunta();
+    }
   }
 
   if (dt > 0.001 && dt < 0.5) {
     fpsSuave = fpsSuave * 0.9 + (1 / dt) * 0.1;
   }
 
+  Vida.actualizar(dt, {
+    camara,
+    pkObs: pkObservado,
+    modoClima: climaActual,
+    enTunel: Boolean(Eje3D.enPk(pkObservado).enTunel),
+    enCabina: vistaActiva === 'cabina',
+  });
+
   cupulaCielo.position.copy(camara.position);
+  if (skyShader) skyShader.position.copy(camara.position);
   if (controles.target.distanceToSquared(solUltimoTarget) > 324) {
     solUltimoTarget.copy(controles.target);
     sol.target.position.copy(controles.target);
@@ -2002,13 +2513,13 @@ function fotograma(ahora) {
     const camU = UTMdeMundo(camara.position);
     Nubes.actualizar(camU.E, camU.N);
     actualizarUI(pkObservado);
-    actualizarEnlaceGsmr(pkObservado);
     actualizarBrujulaYEscala({
       THREE, camara, controles, UTMdeMundo, flecha,
       elAlt: document.getElementById('camAlt'),
       elEscalaBarra: document.getElementById('escalaBarra'),
       elEscalaTxt: document.getElementById('escalaTxt'),
     });
+    actualizarMinimapaOrbital(pkObservado, Eje3D.enPk(pkObservado).pend);
     if (audioAmbiental.activo) {
       const camU = UTMdeMundo(camara.position);
       const zSueloCam = cotaTerrenoUTM(camU.E, camU.N);
@@ -2017,18 +2528,14 @@ function fotograma(ahora) {
       audioAmbiental.actualizar({
         alturaSobreSuelo: Number.isFinite(zSueloCam) ? Math.max(0, camU.Z - zSueloCam) : 30,
         distEje: qCam.d,
-        velocidadKmh: vistaActiva === 'cabina' ? Math.round(250 * multVel) : 0,
+        velocidadKmh: (vistaActiva === 'cabina' || vistaActiva === 'dron') ? Math.round(velCabinaKmh * multVel) : 0,
         enCabina: vistaActiva === 'cabina' && !recorridoPausado,
         enTunel: Boolean(pObs.enTunel),
       });
     }
   }
 
-  if (lineaEnlaceGsmr && lineaEnlaceGsmr.visible && matEnlaceGsmr) {
-    matEnlaceGsmr.dashOffset = -ahora * 0.012;
-  }
-
-  render.render(escena, camara);
+  renderizarEscena();
   renderEtq.render(escena, camara);
 }
 
