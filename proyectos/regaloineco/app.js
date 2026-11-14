@@ -761,29 +761,92 @@ class SantaRailTracker {
     this.slider = document.getElementById('radar-progress-slider');
     this.progressPct = 5;
 
-    // Coordenadas calibradas sobre el mapa GIS profesional (460x330)
+    this.routePath = document.getElementById('route-path');
+    this.routeProgress = document.getElementById('route-progress');
+    this.whereDisplay = document.getElementById('radar-where');
+    this.metaDisplay = document.getElementById('radar-where-meta');
+    this.playing = false;
+    this.pctDisplay = document.getElementById('radar-pct');
+    this.pctBar = document.getElementById('radar-pct-bar');
+    this.stepBtns = Array.from(document.querySelectorAll('#rm-steps .rm-step'));
+
+    // x,y = posición de cada hito sobre el mapa (viewBox 500x661, proyección Mercator real).
+    // La posición del tren se calcula sobre la curva #route-path; "len" se resuelve en init().
     this.waypoints = [
-      { pct: 0, x: 400, y: 35, angle: 124, name: "Laponia (Círculo Polar 66° 33'N)", coords: "66.5039°N, 25.7294°E", days: "36 días", speed: "180 km/h", status: "Taller Ártico de Laponia. Embarque de los lotes solidarios y salida por la red polar." },
-      { pct: 15, x: 370, y: 80, angle: 145, name: "Golfo de Botnia & Báltico Norte", coords: "63.8258°N, 20.2630°E", days: "32 días", speed: "200 km/h", status: "Travesía por el corredor nórdico hacia Escandinavia central." },
-      { pct: 30, x: 340, y: 130, angle: 150, name: "Escandinavia Sur (Estocolmo / Malmö)", coords: "59.3293°N, 18.0686°E", days: "27 días", speed: "230 km/h", status: "Enlace internacional por el corredor transfronterizo hacia Europa Central." },
-      { pct: 50, x: 245, y: 195, angle: 145, name: "Corredor Europeo TEN-T (París)", coords: "48.8566°N, 2.3522°E", days: "20 días", speed: "270 km/h", status: "Tránsito por el corredor de alta velocidad europeo hacia el eje atlántico." },
-      { pct: 65, x: 195, y: 245, angle: 155, name: "Paso Pirenaico (Burdeos / Hendaya)", coords: "43.3584°N, -1.7760°W", days: "16 días", speed: "220 km/h", status: "Paso fronterizo e interoperabilidad ferroviaria hacia la red española." },
-      { pct: 75, x: 168, y: 285, angle: 125, name: "Sede Central Ineco (Madrid)", coords: "40.4532°N, -3.6883°W", days: "13 días", speed: "160 km/h", status: "Escala técnica y felicitación institucional en Paseo de la Habana 138 (Madrid)." },
-      { pct: 88, x: 195, y: 305, angle: 125, name: "Línea de Alta Velocidad (Cuenca / Albacete)", coords: "39.4699°N, -1.6500°W", days: "5 días", speed: "300 km/h", status: "Velocidad de crucero 300 km/h con señalización ERTMS Nivel 2." },
-      { pct: 100, x: 218, y: 320, angle: 125, name: "Base de Mantenimiento de Monforte del Cid", coords: "38.4067°N, -0.6949°W", days: "0 días (Llegada)", speed: "0 km/h", status: "¡Llegada y entrega oficial del Regalo Solidario en Monforte del Cid!" }
+      { pct: 0, x: 431.3, y: 52.6, name: "Laponia (Círculo Polar 66° 33'N)", coords: "66.5039°N, 25.7294°E", days: "36 días", speed: "180 km/h", status: "Taller Ártico de Laponia. Embarque de los lotes solidarios y salida por la red polar." },
+      { pct: 15, x: 366.2, y: 128.3, name: "Golfo de Botnia & Báltico Norte", coords: "63.8258°N, 20.2630°E", days: "32 días", speed: "200 km/h", status: "Travesía por el corredor nórdico hacia Escandinavia central." },
+      { pct: 30, x: 340.1, y: 241.1, name: "Escandinavia Sur (Estocolmo / Malmö)", coords: "59.3293°N, 18.0686°E", days: "27 días", speed: "230 km/h", status: "Enlace internacional por el corredor transfronterizo hacia Europa Central." },
+      { pct: 50, x: 153, y: 455.1, name: "Corredor Europeo TEN-T (París)", coords: "48.8566°N, 2.3522°E", days: "20 días", speed: "270 km/h", status: "Tránsito por el corredor de alta velocidad europeo hacia el eje atlántico." },
+      { pct: 65, x: 103.8, y: 549.7, name: "Paso Pirenaico (Burdeos / Hendaya)", coords: "43.3584°N, -1.7760°W", days: "16 días", speed: "220 km/h", status: "Paso fronterizo e interoperabilidad ferroviaria hacia la red española." },
+      { pct: 75, x: 81.1, y: 596.2, name: "Sede Central Ineco (Madrid)", coords: "40.4532°N, -3.6883°W", days: "13 días", speed: "160 km/h", status: "Escala técnica y felicitación institucional en Paseo de la Habana 138 (Madrid)." },
+      { pct: 88, x: 102.9, y: 618.8, name: "Línea de Alta Velocidad (Cuenca / Albacete)", coords: "39.4699°N, -1.6500°W", days: "5 días", speed: "300 km/h", status: "Velocidad de crucero 300 km/h con señalización ERTMS Nivel 2." },
+      { pct: 100, x: 116.8, y: 627.7, name: "Base de Mantenimiento de Monforte del Cid", coords: "38.4067°N, -0.6949°W", days: "0 días (Llegada)", speed: "0 km/h", status: "¡Llegada y entrega oficial del Regalo Solidario en Monforte del Cid!" }
     ];
 
     this.init();
   }
 
+  // Longitud sobre la ruta del punto más cercano a (x, y), buscando hacia delante desde "from".
+  nearestLength(x, y, from) {
+    let best = from, bestD = Infinity;
+    for (let l = from; l <= this.routeLen; l += 1.5) {
+      const p = this.routePath.getPointAtLength(l);
+      const d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y);
+      if (d < bestD) { bestD = d; best = l; }
+    }
+    return best;
+  }
+
   init() {
+    this.routeLen = this.routePath ? this.routePath.getTotalLength() : 0;
+    if (this.routeLen) {
+      let from = 0;
+      const last = this.waypoints.length - 1;
+      this.waypoints.forEach((wp, i) => {
+        if (i === 0) wp.len = 0;
+        else if (i === last) wp.len = this.routeLen;
+        else { wp.len = this.nearestLength(wp.x, wp.y, from); from = wp.len; }
+      });
+    }
     if (this.slider) {
       this.slider.addEventListener('input', (e) => {
+        this.stop();
         this.setProgress(parseFloat(e.target.value));
       });
     }
     this.setProgress(5);
   }
+
+  // Reproduce el viaje completo (≈28 s) desde la posición actual.
+  play() {
+    if (this.progressPct >= 100) this.setProgress(0);
+    this.playing = true;
+    this._last = performance.now();
+    if (this.onPlayState) this.onPlayState(true);
+    const step = (now) => {
+      if (!this.playing) return;
+      const dt = Math.min(0.1, (now - this._last) / 1000);
+      this._last = now;
+      this.setProgress(Math.min(100, this.progressPct + dt * (100 / 28)));
+      if (this.progressPct >= 100) {
+        this.stop();
+        sound.playTrainHorn();
+        if (window.confetti) window.confetti({ particleCount: 120, spread: 75, origin: { y: 0.7 } });
+        return;
+      }
+      this._raf = requestAnimationFrame(step);
+    };
+    this._raf = requestAnimationFrame(step);
+  }
+
+  stop() {
+    if (!this.playing) return;
+    this.playing = false;
+    cancelAnimationFrame(this._raf);
+    if (this.onPlayState) this.onPlayState(false);
+  }
+
+  togglePlay() { this.playing ? this.stop() : this.play(); }
 
   setProgress(pct) {
     this.progressPct = Math.max(0, Math.min(100, pct));
@@ -805,16 +868,35 @@ class SantaRailTracker {
     const span = p1.pct - p0.pct;
     const factor = span === 0 ? 0 : (this.progressPct - p0.pct) / span;
 
-    const currentX = p0.x + (p1.x - p0.x) * factor;
-    const currentY = p0.y + (p1.y - p0.y) * factor;
-
-    const currentAngle = p0.angle + (p1.angle - p0.angle) * factor;
-
-    if (this.trainMarker) {
-      this.trainMarker.setAttribute('transform', `translate(${currentX.toFixed(1)}, ${currentY.toFixed(1)}) rotate(${currentAngle.toFixed(1)})`);
+    if (this.trainMarker && this.routeLen) {
+      // El tren avanza sobre la curva real de la ruta y se orienta según su tangente.
+      const len = p0.len + (p1.len - p0.len) * factor;
+      const pt = this.routePath.getPointAtLength(len);
+      const a = this.routePath.getPointAtLength(Math.max(0, len - 3));
+      const b = this.routePath.getPointAtLength(Math.min(this.routeLen, len + 3));
+      const angle = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
+      this.trainMarker.setAttribute('transform', `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)}) rotate(${angle.toFixed(1)})`);
+      if (this.routeProgress) this.routeProgress.setAttribute('stroke-dasharray', `${len.toFixed(1)} ${(this.routeLen + 50).toFixed(1)}`);
+      this.currentPoint = pt;
+      if (this.onPoint) this.onPoint(pt);
     }
 
+    const pctText = Math.round(this.progressPct) + '%';
+    if (this.pctDisplay) this.pctDisplay.innerText = pctText;
+    if (this.pctBar) this.pctBar.style.width = this.progressPct + '%';
+    if (this.slider) this.slider.style.setProperty('--p', this.progressPct + '%');
+
     const currentWp = factor < 0.5 ? p0 : p1;
+    if (this.whereDisplay) this.whereDisplay.innerText = currentWp.name;
+    if (this.metaDisplay) this.metaDisplay.innerText = `${currentWp.days} · ${currentWp.speed}`;
+
+    // Hito activo: el último hito alcanzado (0 / 50 / 75 / 100).
+    if (this.stepBtns.length) {
+      let active = 0;
+      this.stepBtns.forEach((btn) => { if (this.progressPct >= parseFloat(btn.dataset.step) - 0.5) active = btn; });
+      this.stepBtns.forEach((btn) => btn.classList.toggle('is-active', btn === active));
+    }
+
     if (this.statusDisplay) this.statusDisplay.innerText = currentWp.status;
     if (this.distDisplay) this.distDisplay.innerText = currentWp.days;
     if (this.speedDisplay) this.speedDisplay.innerText = currentWp.speed;
@@ -843,8 +925,10 @@ class SantaRailTracker {
     else if (stage === 'madrid') targetPct = 75;
     else if (stage === 'monforte') targetPct = 100;
 
+    this.stop();
     this.animateTo(targetPct);
     sound.playChime();
+    if (this.onJump) this.onJump(targetPct);
   }
 
   animateTo(targetPct) {
@@ -873,6 +957,260 @@ class SantaRailTracker {
     setTimeout(() => {
       this.setProgress(this.progressPct);
     }, 3500);
+  }
+}
+
+// ==========================================
+// 6b. CONTROLES DEL MAPA: zoom, arrastre, pellizco, seguimiento,
+//     reproducción del viaje, etiquetas y pantalla completa
+// ==========================================
+class RailMapControls {
+  constructor(tracker) {
+    this.t = tracker;
+    this.box = document.getElementById('radar-map-box');
+    this.svg = document.getElementById('radar-svg-map');
+    if (!this.box || !this.svg) return;
+    const vb = this.svg.viewBox.baseVal;
+    this.W = vb.width;
+    this.H = vb.height;
+    this.zoom = 1;
+    this.cx = this.W / 2;
+    this.cy = this.H / 2;
+    this.maxZoom = 8;
+    this.follow = false;
+    this.pointers = new Map();
+    this.drag = null;
+    this.pinch = null;
+    this.anim = null;
+    this.hint = document.getElementById('rm-hint');
+
+    this.bindPointer();
+    this.bindControls();
+    if (window.ResizeObserver) new ResizeObserver(() => this.apply()).observe(this.box);
+    this.apply();
+
+    tracker.onPoint = (pt) => { if (this.follow) this.centerOn(pt.x, pt.y); };
+    tracker.onJump = (pct) => {
+      if (this.zoom <= 1.02) return;
+      const wp = tracker.waypoints.find((w) => w.pct === pct);
+      if (wp) this.flyTo(wp.x, wp.y, this.zoom);
+    };
+    tracker.onPlayState = (on) => {
+      const b = document.getElementById('rm-play');
+      if (!b) return;
+      b.textContent = on ? '⏸' : '▶';
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', String(on));
+      if (on && !this.follow) this.setFollow(true);
+    };
+    setTimeout(() => this.hideHint(), 6000);
+  }
+
+  // --- geometría ---
+  aspect() {
+    const r = this.box.getBoundingClientRect();
+    return r.width && r.height ? r.width / r.height : this.W / this.H;
+  }
+  view() {
+    const a = this.aspect();
+    const fitW = Math.max(this.W, this.H * a);
+    const w = fitW / this.zoom;
+    return { w, h: w / a };
+  }
+  clamp() {
+    const { w, h } = this.view();
+    const axis = (c, size, total) => (size >= total ? total / 2 : Math.min(Math.max(c, size / 2), total - size / 2));
+    this.cx = axis(this.cx, w, this.W);
+    this.cy = axis(this.cy, h, this.H);
+  }
+  apply() {
+    this.clamp();
+    const { w, h } = this.view();
+    this.svg.setAttribute('viewBox', `${(this.cx - w / 2).toFixed(2)} ${(this.cy - h / 2).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)}`);
+    this.svg.classList.toggle('is-zoomed', this.zoom > 1.02);
+  }
+  clientToSvg(x, y) {
+    const r = this.svg.getBoundingClientRect();
+    const { w, h } = this.view();
+    return { x: (x - r.left) / r.width * w + (this.cx - w / 2), y: (y - r.top) / r.height * h + (this.cy - h / 2) };
+  }
+
+  // --- acciones ---
+  zoomAt(factor, clientX, clientY) {
+    this.cancelAnim();
+    const r = this.svg.getBoundingClientRect();
+    const p = this.clientToSvg(clientX, clientY);
+    this.zoom = Math.min(this.maxZoom, Math.max(1, this.zoom * factor));
+    const { w, h } = this.view();
+    const fx = (clientX - r.left) / r.width;
+    const fy = (clientY - r.top) / r.height;
+    this.cx = p.x - (fx - 0.5) * w;
+    this.cy = p.y - (fy - 0.5) * h;
+    this.apply();
+  }
+  zoomCenter(factor) {
+    const r = this.svg.getBoundingClientRect();
+    this.zoomAt(factor, r.left + r.width / 2, r.top + r.height / 2);
+  }
+  centerOn(x, y) {
+    this.cx = x;
+    this.cy = y;
+    this.apply();
+  }
+  cancelAnim() {
+    if (this.anim) cancelAnimationFrame(this.anim);
+    this.anim = null;
+  }
+  flyTo(x, y, zoom, ms = 650) {
+    this.cancelAnim();
+    const z0 = this.zoom, x0 = this.cx, y0 = this.cy;
+    const z1 = Math.min(this.maxZoom, Math.max(1, zoom));
+    const t0 = performance.now();
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / ms);
+      const e = 1 - Math.pow(1 - k, 3);
+      this.zoom = Math.exp(Math.log(z0) + (Math.log(z1) - Math.log(z0)) * e);
+      this.cx = x0 + (x - x0) * e;
+      this.cy = y0 + (y - y0) * e;
+      this.apply();
+      this.anim = k < 1 ? requestAnimationFrame(step) : null;
+    };
+    this.anim = requestAnimationFrame(step);
+  }
+  setFollow(on) {
+    this.follow = on;
+    const b = document.getElementById('rm-follow');
+    if (b) { b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); }
+    if (on && this.t.currentPoint) this.flyTo(this.t.currentPoint.x, this.t.currentPoint.y, Math.max(this.zoom, 2.4));
+  }
+  hideHint() {
+    if (this.hint) this.hint.classList.add('is-hidden');
+  }
+  toggleFull(force) {
+    const on = typeof force === 'boolean' ? force : !this.box.classList.contains('rm-fullscreen');
+    if (on === this.box.classList.contains('rm-fullscreen')) return;
+    if (on) {
+      // Se mueve al <body> para que "fixed" no dependa del blur/transform de la barra lateral.
+      this.placeholder = document.createComment('radar-map');
+      this.box.parentNode.insertBefore(this.placeholder, this.box);
+      document.body.appendChild(this.box);
+    } else if (this.placeholder && this.placeholder.parentNode) {
+      this.placeholder.parentNode.insertBefore(this.box, this.placeholder);
+      this.placeholder.remove();
+    }
+    this.box.classList.toggle('rm-fullscreen', on);
+    document.body.classList.toggle('rm-noscroll', on);
+    const b = document.getElementById('rm-full');
+    if (b) { b.textContent = on ? '✕' : '⛶'; b.title = on ? 'Salir de pantalla completa' : 'Pantalla completa'; }
+    this.apply();
+  }
+
+  // --- eventos ---
+  bindControls() {
+    const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+    on('rm-zoom-in', () => { this.hideHint(); this.zoomCenter(1.7); });
+    on('rm-zoom-out', () => { this.hideHint(); this.zoomCenter(1 / 1.7); });
+    on('rm-reset', () => { this.setFollow(false); this.flyTo(this.W / 2, this.H / 2, 1); });
+    on('rm-follow', () => this.setFollow(!this.follow));
+    on('rm-play', () => this.t.togglePlay());
+    on('rm-labels', (e) => {
+      const hidden = this.svg.classList.toggle('hide-labels');
+      e.currentTarget.classList.toggle('is-on', !hidden);
+      e.currentTarget.setAttribute('aria-pressed', String(!hidden));
+    });
+    on('rm-full', () => this.toggleFull());
+
+    this.box.tabIndex = 0;
+    this.box.addEventListener('keydown', (e) => {
+      const step = 40 / this.zoom;
+      if (e.key === '+' || e.key === '=') this.zoomCenter(1.4);
+      else if (e.key === '-') this.zoomCenter(1 / 1.4);
+      else if (e.key === '0') this.flyTo(this.W / 2, this.H / 2, 1);
+      else if (e.key === 'ArrowLeft') this.centerOn(this.cx - step, this.cy);
+      else if (e.key === 'ArrowRight') this.centerOn(this.cx + step, this.cy);
+      else if (e.key === 'ArrowUp') this.centerOn(this.cx, this.cy - step);
+      else if (e.key === 'ArrowDown') this.centerOn(this.cx, this.cy + step);
+      else return;
+      e.preventDefault();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.toggleFull(false); });
+  }
+
+  bindPointer() {
+    const svg = this.svg;
+    svg.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      this.hideHint();
+      this.setFollow(false);
+      this.zoomAt(Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0018)), e.clientX, e.clientY);
+    }, { passive: false });
+
+    svg.addEventListener('dblclick', (e) => {
+      this.setFollow(false);
+      this.zoomAt(2, e.clientX, e.clientY);
+    });
+
+    svg.addEventListener('pointerdown', (e) => {
+      this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      try { svg.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
+      this.hideHint();
+      this.cancelAnim();
+      if (this.pointers.size === 1) {
+        this.drag = { x: e.clientX, y: e.clientY, cx: this.cx, cy: this.cy, moved: false, target: e.target };
+      } else if (this.pointers.size === 2) {
+        const [a, b] = [...this.pointers.values()];
+        this.pinch = { dist: Math.hypot(a.x - b.x, a.y - b.y), zoom: this.zoom };
+        if (this.drag) this.drag.moved = true;
+      }
+    });
+
+    svg.addEventListener('pointermove', (e) => {
+      if (!this.pointers.has(e.pointerId)) return;
+      this.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.pointers.size >= 2 && this.pinch) {
+        const [a, b] = [...this.pointers.values()];
+        const d = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+        const target = Math.min(this.maxZoom, Math.max(1, this.pinch.zoom * d / this.pinch.dist));
+        this.setFollow(false);
+        this.zoomAt(target / this.zoom, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      } else if (this.drag) {
+        const dx = e.clientX - this.drag.x;
+        const dy = e.clientY - this.drag.y;
+        if (!this.drag.moved && Math.hypot(dx, dy) < 5) return;
+        if (!this.drag.moved) { this.drag.moved = true; this.setFollow(false); svg.classList.add('is-dragging'); }
+        const r = svg.getBoundingClientRect();
+        const { w, h } = this.view();
+        this.cx = this.drag.cx - dx * (w / r.width);
+        this.cy = this.drag.cy - dy * (h / r.height);
+        this.apply();
+      }
+    });
+
+    const end = (e) => {
+      const wasSingle = this.pointers.size === 1;
+      this.pointers.delete(e.pointerId);
+      if (this.pointers.size < 2) this.pinch = null;
+      svg.classList.remove('is-dragging');
+      if (e.type === 'pointerup' && wasSingle && this.drag && !this.drag.moved) this.onTap(this.drag.target);
+      if (this.pointers.size === 0) this.drag = null;
+      else if (this.pointers.size === 1) {
+        const [p] = [...this.pointers.values()];
+        this.drag = { x: p.x, y: p.y, cx: this.cx, cy: this.cy, moved: true, target: null };
+      }
+    };
+    svg.addEventListener('pointerup', end);
+    svg.addEventListener('pointercancel', end);
+  }
+
+  // Tocar una estación lleva el tren hasta ella y acerca la cámara.
+  onTap(target) {
+    const st = target && target.closest ? target.closest('.rm-st') : null;
+    if (!st) return;
+    this.t.stop();
+    this.t.animateTo(parseFloat(st.dataset.pct));
+    sound.playChime();
+    this.setFollow(false);
+    this.flyTo(parseFloat(st.dataset.x), parseFloat(st.dataset.y), Math.max(this.zoom, 2.6));
   }
 }
 
@@ -1035,17 +1373,6 @@ class AdventCalendar {
       const pct = (count / 9) * 100;
       this.progressBar.style.width = `${pct}%`;
     }
-  }
-
-  openAll() {
-    GIFTS_DATA.forEach(g => {
-      this.openedDays.add(g.day);
-      const card = document.getElementById(`gift-card-${g.day}`);
-      if (card) card.classList.add('opened');
-    });
-    localStorage.setItem('ineco_advent_2026', JSON.stringify([...this.openedDays]));
-    this.updateProgress();
-    sound.playConfettiFanfare();
   }
 
   resetAll() {
@@ -2467,368 +2794,634 @@ class ThemeManager {
 // ==========================================
 class SolidaryDriverGame {
   constructor() {
-    this.modal = document.getElementById('game-modal');
-    this.openBtn = document.getElementById('open-game-btn');
-    this.mobileOpenBtn = document.getElementById('mobile-game-btn');
-    this.closeBtn = document.getElementById('close-game-btn');
-    this.startBtn = document.getElementById('start-game-btn');
-    this.overlay = document.getElementById('game-overlay-screen');
-    this.canvas = document.getElementById('game-canvas');
-    this.btnLeft = document.getElementById('game-btn-left');
-    this.btnRight = document.getElementById('game-btn-right');
-
+    const $ = (id) => document.getElementById(id);
+    this.modal = $('game-modal');
+    this.openBtn = $('open-game-btn');
+    this.mobileOpenBtn = $('mobile-game-btn');
+    this.closeBtn = $('close-game-btn');
+    this.pauseBtn = $('game-pause-btn');
+    this.stage = $('game-stage');
+    this.overlay = $('game-overlay-screen');
+    this.countdownEl = $('game-countdown');
+    this.canvas = $('game-canvas');
+    this.btnLeft = $('game-btn-left');
+    this.btnRight = $('game-btn-right');
+    this.hud = {
+      collected: $('g-collected'), time: $('g-time'), score: $('g-score'), bar: $('g-timebar'),
+      combo: $('g-combo'), shield: $('g-shield'), turbo: $('g-turbo')
+    };
     this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
-    this.lanes = [70, 180, 290];
-    this.currentLane = 1;
-    this.items = [];
-    this.score = 0;
-    this.combo = 0;
-    this.collected = 0;
-    this.timeLeft = 30;
-    this.isPlaying = false;
-    this.timerInterval = null;
-    this.spawnInterval = null;
-    this.animId = null;
-    this.floatingTexts = [];
+
+    this.GOAL = 9;
+    this.TOTAL_TIME = 45;
+    this.state = 'idle'; // idle | countdown | playing | paused | over
+    this.W = 360; this.H = 560; this.dpr = 1;
     this.highScore = parseInt(localStorage.getItem('ineco_game_hi') || '0', 10);
-
     this.giftIcons = ['🫒', '🐟', '🌶️', '🥫', '🍫', '☕', '🃏', '🧦', '💌'];
-
+    this.stars = [];
+    this.flakes = [];
+    this.scroll = 0;
+    this.raf = null;
+    this.last = 0;
+    this.timers = [];
+    this.pointerActive = false;
+    this.resetRun();
     this.init();
   }
 
+  resetRun() {
+    this.targetLane = 1;
+    this.trainX = this.laneX(1);
+    this.items = [];
+    this.particles = [];
+    this.floatingTexts = [];
+    this.score = 0;
+    this.combo = 0;
+    this.bestCombo = 0;
+    this.collected = 0;
+    this.hits = 0;
+    this.timeLeft = this.TOTAL_TIME;
+    this.elapsed = 0;
+    this.spawnTimer = 0.5;
+    this.trailTimer = 0;
+    this.turboT = 0;
+    this.shield = false;
+    this.flash = 0;
+    this.shake = 0;
+    this.speed = 0;
+    this.lastShownTime = -1;
+  }
+
+  // ---------- geometría ----------
+  get laneW() { return this.W / 3; }
+  laneX(i) { return this.laneW * (i + 0.5); }
+  get u() { return Math.min(1.5, Math.max(0.8, this.W / 360)); }
+  get trainW() { return Math.min(this.laneW * 0.42, 54 * this.u); }
+  get trainH() { return this.trainW * 1.7; }
+  get trainY() { return this.H - this.trainH * 0.5 - 26 * this.u; }
+  get itemSize() { return Math.min(this.laneW * 0.36, 46 * this.u); }
+
+  resize() {
+    if (!this.canvas || !this.stage) return;
+    const r = this.stage.getBoundingClientRect();
+    if (!r.width || !r.height) return;
+    this.dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    this.W = r.width;
+    this.H = r.height;
+    this.canvas.width = Math.round(r.width * this.dpr);
+    this.canvas.height = Math.round(r.height * this.dpr);
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this.trainX = this.laneX(this.targetLane);
+    // Campo de estrellas y copos adaptados al tamaño
+    this.stars = Array.from({ length: Math.round(this.W * this.H / 5200) }, () => ({
+      x: Math.random() * this.W, y: Math.random() * this.H * 0.9, r: Math.random() * 1.4 + 0.3, p: Math.random() * 6.28
+    }));
+    this.flakes = Array.from({ length: Math.round(this.W / 12) }, () => this.newFlake(true));
+  }
+
+  newFlake(anywhere) {
+    return {
+      x: Math.random() * this.W, y: anywhere ? Math.random() * this.H : -8,
+      r: Math.random() * 1.8 + 0.6, v: 25 + Math.random() * 45, s: Math.random() * 6.28
+    };
+  }
+
+  // ---------- eventos ----------
   init() {
     if (this.openBtn) this.openBtn.onclick = () => this.open();
     if (this.mobileOpenBtn) this.mobileOpenBtn.onclick = () => this.open();
     if (this.closeBtn) this.closeBtn.onclick = () => this.close();
-    if (this.startBtn) this.startBtn.onclick = () => this.startGame();
+    if (this.pauseBtn) this.pauseBtn.onclick = () => this.togglePause();
+    if (this.btnLeft) this.btnLeft.addEventListener('pointerdown', (e) => { e.preventDefault(); this.moveLeft(); });
+    if (this.btnRight) this.btnRight.addEventListener('pointerdown', (e) => { e.preventDefault(); this.moveRight(); });
 
-    if (this.btnLeft) this.btnLeft.onclick = () => this.moveLeft();
-    if (this.btnRight) this.btnRight.onclick = () => this.moveRight();
+    if (this.overlay) {
+      this.overlay.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-act]');
+        if (!b) return;
+        const act = b.dataset.act;
+        if (act === 'start' || act === 'restart') this.startCountdown();
+        else if (act === 'resume') this.resume();
+        else if (act === 'close') this.close();
+      });
+    }
 
     if (this.canvas) {
-      let touchStartX = 0;
-      this.canvas.addEventListener('touchstart', (e) => {
-        if (e.touches && e.touches[0]) touchStartX = e.touches[0].clientX;
-      }, { passive: true });
-      this.canvas.addEventListener('touchend', (e) => {
-        if (!this.isPlaying) return;
-        const touchEndX = e.changedTouches && e.changedTouches[0] ? e.changedTouches[0].clientX : touchStartX;
-        const diffX = touchEndX - touchStartX;
-        if (diffX < -30) this.moveLeft();
-        else if (diffX > 30) this.moveRight();
-      }, { passive: true });
+      // Control directo: la locomotora va a la vía que toques y sigue al dedo al arrastrar.
+      this.canvas.addEventListener('pointerdown', (e) => {
+        if (this.state !== 'playing') return;
+        e.preventDefault();
+        this.pointerActive = true;
+        try { this.canvas.setPointerCapture(e.pointerId); } catch (_) { /* noop */ }
+        this.setLaneFromClientX(e.clientX);
+      });
+      this.canvas.addEventListener('pointermove', (e) => {
+        if (this.pointerActive && this.state === 'playing') this.setLaneFromClientX(e.clientX);
+      });
+      const up = () => { this.pointerActive = false; };
+      this.canvas.addEventListener('pointerup', up);
+      this.canvas.addEventListener('pointercancel', up);
     }
 
     window.addEventListener('keydown', (e) => {
-      if (!this.isPlaying) return;
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') this.moveLeft();
-      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.moveRight();
+      if (!this.isOpen()) return;
+      const k = e.key;
+      if (k === 'Escape') { this.state === 'playing' ? this.pause() : this.close(); return; }
+      if (k === 'p' || k === 'P') { this.togglePause(); return; }
+      if (this.state !== 'playing') {
+        if ((k === 'Enter' || k === ' ') && (this.state === 'idle' || this.state === 'over')) { e.preventDefault(); this.startCountdown(); }
+        return;
+      }
+      if (k === 'ArrowLeft' || k === 'a' || k === 'A') { e.preventDefault(); this.moveLeft(); }
+      if (k === 'ArrowRight' || k === 'd' || k === 'D') { e.preventDefault(); this.moveRight(); }
     });
+
+    document.addEventListener('visibilitychange', () => { if (document.hidden && this.state === 'playing') this.pause(); });
+    window.addEventListener('resize', () => this.isOpen() && this.resize());
+    window.addEventListener('orientationchange', () => setTimeout(() => this.isOpen() && this.resize(), 250));
+    if (window.ResizeObserver && this.stage) new ResizeObserver(() => this.isOpen() && this.resize()).observe(this.stage);
   }
 
-  moveLeft() {
-    if (this.currentLane > 0) {
-      this.currentLane--;
-      haptics.scratch();
-    }
-  }
+  isOpen() { return this.modal && !this.modal.classList.contains('hidden'); }
 
-  moveRight() {
-    if (this.currentLane < 2) {
-      this.currentLane++;
-      haptics.scratch();
-    }
+  setLaneFromClientX(x) {
+    const r = this.canvas.getBoundingClientRect();
+    const lane = Math.max(0, Math.min(2, Math.floor((x - r.left) / r.width * 3)));
+    if (lane !== this.targetLane) { this.targetLane = lane; haptics.scratch(); }
   }
+  moveLeft() { if (this.state === 'playing' && this.targetLane > 0) { this.targetLane--; haptics.scratch(); } }
+  moveRight() { if (this.state === 'playing' && this.targetLane < 2) { this.targetLane++; haptics.scratch(); } }
 
+  // ---------- ciclo de vida ----------
   open() {
-    if (this.modal) {
-      this.modal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-      if (this.overlay) this.overlay.classList.remove('hidden');
-    }
+    if (!this.modal) return;
+    this.modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    this.buildSlots();
+    this.resetRun();
+    this.resize();
+    this.state = 'idle';
+    this.showStart();
+    this.syncHud(true);
+    this.last = 0;
+    cancelAnimationFrame(this.raf);
+    this.raf = requestAnimationFrame((t) => this.loop(t));
   }
 
   close() {
-    this.stopGame();
-    if (this.modal) {
-      this.modal.classList.add('hidden');
-      document.body.style.overflow = '';
-    }
+    this.clearTimers();
+    this.state = 'idle';
+    cancelAnimationFrame(this.raf);
+    if (this.modal) this.modal.classList.add('hidden');
+    document.body.style.overflow = '';
   }
 
-  startGame() {
-    if (this.overlay) this.overlay.classList.add('hidden');
-    this.score = 0;
-    this.combo = 0;
-    this.collected = 0;
-    this.timeLeft = 30;
-    this.items = [];
-    this.floatingTexts = [];
-    this.currentLane = 1;
-    this.isPlaying = true;
+  clearTimers() { this.timers.forEach(clearTimeout); this.timers = []; }
+  later(fn, ms) { this.timers.push(setTimeout(fn, ms)); }
 
-    clearInterval(this.timerInterval);
-    clearInterval(this.spawnInterval);
-    cancelAnimationFrame(this.animId);
-
-    this.timerInterval = setInterval(() => {
-      this.timeLeft--;
-      if (this.timeLeft <= 0) {
-        this.endGame();
+  startCountdown() {
+    this.clearTimers();
+    this.resetRun();
+    this.resize();
+    this.hideOverlay();
+    this.state = 'countdown';
+    this.syncHud(true);
+    const steps = ['3', '2', '1', '¡YA!'];
+    steps.forEach((s, i) => this.later(() => {
+      if (this.state !== 'countdown') return;
+      if (this.countdownEl) {
+        this.countdownEl.textContent = s;
+        this.countdownEl.classList.remove('go'); void this.countdownEl.offsetWidth; this.countdownEl.classList.add('go');
       }
-    }, 1000);
-
-    this.spawnInterval = setInterval(() => {
-      if (!this.isPlaying) return;
-      const lane = Math.floor(Math.random() * 3);
-      const isSnowball = Math.random() < 0.35;
-      const icon = isSnowball ? '❄️' : this.giftIcons[Math.floor(Math.random() * this.giftIcons.length)];
-      this.items.push({
-        lane: lane,
-        y: -30,
-        isGift: !isSnowball,
-        icon: icon,
-        speed: 5.2 + Math.min(3, this.collected * 0.35)
-      });
-    }, 600);
-
-    this.loop();
+      i === steps.length - 1 ? sound.playTrainHorn() : sound.playChime();
+    }, i * 800));
+    this.later(() => {
+      if (this.state !== 'countdown') return;
+      if (this.countdownEl) this.countdownEl.textContent = '';
+      this.state = 'playing';
+    }, steps.length * 800);
   }
 
-  stopGame() {
-    this.isPlaying = false;
-    clearInterval(this.timerInterval);
-    clearInterval(this.spawnInterval);
-    cancelAnimationFrame(this.animId);
+  pause() {
+    if (this.state !== 'playing') return;
+    this.state = 'paused';
+    this.pointerActive = false;
+    this.showOverlay(`
+      <div class="text-5xl mb-2">⏸️</div>
+      <h3 class="text-xl font-black text-white font-poppins mb-1">Juego en pausa</h3>
+      <p class="text-xs text-blue-200 mb-5">Llevas ${this.collected} de ${this.GOAL} regalos · ${this.score} pts</p>
+      <button data-act="resume" class="game-btn-primary">▶ Continuar</button>
+      <button data-act="close" class="game-btn-ghost mt-3">Salir</button>`);
+  }
+  resume() {
+    if (this.state !== 'paused') return;
+    this.hideOverlay();
+    this.last = 0;
+    this.state = 'playing';
+  }
+  togglePause() { this.state === 'playing' ? this.pause() : this.state === 'paused' ? this.resume() : null; }
+
+  showOverlay(html) { if (this.overlay) { this.overlay.innerHTML = html; this.overlay.classList.remove('hidden'); } }
+  hideOverlay() { if (this.overlay) this.overlay.classList.add('hidden'); }
+
+  showStart() {
+    this.showOverlay(`
+      <div class="text-5xl mb-3">🚄 🎁</div>
+      <h3 class="text-xl font-black text-white font-poppins mb-1">El Maquinista Solidario 2027</h3>
+      <p class="text-xs text-blue-200 max-w-xs mb-3 leading-relaxed">
+        Guía el AVE por las 3 vías y entrega los <strong class="text-amber-300">9 regalos solidarios</strong> antes de que se acabe el tiempo.
+      </p>
+      <ul class="text-[11px] text-slate-300 mb-4 bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-700 space-y-1 text-left">
+        <li>👆 <b>Toca o arrastra</b> para cambiar de vía</li>
+        <li>❄️ Los bloques de hielo restan puntos y tiempo</li>
+        <li>⏱️ +tiempo · 🛡️ escudo · ⚡ puntos dobles</li>
+      </ul>
+      <button id="start-game-btn" data-act="start" class="game-btn-primary">¡COMENZAR DESAFÍO!</button>
+      <p class="text-[10px] text-slate-400 mt-3 font-mono">Récord: ${this.highScore} pts</p>`);
   }
 
-  endGame() {
-    this.stopGame();
-    sound.playConfettiFanfare();
-    haptics.fanfare();
-    if (typeof confetti === 'function') {
-      confetti({ particleCount: 120, spread: 90, origin: { y: 0.5 } });
-    }
-
-    if (this.score > this.highScore) {
-      this.highScore = this.score;
-      localStorage.setItem('ineco_game_hi', String(this.highScore));
-    }
-
-    const isVictory = this.collected >= 9;
-    const stars = isVictory ? '⭐⭐⭐' : this.collected >= 6 ? '⭐⭐' : '⭐';
-    const rankTitle = isVictory 
-      ? '¡ENTREGA EXITOSA EN MONFORTE!' 
-      : this.collected >= 6 
-        ? '¡EXCELENTE SERVICIO FERROVIARIO!' 
-        : '¡BUEN TRAYECTO SOLIDARIO!';
-
-    if (this.overlay) {
-      this.overlay.innerHTML = `
-        <div class="text-4xl mb-1">${stars}</div>
-        <div class="text-3xl mb-2">🚄 🎁</div>
-        <h3 class="text-base sm:text-lg font-black text-amber-300 font-poppins">${rankTitle}</h3>
-        <p class="text-xs text-white max-w-xs mt-2 mb-4 leading-relaxed">
-          Has recogido <strong class="text-amber-400 font-black text-sm">${this.collected} de 9 Regalos Solidarios</strong>.<br>
-          <span class="text-emerald-400 font-bold text-sm block mt-1">Puntuación: ${this.score} pts</span>
-          <span class="text-slate-400 text-[10px] block font-mono">Récord Histórico: ${this.highScore} pts</span>
-          <span class="text-[11px] text-blue-200 block mt-1">¡Feliz y próspero año 2027!</span>
-        </p>
-        <button id="restart-game-btn" class="px-8 py-3 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white font-black text-xs shadow-xl active:scale-95 transition border border-amber-300">
-          🔄 Volver a Jugar
-        </button>
-      `;
-      this.overlay.classList.remove('hidden');
-      const rBtn = document.getElementById('restart-game-btn');
-      if (rBtn) rBtn.onclick = () => this.startGame();
-    }
-  }
-
-  loop() {
-    if (!this.isPlaying || !this.ctx) return;
-    const ctx = this.ctx;
-    const w = this.canvas.width;
-    const h = this.canvas.height;
-
-    // Fondo nocturno con velocidad
-    ctx.fillStyle = '#020716';
-    ctx.fillRect(0, 0, w, h);
-
-    // Catenaria a los lados
-    const postY = (Date.now() / 2) % 80;
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
-    ctx.lineWidth = 2;
-    for (let y = postY; y < h; y += 80) {
-      ctx.beginPath();
-      ctx.moveTo(10, y);
-      ctx.lineTo(32, y);
-      ctx.moveTo(w - 10, y);
-      ctx.lineTo(w - 32, y);
-      ctx.stroke();
-    }
-
-    // 3 Vías de alta velocidad balastadas
-    this.lanes.forEach(lx => {
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
-      ctx.fillRect(lx - 34, 0, 68, h);
-
-      // Traviesas en movimiento
-      ctx.strokeStyle = 'rgba(100, 116, 139, 0.45)';
-      ctx.lineWidth = 4;
-      const offset = (Date.now() / 3) % 24;
-      for (let y = offset; y < h; y += 24) {
-        ctx.beginPath();
-        ctx.moveTo(lx - 30, y);
-        ctx.lineTo(lx + 30, y);
-        ctx.stroke();
-      }
-
-      // Carriles relucientes
-      ctx.strokeStyle = '#E2E8F0';
-      ctx.lineWidth = 3.5;
-      ctx.beginPath();
-      ctx.moveTo(lx - 22, 0);
-      ctx.lineTo(lx - 22, h);
-      ctx.moveTo(lx + 22, 0);
-      ctx.lineTo(lx + 22, h);
-      ctx.stroke();
+  // ---------- partida ----------
+  spawn() {
+    const r = Math.random();
+    let type = 'gift';
+    if (r < 0.34) type = 'ice';
+    else if (r > 0.93) type = 'turbo';
+    else if (r > 0.87) type = 'shield';
+    else if (r > 0.81) type = 'time';
+    // Evita repetir ítem en la misma vía muy seguido
+    let lane = Math.floor(Math.random() * 3);
+    const prev = this.items[this.items.length - 1];
+    if (prev && prev.y < this.H * 0.25 && prev.lane === lane) lane = (lane + 1 + Math.floor(Math.random() * 2)) % 3;
+    const icons = { ice: '❄️', turbo: '⚡', shield: '🛡️', time: '⏱️' };
+    this.items.push({
+      lane, y: -this.itemSize, type,
+      icon: type === 'gift' ? this.giftIcons[Math.floor(Math.random() * this.giftIcons.length)] : icons[type],
+      ph: Math.random() * 6.28
     });
+  }
 
-    // Ítems cayendo
+  burst(x, y, color, n = 10, spd = 140) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * 6.28, v = spd * (0.4 + Math.random() * 0.8);
+      this.particles.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 0.5 + Math.random() * 0.3, max: 0.8, r: 1.5 + Math.random() * 2.5, color });
+    }
+  }
+  floatText(text, x, y, color) { this.floatingTexts.push({ text, x, y, life: 1, color }); }
+
+  update(dt) {
+    this.elapsed += dt;
+    this.timeLeft -= dt;
+    this.turboT = Math.max(0, this.turboT - dt);
+    this.flash = Math.max(0, this.flash - dt * 2.2);
+    this.shake = Math.max(0, this.shake - dt * 30);
+    const ramp = Math.min(1, this.elapsed / 35);
+    this.speed = this.H * (0.5 + 0.42 * ramp) * (this.turboT > 0 ? 1.12 : 1);
+
+    this.spawnTimer -= dt;
+    if (this.spawnTimer <= 0) {
+      this.spawn();
+      this.spawnTimer = Math.max(0.34, 0.82 - this.elapsed * 0.011);
+    }
+
+    const tx = this.laneX(this.targetLane);
+    this.trainX += (tx - this.trainX) * Math.min(1, dt * 16);
+
+    const ty = this.trainY, th = this.trainH, tw = this.trainW, r = this.itemSize * 0.5;
     for (let i = this.items.length - 1; i >= 0; i--) {
       const it = this.items[i];
-      it.y += it.speed;
-
-      const itemX = this.lanes[it.lane];
-      
-      if (it.isGift) {
-        ctx.fillStyle = 'rgba(253, 224, 71, 0.25)';
-        ctx.beginPath();
-        ctx.arc(itemX, it.y - 8, 22, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      ctx.font = '28px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(it.icon, itemX, it.y);
-
-      // Colisión con tren
-      if (it.y >= h - 110 && it.y <= h - 45 && it.lane === this.currentLane) {
-        if (it.isGift) {
-          this.combo++;
-          const comboBonus = (this.combo > 1) ? this.combo * 20 : 0;
-          const pts = 100 + comboBonus;
-          this.score += pts;
-          this.collected++;
-          sound.playGameCollect();
-          haptics.chime();
-
-          this.floatingTexts.push({
-            text: `+${pts}` + (this.combo > 1 ? ` (x${this.combo}!)` : ''),
-            x: itemX,
-            y: it.y - 20,
-            alpha: 1,
-            color: this.combo > 1 ? '#FCD34D' : '#38BDF8'
-          });
-
-          if (this.collected >= 9) {
-            this.score += this.timeLeft * 30; // Bonus por velocidad
-            this.endGame();
-            return;
-          }
-        } else {
-          this.combo = 0;
-          this.score = Math.max(0, this.score - 50);
-          sound.playIceCrack();
-          haptics.scratch();
-          this.floatingTexts.push({
-            text: '-50 ❄️',
-            x: itemX,
-            y: it.y - 20,
-            alpha: 1,
-            color: '#EF4444'
-          });
-        }
+      it.y += this.speed * dt;
+      const ix = this.laneX(it.lane);
+      if (Math.abs(ix - this.trainX) < tw * 0.5 + r * 0.6 && Math.abs(it.y - ty) < th * 0.5 + r * 0.6) {
         this.items.splice(i, 1);
+        if (this.collect(it, ix)) return;
         continue;
       }
-
-      if (it.y > h + 40) {
+      if (it.y > this.H + 60) {
+        if (it.type === 'gift') this.combo = 0; // regalo perdido corta el combo
         this.items.splice(i, 1);
       }
     }
 
-    // Textos flotantes
-    for (let f = this.floatingTexts.length - 1; f >= 0; f--) {
-      const ft = this.floatingTexts[f];
-      ft.y -= 1.5;
-      ft.alpha -= 0.03;
-      if (ft.alpha <= 0) {
-        this.floatingTexts.splice(f, 1);
-      } else {
-        ctx.save();
-        ctx.globalAlpha = ft.alpha;
-        ctx.fillStyle = ft.color;
-        ctx.font = 'bold 16px Poppins, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(ft.text, ft.x, ft.y);
-        ctx.restore();
-      }
+    // Estela de nieve del tren
+    this.trailTimer -= dt;
+    if (this.trailTimer <= 0) {
+      this.trailTimer = this.turboT > 0 ? 0.015 : 0.04;
+      this.particles.push({ x: this.trainX + (Math.random() - 0.5) * tw * 0.6, y: ty + th * 0.5, vx: (Math.random() - 0.5) * 30, vy: 60 + Math.random() * 60, life: 0.45, max: 0.45, r: 1.5 + Math.random() * 2, color: this.turboT > 0 ? '#FDE047' : '#E2E8F0' });
     }
 
-    // Dibujar Tren AVE del Maquinista
-    const trainX = this.lanes[this.currentLane];
-    const trainY = h - 75;
+    if (this.timeLeft <= 0) { this.timeLeft = 0; this.endGame(false); }
+  }
 
-    // Cono de luz volumétrico
-    const beamGrad = ctx.createLinearGradient(trainX, trainY, trainX, trainY - 140);
-    beamGrad.addColorStop(0, 'rgba(254, 240, 138, 0.7)');
-    beamGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
-    ctx.fillStyle = beamGrad;
+  // Devuelve true si la partida terminó.
+  collect(it, ix) {
+    const y = it.y;
+    if (it.type === 'gift') {
+      this.combo++;
+      this.bestCombo = Math.max(this.bestCombo, this.combo);
+      const bonus = this.combo > 1 ? Math.min(this.combo, 10) * 20 : 0;
+      const pts = (100 + bonus) * (this.turboT > 0 ? 2 : 1);
+      this.score += pts;
+      this.collected++;
+      sound.playGameCollect();
+      haptics.chime();
+      this.burst(ix, y, '#FDE047', 12);
+      this.floatText(`+${pts}${this.combo > 1 ? ` x${this.combo}` : ''}`, ix, y - 24, this.combo > 1 ? '#FCD34D' : '#38BDF8');
+      if (this.collected >= this.GOAL) {
+        this.score += Math.round(this.timeLeft) * 30;
+        this.endGame(true);
+        return true;
+      }
+    } else if (it.type === 'ice') {
+      if (this.shield) {
+        this.shield = false;
+        sound.playChime();
+        this.burst(ix, y, '#7DD3FC', 14);
+        this.floatText('¡Escudo!', ix, y - 24, '#7DD3FC');
+      } else {
+        this.hits++;
+        this.combo = 0;
+        this.score = Math.max(0, this.score - 50);
+        this.timeLeft = Math.max(0, this.timeLeft - 2);
+        this.flash = 1;
+        this.shake = 9;
+        sound.playIceCrack();
+        haptics.scratch();
+        this.burst(ix, y, '#BAE6FD', 16, 190);
+        this.floatText('-50 · -2s', ix, y - 24, '#F87171');
+      }
+    } else if (it.type === 'time') {
+      this.timeLeft += 4;
+      sound.playChime(); haptics.chime();
+      this.burst(ix, y, '#86EFAC', 10);
+      this.floatText('+4 s', ix, y - 24, '#86EFAC');
+    } else if (it.type === 'shield') {
+      this.shield = true;
+      sound.playChime(); haptics.chime();
+      this.burst(ix, y, '#7DD3FC', 10);
+      this.floatText('Escudo', ix, y - 24, '#7DD3FC');
+    } else if (it.type === 'turbo') {
+      this.turboT = 6;
+      sound.playChime(); haptics.chime();
+      this.burst(ix, y, '#FDE047', 14);
+      this.floatText('¡Puntos x2!', ix, y - 24, '#FDE047');
+    }
+    return false;
+  }
+
+  endGame(victory) {
+    this.state = 'over';
+    this.pointerActive = false;
+    this.clearTimers();
+    const isRecord = this.score > this.highScore;
+    if (isRecord) { this.highScore = this.score; localStorage.setItem('ineco_game_hi', String(this.highScore)); }
+    sound.playConfettiFanfare();
+    haptics.fanfare();
+    if (victory && typeof confetti === 'function') confetti({ particleCount: 140, spread: 90, origin: { y: 0.55 }, zIndex: 9999 });
+
+    const starCount = victory ? (this.timeLeft >= 12 ? 3 : 2) : (this.collected >= 5 ? 1 : 0);
+    const stars = '⭐'.repeat(starCount) + '☆'.repeat(3 - starCount);
+    const title = victory ? '¡ENTREGA EXITOSA EN MONFORTE!' : (this.collected >= 5 ? '¡CASI LLEGAS A MONFORTE!' : '¡SE ACABÓ EL TIEMPO!');
+    this.syncHud(true);
+    this.showOverlay(`
+      <div class="text-4xl mb-1 tracking-wide">${stars}</div>
+      <div class="text-3xl mb-2">🚄 🎁</div>
+      <h3 class="text-base sm:text-lg font-black text-amber-300 font-poppins">${title}</h3>
+      <p class="text-xs text-white max-w-xs mt-2 mb-4 leading-relaxed">
+        Has entregado <strong class="text-amber-400 font-black text-sm">${this.collected} de ${this.GOAL} regalos solidarios</strong>.<br>
+        <span class="text-emerald-400 font-bold text-sm block mt-1">Puntuación: ${this.score} pts${isRecord ? ' · ¡NUEVO RÉCORD!' : ''}</span>
+        <span class="text-slate-400 text-[10px] block font-mono">Récord: ${this.highScore} pts · Mejor combo: x${this.bestCombo} · Choques: ${this.hits}</span>
+        <span class="text-[11px] text-blue-200 block mt-1">¡Feliz y próspero año 2027!</span>
+      </p>
+      <button data-act="restart" class="game-btn-primary">🔄 Volver a jugar</button>
+      <button data-act="close" class="game-btn-ghost mt-3">Cerrar</button>`);
+  }
+
+  // ---------- HUD ----------
+  buildSlots() {
+    const el = this.hud.collected;
+    if (el && el.children.length !== this.GOAL) el.innerHTML = '<i></i>'.repeat(this.GOAL);
+  }
+  syncHud(force) {
+    const h = this.hud;
+    if (h.collected) Array.from(h.collected.children).forEach((s, i) => s.classList.toggle('on', i < this.collected));
+    const t = Math.ceil(this.timeLeft);
+    if (force || t !== this.lastShownTime) {
+      this.lastShownTime = t;
+      if (h.time) { h.time.textContent = t + 's'; h.time.classList.toggle('low', t <= 8); }
+      if (h.bar) { h.bar.style.width = Math.max(0, Math.min(100, this.timeLeft / this.TOTAL_TIME * 100)) + '%'; h.bar.classList.toggle('low', t <= 8); }
+    }
+    if (h.score) h.score.textContent = this.score;
+    if (h.combo) { h.combo.textContent = `🔥 x${this.combo}`; h.combo.classList.toggle('hidden', this.combo < 2); }
+    if (h.shield) h.shield.classList.toggle('hidden', !this.shield);
+    if (h.turbo) { h.turbo.textContent = `⚡ ${Math.ceil(this.turboT)}s`; h.turbo.classList.toggle('hidden', this.turboT <= 0); }
+  }
+
+  // ---------- bucle ----------
+  loop(ts) {
+    if (!this.isOpen()) return;
+    const dt = this.last ? Math.min(0.05, (ts - this.last) / 1000) : 0;
+    this.last = ts;
+    if (this.state === 'playing') this.update(dt);
+    const ambient = this.state === 'playing' ? this.speed : (this.state === 'paused' ? 0 : this.H * 0.12);
+    this.scroll += ambient * dt;
+    if (this.state !== 'paused') this.stepFx(dt);
+    this.draw();
+    this.syncHud(false);
+    this.raf = requestAnimationFrame((t) => this.loop(t));
+  }
+
+  stepFx(dt) {
+    this.flakes.forEach((f) => {
+      f.y += f.v * dt; f.s += dt; f.x += Math.sin(f.s) * 12 * dt;
+      if (f.y > this.H + 8) Object.assign(f, this.newFlake(false));
+    });
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.98;
+      if (p.life <= 0) this.particles.splice(i, 1);
+    }
+    for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+      const f = this.floatingTexts[i];
+      f.life -= dt * 1.2; f.y -= 40 * dt;
+      if (f.life <= 0) this.floatingTexts.splice(i, 1);
+    }
+  }
+
+  // ---------- dibujo ----------
+  draw() {
+    const ctx = this.ctx; if (!ctx) return;
+    const W = this.W, H = this.H, u = this.u, lw = this.laneW;
+    ctx.save();
+    if (this.shake > 0) ctx.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake);
+
+    // Cielo/terreno nocturno
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#040c24'); g.addColorStop(1, '#0a1a3c');
+    ctx.fillStyle = g; ctx.fillRect(-20, -20, W + 40, H + 40);
+    const tw = performance.now() / 1000;
+    ctx.fillStyle = '#fff';
+    this.stars.forEach((s) => { ctx.globalAlpha = 0.35 + 0.35 * Math.sin(tw * 1.6 + s.p); ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill(); });
+    ctx.globalAlpha = 1;
+
+    // Vías
+    for (let i = 0; i < 3; i++) {
+      const lx = this.laneX(i), active = i === this.targetLane;
+      ctx.fillStyle = active ? 'rgba(30, 58, 110, 0.7)' : 'rgba(12, 22, 44, 0.8)';
+      ctx.fillRect(lx - lw * 0.36, -20, lw * 0.72, H + 40);
+      ctx.strokeStyle = active ? 'rgba(252, 211, 77, 0.45)' : 'rgba(100, 130, 200, 0.18)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(lx - lw * 0.36, -20, lw * 0.72, H + 40);
+      const gap = 26 * u, off = this.scroll % gap;
+      ctx.strokeStyle = 'rgba(100, 116, 139, 0.5)';
+      ctx.lineWidth = 3 * u;
+      ctx.beginPath();
+      for (let y = off - gap; y < H + gap; y += gap) { ctx.moveTo(lx - lw * 0.26, y); ctx.lineTo(lx + lw * 0.26, y); }
+      ctx.stroke();
+      ctx.strokeStyle = '#DDE6F3';
+      ctx.lineWidth = 2.6 * u;
+      ctx.beginPath();
+      ctx.moveTo(lx - lw * 0.2, -20); ctx.lineTo(lx - lw * 0.2, H + 20);
+      ctx.moveTo(lx + lw * 0.2, -20); ctx.lineTo(lx + lw * 0.2, H + 20);
+      ctx.stroke();
+    }
+
+    // Postes de catenaria con luz
+    const pg = 110 * u, po = this.scroll % pg;
+    for (let y = po - pg; y < H + pg; y += pg) {
+      [lw * 0.07, W - lw * 0.07].forEach((px, k) => {
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.5)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(k ? px - lw * 0.1 : px + lw * 0.1, y); ctx.stroke();
+        const lg = ctx.createRadialGradient(px, y, 0, px, y, 22 * u);
+        lg.addColorStop(0, 'rgba(253, 224, 71, 0.55)'); lg.addColorStop(1, 'rgba(253, 224, 71, 0)');
+        ctx.fillStyle = lg; ctx.fillRect(px - 22 * u, y - 22 * u, 44 * u, 44 * u);
+        ctx.fillStyle = '#FDE68A'; ctx.beginPath(); ctx.arc(px, y, 2.4 * u, 0, 6.283); ctx.fill();
+      });
+    }
+
+    // Ítems
+    const fs = this.itemSize;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    this.items.forEach((it) => {
+      const x = this.laneX(it.lane), y = it.y + Math.sin(tw * 4 + it.ph) * 2;
+      if (it.type === 'ice') {
+        const s = fs * 0.95;
+        const ig = ctx.createLinearGradient(x - s / 2, y - s / 2, x + s / 2, y + s / 2);
+        ig.addColorStop(0, '#E0F2FE'); ig.addColorStop(0.5, '#7DD3FC'); ig.addColorStop(1, '#0284C7');
+        ctx.fillStyle = ig; ctx.strokeStyle = '#E0F2FE'; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(x - s / 2, y - s / 2, s, s, s * 0.22); else ctx.rect(x - s / 2, y - s / 2, s, s);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,.7)';
+        ctx.fillRect(x - s * 0.32, y - s * 0.32, s * 0.28, s * 0.1);
+        ctx.font = `${fs * 0.55}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;
+        ctx.fillStyle = '#fff'; ctx.fillText('❄', x + s * 0.04, y + s * 0.06);
+      } else {
+        const col = it.type === 'gift' ? '253, 224, 71' : it.type === 'time' ? '134, 239, 172' : it.type === 'shield' ? '125, 211, 252' : '253, 224, 71';
+        const rg = ctx.createRadialGradient(x, y, 0, x, y, fs * 0.95);
+        rg.addColorStop(0, `rgba(${col}, 0.55)`); rg.addColorStop(1, `rgba(${col}, 0)`);
+        ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(x, y, fs * 0.95, 0, 6.283); ctx.fill();
+        if (it.type !== 'gift') {
+          ctx.strokeStyle = `rgba(${col}, 0.9)`; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(x, y, fs * 0.62, 0, 6.283); ctx.stroke();
+        }
+        ctx.font = `${fs}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;
+        ctx.fillStyle = '#fff'; ctx.fillText(it.icon, x, y + 1);
+      }
+    });
+
+    // Partículas
+    this.particles.forEach((p) => {
+      ctx.globalAlpha = Math.max(0, p.life / p.max);
+      ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    this.drawTrain(ctx);
+
+    // Nieve en primer plano
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    this.flakes.forEach((f) => { ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill(); });
+
+    // Textos flotantes
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `800 ${Math.round(16 * u)}px Poppins, sans-serif`;
+    this.floatingTexts.forEach((f) => {
+      ctx.globalAlpha = Math.max(0, Math.min(1, f.life));
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(2,6,23,.85)'; ctx.strokeText(f.text, f.x, f.y);
+      ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y);
+    });
+    ctx.globalAlpha = 1;
+
+    // Líneas de velocidad en turbo
+    if (this.turboT > 0) {
+      ctx.strokeStyle = 'rgba(253, 224, 71, 0.35)'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < 14; i++) {
+        const x = ((i * 53 + this.scroll * 0.3) % W), y = ((i * 97 + this.scroll * 2.2) % H);
+        ctx.moveTo(x, y); ctx.lineTo(x, y + 26 * u);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Destello rojo al chocar
+    if (this.flash > 0) { ctx.fillStyle = `rgba(239, 68, 68, ${this.flash * 0.35})`; ctx.fillRect(0, 0, W, H); }
+  }
+
+  drawTrain(ctx) {
+    const x = this.trainX, y = this.trainY, w = this.trainW, h = this.trainH, u = this.u;
+    const top = y - h / 2, bot = y + h / 2;
+
+    // Cono de luz
+    const bg = ctx.createLinearGradient(x, top, x, top - h * 2.2);
+    bg.addColorStop(0, 'rgba(254, 240, 138, 0.6)'); bg.addColorStop(1, 'rgba(254, 240, 138, 0)');
+    ctx.fillStyle = bg;
+    ctx.beginPath(); ctx.moveTo(x - w * 0.18, top + 4); ctx.lineTo(x - w * 1.05, top - h * 2.2); ctx.lineTo(x + w * 1.05, top - h * 2.2); ctx.lineTo(x + w * 0.18, top + 4); ctx.fill();
+
+    // Turbo: llamarada trasera
+    if (this.turboT > 0) {
+      const fl = ctx.createLinearGradient(x, bot, x, bot + h * 0.8);
+      fl.addColorStop(0, 'rgba(253, 224, 71, 0.9)'); fl.addColorStop(1, 'rgba(239, 68, 68, 0)');
+      ctx.fillStyle = fl; ctx.beginPath(); ctx.moveTo(x - w * 0.3, bot); ctx.lineTo(x, bot + h * (0.5 + Math.random() * 0.3)); ctx.lineTo(x + w * 0.3, bot); ctx.fill();
+    }
+
+    // Carrocería con morro aerodinámico
     ctx.beginPath();
-    ctx.moveTo(trainX, trainY - 10);
-    ctx.lineTo(trainX - 35, trainY - 140);
-    ctx.lineTo(trainX + 35, trainY - 140);
-    ctx.fill();
+    ctx.moveTo(x - w / 2, bot - w * 0.12);
+    ctx.lineTo(x - w / 2, top + h * 0.34);
+    ctx.quadraticCurveTo(x - w * 0.42, top + h * 0.06, x, top);
+    ctx.quadraticCurveTo(x + w * 0.42, top + h * 0.06, x + w / 2, top + h * 0.34);
+    ctx.lineTo(x + w / 2, bot - w * 0.12);
+    ctx.quadraticCurveTo(x + w / 2, bot, x + w * 0.35, bot);
+    ctx.lineTo(x - w * 0.35, bot);
+    ctx.quadraticCurveTo(x - w / 2, bot, x - w / 2, bot - w * 0.12);
+    ctx.closePath();
+    const body = ctx.createLinearGradient(x - w / 2, 0, x + w / 2, 0);
+    body.addColorStop(0, '#9E1119'); body.addColorStop(0.5, '#E3202C'); body.addColorStop(1, '#9E1119');
+    ctx.fillStyle = body; ctx.fill();
+    ctx.strokeStyle = '#D4AF37'; ctx.lineWidth = 2 * u; ctx.stroke();
 
-    // Carrocería AVE Ineco
-    ctx.fillStyle = '#CB1823';
-    ctx.roundRect ? ctx.roundRect(trainX - 22, trainY - 20, 44, 65, 10) : ctx.fillRect(trainX - 22, trainY - 20, 44, 65);
-    ctx.fill();
-    ctx.strokeStyle = '#D4AF37';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    // Franja corporativa azul
+    // Franja azul corporativa y parabrisas
     ctx.fillStyle = '#1A4488';
-    ctx.fillRect(trainX - 20, trainY + 8, 40, 8);
+    ctx.fillRect(x - w / 2 + 2, y + h * 0.05, w - 4, h * 0.09);
+    ctx.fillStyle = '#7DD3FC';
+    ctx.beginPath();
+    ctx.moveTo(x - w * 0.32, top + h * 0.34); ctx.quadraticCurveTo(x, top + h * 0.14, x + w * 0.32, top + h * 0.34);
+    ctx.lineTo(x + w * 0.28, top + h * 0.46); ctx.lineTo(x - w * 0.28, top + h * 0.46); ctx.closePath(); ctx.fill();
+    // Ventanillas
+    ctx.fillStyle = 'rgba(186, 230, 253, 0.85)';
+    for (let i = 0; i < 3; i++) ctx.fillRect(x - w * 0.34, y + h * 0.2 + i * h * 0.1, w * 0.68, h * 0.055);
+    // Faros
+    ctx.fillStyle = '#FFFBEB'; ctx.shadowColor = '#FEF08A'; ctx.shadowBlur = 10 * u;
+    ctx.beginPath(); ctx.arc(x - w * 0.24, top + h * 0.3, 2.2 * u, 0, 6.283); ctx.arc(x + w * 0.24, top + h * 0.3, 2.2 * u, 0, 6.283); ctx.fill();
+    ctx.shadowBlur = 0;
 
-    // Parabrisas
-    ctx.fillStyle = '#38BDF8';
-    ctx.fillRect(trainX - 16, trainY - 12, 32, 14);
-
-    // HUD Superior del Juego
-    ctx.fillStyle = 'rgba(8, 16, 36, 0.95)';
-    ctx.fillRect(0, 0, w, 44);
-    ctx.strokeStyle = '#D4AF37';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0, 0, w, 44);
-
-    ctx.fillStyle = '#FCD34D';
-    ctx.font = 'bold 12px Poppins, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(`🎁 Lote: ${this.collected}/9`, 14, 27);
-
-    ctx.textAlign = 'center';
-    ctx.fillStyle = this.timeLeft <= 5 ? '#EF4444' : '#FFFFFF';
-    ctx.fillText(`⏱️ ${this.timeLeft}s`, w / 2, 27);
-
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#38BDF8';
-    ctx.fillText(`${this.score} pts`, w - 14, 27);
-
-    this.animId = requestAnimationFrame(() => this.loop());
+    // Escudo activo
+    if (this.shield) {
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.9)'; ctx.lineWidth = 2.5;
+      ctx.fillStyle = 'rgba(125, 211, 252, 0.15)';
+      ctx.beginPath(); ctx.ellipse(x, y, w * 0.85, h * 0.68, 0, 0, 6.283); ctx.fill(); ctx.stroke();
+    }
   }
 }
 
@@ -2843,9 +3436,11 @@ document.addEventListener('DOMContentLoaded', () => {
   window.adventInstance = advent;
   const colleagueBox = new ColleagueGiftBox();
   const santaRadar = new SantaRailTracker();
+  const railMap = new RailMapControls(santaRadar);
   initCatenaryHarp();
   const themeMgr = new ThemeManager(snow);
   const driverGame = new SolidaryDriverGame();
+  window.driverGame = driverGame;
 
   const unlockAudioOnGesture = () => {
     sound.init();
@@ -2878,7 +3473,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobileSoundBtn = document.getElementById('mobile-sound-btn');
   const snowBtn = document.getElementById('toggle-snow-btn');
   const mobileSnowBtn = document.getElementById('mobile-snow-btn');
-  const openAllBtn = document.getElementById('open-all-days-btn');
   const resetBtn = document.getElementById('reset-advent-btn');
   const hornBtn = document.getElementById('radar-horn-btn');
   const boostBtn = document.getElementById('radar-boost-btn');
@@ -2931,7 +3525,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (snowBtn) snowBtn.onclick = handleToggleSnow;
   if (mobileSnowBtn) mobileSnowBtn.onclick = handleToggleSnow;
 
-  if (openAllBtn) openAllBtn.onclick = () => advent.openAll();
   if (resetBtn) resetBtn.onclick = () => advent.resetAll();
 
   if (hornBtn) {
