@@ -143,6 +143,7 @@
     <button type="button" id="btnModoNoche" title="Alternar modo noche y día (N)">🌙 Noche</button>
     <button type="button" id="btnMarcoCab" aria-pressed="true" title="Mostrar u ocultar pupitre DMI">DMI</button>
     <button type="button" id="btnMinimapa" aria-pressed="false" title="Mostrar u ocultar minimapa orbital (M)">🗺️ Radar</button>
+    <label id="lblTrenDron" hidden>Seguir <select id="selTrenDron" title="Tren que sigue el dron"></select></label>
   </div>
   <span id="cabProx"></span>
 </div>
@@ -1203,7 +1204,9 @@ function setModoVista(id) {
   const elPanelEmp = document.getElementById('panelEmplazamientos');
   if (elPanelEmp) elPanelEmp.hidden = !enRecorrido || document.body.classList.contains('limpio');
   actualizarVisibilidadMarcoCab();
-  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-106' : 'DRON · SOBRE AVE S-106';
+  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-106' : `DRON · SOBRE ${nombreTrenDron()}`;
+  const lblTren = document.getElementById('lblTrenDron');
+  if (lblTren) lblTren.hidden = id !== 'dron';
   controles.enabled = true;
   if (!enRecorrido) {
     faroCabina.intensity = 0;
@@ -1497,6 +1500,27 @@ function calcularPoseRecorrido(modo, pk) {
     pos: W(pAtras.E + nAx * (offVia + 18), pAtras.N + nAy * (offVia + 18), pAtras.Z + 14.5),
     obj: W(pAdel.E + nDx * offVia, pAdel.N + nDy * offVia, pAdel.Z + 2.2),
   };
+}
+// ---- Vista dron: el usuario elige qué tren de la flota sigue el dron ----
+let idxTrenDron = 0;
+const nombreTren = (tr) => (tr.modelo.coches[0]?.userData?.nombre || 'Tren').replace(/^Renfe /, '');
+function nombreTrenDron() { return flota[idxTrenDron] ? nombreTren(flota[idxTrenDron]) : 'AVE'; }
+{
+  const sel = document.getElementById('selTrenDron');
+  if (sel) {
+    flota.forEach((tr, i) => { const o = document.createElement('option'); o.value = String(i); o.textContent = nombreTren(tr); sel.appendChild(o); });
+    sel.addEventListener('change', () => {
+      idxTrenDron = Number(sel.value) || 0;
+      // El dron salta al tren elegido, en su PK y su sentido; el que se deja sigue circulando solo
+      const tr = flota[idxTrenDron];
+      pkRecorrido = tr.pk;
+      sentidoRecorrido = tr.sentido || 1;
+      refrescarTextoSentido();
+      elCabModo.textContent = `DRON · SOBRE ${nombreTrenDron()}`;
+      if (vistaActiva === 'dron') centrarCamaraRecorrido('dron');
+      sel.blur();
+    });
+  }
 }
 function centrarCamaraRecorrido(modo = vistaActiva) {
   if (modo !== 'cabina' && modo !== 'dron') return;
@@ -2437,7 +2461,7 @@ function fotograma(ahora) {
 
   // Circulación realista de trenes AVE (frenado en curvas, paradas en Villena AV y Alicante)
   if (!pausaTrenes && grupoFlota.visible) {
-    actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' ? flota[0] : null);
+    actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' ? flota[idxTrenDron] : null);
   }
   trafico?.actualizar(dt, UTMdeMundo(camara.position));
 
@@ -2468,8 +2492,8 @@ function fotograma(ahora) {
       if (pkRecorrido > pkFinRec) { pkRecorrido = pkFinRec; sentidoRecorrido = -1; refrescarTextoSentido(); }
       if (pkRecorrido < Eje3D.pkIni + 80) { pkRecorrido = Eje3D.pkIni + 80; sentidoRecorrido = 1; refrescarTextoSentido(); }
     }
-    if (vistaActiva === 'dron' && flota[0]) {
-      const trenDron = flota[0];
+    if (vistaActiva === 'dron' && flota[idxTrenDron]) {
+      const trenDron = flota[idxTrenDron];
       trenDron.viaSigno = sentidoRecorrido > 0 ? -1 : 1;
       trenDron.sentido = sentidoRecorrido;
       trenDron.pk = pkRecorrido;

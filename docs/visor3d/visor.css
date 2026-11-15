@@ -252,6 +252,9 @@
   #cab .controles-cab button[aria-pressed="true"] { background: #0284c7; color: #fff; border-color: transparent; }
   #cab .controles-cab button.bocina-activa { background: #eab308; color: #0f172a; border-color: #fde047; transform: scale(1.08); }
   #cabProx { color: #94a3b8; font-size: 11px; white-space: nowrap; }
+  #lblTrenDron { display: inline-flex; align-items: center; gap: 5px; font: 600 10.5px/1 var(--mono); color: #94a3b8; white-space: nowrap; }
+  #lblTrenDron[hidden] { display: none; }
+  #selTrenDron { min-height: 26px; padding: 3px 6px; font: 600 10.5px/1 var(--mono); background: #0f1a2b; color: #e2e8f0; border: 1px solid rgba(255,255,255,.18); border-radius: 6px; }
 
   /* Marco envolvente de cabina de conducción S-112 + pupitre DMI ERTMS Nivel 2 */
   #marcoCabina {

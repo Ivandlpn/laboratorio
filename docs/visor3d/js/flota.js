@@ -126,19 +126,13 @@ function crearTexturaLateralCoche(tipo, esMotriz) {
       rotulo(250, 176, 34);
     } else {
       ondas(120, 420, 0.6);
-      // Cartela oscura «AVE renfe», como en el costado de las cabezas
-      x.fillStyle = '#0a1222';
-      x.beginPath(); x.roundRect(470, 70, 230, 64, 6); x.fill();
-      rotulo(560, 103, 40);
-      x.fillStyle = '#ffffff'; x.font = 'italic 600 22px "Segoe UI", Arial, sans-serif'; x.textAlign = 'left'; x.textBaseline = 'middle';
-      x.fillText('renfe', 622, 106);
-      x.textBaseline = 'alphabetic';
-      dibujarVentana(x, 740, 66, 110, 62, 10);
-      puerta(880);
-      // Logotipo circular blanco junto a la cabina
-      x.strokeStyle = '#ffffff'; x.lineWidth = 4;
-      x.beginPath(); x.arc(960, 170, 15, 0, Math.PI * 2); x.stroke();
-      x.beginPath(); x.moveTo(950, 166); x.lineTo(970, 166); x.moveTo(950, 175); x.lineTo(970, 175); x.stroke();
+      // «renfe» grande en blanco con «AVE» debajo, como en el costado de las cabezas nuevas
+      x.save(); x.fillStyle = '#ffffff'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.font = 'italic 700 58px "Segoe UI", Arial, sans-serif'; x.fillText('renfe', 590, 92);
+      x.restore();
+      rotulo(600, 146, 30);
+      puerta(800);
+      rotulo(930, 170, 34);
     }
   } else if (tipo === 'avant') {
     // Renfe Avant S-114: banda continua oscura + franja morada y gris
@@ -373,6 +367,32 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
     const gCarenado = new THREE.BoxGeometry(4.2, 0.24, 1.65);
     const gFuelle = new THREE.BoxGeometry(0.95, 2.52, 2.62);
     const gMorro = crearMorroAerodinamico(tipo);
+    // Cabeza Talgo Avril: hocico (radio horizontal 1,47 m, vertical ×0,6), cabina abombada y su luna oscura
+    const torno = (pts, sy, phi0 = 0, phiL = Math.PI * 2) => {
+      const g = new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), 28, phi0, phiL);
+      g.rotateZ(-Math.PI / 2); g.scale(1, sy, 1); return g;
+    };
+    const PERFIL_CABINA = [[0, 3.0], [0.45, 2.85], [0.85, 2.35], [1.12, 1.5], [1.3, 0.4], [1.4, -0.6], [1.42, -1.6]];
+    const gHocicoAvril = torno([[0, 5.2], [0.3, 5.1], [0.62, 4.75], [0.92, 4.1], [1.18, 3.0], [1.36, 1.6], [1.45, 0], [1.47, -1.2]], 0.6);
+    const gCabinaAvril = torno(PERFIL_CABINA, 0.95);
+    // Luna: casquete delantero de la cabina, solo el sector superior (de lado a lado por arriba)
+    const gLunaAvril = torno(PERFIL_CABINA.slice(0, 4).map(([r, y]) => [r * 1.012 + 0.004, y + 0.004]), 0.95, Math.PI * 1.5 - 1.15, 2.3);
+    const gFaroAvril = new THREE.BoxGeometry(0.95, 0.2, 0.3);
+    const matLunaAvril = new THREE.MeshStandardMaterial({ color: '#10161e', roughness: 0.03, metalness: 0.95, envMapIntensity: 1.8 });
+    const gRotuloAvril = new THREE.PlaneGeometry(2.4, 0.6);
+    const matRotuloAvril = (() => {
+      const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128;
+      const x = cv.getContext('2d');
+      x.textBaseline = 'middle';
+      if (tipo === 'avlo') {
+        x.fillStyle = '#5ee3b8'; x.font = '800 84px "Segoe UI", Arial, sans-serif'; x.fillText('avlo', 60, 66);
+      } else {
+        x.fillStyle = '#ffffff'; x.font = 'italic 700 70px "Segoe UI", Arial, sans-serif'; x.fillText('renfe', 20, 46);
+        x.font = '600 46px "Segoe UI", Arial, sans-serif'; x.fillText('AVE', 205, 100);
+      }
+      const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+      return new THREE.MeshStandardMaterial({ map: t, transparent: true, depthWrite: false, roughness: 0.4, polygonOffset: true, polygonOffsetFactor: -2 });
+    })();
     const gQuitanieves = new THREE.BoxGeometry(1.15, 0.32, 2.48);
     const gParabrisas = new THREE.BoxGeometry(2.3, 0.64, 2.18);
     gParabrisas.rotateZ(-0.30);
@@ -488,7 +508,36 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
         carroceria.add(fuelle);
       }
 
-      if (esMotriz) {
+      if (esMotriz && avril) {
+        // Cabeza del Talgo Avril (AVE y Avlo): hocico largo y bajo, cabina abombada encima con parabrisas oscuro envolvente,
+        // faros rasgados en los costados del hocico y la marca en blanco sobre el morro
+        const s = i === 0 ? 1 : -1, x0 = s * largoC * 0.5;
+        const hocico = new THREE.Mesh(gHocicoAvril, matCuerpo);
+        hocico.position.set(x0, 0.95, 0);
+        const cabina = new THREE.Mesh(gCabinaAvril, matCuerpo);
+        cabina.position.set(x0 + s * 0.6, 1.75, 0);
+        const luna = new THREE.Mesh(gLunaAvril, matLunaAvril);
+        luna.position.copy(cabina.position);
+        for (const m of [hocico, cabina, luna]) { if (s < 0) m.rotation.y = Math.PI; m.castShadow = true; }
+        const matOptica = i === 0 ? matFoco : matPilotoRojo;
+        const piezas = [hocico, cabina, luna];
+        for (const lado of [-1, 1]) {
+          const faro = new THREE.Mesh(gFaroAvril, matOptica);
+          faro.position.set(x0 + s * 3.35, 1.14, lado * 0.98);
+          faro.rotation.y = s * lado * 0.62;
+          // Rótulo pegado al costado del hocico, inclinado como su estrechamiento
+          const rot = new THREE.Mesh(gRotuloAvril, matRotuloAvril);
+          rot.position.set(x0 + s * 2.05, 1.28, lado * 1.36);
+          rot.rotation.y = (lado > 0 ? 0 : Math.PI) + s * lado * 0.2;
+          piezas.push(faro, rot);
+        }
+        carroceria.add(...piezas);
+        if (i === nCoches - 1) {
+          const panto = crearPantografo(altoMotriz + 0.28);
+          panto.position.set(2.0, 0, 0);
+          carroceria.add(panto);
+        }
+      } else if (esMotriz) {
         const s = i === 0 ? 1 : -1;
         const xBase = s * (largoC * 0.5 + 2.4);
         const morro = new THREE.Mesh(gMorro, matCuerpo);
