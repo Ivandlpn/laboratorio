@@ -771,3 +771,19 @@
     }
     #cineHint { bottom: var(--reserva-inf); }
   }
+
+  /* Radar de hitos: flecha del sentido de marcha (los hitos que vienen están arriba) y vía que recorre la lista */
+  #empLista { position: relative; }
+  #empLista::before {
+    content: ""; position: absolute; left: 13px; top: 10px; bottom: 10px; width: 2px; border-radius: 1px;
+    background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 20%, transparent));
+    opacity: .5; pointer-events: none;
+  }
+  #empLista::after {
+    content: ""; position: absolute; left: 8px; top: 2px; border: 6px solid transparent; border-bottom: 9px solid var(--accent);
+    border-top: 0; opacity: .8; pointer-events: none;
+  }
+  .emp-sep-flecha { display: grid; place-items: center; width: 18px; height: 22px; flex: none; overflow: hidden; }
+  .emp-sep-flecha svg { width: 12px; height: 18px; fill: var(--accent); animation: radarAvance 1.1s ease-in-out infinite; }
+  @keyframes radarAvance { 0% { transform: translateY(5px); opacity: .35; } 50% { opacity: 1; } 100% { transform: translateY(-5px); opacity: .35; } }
+  @media (prefers-reduced-motion: reduce) { .emp-sep-flecha svg { animation: none; } }

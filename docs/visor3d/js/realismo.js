@@ -15,16 +15,17 @@ export const CLIMAS = {
 // UX 1: Evita que la cámara libre atraviese el terreno MDT LiDAR (salvo en modo Rayos X o dentro de túnel)
 export function aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado, rayosX }) {
   if (rayosX) return;
-  const pEje = Eje3D.enPk(pkObservado);
-  if (pEje.enTunel) return;
-
+  // El suelo es un límite firme: la cámara nunca queda por debajo (salvo dentro de la bóveda de un túnel,
+  // que se mira por la posición de la propia cámara y no por el PK observado)
   const camU = UTMdeMundo(camara.position);
+  const qCam = Eje3D.proyUTM(camU.E, camU.N);
+  if (qCam.enTunel && qCam.d < 9 && camU.Z < qCam.Z + 8) return;
+  void pkObservado;
+
   const zSueloCam = cotaTerrenoUTM(camU.E, camU.N);
   if (Number.isFinite(zSueloCam)) {
     const yMinCam = (zSueloCam - camU.Z + camara.position.y) + 1.65;
-    if (camara.position.y < yMinCam) {
-      camara.position.y += (yMinCam - camara.position.y) * 0.45;
-    }
+    if (camara.position.y < yMinCam) camara.position.y = yMinCam;
   }
 
   const tgtU = UTMdeMundo(controles.target);

@@ -1885,7 +1885,9 @@ export function crearGestorTeselas(ctx) {
           } else if (id === '050197') {
             // Los pasos reconstruidos (pasos-superiores.json) se dibujan enteros en 2c ter; aquí solo los que no lo están
             const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
-            if (PASOS_SUP.length && enPasoSuperior(Em, Nm, km)) continue;
+            // Si cualquier vértice cae sobre un paso reconstruido, es ese mismo paso: no se dibuja otro tablero (antes
+            // solo se miraba el punto medio y quedaba un segundo tablero a la cota del terreno, bajo el del DCO)
+            if (PASOS_SUP.length && cs.some((c) => enPasoSuperior(...lonlatAUTM(c[0], c[1]), km))) continue;
             const qm = Eje3D.proyUTM(Em, Nm);
             // Descartar fragmentos cortos o pegados a una boca de túnel (ej. pretil sobre boca de Alicante PK 485+327)
             if (Eje3D.tuneles.some((t) => Math.min(Math.abs(qm.pk - t.pkIni), Math.abs(qm.pk - t.pkFin)) < 32)) continue;
@@ -1941,7 +1943,9 @@ export function crearGestorTeselas(ctx) {
                 const qv = Eje3D.proyUTM(Ev, Nv);
                 const cercaBoca = Eje3D.tuneles.some((t) => Math.min(Math.abs(qv.pk - t.pkIni), Math.abs(qv.pk - t.pkFin)) < 24);
                 const cercaPS = PASOS_SUP.some((ps) => Math.abs(ps.pk - qv.pk) < 18);
-                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8)) {
+                // Sobre el tablero de un paso superior reconstruido la calzada ya la dibuja el paso
+                const sobrePS = PASOS_SUP.length && enPasoSuperior(Ev, Nv, km);
+                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8) && !sobrePS) {
                   cur.push(c);
                 } else {
                   if (cur.length >= 2) out.push(cur);
@@ -1969,7 +1973,9 @@ export function crearGestorTeselas(ctx) {
                 const qv = Eje3D.proyUTM(Ev, Nv);
                 const cercaBoca = Eje3D.tuneles.some((t) => Math.min(Math.abs(qv.pk - t.pkIni), Math.abs(qv.pk - t.pkFin)) < 24);
                 const cercaPS = PASOS_SUP.some((ps) => Math.abs(ps.pk - qv.pk) < 18);
-                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8)) {
+                // Sobre el tablero de un paso superior reconstruido la calzada ya la dibuja el paso
+                const sobrePS = PASOS_SUP.length && enPasoSuperior(Ev, Nv, km);
+                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8) && !sobrePS) {
                   cur.push(c);
                 } else {
                   if (cur.length >= 2) out.push(cur);
@@ -1991,7 +1997,9 @@ export function crearGestorTeselas(ctx) {
                 const qv = Eje3D.proyUTM(Ev, Nv);
                 const cercaBoca = Eje3D.tuneles.some((t) => Math.min(Math.abs(qv.pk - t.pkIni), Math.abs(qv.pk - t.pkFin)) < 24);
                 const cercaPS = PASOS_SUP.some((ps) => Math.abs(ps.pk - qv.pk) < 18);
-                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8)) {
+                // Sobre el tablero de un paso superior reconstruido la calzada ya la dibuja el paso
+                const sobrePS = PASOS_SUP.length && enPasoSuperior(Ev, Nv, km);
+                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8) && !sobrePS) {
                   cur.push(c);
                 } else {
                   if (cur.length >= 2) out.push(cur);
@@ -2018,7 +2026,9 @@ export function crearGestorTeselas(ctx) {
                 const qv = Eje3D.proyUTM(Ev, Nv);
                 const cercaBoca = Eje3D.tuneles.some((t) => Math.min(Math.abs(qv.pk - t.pkIni), Math.abs(qv.pk - t.pkFin)) < 24);
                 const cercaPS = PASOS_SUP.some((ps) => Math.abs(ps.pk - qv.pk) < 18);
-                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8)) {
+                // Sobre el tablero de un paso superior reconstruido la calzada ya la dibuja el paso
+                const sobrePS = PASOS_SUP.length && enPasoSuperior(Ev, Nv, km);
+                if (qv.d >= 4.9 && !cercaBoca && !(cercaPS && qv.d < 5.8) && !sobrePS) {
                   cur.push(c);
                 } else {
                   if (cur.length >= 2) out.push(cur);
