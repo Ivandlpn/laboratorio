@@ -20,7 +20,6 @@
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
 <script src="./comun/trenes.js"></script>
-<script src="./comun/carrusel.js"></script>
 <script src="./comun/panel.js" defer></script>
 </head>
 <body>
@@ -263,7 +262,6 @@
   <button type="button" data-hoja="perfil" aria-pressed="false"><span aria-hidden="true">📈</span>Perfil</button>
   <button type="button" data-hoja="hitos" aria-pressed="false"><span aria-hidden="true">📡</span>Hitos</button>
   <button type="button" data-hoja="ambiente" aria-pressed="false"><span aria-hidden="true">🌤</span>Ambiente</button>
-  <button type="button" data-hoja="visita" aria-pressed="false"><span aria-hidden="true">▶</span>Visita</button>
 </nav>
 
 <div id="inspector3D" hidden role="dialog" aria-label="Inspector de activo 3D">
@@ -1961,7 +1959,8 @@ function actualizarMinimapaOrbital(pkCentro, pendActual) {
 }
 
 const panel = document.getElementById('panel'), btnAbrir = document.getElementById('abrir');
-if (innerWidth <= 760) panel.classList.add('cerrado');
+// En móviles y tabletas (pantalla estrecha o táctil, también en apaisado) la tarjeta del corredor arranca plegada
+if (matchMedia('(max-width: 760px), (pointer: coarse)').matches) panel.classList.add('cerrado');
 btnAbrir.addEventListener('click', () => {
   const cerrado = panel.classList.toggle('cerrado');
   btnAbrir.setAttribute('aria-expanded', String(!cerrado));
@@ -2338,25 +2337,12 @@ if (params.has('esperarOrto') && ortofotoActiva) {
 }
 Carga.cerrar();
 
-if (window.Carrusel3D && !document.body.classList.contains('limpio')) {
-  window.Carrusel3D.iniciar({
-    ids: ['viaducto', 'aerea', 'cerca', 'lateral', 'cabina', 'dron'],
-    inicio: vistaActiva,
-    sinArranque: true,
-    irA: (id) => setModoVista(id),
-  });
-  const bCar = document.getElementById('btnCarrusel');
-  if (bCar) bCar.style.setProperty('top', innerWidth <= 760 ? '64px' : '78px', 'important');
-}
-
 // ---- Móvil: barra inferior que abre los paneles plegados de uno en uno (el CSS los oculta sin su clase m-*) ----
 {
   const dock = document.getElementById('dockMovil');
   const HOJAS = { mandos: 'cab', perfil: 'barraPerfil', hitos: 'panelEmplazamientos', ambiente: 'islaRapida' };
   const botones = [...dock.querySelectorAll('button')];
   let abierta = null;
-  // El carrusel se para con cualquier toque (también el de este botón): se usa el estado previo al toque
-  let visitaActiva = false;
   function abrirHoja(h) {
     abierta = abierta === h ? null : h;
     for (const k of Object.keys(HOJAS)) document.body.classList.toggle('m-' + k, abierta === k);
@@ -2366,7 +2352,6 @@ if (window.Carrusel3D && !document.body.classList.contains('limpio')) {
   function pintarDock() {
     for (const b of botones) {
       const h = b.dataset.hoja;
-      if (h === 'visita') { visitaActiva = Boolean(window.Carrusel3D?.activo); b.setAttribute('aria-pressed', String(visitaActiva)); continue; }
       b.setAttribute('aria-pressed', String(abierta === h));
       // Sin contenido que mostrar (p. ej. mandos fuera de cabina y dron): botón apagado
       b.disabled = Boolean(document.getElementById(HOJAS[h])?.hidden);
@@ -2376,11 +2361,6 @@ if (window.Carrusel3D && !document.body.classList.contains('limpio')) {
   for (const b of botones) {
     b.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (b.dataset.hoja === 'visita') {
-        if (visitaActiva) window.Carrusel3D?.parar?.(); else window.Carrusel3D?.reanudar?.();
-        pintarDock();
-        return;
-      }
       document.getElementById('panel')?.classList.add('cerrado');
       document.getElementById('abrir')?.setAttribute('aria-expanded', 'false');
       abrirHoja(b.dataset.hoja);
