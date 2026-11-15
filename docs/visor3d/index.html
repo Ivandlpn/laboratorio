@@ -58,6 +58,7 @@
     <div class="velo-fase" id="cargandoFase">Preparando el visor…</div>
   </div>
 </div>
+<button type="button" id="btnEntrarTunel" hidden>🚇 Entrar en el túnel</button>
 <div id="medidaBadge" hidden><span id="medidaTxt">Medidor 3D: pulsa 2 puntos</span><button type="button" id="btnLimpiarMedida">✕</button></div>
 <div id="avisoNube" role="status" aria-live="polite" hidden><span class="giro" aria-hidden="true"></span><span id="avisoNubeTxt">Cargando nube de puntos…</span></div>
 <div id="badgePkLinea" aria-live="polite"><span class="linea">Línea L042 · Albacete–Alicante</span><span class="pk" id="badgePkValor">PK 437+020</span></div>
@@ -1236,9 +1237,24 @@ for (const v of VISTAS) {
 }
 
 // Botones de hitos singulares de los 164 km
+// Selección del usuario (2026-11-15): uno de cada tipo, el mejor representado, y todas las estaciones
+const HITOS_PRINCIPALES = (() => {
+  const ed = (cat, re) => Eje3D.edificios.find((e) => e.cat === cat && re.test(e.nombre));
+  const bts = Eje3D.btsInfo.reduce((m, b) => (!m || Math.abs(b.pk - 437951) < Math.abs(m.pk - 437951) ? b : m), null);
+  const est = Eje3D.edificios.filter((e) => e.cat === 'estacion').sort((a, b) => a.pk - b.pk);
+  return [
+    ...est.map((e) => ({ nombre: e.nombre, pk: e.pk })),
+    { nombre: ed('energia', /ATF 321\.1/)?.nombre || 'Autotransformador ATF 321.1', pk: ed('energia', /ATF 321\.1/)?.pk || 405992 },
+    { nombre: 'Subestación 2×25 kV PK 340', pk: 340185 },
+    { nombre: 'Paso superior PK 428+764', pk: 428764 },
+    { nombre: 'Viaducto Sax (1,48 km)', pk: 437020 },
+    { nombre: bts ? `BTS ${bts.id}` : 'BTS GSM-R', pk: bts?.pk || 437951 },
+    { nombre: 'Boca N · Túnel de las Barrancadas', pk: 444825 },
+  ].filter((h) => Number.isFinite(h.pk));
+})();
 const contSaltos = document.getElementById('saltos');
 const botonesSalto = [];
-for (const s of Eje3D.saltos) {
+for (const s of HITOS_PRINCIPALES) {
   const b = document.createElement('button');
   b.type = 'button';
   b.innerHTML = `<span>${s.nombre}</span><small>PK ${fmtPk(s.pk)}</small>`;
@@ -1568,6 +1584,42 @@ function actualizarDronCine(dt) {
   camara.up.set(0, 1, 0);
   camara.lookAt(base);
 }
+// ---- Túneles desde el dron cinematográfico: botón para entrar (vista de cabina) y vuelta al cine al salir ----
+const btnEntrarTunel = document.getElementById('btnEntrarTunel');
+let tunelDesdeCine = null;   // túnel en el que se entró desde el cine
+function tunelCercano() {
+  // Túnel en el que está el tren o al que llega en menos de 450 m
+  for (const t of Eje3D.tuneles) {
+    const d = sentidoRecorrido > 0 ? t.pkIni - pkRecorrido : pkRecorrido - t.pkFin;
+    if ((pkRecorrido >= t.pkIni && pkRecorrido <= t.pkFin) || (d > 0 && d < 450)) return t;
+  }
+  return null;
+}
+function actualizarBotonTunel() {
+  if (tunelDesdeCine) {
+    // Fuera del túnel (40 m pasada la boca de salida): de vuelta a la vista cinematográfica
+    const t = tunelDesdeCine;
+    const fuera = sentidoRecorrido > 0 ? pkRecorrido > t.pkFin + 40 : pkRecorrido < t.pkIni - 40;
+    if (fuera && vistaActiva === 'cabina') {
+      tunelDesdeCine = null;
+      setModoVista('dron');
+      setDronCine(true);
+    }
+    btnEntrarTunel.hidden = true;
+    return;
+  }
+  const t = vistaActiva === 'dron' && dronCine ? tunelCercano() : null;
+  btnEntrarTunel.hidden = !t;
+  if (t) btnEntrarTunel.textContent = `🚇 Entrar en el ${t.nombre.replace(/\s*\(.*\)$/, '')}`;
+}
+btnEntrarTunel?.addEventListener('click', () => {
+  const t = tunelCercano();
+  if (!t) return;
+  tunelDesdeCine = t;
+  btnEntrarTunel.hidden = true;
+  setModoVista('cabina');
+});
+
 function setDronCine(activo) {
   dronCine = activo;
   const b = document.getElementById('btnDronCine');
@@ -2592,6 +2644,7 @@ function fotograma(ahora) {
       faroCabina.intensity = 0;
     }
     if (vistaActiva === 'dron' && dronCine) actualizarDronCine(dt);
+    actualizarBotonTunel();
     // En el dron, el suelo también es el límite de la cámara
     if (vistaActiva === 'dron') aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado: pkRecorrido, rayosX: rayosXActivo });
     pkObservado = pkRecorrido;
