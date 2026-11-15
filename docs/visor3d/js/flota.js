@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 
 const LIBREAS_L042 = {
-  ave:   { cuerpo: '#f6f8fb', techo: '#cfd7e2', franja: '#70205a', bajos: '#232830', nombre: 'Renfe AVE S-112 (Talgo 350)' },
+  // Librea nueva de los AVE (2026): azul marino, puertas azul acero, ondas de bandas verticales y «AVE» en blanco
+  ave:   { cuerpo: '#16294b', techo: '#1d3358', franja: '#a9bcd2', bajos: '#0e1626', nombre: 'Renfe AVE S-106 (Talgo Avril)' },
   avant: { cuerpo: '#f8fafc', techo: '#9aa5b4', franja: '#70205a', bajos: '#2b313b', nombre: 'Renfe Avant S-114' },
   iryo:  { cuerpo: '#b90e24', techo: '#22262e', franja: '#dce2ea', bajos: '#1b1f26', nombre: 'Iryo ETR-1000 (Frecciarossa)' },
+  avlo:  { cuerpo: '#16294b', techo: '#1d3358', franja: '#5ee3b8', bajos: '#0e1626', nombre: 'Renfe Avlo S-106 (Talgo Avril)' },
   ouigo: { cuerpo: '#f8fafc', techo: '#cbd5e1', franja: '#00a8e8', bajos: '#242933', nombre: 'Ouigo España TGV Euroduplex (2 pisos)' },
 };
 
@@ -41,44 +43,102 @@ function crearTexturaLateralCoche(tipo, esMotriz) {
   x.fillStyle = lib.bajos;
   x.fillRect(0, 214, 1024, 42);
 
-  if (tipo === 'ave') {
-    // Franja morada Renfe + filete gris
-    x.fillStyle = '#70205a';
-    x.fillRect(0, 152, 1024, 24);
-    x.fillStyle = '#94a3b8';
-    x.fillRect(0, 146, 1024, 5);
+  if (tipo === 'avlo') {
+    // Librea nueva Avlo (Talgo Avril): azul marino con grandes manchas redondeadas verde menta en los coches
+    // y el rótulo «avlo» gigante en menta en las cabezas
+    const MENTA = '#5ee3b8';
+    const mancha = (mx, my, mw, mh, r, alfa = 1) => {
+      x.globalAlpha = alfa; x.fillStyle = MENTA;
+      x.beginPath(); x.roundRect(mx, my, mw, mh, r); x.fill(); x.globalAlpha = 1;
+    };
     if (!esMotriz) {
-      // Ventanillas ovaladas/rectangulares individuales Talgo S-112
-      for (let i = 0; i < 8; i++) {
-        dibujarVentana(x, 128 + i * 96, 68, 66, 56, 10);
+      // Manchas de menta repartidas por el coche, algunas bajo la banda de ventanas
+      mancha(110, 30, 220, 120, 40);
+      mancha(300, 120, 140, 88, 44);
+      mancha(470, 26, 90, 70, 35);
+      mancha(600, 110, 200, 100, 50);
+      mancha(820, 40, 80, 60, 30, 0.9);
+      x.fillStyle = '#0a1222';
+      x.beginPath(); x.roundRect(110, 62, 800, 62, 12); x.fill();
+      for (let i = 0; i < 9; i++) dibujarVentana(x, 120 + i * 87, 66, 78, 54, 6);
+      // Puertas en menta
+      for (const px of [36, 932]) {
+        mancha(px, 40, 56, 172, 6);
+        x.fillStyle = '#16294b'; x.fillRect(px + 27, 46, 2, 160);
+        dibujarVentana(x, px + 13, 64, 30, 50, 8);
       }
-      // Puerta de acceso en extremo izquierdo
-      x.fillStyle = '#e2e8f0';
-      x.fillRect(36, 48, 58, 162);
-      x.strokeStyle = '#64748b';
-      x.lineWidth = 2;
-      x.strokeRect(36, 48, 58, 162);
-      dibujarVentana(x, 51, 68, 28, 54, 6);
-      x.fillStyle = '#70205a';
-      x.fillRect(36, 152, 58, 24);
-      // Logo Renfe AVE
-      x.fillStyle = '#70205a';
-      x.font = '800 30px sans-serif';
-      x.fillText('renfe', 420, 202);
-      x.fillStyle = '#334155';
-      x.font = '700 22px sans-serif';
-      x.fillText('AVE', 515, 202);
+      x.save(); x.fillStyle = MENTA; x.font = '800 30px "Segoe UI", Arial, sans-serif'; x.textBaseline = 'middle';
+      x.fillText('avlo', 470, 176); x.restore();
     } else {
-      // Rejillas técnicas de la motriz S-112
-      x.fillStyle = '#cbd5e1';
-      for (let i = 0; i < 4; i++) x.fillRect(190 + i * 110, 66, 76, 54);
-      x.fillStyle = '#475569';
-      for (let i = 0; i < 4; i++) {
-        for (let r = 0; r < 6; r++) x.fillRect(196 + i * 110, 72 + r * 8, 64, 3);
+      // Ventanilla pequeña junto a la cabina y el rótulo «avlo» ocupando casi todo el costado
+      dibujarVentana(x, 860, 66, 100, 58, 10);
+      x.save(); x.fillStyle = MENTA; x.textBaseline = 'middle';
+      x.font = '800 168px "Segoe UI", "Arial Rounded MT Bold", Arial, sans-serif';
+      try { x.letterSpacing = '-6px'; } catch { /* sin letterSpacing */ }
+      x.fillText('avl', 260, 118);
+      // La «o» del logotipo es un trazo curvo abierto por arriba
+      const ox = 260 + x.measureText('avl').width + 52;
+      x.strokeStyle = MENTA; x.lineWidth = 24; x.lineCap = 'round';
+      x.beginPath(); x.arc(ox, 112, 36, Math.PI * 0.05, Math.PI * 0.95); x.stroke();
+      x.beginPath(); x.moveTo(ox + 36, 112); x.lineTo(ox + 36, 72); x.stroke();
+      x.restore();
+    }
+  } else if (tipo === 'ave') {
+    // Librea nueva AVE (Talgo Avril S-106): azul marino, ondas de bandas verticales azul claro que crecen y menguan,
+    // gran banda acristalada oscura, puertas azul acero y «AVE» en blanco
+    const ondas = (x0, x1, fase) => {
+      const n = Math.floor((x1 - x0) / 30);
+      for (let i = 0; i < n; i++) {
+        const t = i / Math.max(1, n - 1), bx = x0 + i * 30;
+        const amp = Math.sin(Math.PI * t + fase);
+        const top = 26 + 34 * (1 - amp), bot = 206 - 46 * (1 - Math.abs(Math.sin(Math.PI * t * 1.4 + fase)));
+        const g = x.createLinearGradient(0, top, 0, bot);
+        g.addColorStop(0, 'rgba(96, 132, 184, 0.85)');
+        g.addColorStop(1, 'rgba(52, 84, 134, 0.85)');
+        x.fillStyle = g;
+        x.beginPath(); x.roundRect(bx, top, 22, bot - top, [2, 2, 11, 11]); x.fill();
       }
-      x.fillStyle = '#70205a';
-      x.font = '800 32px sans-serif';
-      x.fillText('renfe  AVE', 660, 202);
+    };
+    const puerta = (px) => {
+      x.fillStyle = '#9fb4cc';
+      x.beginPath(); x.roundRect(px, 40, 56, 172, 6); x.fill();
+      x.strokeStyle = '#6f87a3'; x.lineWidth = 2; x.stroke();
+      x.fillStyle = '#16294b'; x.fillRect(px + 27, 46, 2, 160);
+      dibujarVentana(x, px + 13, 64, 30, 50, 8);
+    };
+    const rotulo = (cx, cy, alto) => {
+      // «AVE» con el trazo del logotipo nuevo (la A y la V partidas por una barra) en blanco
+      x.save(); x.fillStyle = '#ffffff'; x.textAlign = 'left'; x.textBaseline = 'middle';
+      x.font = `600 ${alto}px "Segoe UI", Arial, sans-serif`;
+      try { x.letterSpacing = `${alto * 0.04}px`; } catch { /* sin letterSpacing */ }
+      const w = x.measureText('AVE').width;
+      x.fillText('AVE', cx - w / 2, cy);
+      x.restore();
+    };
+    if (!esMotriz) {
+      ondas(500, 920, 0.2);
+      // Banda acristalada continua con las ventanillas
+      x.fillStyle = '#0a1222';
+      x.beginPath(); x.roundRect(110, 62, 800, 66, 12); x.fill();
+      for (let i = 0; i < 9; i++) dibujarVentana(x, 120 + i * 87, 67, 78, 56, 6);
+      puerta(36);
+      puerta(932);
+      rotulo(250, 176, 34);
+    } else {
+      ondas(120, 420, 0.6);
+      // Cartela oscura «AVE renfe», como en el costado de las cabezas
+      x.fillStyle = '#0a1222';
+      x.beginPath(); x.roundRect(470, 70, 230, 64, 6); x.fill();
+      rotulo(560, 103, 40);
+      x.fillStyle = '#ffffff'; x.font = 'italic 600 22px "Segoe UI", Arial, sans-serif'; x.textAlign = 'left'; x.textBaseline = 'middle';
+      x.fillText('renfe', 622, 106);
+      x.textBaseline = 'alphabetic';
+      dibujarVentana(x, 740, 66, 110, 62, 10);
+      puerta(880);
+      // Logotipo circular blanco junto a la cabina
+      x.strokeStyle = '#ffffff'; x.lineWidth = 4;
+      x.beginPath(); x.arc(960, 170, 15, 0, Math.PI * 2); x.stroke();
+      x.beginPath(); x.moveTo(950, 166); x.lineTo(970, 166); x.moveTo(950, 175); x.lineTo(970, 175); x.stroke();
     }
   } else if (tipo === 'avant') {
     // Renfe Avant S-114: banda continua oscura + franja morada y gris
@@ -225,19 +285,18 @@ function crearMorroAerodinamico(tipo) {
   let pts;
   let sy = 0.86;
   let sz = 0.99;
-  if (tipo === 'ave') {
-    // Morro "pico de pato" largo y afilado del Talgo S-112
+  if (tipo === 'ave' || tipo === 'avlo') {
+    // Morro redondeado del Talgo Avril S-106 (nueva flota AVE)
     pts = [
-      new THREE.Vector2(0.0, 4.4),
-      new THREE.Vector2(0.24, 4.25),
-      new THREE.Vector2(0.56, 3.65),
-      new THREE.Vector2(0.86, 2.55),
-      new THREE.Vector2(1.12, 1.15),
-      new THREE.Vector2(1.36, -0.55),
-      new THREE.Vector2(1.46, -2.25),
-      new THREE.Vector2(1.47, -3.5),
+      new THREE.Vector2(0.0, 4.0),
+      new THREE.Vector2(0.42, 3.86),
+      new THREE.Vector2(0.80, 3.35),
+      new THREE.Vector2(1.10, 2.30),
+      new THREE.Vector2(1.32, 0.85),
+      new THREE.Vector2(1.44, -1.00),
+      new THREE.Vector2(1.47, -3.4),
     ];
-    sy = 0.72;
+    sy = 0.78;
   } else if (tipo === 'iryo') {
     // Morro cuña Bertone muy estilizado del ETR-1000
     pts = [
@@ -291,10 +350,11 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
     const matPanto = mat('#64748b', 1, { roughness: 0.30, metalness: 0.80 });
     const matPlata = mat('#cbd5e1', 1, { roughness: 0.26, metalness: 0.68 });
 
-    const largoMotriz = tipo === 'ave' ? 16.4 : 17.4;
-    const largoRemolque = tipo === 'ave' ? 13.2 : 17.4;
-    const altoMotriz = tipo === 'ave' ? 2.95 : (tipo === 'ouigo' ? 2.98 : 2.86);
-    const altoRemolque = tipo === 'ave' ? 2.52 : (tipo === 'ouigo' ? 3.44 : 2.86);
+    const avril = tipo === 'ave' || tipo === 'avlo';
+    const largoMotriz = avril ? 16.4 : 17.4;
+    const largoRemolque = avril ? 13.2 : 17.4;
+    const altoMotriz = avril ? 2.95 : (tipo === 'ouigo' ? 2.98 : 2.86);
+    const altoRemolque = avril ? 2.52 : (tipo === 'ouigo' ? 3.44 : 2.86);
 
     const gCajaMot = crearCajaCurvaSimetrica(largoMotriz, altoMotriz);
     const gCajaRem = crearCajaCurvaSimetrica(largoRemolque, altoRemolque);
@@ -495,6 +555,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
     { pk: pkArranque + 320, sentido: -1, velBase: 83.3, velActual: 69.4, viaSigno: 1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(6, 'iryo') },
     { pk: 355400, sentido: 1, velBase: 83.3, velActual: 75.0, viaSigno: -1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(6, 'ouigo') },
     { pk: 465200, sentido: -1, velBase: 75.0, velActual: 64.0, viaSigno: 1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(5, 'avant') },
+    { pk: 405000, sentido: 1, velBase: 83.3, velActual: 72.0, viaSigno: -1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(8, 'avlo') },
   ];
   for (const tr of flota) grupoFlota.add(tr.modelo.grupo);
 

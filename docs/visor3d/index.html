@@ -1185,7 +1185,7 @@ function setModoVista(id) {
   const elPanelEmp = document.getElementById('panelEmplazamientos');
   if (elPanelEmp) elPanelEmp.hidden = !enRecorrido || document.body.classList.contains('limpio');
   actualizarVisibilidadMarcoCab();
-  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-112' : 'DRON · SOBRE AVE S-112';
+  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-106' : 'DRON · SOBRE AVE S-106';
   controles.enabled = true;
   if (!enRecorrido) {
     faroCabina.intensity = 0;
