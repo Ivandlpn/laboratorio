@@ -1,4 +1,15 @@
 import * as THREE from 'three';
+import { crearInterior } from './interior.js';
+
+// Pantalla del portátil del pasajero: captura de visorlav.web.app (no se puede incrustar: su CSP lo impide)
+let texPantallaVisorLav = null;
+const pantallaVisorLav = () => {
+  if (!texPantallaVisorLav) {
+    texPantallaVisorLav = new THREE.TextureLoader().load('./comun/texturas/visorlav.jpg');
+    texPantallaVisorLav.colorSpace = THREE.SRGBColorSpace;
+  }
+  return texPantallaVisorLav;
+};
 
 const LIBREAS_L042 = {
   // Librea nueva de los AVE (2026): azul marino, puertas azul acero, ondas de bandas verticales y «AVE» en blanco
@@ -467,6 +478,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
     }
 
     const coches = [];
+    let interior = null;
     for (let i = 0; i < nCoches; i++) {
       const c = new THREE.Group();
       const esMotriz = i === 0 || i === nCoches - 1;
@@ -571,6 +583,15 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
         }
       }
 
+      // Interior completo en el cuarto coche de los Avril (AVE y Avlo): vista del pasajero y vuelo del dron por dentro
+      if (avril && i === 3) {
+        const int = crearInterior({ texPantalla: pantallaVisorLav() });
+        int.grupo.visible = false;
+        carroceria.add(int.grupo);
+        // Por dentro la carrocería no debe tapar las ventanas: solo sus caras exteriores
+        caja.material = matCuerpo.clone(); caja.material.side = THREE.FrontSide;
+        interior = { ...int, coche: c, carroceria };
+      }
       c.add(carroceria);
       const ud = {
         capa: 'Circulación Alta Velocidad',
@@ -579,7 +600,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
       };
       c.userData = ud;
       carroceria.userData = ud;
-      c.traverse((n) => { if (n.isMesh) n.userData = ud; });
+      c.traverse((n) => { if (n.isMesh && !n.userData?.capa) n.userData = ud; });
       c.userData.bog1 = bog1;
       c.userData.bog2 = bog2;
       c.userData.carroceria = carroceria;
@@ -588,7 +609,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
       tren.add(c);
       coches.push(c);
     }
-    return { grupo: tren, coches };
+    return { grupo: tren, coches, interior };
   }
 
   const faroCabina = new THREE.SpotLight(0xfff5d6, 0, 260, 0.44, 0.45, 1.1);

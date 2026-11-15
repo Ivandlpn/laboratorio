@@ -58,6 +58,7 @@
     <div class="velo-fase" id="cargandoFase">Preparando el visor…</div>
   </div>
 </div>
+<div id="fundidoCine" aria-hidden="true"></div>
 <button type="button" id="btnEntrarTunel" hidden>🚇 Entrar en el túnel</button>
 <div id="medidaBadge" hidden><span id="medidaTxt">Medidor 3D: pulsa 2 puntos</span><button type="button" id="btnLimpiarMedida">✕</button></div>
 <div id="avisoNube" role="status" aria-live="polite" hidden><span class="giro" aria-hidden="true"></span><span id="avisoNubeTxt">Cargando nube de puntos…</span></div>
@@ -317,6 +318,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { crearFlota } from './js/flota.js';
 import { crearTrafico } from './js/trafico.js';
 import { crearLaguna } from './js/laguna.js';
+import { mostrarGuiaCamara } from './js/guia.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
 import { crearArboles } from './js/arboles.js';
@@ -1098,6 +1100,8 @@ function recentrarOrigen(nuevoE, nuevoN, nuevoZ) {
   for (const tr of flota) posicionarTren(tr);
 }
 
+// Vistas que viajan con el tren: cabina, dron y asiento del pasajero
+const enRuta = (v) => v === 'cabina' || v === 'dron' || v === 'pasajero';
 let vistaActiva = params.get('vista') || 'dron'; // la web arranca en vuelo de dron (PC y móvil)
 let pkRecorrido = pkArranque;
 let sentidoRecorrido = 1;
@@ -1153,7 +1157,7 @@ for (const ev of ['pointerdown', 'wheel']) {
 
 function irACctv(baculo) {
   if (!baculo) return;
-  if (vistaActiva === 'cabina' || vistaActiva === 'dron') setModoVista('viaducto');
+  if (enRuta(vistaActiva)) setModoVista('viaducto');
   const posE = baculo.E + Math.cos(baculo.yaw) * 0.95;
   const posN = baculo.N + Math.sin(baculo.yaw) * 0.95; // yaw: ángulo en (E, N), ver tesela.js
   const posZ = baculo.Z + 9.05;
@@ -1195,23 +1199,26 @@ const VISTAS = [
   { id: 'lateral', nombre: 'Vista lateral' },
   { id: 'cabina', nombre: 'Cabina AVE' },
   { id: 'dron', nombre: 'Vuelo dron' },
+  { id: 'pasajero', nombre: 'Asiento ventanilla' },
 ];
 const contVistas = document.getElementById('vistas');
 const botonesVista = new Map();
 function setModoVista(id) {
   vistaActiva = id;
   for (const [k, b] of botonesVista) b.setAttribute('aria-pressed', String(k === id));
-  const enRecorrido = id === 'cabina' || id === 'dron';
+  const enRecorrido = enRuta(id);
   elCab.hidden = !enRecorrido || document.body.classList.contains('limpio');
   const elPanelEmp = document.getElementById('panelEmplazamientos');
   if (elPanelEmp) elPanelEmp.hidden = !enRecorrido || document.body.classList.contains('limpio');
   actualizarVisibilidadMarcoCab();
-  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-106' : `DRON · SOBRE ${nombreTrenDron()}`;
+  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-106' : id === 'pasajero' ? 'ASIENTO VENTANILLA · COCHE 4' : `DRON · SOBRE ${nombreTrenDron()}`;
+  if (id === 'pasajero' && !flota[idxTrenDron]?.modelo.interior) idxTrenDron = Math.max(0, flota.findIndex((tr) => tr.modelo.interior));
+  if (id === 'pasajero') { mirarPasajero.yaw = 0; mirarPasajero.pitch = 0; }
   const lblTren = document.getElementById('lblTrenDron');
-  if (lblTren) lblTren.hidden = id !== 'dron';
+  if (lblTren) lblTren.hidden = id !== 'dron' && id !== 'pasajero';
   const bCine = document.getElementById('btnDronCine');
   if (bCine) bCine.hidden = id !== 'dron';
-  controles.enabled = true;
+  controles.enabled = id !== 'pasajero';
   if (!enRecorrido) {
     faroCabina.intensity = 0;
     efectoCabina.reiniciar(camara);
@@ -1425,8 +1432,8 @@ function irAEmplazamiento(e) {
   cerrarSugerencias();
   // Un emplazamiento con PK fin (viaducto, tunel, estacion) se mira desde su centro
   const pk = Math.min(Math.max((e.pk + (e.pkFin ?? e.pk)) / 2, Eje3D.pkIni), Eje3D.pkFin);
-  if (vistaActiva === 'cabina' || vistaActiva === 'dron') setModoVista('viaducto');
-  irAPk(pk, vistaActiva === 'cabina' || vistaActiva === 'dron' ? 'viaducto' : vistaActiva);
+  if (enRuta(vistaActiva)) setModoVista('viaducto');
+  irAPk(pk, enRuta(vistaActiva) ? 'viaducto' : vistaActiva);
 }
 function pintarSugerencias() {
   const q = normalizarTexto(inpPk.value.trim());
@@ -1479,7 +1486,7 @@ document.getElementById('formPk').addEventListener('submit', (e) => {
   const v = parsearPk(inpPk.value, Eje3D.pkIni, Eje3D.pkFin);
   if (v === null) return;
   // Primero se sale de cabina/dron (setModoVista vuela al PK de controles.target) y después se vuela al PK pedido
-  if (vistaActiva === 'cabina' || vistaActiva === 'dron') {
+  if (enRuta(vistaActiva)) {
     setModoVista('viaducto');
     irAPk(v, 'viaducto');
   } else {
@@ -1550,6 +1557,7 @@ const TOMAS_CINE = [
   { dur: 9, nombre: 'Persecución', az: (u) => Math.PI + (u - 0.5) * 0.6, el: () => 0.3, dist: (u) => 85 - 25 * u, foco: () => 15 },
   { dur: 10, nombre: 'Barrido hacia el morro', az: (u) => Math.PI * 0.62 - u * 1.25, el: (u) => 0.16 + 0.06 * u, dist: (u) => 52 - 20 * u, foco: (u) => 20 + 40 * u },
   { dur: 8, nombre: 'Frontal a ras', az: (u) => 0.32 - 0.64 * u, el: () => 0.06, dist: (u) => 75 - 30 * u, foco: () => 62 },
+  { dur: 30, nombre: 'Dentro del tren', especial: 'interior' },
   { dur: 10, nombre: 'Grúa que se aleja', az: (u) => -Math.PI * 0.45 - u * 0.9, el: (u) => 0.35 + 0.75 * u, dist: (u) => 38 + 170 * u, foco: () => 0 },
   { dur: 8, nombre: 'Travelling lateral', az: (u) => Math.PI * 0.5 + 0.12 * Math.sin(u * 3.1), el: () => 0.1, dist: (u) => 26 + 4 * Math.sin(u * 2), foco: (u) => 40 - 30 * u },
   { dur: 11, nombre: 'Aéreo orbitando', az: (u) => Math.PI * 1.2 + u * 1.1, el: () => 0.48, dist: (u) => 280 - 70 * u, foco: () => 0 },
@@ -1563,16 +1571,22 @@ function actualizarDronCine(dt) {
   const rotulo = `DRON · ${TOMAS_CINE[cine.toma].nombre.toUpperCase()} · ${nombreTrenDron()}`;
   if (elCabModo.textContent !== rotulo) elCabModo.textContent = rotulo;
   const T = TOMAS_CINE[cine.toma], u = Math.min(1, cine.t / T.dur);
+  if (T.especial === 'interior') { planoInterior(T, u, dt); return; }
+  cineInterior = false;
+  actualizarFundidoSalida(dt);
   const obj = { az: T.az(u), el: T.el(u), dist: T.dist(u), foco: T.foco(u) };
   if (cine.az === null) Object.assign(cine, obj);
   // Suavizado tipo grúa: se acerca al plano con una constante de tiempo de ~0,8 s (sin saltos entre planos)
   const k = 1 - Math.exp(-dt * 1.25);
   const dAz = Math.atan2(Math.sin(obj.az - cine.az), Math.cos(obj.az - cine.az));
   cine.az += dAz * k; cine.el += (obj.el - cine.el) * k; cine.dist += (obj.dist - cine.dist) * k; cine.foco += (obj.foco - cine.foco) * k;
+  aplicarPoseCine(2.6);
+}
+function aplicarPoseCine(altura) {
   // Marco del tren: adelante (sentido de marcha) y derecha, sobre su vía
   const p = Eje3D.enPk(pkRecorrido), s = sentidoRecorrido;
   const off = (s > 0 ? -1 : 1) * p.sep * 0.5;
-  const base = W(p.E - p.ty * off + p.tx * s * cine.foco, p.N + p.tx * off + p.ty * s * cine.foco, p.Z + 2.6);
+  const base = W(p.E - p.ty * off + p.tx * s * cine.foco, p.N + p.tx * off + p.ty * s * cine.foco, p.Z + altura);
   _cF.copy(W(p.E + p.tx * s, p.N + p.ty * s, p.Z)).sub(W(p.E, p.N, p.Z)).setY(0).normalize();
   _cR.crossVectors(_cF, _cUp).normalize();
   const h = Math.cos(cine.el) * cine.dist;
@@ -1620,6 +1634,77 @@ btnEntrarTunel?.addEventListener('click', () => {
   setModoVista('cabina');
 });
 
+// ---- Asiento ventanilla: el pasajero viaja en el coche 4 y mira por la ventana (arrastrar para mirar alrededor) ----
+const mirarPasajero = { yaw: 0, pitch: 0, arrastre: null };
+const _pOjo = new THREE.Vector3(), _pMira = new THREE.Vector3(), _pDir = new THREE.Vector3(), _pEje = new THREE.Vector3();
+function interiorSeguido() { return flota[idxTrenDron]?.modelo.interior || null; }
+function camaraPasajero(yaw = mirarPasajero.yaw, pitch = mirarPasajero.pitch) {
+  const int = interiorSeguido();
+  if (!int) return false;
+  int.carroceria.updateWorldMatrix(true, false);
+  _pOjo.copy(int.ojoPasajero).applyMatrix4(int.carroceria.matrixWorld);
+  _pMira.copy(int.miradaPasajero).applyMatrix4(int.carroceria.matrixWorld);
+  _pDir.copy(_pMira).sub(_pOjo);
+  if (yaw) _pDir.applyAxisAngle(_pEje.set(0, 1, 0), yaw);
+  if (pitch) _pDir.applyAxisAngle(_pEje.crossVectors(_pDir, camara.up).normalize(), pitch);
+  camara.up.set(0, 1, 0);
+  camara.position.copy(_pOjo);
+  controles.target.copy(_pOjo).add(_pDir);
+  camara.lookAt(controles.target);
+  return true;
+}
+render.domElement.addEventListener('pointerdown', (e) => { if (vistaActiva === 'pasajero') mirarPasajero.arrastre = [e.clientX, e.clientY]; });
+addEventListener('pointerup', () => { mirarPasajero.arrastre = null; });
+render.domElement.addEventListener('pointermove', (e) => {
+  if (vistaActiva !== 'pasajero' || !mirarPasajero.arrastre) return;
+  const [x0, y0] = mirarPasajero.arrastre;
+  mirarPasajero.yaw = Math.max(-2.6, Math.min(2.6, mirarPasajero.yaw - (e.clientX - x0) * 0.004));
+  mirarPasajero.pitch = Math.max(-0.7, Math.min(0.6, mirarPasajero.pitch - (e.clientY - y0) * 0.004));
+  mirarPasajero.arrastre = [e.clientX, e.clientY];
+});
+
+// Plano especial del dron: se acerca al parabrisas de la cabina, entra (fundido), vuela por el pasillo del coche 4
+// hasta el asiento de la ventanilla y se queda mirando el paisaje real; al final, fundido de vuelta al exterior
+let cineInterior = false;
+const elFundido = document.getElementById('fundidoCine');
+let fundidoSalida = 0;
+function planoInterior(T, u, dt) {
+  const int = interiorSeguido();
+  if (!int) { cine.t = T.dur; return; }
+  let fundido = 0;
+  if (u < 0.2) {
+    // Aproximación al parabrisas: de 40 m a 2 m del morro, bajando a la altura de la luna
+    cineInterior = false;
+    const k = u / 0.2, s = k * k * (3 - 2 * k);
+    Object.assign(cine, { az: 0.35 * (1 - s), el: 0.12 * (1 - s) + 0.02, dist: 40 - 38 * s, foco: 62 + 6 * s });
+    aplicarPoseCine(1.6 + 0.6 * s);
+    fundido = Math.max(0, 1 - Math.abs(u - 0.2) / 0.03);
+  } else {
+    cineInterior = true;
+    int.carroceria.updateWorldMatrix(true, false);
+    const curva = int.curva || (int.curva = new THREE.CatmullRomCurve3(int.recorrido, false, 'centripetal'));
+    if (u < 0.58) {
+      // Vuelo por el pasillo, mirando un poco por delante y girando al final hacia la ventana
+      const k = (u - 0.2) / 0.38, s = k * k * (3 - 2 * k);
+      _pOjo.copy(curva.getPoint(s)).applyMatrix4(int.carroceria.matrixWorld);
+      _pMira.copy(curva.getPoint(Math.min(1, s + 0.12))).lerp(int.miradaPasajero, Math.max(0, (s - 0.55) / 0.45)).applyMatrix4(int.carroceria.matrixWorld);
+      camara.position.copy(_pOjo); controles.target.copy(_pMira); camara.up.set(0, 1, 0); camara.lookAt(_pMira);
+      fundido = Math.max(0, 1 - Math.abs(u - 0.2) / 0.03);
+    } else {
+      // En el asiento: mirada lenta por la ventana
+      camaraPasajero(0.12 * Math.sin((u - 0.58) * 9), -0.03);
+      if (u > 0.97) fundido = (u - 0.97) / 0.03;
+    }
+  }
+  if (u >= 0.999 || cine.t + dt > T.dur) { cineInterior = false; fundidoSalida = 0.7; }
+  elFundido.style.opacity = String(Math.min(1, fundido));
+}
+function actualizarFundidoSalida(dt) {
+  if (fundidoSalida <= 0) return;
+  fundidoSalida = Math.max(0, fundidoSalida - dt);
+  elFundido.style.opacity = String(fundidoSalida / 0.7);
+}
+
 function setDronCine(activo) {
   dronCine = activo;
   const b = document.getElementById('btnDronCine');
@@ -1634,7 +1719,7 @@ for (const ev of ['pointerdown', 'wheel', 'touchstart']) {
 }
 
 function centrarCamaraRecorrido(modo = vistaActiva) {
-  if (modo !== 'cabina' && modo !== 'dron') return;
+  if (!enRuta(modo)) return;
   const { pos, obj } = calcularPoseRecorrido(modo, pkRecorrido);
   camara.up.set(0, 1, 0);
   camara.position.copy(pos);
@@ -1672,17 +1757,17 @@ addEventListener('keydown', (ev) => {
     aplicarZoomTeclado(1.19);
     return;
   }
-  if (ev.code === 'KeyR' && (vistaActiva === 'cabina' || vistaActiva === 'dron')) {
+  if (ev.code === 'KeyR' && (enRuta(vistaActiva))) {
     ev.preventDefault();
     centrarCamaraRecorrido();
     return;
   }
-  if ((ev.key === '+' || ev.key === '=' || ev.code === 'NumpadAdd') && (vistaActiva === 'cabina' || vistaActiva === 'dron')) {
+  if ((ev.key === '+' || ev.key === '=' || ev.code === 'NumpadAdd') && (enRuta(vistaActiva))) {
     ev.preventDefault();
     document.getElementById('btnVelMas')?.click();
     return;
   }
-  if ((ev.key === '-' || ev.key === '_' || ev.code === 'NumpadSubtract') && (vistaActiva === 'cabina' || vistaActiva === 'dron')) {
+  if ((ev.key === '-' || ev.key === '_' || ev.code === 'NumpadSubtract') && (enRuta(vistaActiva))) {
     ev.preventDefault();
     document.getElementById('btnVelMenos')?.click();
     return;
@@ -2138,7 +2223,7 @@ const cvPerfil = document.getElementById('cvPerfil');
 const { dibujarPerfil } = crearPerfil({
   cvPerfil, Eje3D, MdtCorredor, token,
   onSaltarPk(pk) {
-    if (vistaActiva === 'cabina' || vistaActiva === 'dron') {
+    if (enRuta(vistaActiva)) {
       pkRecorrido = pk;
       const p = Eje3D.enPk(pk);
       if (Math.hypot(p.E - origen.E, p.N - origen.N) > 2500) recentrarOrigen(p.E, p.N, p.Z);
@@ -2302,6 +2387,7 @@ render.domElement.addEventListener('pointerup', (e) => {
     const trCerca = flota.reduce((m, tr) => (!m || Math.abs(tr.pk - pt.pk) < Math.abs(m.pk - pt.pk) ? tr : m), null);
     if (trCerca && Math.abs(trCerca.pk - pt.pk) < 160) info = `${trCerca.estadoTxt} · ${info}`;
   }
+  if (hit?.object.userData?.url) window.open(hit.object.userData.url, '_blank', 'noopener');
   mostrarFicha(capa, nombre, info, pt.filas, pt);
   baculoFicha = baculo || null;
   if (btnFichaCctv) btnFichaCctv.hidden = !baculo;
@@ -2438,6 +2524,8 @@ if (params.has('esperarOrto') && ortofotoActiva) {
   }
 }
 Carga.cerrar();
+// Primera visita: cómo mover la cámara (ratón en el PC, dedos en el móvil). ?guia la vuelve a mostrar
+if (!document.body.classList.contains('limpio')) mostrarGuiaCamara({ forzar: params.has('guia'), retraso: reducido ? 300 : 2300 });
 
 // ---- Escritorio: reparto del espacio entre paneles para que no se solapen ----
 // Mide el perfil (abajo), el panel lateral (izquierda), el cartel de PK y el radar (derecha) y deja en variables CSS
@@ -2546,14 +2634,23 @@ function fotograma(ahora) {
 
   // Circulación realista de trenes AVE (frenado en curvas, paradas en Villena AV y Alicante)
   if (!pausaTrenes && grupoFlota.visible) {
-    actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' ? flota[idxTrenDron] : null);
+    actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' || vistaActiva === 'pasajero' || cineInterior ? flota[idxTrenDron] : null);
   }
   const utmCam = UTMdeMundo(camara.position);
+  // Interiores de los trenes: solo se dibujan con la cámara cerca; dentro, plano cercano corto para no recortar nada
+  for (const tr of flota) {
+    const int = tr.modelo.interior;
+    if (int) int.grupo.visible = int.carroceria.getWorldPosition(_pEje).distanceTo(camara.position) < 45;
+  }
+  const nearObj = vistaActiva === 'pasajero' || cineInterior || (vistaActiva === 'dron' && dronCine && TOMAS_CINE[cine.toma].especial) ? 0.03 : 0.2;
+  // Dentro del tren, campo de visión amplio (como el ojo del pasajero)
+  const fovObj = nearObj < 0.1 && (vistaActiva === 'pasajero' || cineInterior) ? 72 : 50;
+  if (camara.near !== nearObj || camara.fov !== fovObj) { camara.near = nearObj; camara.fov = fovObj; camara.updateProjectionMatrix(); }
   trafico?.actualizar(dt, utmCam);
   laguna.actualizar(dt, utmCam);
 
   let pkObservado = pkRecorrido;
-  if (vistaActiva === 'cabina' || vistaActiva === 'dron') {
+  if (enRuta(vistaActiva)) {
     const vLimKmh = Eje3D.velocidadLimite(pkRecorrido);
     const pPend = Eje3D.enPk(pkRecorrido).pend * sentidoRecorrido;
     const vObjKmh = Math.max(60, Math.min(300, vLimKmh - Math.max(0, pPend) * 0.35));
@@ -2579,7 +2676,7 @@ function fotograma(ahora) {
       if (pkRecorrido > pkFinRec) { pkRecorrido = pkFinRec; sentidoRecorrido = -1; refrescarTextoSentido(); }
       if (pkRecorrido < Eje3D.pkIni + 80) { pkRecorrido = Eje3D.pkIni + 80; sentidoRecorrido = 1; refrescarTextoSentido(); }
     }
-    if (vistaActiva === 'dron' && flota[idxTrenDron]) {
+    if ((vistaActiva === 'dron' || vistaActiva === 'pasajero') && flota[idxTrenDron]) {
       const trenDron = flota[idxTrenDron];
       trenDron.viaSigno = sentidoRecorrido > 0 ? -1 : 1;
       trenDron.sentido = sentidoRecorrido;
@@ -2644,6 +2741,7 @@ function fotograma(ahora) {
       faroCabina.intensity = 0;
     }
     if (vistaActiva === 'dron' && dronCine) actualizarDronCine(dt);
+    if (vistaActiva === 'pasajero') camaraPasajero();
     actualizarBotonTunel();
     // En el dron, el suelo también es el límite de la cámara
     if (vistaActiva === 'dron') aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado: pkRecorrido, rayosX: rayosXActivo });
@@ -2735,7 +2833,7 @@ function fotograma(ahora) {
       audioAmbiental.actualizar({
         alturaSobreSuelo: Number.isFinite(zSueloCam) ? Math.max(0, camU.Z - zSueloCam) : 30,
         distEje: qCam.d,
-        velocidadKmh: (vistaActiva === 'cabina' || vistaActiva === 'dron') ? Math.round(velCabinaKmh * multVel) : 0,
+        velocidadKmh: (enRuta(vistaActiva)) ? Math.round(velCabinaKmh * multVel) : 0,
         enCabina: vistaActiva === 'cabina' && !recorridoPausado,
         enTunel: Boolean(pObs.enTunel),
       });

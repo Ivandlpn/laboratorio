@@ -801,3 +801,65 @@
   @keyframes tunelLatido { 50% { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 25%, transparent), 0 10px 28px rgba(0, 0, 0, .35); } }
   body.modo-cine #btnEntrarTunel, body.limpio #btnEntrarTunel { display: none !important; }
   @media (max-width: 760px) { #btnEntrarTunel { top: calc(58px + env(safe-area-inset-top, 0px)); max-width: calc(100vw - 32px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } }
+
+  /* ---- Guía de la cámara (primera visita): tres gestos animados ---- */
+  #guiaCamara {
+    position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px;
+    background: rgba(4, 8, 10, .42); animation: guiaEntra .4s ease both;
+  }
+  #guiaCamara.g-fuera { opacity: 0; transition: opacity .3s ease; }
+  @keyframes guiaEntra { from { opacity: 0; } }
+  #guiaCamara .g-caja {
+    width: min(640px, 100%); background: var(--panel); color: var(--fg); border: 1px solid var(--line);
+    border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, .4); padding: 20px 22px 18px; text-align: center;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    animation: guiaSube .5s cubic-bezier(.16, 1, .3, 1) both;
+  }
+  @keyframes guiaSube { from { transform: translateY(18px) scale(.97); } }
+  #guiaCamara .g-pre { margin: 0; font: 700 10.5px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+  #guiaCamara h2 { margin: 7px 0 16px; font: 700 22px/1.15 var(--sans); }
+  #guiaCamara .g-tarjetas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  #guiaCamara .g-tarjeta {
+    display: grid; justify-items: center; gap: 6px; padding: 12px 8px 12px; border: 1px solid var(--line); border-radius: 12px;
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+  }
+  #guiaCamara .g-tarjeta strong { font: 700 14px/1.1 var(--sans); }
+  #guiaCamara .g-tarjeta span { font: 500 12px/1.3 var(--sans); color: var(--muted); }
+  #guiaCamara .g-tarjeta b { color: var(--fg); }
+  #guiaCamara .g-ilus { width: 84px; height: 84px; }
+  #guiaCamara .g-dispositivo { width: 100%; height: 100%; overflow: visible; }
+  #guiaCamara .g-cuerpo { fill: color-mix(in srgb, var(--fg) 6%, transparent); stroke: var(--muted); stroke-width: 2; }
+  #guiaCamara .g-linea { fill: none; stroke: var(--muted); stroke-width: 1.5; }
+  #guiaCamara .g-activo { fill: var(--accent); animation: guiaPulso 1.6s ease-in-out infinite; }
+  #guiaCamara .g-flecha { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+  #guiaCamara .g-yema { fill: var(--accent); opacity: .9; }
+  #guiaCamara .g-onda { fill: none; stroke: var(--accent); stroke-width: 1.5; opacity: .45; }
+  #guiaCamara .g-anim { transform-box: view-box; }
+  #guiaCamara .g-mover { animation: guiaMover 2s ease-in-out infinite; }
+  #guiaCamara .g-girar { transform-origin: 32px 32px; animation: guiaGirar 2.2s ease-in-out infinite; }
+  #guiaCamara .g-zoom { transform-origin: 50px 50px; animation: guiaZoom 1.8s ease-in-out infinite; }
+  #guiaCamara .g-rueda { animation: guiaRueda 1.2s ease-in-out infinite; }
+  #guiaCamara .g-pinza-a { animation: guiaPinzaA 2s ease-in-out infinite; }
+  #guiaCamara .g-pinza-b { animation: guiaPinzaB 2s ease-in-out infinite; }
+  @keyframes guiaPulso { 50% { opacity: .45; } }
+  @keyframes guiaMover { 0%, 100% { transform: translateX(-8px); } 50% { transform: translateX(8px); } }
+  @keyframes guiaGirar { 0%, 100% { transform: rotate(-28deg); } 50% { transform: rotate(28deg); } }
+  @keyframes guiaZoom { 0%, 100% { transform: scale(.8); } 50% { transform: scale(1.15); } }
+  @keyframes guiaRueda { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+  @keyframes guiaPinzaA { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-7px, 7px); } }
+  @keyframes guiaPinzaB { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(7px, -7px); } }
+  #guiaCamara .g-nota { margin: 14px 4px 0; font: 500 12.5px/1.4 var(--sans); color: var(--muted); }
+  #guiaCamara .g-ok {
+    margin-top: 14px; min-width: 160px; min-height: 40px; border-radius: 999px; border-color: var(--accent);
+    background: var(--accent); color: #fff; font: 700 14px/1 var(--sans);
+  }
+  @media (max-width: 560px) {
+    #guiaCamara h2 { font-size: 19px; margin-bottom: 12px; }
+    #guiaCamara .g-tarjetas { grid-template-columns: 1fr; gap: 8px; }
+    #guiaCamara .g-tarjeta { grid-template-columns: 56px 1fr; justify-items: start; text-align: left; column-gap: 12px; padding: 8px 12px; }
+    #guiaCamara .g-ilus { grid-row: span 2; width: 56px; height: 56px; }
+  }
+  @media (prefers-reduced-motion: reduce) { #guiaCamara .g-anim, #guiaCamara .g-activo { animation: none; } }
+
+  /* Fundido del dron cinematográfico al entrar y salir del tren */
+  #fundidoCine { position: fixed; inset: 0; z-index: 7; background: #fbfaf6; opacity: 0; pointer-events: none; }
