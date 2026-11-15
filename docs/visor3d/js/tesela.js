@@ -959,49 +959,20 @@ export function crearGestorTeselas(ctx) {
             const c = P(pkT, ofVia(id, pkT), 0), m = Eje3D.enPk(pkT);
             cajaOrientada(M.tope, c[0], c[2], Y(zR - 0.1), Y(zR + 1.1), m.tx, -m.ty, 0.8, 2.6);
           }
-          // Marquesina Polonceau de dos aguas (030051): aleros a 26,3/62,3 m en 485+777 y 47/83,2 m en 485+977, lucernario central
-          const eave = Y(zR + 5.4), alto = 4.6;
-          const sh = (pkP, f) => { const t = (pkP - 485776) / 200; const a = 26.3 + 20.7 * t, b = 62.3 + 20.9 * t; return a + (b - a) * f; };
-          const tejado = (f0, f1, y0, y1) => {
-            const v = [];
-            for (const k of [485776, 485976]) for (const [f, y] of [[f0, y0], [f1, y1]]) { const q = P(k, sh(k, f), 0); v.push(M.chapaShed.v(q[0], y, q[2], k * 0.2, f * 10)); }
-            return v;
-          };
-          for (const [f0, f1] of [[0, 0.36], [0.64, 1]]) {
-            const yA0 = eave + alto * (f0 < 0.5 ? f0 / 0.5 : (1 - f0) / 0.5), yA1 = eave + alto * (f1 < 0.5 ? f1 / 0.5 : (1 - f1) / 0.5);
-            const v = tejado(f0, f1, yA0, yA1);
-            M.chapaShed.quad(v[0], v[1], v[3], v[2]);
-          }
-          // Lucernario: banda acristalada sobre la cumbrera (36 % al 64 % del ancho), elevada 0,9 m
-          {
-            const yL = eave + alto * 0.72 + 0.9, yC = eave + alto + 0.9;
-            const pts = [];
-            for (const k of [485776, 485976]) for (const [f, y] of [[0.36, yL], [0.5, yC], [0.64, yL]]) { const q = P(k, sh(k, f), 0); pts.push(M.lucernario.v(q[0], y, q[2], 0, 0)); }
-            M.lucernario.quad(pts[0], pts[1], pts[4], pts[3]);
-            M.lucernario.quad(pts[1], pts[2], pts[5], pts[4]);
-          }
-          // Cerchas Polonceau cada 10 m: pares, tirante, bielas y pilares de fundición en los aleros
-          for (let k = 485776; k <= 485976; k += 10) {
-            const m = Eje3D.enPk(k), ux = m.tx, uz = -m.ty;
-            const pa = P(k, sh(k, 0), 0), pb = P(k, sh(k, 1), 0), pc = P(k, sh(k, 0.5), 0);
-            const barra = (p0, y0, p1, y1, r) => {
-              const dx = p1[0] - p0[0], dz = p1[2] - p0[2], lh = Math.hypot(dx, dz);
-              if (lh < 0.01) { cajaOrientada(M.hierro, p0[0], p0[2], Math.min(y0, y1), Math.max(y0, y1), ux, uz, r * 2, r * 2); return; }
-              const lx = -dz / lh * r, lz = dx / lh * r;      // lateral horizontal
-              const v = [];
-              for (const [q, y] of [[p0, y0], [p1, y1]]) for (const sy of [-r, r]) for (const sl of [-1, 1]) v.push(M.hierro.v(q[0] + lx * sl, y + sy, q[2] + lz * sl, 0, 0));
-              // v: 0-3 extremo 0 (abajo-, abajo+, arriba-, arriba+), 4-7 extremo 1
-              M.hierro.quad(v[0], v[4], v[5], v[1]); M.hierro.quad(v[2], v[3], v[7], v[6]);
-              M.hierro.quad(v[0], v[2], v[6], v[4]); M.hierro.quad(v[1], v[5], v[7], v[3]);
-            };
-            barra(pa, eave, pc, eave + alto, 0.12);
-            barra(pc, eave + alto, pb, eave, 0.12);
-            barra(pa, eave, pb, eave, 0.04);                                     // tirante
-            for (const f of [0.25, 0.75]) {                                       // bielas
-              const pf = P(k, sh(k, f), 0);
-              barra(pf, eave + alto * 0.5, pf, eave, 0.05);
+          // Marquesinas de los andenes de alta velocidad (lado derecho, como en la vista aérea): una losa plana sobre cada
+          // andén, ceñida a su ancho y sin cubrir las vías, sobre una fila de pilares centrales con vigas transversales
+          for (const [va, vb, pA, pB, h] of ANDENES.filter((a) => a[0][0] === 'R')) {
+            const ks = []; for (let k = pA; k < pB; k += 15) ks.push(k); ks.push(pB);
+            const izq = ks.map((k) => [k, ofVia(va, k) + 1.95]);
+            const der = ks.map((k) => [k, ofVia(vb, k) - 1.95]);
+            const yT = Y(zR + h + 4.7);
+            prisma(M.marqAV, anillo([...izq, ...der.slice().reverse()]), yT, yT + 0.32);
+            for (let k = pA + 6; k < pB - 2; k += 10.5) {
+              const oA = ofVia(va, k) + 1.95, oB = ofVia(vb, k) - 1.95;
+              const c = P(k, (oA + oB) / 2, 0), m = Eje3D.enPk(k);
+              cajaOrientada(M.hierro, c[0], c[2], Y(zR + h), yT, m.tx, -m.ty, 0.36, 0.36);
+              cajaOrientada(M.hierro, c[0], c[2], yT - 0.42, yT, m.tx, -m.ty, 0.28, Math.max(1, oB - oA - 0.3));
             }
-            for (const pp of [pa, pb]) cajaOrientada(M.hierro, pp[0], pp[2], Y(zR + 0.5), eave, ux, uz, 0.32, 0.32);
           }
           // Marquesinas blancas de los andenes del lado izquierdo (030051), sobre pilares
           for (const [pa, pb, o0, o1, desde] of [[485901, 486001, 4.2, 9.9, 0], [485989, 486002, -6.2, -1.5, 0]]) {
@@ -1030,7 +1001,7 @@ export function crearGestorTeselas(ctx) {
           prisma(M.cornisa, anillo(vestibulo), Y(zR + 8.3), Y(zR + 8.7));
           const fichaAli = {
             capa: 'Estación de viajeros', nombre: 'Estación de Alicante-Terminal',
-            info: 'PK 485+975, fin de la L042. Edificio de viajeros de la MZA (1858), neoclásico y en planta en U, con su cuerpo central hacia la avenida de Salamanca; gran marquesina metálica de dos aguas tipo Polonceau, bajo la que acaban las vías de ancho estándar (alta velocidad) según el ancho entre carriles de la cartografía; a su izquierda, las vías de ancho ibérico con marquesinas blancas. Seis andenes entre las vías reales y topes al final de cada una. Huellas, aleros y alturas de la cartografía 3D de Adif; fachada, lucernario, cerchas y cubierta del edificio, supuestos a partir de la descripción del catálogo municipal de protecciones.',
+            info: 'PK 485+975, fin de la L042. Edificio de viajeros de la MZA (1858), neoclásico y en planta en U, con su cuerpo central hacia la avenida de Salamanca; vías de ancho estándar (alta velocidad) según el ancho entre carriles de la cartografía, con una marquesina plana sobre cada andén que deja las vías al descubierto (como en la vista aérea); a su izquierda, las vías de ancho ibérico con marquesinas blancas. Seis andenes entre las vías reales y topes al final de cada una. Huellas, aleros y alturas de la cartografía 3D de Adif; fachada, lucernario, cerchas y cubierta del edificio, supuestos a partir de la descripción del catálogo municipal de protecciones.',
           };
           for (const [k, malla] of Object.entries(M)) {
             if (malla.vacia || !grupos.edificios) continue;
