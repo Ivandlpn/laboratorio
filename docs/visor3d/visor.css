@@ -450,88 +450,83 @@
   #cruceta .der { grid-column: 3; grid-row: 2; }
 
   /* ---- Pantalla de carga: túnel a alta velocidad (siempre oscura, como el interior de un túnel) ---- */
+  /* Mientras carga, el visor y sus paneles no se pintan: pantalla limpia aunque la gráfica vaya justa */
+  body.cargando-visor > :not(#cargando) { visibility: hidden !important; }
   #cargando {
     position: fixed; inset: 0; z-index: 100; overflow: hidden; color: #eef3f1;
-    background: radial-gradient(ellipse 90% 70% at 50% 52%, #142026 0%, #0a1115 45%, #040607 100%);
-    font: 500 12px/1.4 var(--mono);
+    background: radial-gradient(ellipse 90% 70% at 50% 54%, #16232a 0%, #0a1115 42%, #030506 100%);
+    font: 500 12px/1.4 var(--mono); isolation: isolate; contain: strict;
     transition: opacity .75s ease;
   }
   #cargando.fuera { opacity: 0; pointer-events: none; }
-  #cargando .tunel { position: absolute; inset: 0; perspective: 520px; perspective-origin: 50% 52%; }
-  #cargando .tunel-escena { position: absolute; left: 50%; top: 52%; width: 0; height: 0; transform-style: preserve-3d; }
-  /* Anillos del túnel (bóveda + hastiales) con sus luminarias, de lejos hacia la cámara */
-  #cargando .anillos { position: absolute; transform-style: preserve-3d; }
+  #cargando .tunel { position: absolute; inset: 0; }
+  /* Punto de fuga: todo el túnel se dibuja relativo a él */
+  #cargando .fuga { position: absolute; left: 50%; top: 54%; width: 0; height: 0; }
+  #cargando .via { position: absolute; left: -700px; top: 0; overflow: visible; }
+  #cargando .balasto { fill: #141b1e; }
+  #cargando .carril { stroke: #9fb6bf; stroke-width: 3.5; opacity: .85; }
+  /* Anillo del túnel = bóveda + hastiales, sus dos luminarias y la traviesa bajo él.
+     Escala = 520 / z con z de 3600 a 250 m: perspectiva real sin capas 3D */
   #cargando .anillos i {
-    position: absolute; left: -380px; top: -340px; width: 760px; height: 560px; box-sizing: border-box;
-    border: 3px solid rgba(132, 162, 172, .3); border-bottom: 0;
+    position: absolute; left: -380px; top: -340px; width: 760px; height: 560px;
+    border: 3px solid rgba(140, 170, 180, .34); border-bottom: 0;
     border-radius: 380px 380px 0 0 / 300px 300px 0 0;
-    animation: carga-anillo 7.2s linear infinite; will-change: transform, opacity;
+    transform-origin: 380px 340px; transform: scale(.144); opacity: 0;
+    animation: carga-anillo 7.2s linear infinite; will-change: transform, opacity; backface-visibility: hidden;
   }
   #cargando .anillos i::before, #cargando .anillos i::after {
-    content: ""; position: absolute; top: 48%; width: 16px; height: 5px; border-radius: 3px;
-    background: #ffe2b0; box-shadow: 0 0 14px 5px rgba(255, 186, 102, .7);
+    content: ""; position: absolute; top: 46%; width: 18px; height: 6px; border-radius: 3px;
+    background: #ffe7bd; box-shadow: 0 0 16px 6px rgba(255, 186, 102, .65);
   }
-  #cargando .anillos i::before { left: -9px; }
-  #cargando .anillos i::after { right: -9px; }
-  #cargando .anillos i:nth-child(1) { animation-delay: 0s; }
-  #cargando .anillos i:nth-child(2) { animation-delay: -0.45s; }
-  #cargando .anillos i:nth-child(3) { animation-delay: -0.9s; }
-  #cargando .anillos i:nth-child(4) { animation-delay: -1.35s; }
-  #cargando .anillos i:nth-child(5) { animation-delay: -1.8s; }
-  #cargando .anillos i:nth-child(6) { animation-delay: -2.25s; }
-  #cargando .anillos i:nth-child(7) { animation-delay: -2.7s; }
-  #cargando .anillos i:nth-child(8) { animation-delay: -3.15s; }
-  #cargando .anillos i:nth-child(9) { animation-delay: -3.6s; }
-  #cargando .anillos i:nth-child(10) { animation-delay: -4.05s; }
-  #cargando .anillos i:nth-child(11) { animation-delay: -4.5s; }
-  #cargando .anillos i:nth-child(12) { animation-delay: -4.95s; }
-  #cargando .anillos i:nth-child(13) { animation-delay: -5.4s; }
-  #cargando .anillos i:nth-child(14) { animation-delay: -5.85s; }
-  #cargando .anillos i:nth-child(15) { animation-delay: -6.3s; }
-  #cargando .anillos i:nth-child(16) { animation-delay: -6.75s; }
+  #cargando .anillos i::before { left: -10px; }
+  #cargando .anillos i::after { right: -10px; }
+  #cargando .anillos b { position: absolute; left: 290px; bottom: -6px; width: 180px; height: 12px; background: #49545a; border-radius: 1px; }
+  #cargando .anillos i:nth-child(1) { animation-delay: 0.000s; }
+  #cargando .anillos i:nth-child(2) { animation-delay: -0.514s; }
+  #cargando .anillos i:nth-child(3) { animation-delay: -1.029s; }
+  #cargando .anillos i:nth-child(4) { animation-delay: -1.543s; }
+  #cargando .anillos i:nth-child(5) { animation-delay: -2.057s; }
+  #cargando .anillos i:nth-child(6) { animation-delay: -2.571s; }
+  #cargando .anillos i:nth-child(7) { animation-delay: -3.086s; }
+  #cargando .anillos i:nth-child(8) { animation-delay: -3.600s; }
+  #cargando .anillos i:nth-child(9) { animation-delay: -4.114s; }
+  #cargando .anillos i:nth-child(10) { animation-delay: -4.629s; }
+  #cargando .anillos i:nth-child(11) { animation-delay: -5.143s; }
+  #cargando .anillos i:nth-child(12) { animation-delay: -5.657s; }
+  #cargando .anillos i:nth-child(13) { animation-delay: -6.171s; }
+  #cargando .anillos i:nth-child(14) { animation-delay: -6.686s; }
   @keyframes carga-anillo {
-    0% { transform: translateZ(-3600px); opacity: 0; }
-    14% { opacity: 1; }
-    100% { transform: translateZ(480px); opacity: 1; }
-  }
-  /* Plataforma: balasto, dos carriles continuos y traviesas que corren hacia la cámara */
-  #cargando .suelo {
-    position: absolute; left: -150px; top: 220px; width: 300px; height: 4100px; overflow: hidden;
-    transform-origin: 50% 0; transform: translateZ(480px) rotateX(-90deg);
-    background:
-      linear-gradient(90deg, transparent 0 101px, #a9bec7 101px 107px, transparent 107px 193px, #a9bec7 193px 199px, transparent 199px),
-      linear-gradient(90deg, transparent 0 30px, #1a2124 30px 270px, transparent 270px);
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
-    mask-image: linear-gradient(180deg, #000 0%, #000 45%, transparent 100%);
-  }
-  #cargando .traviesas {
-    position: absolute; left: 62px; right: 62px; top: 0; bottom: -1200px;
-    background: repeating-linear-gradient(180deg, #4a5357 0 34px, transparent 34px 120px);
-    animation: carga-traviesas 2.12s linear infinite; will-change: transform;
-  }
-  @keyframes carga-traviesas { from { transform: translateY(0); } to { transform: translateY(-1200px); } }
-  /* Hilo de contacto de la catenaria sobre el eje */
-  #cargando .hilo {
-    position: absolute; left: -1px; top: -250px; width: 3px; height: 4100px;
-    transform-origin: 50% 0; transform: translateZ(480px) rotateX(-90deg);
-    background: linear-gradient(180deg, rgba(200, 225, 232, 0) 0%, rgba(200, 225, 232, .5) 9%, rgba(200, 225, 232, 0) 100%);
+    0% { transform: scale(.144); opacity: 0; }
+    12% { opacity: 1; }
+    20% { transform: scale(.177); }
+    40% { transform: scale(.230); }
+    60% { transform: scale(.327); }
+    70% { transform: scale(.414); }
+    80% { transform: scale(.565); }
+    86% { transform: scale(.723); }
+    90% { transform: scale(.889); }
+    94% { transform: scale(1.153); opacity: 1; }
+    97% { transform: scale(1.486); opacity: .6; }
+    100% { transform: scale(2.08); opacity: 0; }
   }
   /* Luz de la boca de salida en el punto de fuga */
   #cargando .boca {
-    position: absolute; left: 50%; top: 52%; width: 240px; height: 240px; border-radius: 50%;
+    position: absolute; left: 50%; top: 54%; width: 240px; height: 240px; border-radius: 50%;
     transform: translate(-50%, -50%) scale(1);
     background: radial-gradient(circle, rgba(255, 252, 240, .95) 0%, rgba(255, 236, 196, .55) 18%, rgba(255, 220, 160, .12) 45%, transparent 70%);
-    animation: carga-latido 2.4s ease-in-out infinite;
+    animation: carga-latido 2.4s ease-in-out infinite; will-change: transform;
   }
   @keyframes carga-latido { 50% { transform: translate(-50%, -50%) scale(1.12); } }
+  /* Viñeta: bordes más oscuros para centrar la mirada en la salida */
+  #cargando .vineta { position: absolute; inset: 0; background: radial-gradient(ellipse 75% 65% at 50% 54%, transparent 55%, rgba(0, 0, 0, .55) 100%); }
   /* Marca */
   #cargando .marca {
-    position: absolute; left: 0; right: 0; top: calc(13% + env(safe-area-inset-top, 0px)); text-align: center; padding: 0 16px;
-    animation: carga-entrada 1.3s cubic-bezier(.16, 1, .3, 1) both; transition: opacity .35s ease, transform .6s ease;
+    position: absolute; left: 0; right: 0; top: calc(11% + env(safe-area-inset-top, 0px)); text-align: center; padding: 0 16px;
+    animation: carga-entrada 1.1s cubic-bezier(.16, 1, .3, 1) both; transition: opacity .35s ease, transform .6s ease;
   }
   @keyframes carga-entrada {
-    from { opacity: 0; transform: translateY(26px) scale(.92); letter-spacing: .25em; filter: blur(6px); }
-    to { opacity: 1; transform: none; filter: none; }
+    from { opacity: 0; transform: translateY(26px) scale(.92); }
+    to { opacity: 1; transform: none; }
   }
   #cargando .logo {
     font: 700 clamp(52px, 13vw, 136px)/.92 var(--sans); letter-spacing: .02em; color: #f4f7f5;
@@ -554,36 +549,54 @@
   }
   #cargando .lema::after { background: linear-gradient(90deg, #10b981, transparent); }
   #cargando .linea { margin-top: 12px; font: 500 11.5px/1.3 var(--mono); letter-spacing: .08em; color: #8b9a94; }
-  /* Velocímetro: la aguja sube con la carga real */
+  /* Tarjeta inferior: velocímetro (sube con la carga real), recorrido y fase */
   #cargando .velo {
-    position: absolute; left: 50%; bottom: calc(6% + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
-    width: 260px; text-align: center; transition: opacity .35s ease;
+    position: absolute; left: 50%; bottom: calc(5% + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%);
+    width: min(320px, calc(100vw - 32px)); text-align: center; transition: opacity .35s ease;
+    padding: 10px 16px 12px; border-radius: 16px;
+    background: rgba(6, 10, 12, .92); border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, .45);
   }
-  #cargando .velo::before {
-    content: ""; position: absolute; left: 50%; top: 68px; width: 240px; height: 200px; transform: translate(-50%, -50%);
-    background: radial-gradient(closest-side, rgba(4, 7, 8, .82), rgba(4, 7, 8, 0)); z-index: -1;
-  }
-  #cargando .velo svg { display: block; width: 136px; height: 136px; margin: 0 auto; transform: rotate(135deg); }
-  #cargando .velo circle { fill: none; stroke-width: 6; stroke-linecap: round; }
-  #cargando .velo-fondo { stroke: rgba(255, 255, 255, .12); stroke-dasharray: 75 100; }
-  #cargando .velo-arco {
-    stroke: #10b981; stroke-dasharray: 0 100;
-    filter: drop-shadow(0 0 5px rgba(16, 185, 129, .8));
-  }
-  #cargando .velo-num { position: absolute; left: 0; right: 0; top: 40px; display: grid; justify-items: center; }
-  #cargando .velo-num b { font: 700 36px/1 var(--mono); font-variant-numeric: tabular-nums; color: #f4f7f5; }
+  #cargando .velo svg { display: block; width: 124px; height: 124px; margin: 0 auto; transform: rotate(135deg); }
+  #cargando .velo circle { fill: none; stroke-linecap: round; }
+  #cargando .velo-fondo { stroke: rgba(255, 255, 255, .1); stroke-width: 6; stroke-dasharray: 75 100; }
+  #cargando .velo-brillo { stroke: rgba(16, 185, 129, .26); stroke-width: 13; stroke-dasharray: 0 100; }
+  #cargando .velo-arco { stroke: #10b981; stroke-width: 6; stroke-dasharray: 0 100; }
+  #cargando .velo-num { position: absolute; left: 0; right: 0; top: 48px; display: grid; justify-items: center; }
+  #cargando .velo-num b { font: 700 34px/1 var(--mono); font-variant-numeric: tabular-nums; color: #f4f7f5; }
   #cargando .velo-num small { margin-top: 3px; font: 600 10px/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: #8b9a94; }
-  #cargando .velo-fase { margin-top: -14px; min-height: 2.8em; color: #a9b6b1; font-size: 11.5px; }
+  /* Recorrido Albacete–Alicante: el tren avanza con la carga */
+  #cargando .ruta {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 9px; margin-top: -8px;
+    font: 600 9.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: #8b9a94;
+  }
+  #cargando .ruta-linea { position: relative; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .12); }
+  #cargando .ruta-linea::before {
+    content: ""; position: absolute; inset: 0; border-radius: 2px; background: linear-gradient(90deg, #10b981, #34d399);
+    transform-origin: 0 50%; transform: scaleX(var(--p, 0));
+  }
+  #cargando .ruta-linea i { position: absolute; left: 0; right: 0; top: -4px; height: 11px; transform: translateX(0); }
+  #cargando .ruta-linea i::after {
+    content: ""; position: absolute; left: -7px; top: 0; width: 14px; height: 11px; border-radius: 7px 3px 3px 7px;
+    background: #f4f7f5; box-shadow: 0 0 10px rgba(16, 185, 129, .9);
+  }
+  #cargando .velo-fase { margin-top: 10px; min-height: 2.8em; color: #a9b6b1; font-size: 11.5px; }
   /* Salida del túnel: la boca crece hasta llenar la pantalla y la escena aparece debajo */
   #cargando.saliendo .boca { animation: none; transform: translate(-50%, -50%) scale(16); transition: transform 1s cubic-bezier(.55, 0, .85, .35); }
   #cargando.saliendo .marca { opacity: 0; transform: scale(1.15); }
   #cargando.saliendo .velo { opacity: 0; }
   /* Error: el túnel se para y se muestra el motivo */
-  #cargando.error .anillos i, #cargando.error .traviesas { animation-play-state: paused; }
-  #cargando.error .velo-arco { stroke: #f87171; filter: none; }
+  #cargando.error .anillos i { animation-play-state: paused; }
+  #cargando.error .velo-arco { stroke: #f87171; }
+  #cargando.error .velo-brillo { stroke: rgba(248, 113, 113, .25); }
   #cargando.error .velo-fase { color: #fca5a5; }
+  @media (max-width: 760px) {
+    #cargando .velo svg { width: 108px; height: 108px; }
+    #cargando .velo-num { top: 42px; }
+    #cargando .velo-num b { font-size: 30px; }
+  }
   @media (prefers-reduced-motion: reduce) {
-    #cargando .anillos i, #cargando .traviesas, #cargando .boca { animation-play-state: paused; }
+    #cargando .anillos i, #cargando .boca { animation-play-state: paused; }
     #cargando .marca { animation: none; }
     #cargando.saliendo .boca { transition: none; }
   }

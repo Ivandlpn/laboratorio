@@ -15,25 +15,30 @@
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="./visor.css?v=6">
+<link rel="stylesheet" href="./visor.css?v=7">
 <link rel="stylesheet" href="./comun/panel.css">
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
 <script src="./comun/trenes.js"></script>
 <script src="./comun/panel.js" defer></script>
 </head>
-<body>
+<body class="cargando-visor">
 <div id="lienzo"></div>
 <!-- Pantalla de carga: viaje por un túnel que acelera con la carga real y sale a la luz al terminar.
-     Animación solo con transformaciones CSS (la mueve la gráfica aunque el hilo principal esté ocupado). -->
+     Solo transformaciones 2D de escala desde el punto de fuga (perspectiva 1/z en los fotogramas clave): las mueve la
+     gráfica aunque el hilo principal esté ocupado y no crea capas 3D gigantes, que en móvil parpadeaban. -->
 <div id="cargando" role="status" aria-live="polite" aria-label="Cargando VISOR3D">
   <div class="tunel" aria-hidden="true">
-    <div class="tunel-escena">
-      <div class="anillos"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <div class="suelo"><div class="traviesas"></div></div>
-      <div class="hilo"></div>
+    <div class="fuga">
+      <svg class="via" width="1400" height="1000" viewBox="-700 0 1400 1000">
+        <polygon class="balasto" points="0,0 -590,1000 590,1000"/>
+        <line class="carril" x1="0" y1="0" x2="-318" y2="1000"/>
+        <line class="carril" x1="0" y1="0" x2="318" y2="1000"/>
+      </svg>
+      <div class="anillos"><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i><i><b></b></i></div>
     </div>
     <div class="boca"></div>
+    <div class="vineta"></div>
   </div>
   <div class="marca">
     <div class="logo">VISOR<span>3D</span></div>
@@ -43,9 +48,13 @@
   <div class="velo">
     <svg viewBox="0 0 120 120" aria-hidden="true">
       <circle class="velo-fondo" cx="60" cy="60" r="50" pathLength="100"/>
+      <circle class="velo-brillo" id="veloBrillo" cx="60" cy="60" r="50" pathLength="100"/>
       <circle class="velo-arco" id="veloArco" cx="60" cy="60" r="50" pathLength="100"/>
     </svg>
     <div class="velo-num"><b id="veloNum">0</b><small>km/h</small></div>
+    <div class="ruta" aria-hidden="true">
+      <span>Albacete</span><div class="ruta-linea" id="cargaRuta"><i id="cargaTren"></i></div><span>Alicante</span>
+    </div>
     <div class="velo-fase" id="cargandoFase">Preparando el visor…</div>
   </div>
 </div>
@@ -360,14 +369,20 @@ const Carga = (() => {
   const elNum = document.getElementById('veloNum');
   const elArco = document.getElementById('veloArco');
   const elFase = document.getElementById('cargandoFase');
+  const elBrillo = document.getElementById('veloBrillo');
+  const elTren = document.getElementById('cargaTren');
+  const elRuta = document.getElementById('cargaRuta');
   const animTunel = () => cargando.getAnimations({ subtree: true })
-    .filter((a) => a.animationName === 'carga-anillo' || a.animationName === 'carga-traviesas');
+    .filter((a) => a.animationName === 'carga-anillo');
   let objetivo = 0, mostrado = 0, ultimoRitmo = 1, raf = 0;
   function pintar() {
-    mostrado += (objetivo - mostrado) * 0.1;
+    // Al terminar la carga la aguja acelera más deprisa para llegar a 300 km/h antes de salir del túnel
+    mostrado += (objetivo - mostrado) * (objetivo >= 1 ? 0.22 : 0.1);
     if (Math.abs(objetivo - mostrado) < 0.002) mostrado = objetivo;
     elNum.textContent = String(Math.round(mostrado * 300));
-    elArco.style.strokeDasharray = `${(mostrado * 75).toFixed(2)} 100`;
+    elArco.style.strokeDasharray = elBrillo.style.strokeDasharray = `${(mostrado * 75).toFixed(2)} 100`;
+    elTren.style.transform = `translateX(${(mostrado * 100).toFixed(1)}%)`;
+    elRuta.style.setProperty('--p', mostrado.toFixed(3));
     // De 1× (tren parado arrancando) a 5× a 300 km/h; updatePlaybackRate cambia el ritmo sin saltos
     const ritmo = Math.round((1 + mostrado * 4) * 10) / 10;
     if (!reducido && ritmo !== ultimoRitmo) {
@@ -396,6 +411,8 @@ const Carga = (() => {
       const t = reducido ? [0, 0, 0] : [550, 650, 800];
       setTimeout(() => {
         cargando.classList.add('saliendo');
+        // El visor (oculto mientras carga) aparece bajo la boca que se abre
+        document.body.classList.remove('cargando-visor');
         setTimeout(() => {
           cargando.classList.add('fuera');
           setTimeout(() => { cargando.hidden = true; cargando.style.display = 'none'; cancelAnimationFrame(raf); }, t[2]);
