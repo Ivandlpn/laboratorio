@@ -1849,7 +1849,17 @@ export function crearGestorTeselas(ctx) {
             const uG = ptsG[ptsG.length - 1];
             cajaOrientada(mAceroGalv, uG[0], uG[2], uG[1] - 0.1, uG[1] + 2.4, 1, 0, 0.22, 0.22);
           } else if (id === '040243') {
-            cinta(mBionda, aLoc(cs, 'terreno'), 0.14, 0.38, 0.76, 0, 0.4);
+            // La bionda viene sin cota: sobre un paso superior reconstruido quedaba a la altura del relieve (que bajo el puente
+            // sube con el tablero) y cruzaba la vía como un tubo flotando bajo el tablero. El paso ya dibuja su propia bionda,
+            // así que ahí se quitan los vértices de esta capa y se dibuja solo lo que queda fuera.
+            let tramo = [];
+            const tramos = [];
+            for (const c of cs) {
+              const [Eb, Nb] = lonlatAUTM(c[0], c[1]);
+              if (PASOS_SUP.length && enPasoSuperior(Eb, Nb, km)) { if (tramo.length) tramos.push(tramo); tramo = []; } else tramo.push(c);
+            }
+            if (tramo.length) tramos.push(tramo);
+            for (const t of tramos) if (t.length >= 2) cinta(mBionda, aLoc(t, 'terreno'), 0.14, 0.38, 0.76, 0, 0.4);
           } else if (id === '050197') {
             // Los pasos reconstruidos (pasos-superiores.json) se dibujan enteros en 2c ter; aquí solo los que no lo están
             const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
