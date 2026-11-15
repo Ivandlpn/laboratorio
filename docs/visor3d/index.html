@@ -59,6 +59,7 @@
   </div>
 </div>
 <div id="fundidoCine" aria-hidden="true"></div>
+<button type="button" id="btnReanudarCine" hidden title="Volver a la vista de cine que sigue al tren">🎥 Reanudar seguimiento</button>
 <button type="button" id="btnEntrarTunel" hidden>🚇 Entrar en el túnel</button>
 <div id="medidaBadge" hidden><span id="medidaTxt">Medidor 3D: pulsa 2 puntos</span><button type="button" id="btnLimpiarMedida">✕</button></div>
 <div id="avisoNube" role="status" aria-live="polite" hidden><span class="giro" aria-hidden="true"></span><span id="avisoNubeTxt">Cargando nube de puntos…</span></div>
@@ -319,6 +320,7 @@ import { crearFlota } from './js/flota.js';
 import { crearTrafico } from './js/trafico.js';
 import { crearLaguna } from './js/laguna.js';
 import { mostrarGuiaCamara } from './js/guia.js';
+import { crearArquetas, fichaArqueta } from './js/arquetas.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
 import { crearArboles } from './js/arboles.js';
@@ -1057,6 +1059,13 @@ const { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota } = crear
 const trafico = params.has('sinTrafico') ? null : crearTrafico({ escena, W, cotaTerrenoUTM, PASOS_SUP, PASOS_INF });
 // Laguna del Salobrejo (PK 360+400 a 361+700, a la derecha): lámina de agua, orilla salina y carrizo
 const laguna = crearLaguna({ escena, Eje3D, W, cotaTerrenoUTM });
+// Arquetas de fibra óptica del listado (las únicas que se dibujan; ver scripts/importar-arquetas.py)
+const grupoArquetas = new THREE.Group();
+escena.add(grupoArquetas);
+let arquetasRed = { actualizar() {} };
+fetch(`${RUTA}/arquetas.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null).then((datos) => {
+  if (datos) arquetasRed = crearArquetas({ escena: grupoArquetas, Eje3D, W, cotaTerrenoUTM, datos });
+});
 const Vida = crearVidaEscena({ escena, Eje3D, W, cotaTerrenoUTM, caminosPorKm });
 
 // ---- Nubes de puntos LiDAR / fotogramétricas ----
@@ -1101,7 +1110,8 @@ function recentrarOrigen(nuevoE, nuevoN, nuevoZ) {
 }
 
 // Vistas que viajan con el tren: cabina, dron y asiento del pasajero
-const enRuta = (v) => v === 'cabina' || v === 'dron' || v === 'pasajero';
+const esPasajero = (v) => v === 'pasajeroIzq' || v === 'pasajeroDer';
+const enRuta = (v) => v === 'cabina' || v === 'dron' || esPasajero(v);
 let vistaActiva = params.get('vista') || 'dron'; // la web arranca en vuelo de dron (PC y móvil)
 let pkRecorrido = pkArranque;
 let sentidoRecorrido = 1;
@@ -1199,7 +1209,8 @@ const VISTAS = [
   { id: 'lateral', nombre: 'Vista lateral' },
   { id: 'cabina', nombre: 'Cabina AVE' },
   { id: 'dron', nombre: 'Vuelo dron' },
-  { id: 'pasajero', nombre: 'Asiento ventanilla' },
+  { id: 'pasajeroIzq', nombre: 'Ventanilla izq. (portátil)' },
+  { id: 'pasajeroDer', nombre: 'Ventanilla der. (móvil)' },
 ];
 const contVistas = document.getElementById('vistas');
 const botonesVista = new Map();
@@ -1211,14 +1222,16 @@ function setModoVista(id) {
   const elPanelEmp = document.getElementById('panelEmplazamientos');
   if (elPanelEmp) elPanelEmp.hidden = !enRecorrido || document.body.classList.contains('limpio');
   actualizarVisibilidadMarcoCab();
-  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-106' : id === 'pasajero' ? 'ASIENTO VENTANILLA · COCHE 4' : `DRON · SOBRE ${nombreTrenDron()}`;
-  if (id === 'pasajero' && !flota[idxTrenDron]?.modelo.interior) idxTrenDron = Math.max(0, flota.findIndex((tr) => tr.modelo.interior));
-  if (id === 'pasajero') { mirarPasajero.yaw = 0; mirarPasajero.pitch = 0; }
+  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-106' : esPasajero(id) ? `VENTANILLA ${id === 'pasajeroIzq' ? 'IZQUIERDA · PORTÁTIL' : 'DERECHA · MÓVIL'} · COCHE 4` : `DRON · SOBRE ${nombreTrenDron()}`;
+  if (esPasajero(id) && !flota[idxTrenDron]?.modelo.interior) idxTrenDron = Math.max(0, flota.findIndex((tr) => tr.modelo.interior));
+  if (esPasajero(id)) { mirarPasajero.yaw = 0; mirarPasajero.pitch = 0; }
   const lblTren = document.getElementById('lblTrenDron');
-  if (lblTren) lblTren.hidden = id !== 'dron' && id !== 'pasajero';
+  if (lblTren) lblTren.hidden = id !== 'dron' && !esPasajero(id);
   const bCine = document.getElementById('btnDronCine');
   if (bCine) bCine.hidden = id !== 'dron';
-  controles.enabled = id !== 'pasajero';
+  const bRe = document.getElementById('btnReanudarCine');
+  if (bRe) bRe.hidden = id !== 'dron' || dronCine;
+  controles.enabled = !esPasajero(id);
   if (!enRecorrido) {
     faroCabina.intensity = 0;
     efectoCabina.reiniciar(camara);
@@ -1638,12 +1651,13 @@ btnEntrarTunel?.addEventListener('click', () => {
 const mirarPasajero = { yaw: 0, pitch: 0, arrastre: null };
 const _pOjo = new THREE.Vector3(), _pMira = new THREE.Vector3(), _pDir = new THREE.Vector3(), _pEje = new THREE.Vector3();
 function interiorSeguido() { return flota[idxTrenDron]?.modelo.interior || null; }
-function camaraPasajero(yaw = mirarPasajero.yaw, pitch = mirarPasajero.pitch) {
+function camaraPasajero(yaw = mirarPasajero.yaw, pitch = mirarPasajero.pitch, lado = vistaActiva === 'pasajeroIzq' ? 'izq' : 'der') {
   const int = interiorSeguido();
   if (!int) return false;
+  const pas = int.pasajeros[lado];
   int.carroceria.updateWorldMatrix(true, false);
-  _pOjo.copy(int.ojoPasajero).applyMatrix4(int.carroceria.matrixWorld);
-  _pMira.copy(int.miradaPasajero).applyMatrix4(int.carroceria.matrixWorld);
+  _pOjo.copy(pas.ojo).applyMatrix4(int.carroceria.matrixWorld);
+  _pMira.copy(pas.mirada).applyMatrix4(int.carroceria.matrixWorld);
   _pDir.copy(_pMira).sub(_pOjo);
   if (yaw) _pDir.applyAxisAngle(_pEje.set(0, 1, 0), yaw);
   if (pitch) _pDir.applyAxisAngle(_pEje.crossVectors(_pDir, camara.up).normalize(), pitch);
@@ -1653,10 +1667,10 @@ function camaraPasajero(yaw = mirarPasajero.yaw, pitch = mirarPasajero.pitch) {
   camara.lookAt(controles.target);
   return true;
 }
-render.domElement.addEventListener('pointerdown', (e) => { if (vistaActiva === 'pasajero') mirarPasajero.arrastre = [e.clientX, e.clientY]; });
+render.domElement.addEventListener('pointerdown', (e) => { if (esPasajero(vistaActiva)) mirarPasajero.arrastre = [e.clientX, e.clientY]; });
 addEventListener('pointerup', () => { mirarPasajero.arrastre = null; });
 render.domElement.addEventListener('pointermove', (e) => {
-  if (vistaActiva !== 'pasajero' || !mirarPasajero.arrastre) return;
+  if (!esPasajero(vistaActiva) || !mirarPasajero.arrastre) return;
   const [x0, y0] = mirarPasajero.arrastre;
   mirarPasajero.yaw = Math.max(-2.6, Math.min(2.6, mirarPasajero.yaw - (e.clientX - x0) * 0.004));
   mirarPasajero.pitch = Math.max(-0.7, Math.min(0.6, mirarPasajero.pitch - (e.clientY - y0) * 0.004));
@@ -1687,12 +1701,12 @@ function planoInterior(T, u, dt) {
       // Vuelo por el pasillo, mirando un poco por delante y girando al final hacia la ventana
       const k = (u - 0.2) / 0.38, s = k * k * (3 - 2 * k);
       _pOjo.copy(curva.getPoint(s)).applyMatrix4(int.carroceria.matrixWorld);
-      _pMira.copy(curva.getPoint(Math.min(1, s + 0.12))).lerp(int.miradaPasajero, Math.max(0, (s - 0.55) / 0.45)).applyMatrix4(int.carroceria.matrixWorld);
+      _pMira.copy(curva.getPoint(Math.min(1, s + 0.12))).lerp(int.pasajeros.der.mirada, Math.max(0, (s - 0.55) / 0.45)).applyMatrix4(int.carroceria.matrixWorld);
       camara.position.copy(_pOjo); controles.target.copy(_pMira); camara.up.set(0, 1, 0); camara.lookAt(_pMira);
       fundido = Math.max(0, 1 - Math.abs(u - 0.2) / 0.03);
     } else {
       // En el asiento: mirada lenta por la ventana
-      camaraPasajero(0.12 * Math.sin((u - 0.58) * 9), -0.03);
+      camaraPasajero(0.12 * Math.sin((u - 0.58) * 9), -0.03, 'der');
       if (u > 0.97) fundido = (u - 0.97) / 0.03;
     }
   }
@@ -1709,14 +1723,27 @@ function setDronCine(activo) {
   dronCine = activo;
   const b = document.getElementById('btnDronCine');
   if (b) b.setAttribute('aria-pressed', String(activo));
+  const r = document.getElementById('btnReanudarCine');
+  if (r) r.hidden = activo || vistaActiva !== 'dron';
   if (!activo) { prevRefPos = null; prevRefObj = null; if (vistaActiva === 'dron') elCabModo.textContent = `DRON · SOBRE ${nombreTrenDron()}`; }
   else cine.az = null;
 }
 document.getElementById('btnDronCine')?.addEventListener('click', () => setDronCine(!dronCine));
 setDronCine(dronCine);
-for (const ev of ['pointerdown', 'wheel', 'touchstart']) {
-  render.domElement.addEventListener(ev, () => { if (dronCine && vistaActiva === 'dron') setDronCine(false); }, { passive: true });
-}
+// El seguimiento solo se para cuando el usuario mueve de verdad la cámara (arrastrar más de 10 px, dos dedos o la rueda).
+// Un toque suelto no lo para: en el móvil, el toque que despierta la pantalla apagada no debe cortar la vista de cine
+const pararCine = () => { if (dronCine && vistaActiva === 'dron') setDronCine(false); };
+let toqueCine = null;
+render.domElement.addEventListener('pointerdown', (e) => { toqueCine = [e.clientX, e.clientY]; }, { passive: true });
+render.domElement.addEventListener('pointermove', (e) => {
+  if (toqueCine && Math.hypot(e.clientX - toqueCine[0], e.clientY - toqueCine[1]) > 10) { toqueCine = null; pararCine(); }
+}, { passive: true });
+addEventListener('pointerup', () => { toqueCine = null; }, { passive: true });
+render.domElement.addEventListener('wheel', pararCine, { passive: true });
+render.domElement.addEventListener('touchstart', (e) => { if (e.touches.length > 1) pararCine(); }, { passive: true });
+// Botón mínimo para volver al seguimiento cuando se ha parado
+const btnReanudarCine = document.getElementById('btnReanudarCine');
+btnReanudarCine?.addEventListener('click', () => setDronCine(true));
 
 function centrarCamaraRecorrido(modo = vistaActiva) {
   if (!enRuta(modo)) return;
@@ -2365,9 +2392,11 @@ render.domElement.addEventListener('pointerup', (e) => {
   ptr.x = ((e.clientX - r.left) / r.width) * 2 - 1;
   ptr.y = -((e.clientY - r.top) / r.height) * 2 + 1;
   raycaster.setFromCamera(ptr, camara);
-  const hits = raycaster.intersectObjects([grupoTeselas, grupoFlota, grupoTerrenoMalla], true);
+  const hits = raycaster.intersectObjects([grupoTeselas, grupoFlota, grupoTerrenoMalla, grupoArquetas], true);
   const visibles = hits.filter((h) => h.object?.visible);
-  const hit = visibles.find((h) => h.object?.userData?.nombre);
+  // Las arquetas tienen prioridad si están junto al primer objeto tocado (van pegadas a la canaleta)
+  const hitArq = visibles.find((h) => h.object?.userData?.arquetas && h.distance < (visibles[0]?.distance ?? 0) + 1.5);
+  const hit = hitArq || visibles.find((h) => h.object?.userData?.nombre);
   const primero = hit || visibles[0];
   if (midiendo3D && primero) {
     actualizarMedida3D(primero.point);
@@ -2380,9 +2409,12 @@ render.domElement.addEventListener('pointerup', (e) => {
   if (hit && hit.object.userData?.baculosCctv && hit.instanceId != null) {
     baculo = hit.object.userData.baculosCctv[hit.instanceId] || null;
   }
-  const capa = hit ? (hit.object.userData.capa || 'Elemento') : 'Punto del terreno';
-  const nombre = baculo ? baculo.nombre : (hit ? hit.object.userData.nombre : `PK ${fmtPk(pt.pk)}`);
+  let capa = hit ? (hit.object.userData.capa || 'Elemento') : 'Punto del terreno';
+  let nombre = baculo ? baculo.nombre : (hit ? hit.object.userData.nombre : `PK ${fmtPk(pt.pk)}`);
   let info = hit ? (hit.object.userData.info || '') : '';
+  // Arqueta de fibra óptica: PK, lado de vía, función (empalme / segregación) y cable
+  const arq = hit?.object.userData?.arquetas?.[hit.instanceId];
+  if (arq) ({ capa, nombre, info } = fichaArqueta(arq, fmtPk));
   if (hit && capa.includes('Circulación')) {
     const trCerca = flota.reduce((m, tr) => (!m || Math.abs(tr.pk - pt.pk) < Math.abs(m.pk - pt.pk) ? tr : m), null);
     if (trCerca && Math.abs(trCerca.pk - pt.pk) < 160) info = `${trCerca.estadoTxt} · ${info}`;
@@ -2634,7 +2666,7 @@ function fotograma(ahora) {
 
   // Circulación realista de trenes AVE (frenado en curvas, paradas en Villena AV y Alicante)
   if (!pausaTrenes && grupoFlota.visible) {
-    actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' || vistaActiva === 'pasajero' || cineInterior ? flota[idxTrenDron] : null);
+    actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' || esPasajero(vistaActiva) || cineInterior ? flota[idxTrenDron] : null);
   }
   const utmCam = UTMdeMundo(camara.position);
   // Interiores de los trenes: solo se dibujan con la cámara cerca; dentro, plano cercano corto para no recortar nada
@@ -2642,12 +2674,13 @@ function fotograma(ahora) {
     const int = tr.modelo.interior;
     if (int) int.grupo.visible = int.carroceria.getWorldPosition(_pEje).distanceTo(camara.position) < 45;
   }
-  const nearObj = vistaActiva === 'pasajero' || cineInterior || (vistaActiva === 'dron' && dronCine && TOMAS_CINE[cine.toma].especial) ? 0.03 : 0.2;
+  const nearObj = esPasajero(vistaActiva) || cineInterior || (vistaActiva === 'dron' && dronCine && TOMAS_CINE[cine.toma].especial) ? 0.03 : 0.2;
   // Dentro del tren, campo de visión amplio (como el ojo del pasajero)
-  const fovObj = nearObj < 0.1 && (vistaActiva === 'pasajero' || cineInterior) ? 72 : 50;
+  const fovObj = nearObj < 0.1 && (esPasajero(vistaActiva) || cineInterior) ? 72 : 50;
   if (camara.near !== nearObj || camara.fov !== fovObj) { camara.near = nearObj; camara.fov = fovObj; camara.updateProjectionMatrix(); }
   trafico?.actualizar(dt, utmCam);
   laguna.actualizar(dt, utmCam);
+  arquetasRed.actualizar();
 
   let pkObservado = pkRecorrido;
   if (enRuta(vistaActiva)) {
@@ -2676,7 +2709,7 @@ function fotograma(ahora) {
       if (pkRecorrido > pkFinRec) { pkRecorrido = pkFinRec; sentidoRecorrido = -1; refrescarTextoSentido(); }
       if (pkRecorrido < Eje3D.pkIni + 80) { pkRecorrido = Eje3D.pkIni + 80; sentidoRecorrido = 1; refrescarTextoSentido(); }
     }
-    if ((vistaActiva === 'dron' || vistaActiva === 'pasajero') && flota[idxTrenDron]) {
+    if ((vistaActiva === 'dron' || esPasajero(vistaActiva)) && flota[idxTrenDron]) {
       const trenDron = flota[idxTrenDron];
       trenDron.viaSigno = sentidoRecorrido > 0 ? -1 : 1;
       trenDron.sentido = sentidoRecorrido;
@@ -2741,7 +2774,7 @@ function fotograma(ahora) {
       faroCabina.intensity = 0;
     }
     if (vistaActiva === 'dron' && dronCine) actualizarDronCine(dt);
-    if (vistaActiva === 'pasajero') camaraPasajero();
+    if (esPasajero(vistaActiva)) camaraPasajero();
     actualizarBotonTunel();
     // En el dron, el suelo también es el límite de la cámara
     if (vistaActiva === 'dron') aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado: pkRecorrido, rayosX: rayosXActivo });

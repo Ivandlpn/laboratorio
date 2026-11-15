@@ -3,6 +3,11 @@ import { crearInterior } from './interior.js';
 
 // Pantalla del portátil del pasajero: captura de visorlav.web.app (no se puede incrustar: su CSP lo impide)
 let texPantallaVisorLav = null;
+let texMovilMiPk = null;
+const pantallaMiPk = () => {
+  if (!texMovilMiPk) { texMovilMiPk = new THREE.TextureLoader().load('./comun/texturas/mipk.jpg'); texMovilMiPk.colorSpace = THREE.SRGBColorSpace; }
+  return texMovilMiPk;
+};
 const pantallaVisorLav = () => {
   if (!texPantallaVisorLav) {
     texPantallaVisorLav = new THREE.TextureLoader().load('./comun/texturas/visorlav.jpg');
@@ -585,7 +590,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
 
       // Interior completo en el cuarto coche de los Avril (AVE y Avlo): vista del pasajero y vuelo del dron por dentro
       if (avril && i === 3) {
-        const int = crearInterior({ texPantalla: pantallaVisorLav() });
+        const int = crearInterior({ texPantalla: pantallaVisorLav(), texMovil: pantallaMiPk() });
         int.grupo.visible = false;
         carroceria.add(int.grupo);
         // Por dentro la carrocería no debe tapar las ventanas: solo sus caras exteriores

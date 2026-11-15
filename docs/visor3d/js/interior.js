@@ -124,7 +124,7 @@ function geometriaAsiento() {
   return mergeGeometries(piezas.map((p) => p.toNonIndexed()));
 }
 
-export function crearInterior({ texPantalla }) {
+export function crearInterior({ texPantalla, texMovil }) {
   const grupo = new THREE.Group();
   grupo.name = 'Interior coche AVE';
   const ud = { capa: 'Interior del tren', nombre: 'Coche de viajeros AVE', info: 'Interior del Talgo Avril (S-106) según las fotos de Renfe: asientos de piel con funda «renfe AVE», paneles de madera, portaequipajes y moqueta. Disposición y medidas supuestas.' };
@@ -205,11 +205,13 @@ export function crearInterior({ texPantalla }) {
   const mesa = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.035, 1.0), mMadera);
   mesa.position.set(xMesa, SUELO + 0.72, -0.78);
 
-  // Pasajero: ventanilla derecha, en la fila más cercana al centro de la ventana 5, con bandeja y portátil
-  const xVent = VENTANAS_X[5];
-  const xPas = filas.reduce((m, f) => (Math.abs(f - (xVent - 0.25)) < Math.abs(m - (xVent - 0.25)) ? f : m), filas[0]);
+  // Dos pasajeros: ventanilla derecha (asiento individual, móvil en la mano) y ventanilla izquierda (asiento doble,
+  // bandeja con el portátil). Cada uno en la fila más cercana a una ventana
+  const filaJunto = (xv) => filas.reduce((m, f) => (Math.abs(f - (xv - 0.25)) < Math.abs(m - (xv - 0.25)) ? f : m), filas[0]);
+  const xPas = filaJunto(VENTANAS_X[5]);
+  const xPasI = filaJunto(VENTANAS_X[2]);
   const bandeja = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.02, 0.42), matInt('#3a3d42'));
-  bandeja.position.set(xPas + 0.52, SUELO + 0.70, 0.86);
+  bandeja.position.set(xPasI + 0.52, SUELO + 0.70, -1.0);
   const portatil = new THREE.Group();
   const mAluPc = matInt('#9ea3a9', { metalness: 0.75, roughness: 0.3, emissiveIntensity: 0.1 });
   const base = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.014, 0.31), mAluPc);
@@ -225,22 +227,44 @@ export function crearInterior({ texPantalla }) {
   tapa.position.set(0.11, 0.007, 0); tapa.rotation.z = -0.28;  // bisagra al fondo, abierta hacia el pasajero
   portatil.add(base, teclado, tapa);
   // Bisagra al fondo (+x) y pantalla mirando al pasajero (−x)
-  portatil.position.set(xPas + 0.55, SUELO + 0.718, 0.86);
+  portatil.position.set(xPasI + 0.55, SUELO + 0.718, -1.0);
 
-  grupo.add(suelo, techo, tiras, ...paredes, ...ventanas, portaequipajes, ...mampara(-LARGO / 2), ...mampara(LARGO / 2), asientos, fundas, mesa, bandeja, portatil);
+  // Móvil en la mano del pasajero derecho, entre él y la ventana, con MiPK en la pantalla
+  const ojoD = new THREE.Vector3(xPas - 0.2, SUELO + 1.22, 0.7);
+  const miraD = new THREE.Vector3(xPas + 1.05, SUELO + 0.98, PARED + 1.6);
+  const dirD = miraD.clone().sub(ojoD).setY(0).normalize();
+  const movil = new THREE.Group();
+  const cuerpoMovil = new THREE.Mesh(new THREE.BoxGeometry(0.074, 0.156, 0.008), matInt('#1b1d21', { metalness: 0.6, roughness: 0.3, emissiveIntensity: 0.05 }));
+  const pantMovil = new THREE.Mesh(new THREE.PlaneGeometry(0.068, 0.147), new THREE.MeshBasicMaterial({ map: texMovil, toneMapped: false }));
+  pantMovil.position.z = 0.0045;
+  pantMovil.userData = { capa: 'Interior del tren', nombre: 'Móvil del pasajero · MiPK', info: 'En la pantalla, MiPK (mipk.web.app): el PK de Adif donde estás. Pulsa para abrirla.', url: 'https://mipk.web.app/' };
+  // Mano: palma y pulgar sujetando el móvil por detrás y por el lado
+  const mMano = matInt('#c99b7a', { roughness: 0.8, emissiveIntensity: 0.15 });
+  const palma = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.1, 0.03), mMano); palma.position.set(0.004, -0.03, -0.02);
+  const pulgar = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.055, 0.016), mMano); pulgar.position.set(-0.044, -0.01, 0.002); pulgar.rotation.z = -0.35;
+  const antebrazo = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 0.3), matInt('#2c3e58', { roughness: 0.9 }));
+  antebrazo.position.set(0.01, -0.07, -0.17); antebrazo.rotation.x = 0.5;
+  movil.add(cuerpoMovil, pantMovil, palma, pulgar, antebrazo);
+  movil.position.copy(ojoD).addScaledVector(dirD, 0.34).add(new THREE.Vector3(0, -0.15, 0));
+  movil.lookAt(ojoD);
+  movil.rotateX(0.12);
+
+  grupo.add(movil, suelo, techo, tiras, ...paredes, ...ventanas, portaequipajes, ...mampara(-LARGO / 2), ...mampara(LARGO / 2), asientos, fundas, mesa, bandeja, portatil);
   grupo.traverse((n) => { if (n.isMesh && !n.userData.url) n.userData = ud; });
 
   return {
     grupo,
-    // Ojos del pasajero y punto al que mira (por la ventana, algo hacia delante), en el marco de la carrocería
-    ojoPasajero: new THREE.Vector3(xPas - 0.2, SUELO + 1.22, 0.4),
-    miradaPasajero: new THREE.Vector3(xPas + 1.05, SUELO + 0.98, PARED + 1.6),
+    // Ojos de cada pasajero y punto al que mira (por su ventana, algo hacia delante), en el marco de la carrocería
+    pasajeros: {
+      der: { ojo: ojoD, mirada: miraD, lleva: 'móvil con MiPK' },
+      izq: { ojo: new THREE.Vector3(xPasI - 0.25, SUELO + 1.24, -0.62), mirada: new THREE.Vector3(xPasI + 1.35, SUELO + 0.86, -(PARED + 1.0)), lleva: 'portátil con VisorLAV' },
+    },
     // Recorrido del dron dentro del coche: entra por la puerta delantera y baja por el pasillo hasta el pasajero
     recorrido: [
       new THREE.Vector3(LARGO / 2 - 0.3, SUELO + 1.55, 0.12),
       new THREE.Vector3(xPas + 2.2, SUELO + 1.5, 0.15),
       new THREE.Vector3(xPas + 0.9, SUELO + 1.35, 0.35),
-      new THREE.Vector3(xPas - 0.2, SUELO + 1.22, 0.4),
+      ojoD.clone(),
     ],
   };
 }

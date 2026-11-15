@@ -323,13 +323,7 @@ export function crearGestorTeselas(ctx) {
             inst.sujecion.get(tramo).mats.push(mt);
           }
         }
-        for (let pkArq = Math.ceil(pk0 / 55) * 55 + 27.5; pkArq < Math.min(pk1, PK_TERMINAL); pkArq += 55) {
-          const m = Eje3D.enPk(pkArq);
-          if (m.enTunel) continue;
-          const yaw = Math.atan2(m.ty, m.tx), nx = -m.ty, ny = m.tx, offC = m.sep * 0.5 + 3.57;
-          const zArq = (m.enViaducto ? m.Z - 0.16 : m.Z - 0.34);
-          for (const s of [-1, 1]) inst.arqueta.push(matInst(L(m.E + nx * s * offC, m.N + ny * s * offC, zArq), yaw));
-        }
+        // (Las arquetas genéricas cada 55 m se retiraron el 2026-11-15: solo se dibujan las del listado de fibra óptica)
         for (let pkH = Math.ceil(pk0 / 200) * 200; pkH < Math.min(pk1, PK_TERMINAL); pkH += 200) {
           const m = Eje3D.enPk(pkH);
           const yaw = Math.atan2(m.ty, m.tx), nx = -m.ty, ny = m.tx;
@@ -1298,6 +1292,50 @@ export function crearGestorTeselas(ctx) {
       }
 
       // 3. Cartografía vectorial 3D de Adif (201 teselas DXF: viales, drenaje, estructuras, BTS, subestaciones, señalización, cultivos…)
+      // Calzada continua pegada al terreno: se densifica cada 3 m y cada borde toma la cota del terreno (sin apartarse más
+      // de 0,5 m de la del eje, que es la de la cartografía si la trae). Así el relieve no asoma por los bordes y el asfalto
+      // no sale dentado; un faldón baja hasta el terreno por los lados.
+      const calzada = (malla, seg, ancho, alzado = 0.1, faldon = 0.4) => {
+        const P = seg.map((c) => { const [E, N] = lonlatAUTM(c[0], c[1]); return [E, N, c.length > 2 && Number.isFinite(c[2]) && c[2] > 5 ? c[2] : null]; });
+        const D = [];
+        for (let i = 0; i < P.length; i++) {
+          if (i > 0) {
+            const a = P[i - 1], b = P[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(l / 3));
+            for (let k = 1; k < n; k++) {
+              const t = k / n;
+              D.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] != null && b[2] != null ? a[2] + (b[2] - a[2]) * t : null]);
+            }
+          }
+          D.push(P[i]);
+        }
+        const h = ancho / 2;
+        let prev = null, dist = 0;
+        for (let i = 0; i < D.length; i++) {
+          const a = D[Math.max(0, i - 1)], b = D[Math.min(D.length - 1, i + 1)];
+          let tx = b[0] - a[0], ty = b[1] - a[1];
+          const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+          const nx = -ty, ny = tx, [E, N, zEje] = D[i];
+          const zc = zEje ?? cotaTerrenoUTM(E, N);
+          const borde = (s) => {
+            const Eb = E + nx * h * s, Nb = N + ny * h * s;
+            const zb = Math.min(zc + 0.5, Math.max(zc - 0.5, cotaTerrenoUTM(Eb, Nb)));
+            return { sup: L(Eb, Nb, zb + alzado), inf: L(Eb + nx * s * 0.3, Nb + ny * s * 0.3, zb - faldon) };
+          };
+          if (i > 0) dist += Math.hypot(E - D[i - 1][0], N - D[i - 1][1]);
+          const u = dist * 0.15, bi = borde(1), bd = borde(-1);
+          const v = {
+            ti: malla.v(bi.sup[0], bi.sup[1], bi.sup[2], 0, u), td: malla.v(bd.sup[0], bd.sup[1], bd.sup[2], 1, u),
+            bi: malla.v(bi.inf[0], bi.inf[1], bi.inf[2], -0.3, u), bd: malla.v(bd.inf[0], bd.inf[1], bd.inf[2], 1.3, u),
+          };
+          if (prev) {
+            malla.quad(prev.ti, prev.td, v.td, v.ti);
+            malla.quad(prev.bi, prev.ti, v.ti, v.bi);
+            malla.quad(prev.td, prev.bd, v.bd, v.td);
+          }
+          prev = v;
+        }
+      };
+
       const aLoc = (cs, modoZ = 'terreno', zExtra = 0) => cs.map((c) => {
         const [E, N] = lonlatAUTM(c[0], c[1]);
         let z = c.length > 2 && Number.isFinite(c[2]) && c[2] > 5 ? c[2] : null;
@@ -1718,7 +1756,7 @@ export function crearGestorTeselas(ctx) {
           } else if (id === '050035') {
             inst.armario.push(matInst(p, yawVia));
           } else if (id === '050134') {
-            inst.arqueta.push(matInst(L(E, N, zBase + 0.06), yawVia));
+            // Solo se dibujan las arquetas de fibra óptica del listado (js/arquetas.js), no las de la cartografía
           } else if (id === '040191' || f.properties?.b === '2405' || f.properties?.b === '2409') {
             inst.farola.push(matInst(pSup, yawVia));
             inst.foco.push(matInst([pSup[0] + Math.cos(yawVia) * 1.1, pSup[1] + 7.45, pSup[2] - Math.sin(yawVia) * 1.1], 0, 0.72, 0.45, 0.72));
@@ -1956,8 +1994,8 @@ export function crearGestorTeselas(ctx) {
               return out;
             };
             for (const seg of partirFueraGalibo(cs)) {
-              cinta(mHormigonObra, aLoc(seg, 'terreno', 0.12), 8.2, -0.85, -0.02, 0.15, 0.15);
-              cinta(mAsfalto, aLoc(seg, 'terreno', 0.12), 7.4, -0.02, 0.08, 0, 0.15);
+              calzada(mHormigonObra, seg, 8.2, 0.06, 0.85);
+              calzada(mAsfalto, seg, 7.4, 0.14, 0.2);
               registrarCamino(seg, 0.09);
             }
           } else if (id === '040031' || id === '040217' || id === '030197') {
@@ -1986,7 +2024,7 @@ export function crearGestorTeselas(ctx) {
               return out;
             };
             for (const seg of partirFueraGalibo(cs)) {
-              cinta(mAsfalto, aLoc(seg, 'terreno', 0.06), id === '040031' ? 9.5 : 6.4, -0.14, 0.05, 0.22, 0.15);
+              calzada(mAsfalto, seg, id === '040031' ? 9.5 : 6.4, 0.1, 0.4);
               registrarCamino(seg, 0.06);
             }
           } else if (id === '010127' || id === '050021' || id === '010047') {
@@ -2144,7 +2182,7 @@ export function crearGestorTeselas(ctx) {
               cajaOrientada(mAceroGalv, pts2[k][0], pts2[k][1], zBase + 0.92, zBase + 4.6, 1, 0, 0.24, 0.24);
             }
           } else if (id === '050134') {
-            prisma(mHormigonObra, pts2, zBase - 0.35, zBase + 0.16);
+            // Huellas de arqueta de la cartografía: no se dibujan (solo las del listado de fibra óptica)
           } else if (id === '050035') {
             // Armario de vía en su huella real: cuerpo metálico de 1,5 m sobre peana de hormigón
             prisma(mHormigonObra, pts2, zBase - 0.2, zBase + 0.15);
@@ -2595,7 +2633,8 @@ export function crearGestorTeselas(ctx) {
 
       addMalla(mCanaleta, matCanaleta, 'plataforma', '050150', false, true);
       addMalla(mCuneta, mat('#9ba3ab'), 'plataforma', '010127', false, true);
-      addMalla(mAsfalto, mat('#3b4048', 1, { roughness: 0.9 }), 'viales', '050197', false, true);
+      // Desfase de profundidad: el asfalto se dibuja sobre el terreno coplanario sin que este asome a trozos
+      addMalla(mAsfalto, mat('#3b4048', 1, { roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 }), 'viales', '050197', false, true);
       addMalla(mZahorraPI, mat('#a8987c', 1, { roughness: 0.95 }), 'estructuras', '050135', false, true);
       addMalla(mMarcaVial, mat('#f1f5f9', 1, { roughness: 0.5 }), 'viales', '050197');
       addMalla(mMallaAntivand, mat('#1d4ed8', 0.62, { metalness: 0.3, roughness: 0.4 }), 'estructuras', '050197');

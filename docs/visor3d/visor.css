@@ -863,3 +863,17 @@
 
   /* Fundido del dron cinematográfico al entrar y salir del tren */
   #fundidoCine { position: fixed; inset: 0; z-index: 7; background: #fbfaf6; opacity: 0; pointer-events: none; }
+
+  /* Botón mínimo para reanudar el seguimiento de cine del dron */
+  #btnReanudarCine {
+    position: fixed; z-index: 8; left: 50%; transform: translateX(-50%);
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    min-height: 32px; padding: 6px 14px; border-radius: 999px;
+    background: var(--panel); color: var(--fg); border: 1px solid var(--line);
+    font: 600 12px/1 var(--sans); box-shadow: var(--hud-sombra); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    opacity: .9;
+  }
+  #btnReanudarCine:hover { opacity: 1; border-color: var(--accent); }
+  #btnReanudarCine[hidden] { display: none; }
+  @media (max-width: 760px) { #btnReanudarCine { top: auto; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); } }
+  body.modo-cine #btnReanudarCine, body.limpio #btnReanudarCine { display: none !important; }
