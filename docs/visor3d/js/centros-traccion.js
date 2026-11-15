@@ -164,12 +164,14 @@ export function construirCentroTraccion(M, ct, R, Ed, z, via, vallar) {
   fE.caja(M.hormigon, 0, haciaVia * (Ed.B + 1.4), z - 0.1, z + 0.12, nP * paso, 0.6);
 
   if (!esSub) {
-    // Autotransformador en su foso, entre muros de bloque, junto al testero del edificio (si cabe en el recinto)
-    const sT = Ed.A + 4.2;
+    // Autotransformador en su foso, entre muros de bloque, junto al testero del edificio (si cabe en el recinto); si se
+    // midió en el PNOA, en el testero de ese lado
+    const tr0 = ct.trafosLoc?.[0];
+    const sT = (tr0 ? Math.sign((tr0[0] - Ed.cx) * Ed.ux + (tr0[1] - Ed.cz) * Ed.uz) || 1 : 1) * (Ed.A + 4.2);
     const [tx, tz] = fE.p(sT, 0);
     const dentro = Math.abs((tx - R.cx) * R.ux + (tz - R.cz) * R.uz) < R.A - 2.6 && Math.abs((tx - R.cx) * -R.uz + (tz - R.cz) * R.ux) < R.B - 2.6;
     const sTr = dentro ? sT : -sT;
-    const lado = dentro ? 1 : -1;
+    const lado = Math.sign(sTr);
     fE.caja(M.bloque, sTr + lado * 2.6, 0, z, z + 3.2, 0.3, 5.2);
     fE.caja(M.bloque, sTr, -haciaVia * 2.5, z, z + 3.2, 5.2, 0.3);
     fE.caja(M.bloque, sTr, haciaVia * 2.5, z, z + 1.2, 5.2, 0.3);

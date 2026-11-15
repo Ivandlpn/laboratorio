@@ -883,8 +883,8 @@ const CENTROS_TRACCION_CORREDOR = (centrosTraccionDatos?.centros || []).map((c) 
   let recinto = null, edificio = null, origen;
   if (c.caja) {
     recinto = marcoEnPk((c.caja.pk[0] + c.caja.pk[1]) / 2, (c.caja.of[0] + c.caja.of[1]) / 2, Math.abs(c.caja.pk[1] - c.caja.pk[0]), Math.abs(c.caja.of[1] - c.caja.of[0]));
-    edificio = marcoEnPk(c.edificio.pk, c.edificio.of, c.edificio.largo, c.edificio.ancho);
-    origen = 'recinto y edificio medidos sobre el PNOA y la cartografía';
+    edificio = Array.isArray(c.edificio) ? marcoDeAnillo(c.edificio) : marcoEnPk(c.edificio.pk, c.edificio.of, c.edificio.largo, c.edificio.ancho);
+    origen = Array.isArray(c.edificio) ? 'edificio de la cartografía de Adif y recinto medido sobre el PNOA' : 'recinto y edificio medidos sobre el PNOA';
   } else {
     if (c.recinto) recinto = marcoDeAnillo(c.recinto);
     if (c.edificio) edificio = marcoDeAnillo(c.edificio);
@@ -908,7 +908,9 @@ const CENTROS_TRACCION_CORREDOR = (centrosTraccionDatos?.centros || []).map((c) 
   }
   return {
     tipo: c.tipo, pk: c.pk, nombre: c.tipo === 'SUB' ? `Subestación ${c.nombre.replace(/ \d+$/, '')}` : c.nombre,
-    sub: `${DESC_CENTRO[c.tipo]} · PK ${fmtPk(c.pk)} · vía ${c.via} (${c.lado}) · ${origen}`,
+    // Etiqueta corta; el detalle va en la ficha
+    sub: `PK ${fmtPk(c.pk)}`,
+    info: `${DESC_CENTRO[c.tipo]} · PK ${fmtPk(c.pk)}${c.pkInventario ? ` (inventario: PK ${fmtPk(c.pkInventario)})` : ''} · vía ${c.via} (${c.lado}) · ${origen}`,
     cat: 'energia', recinto, edificio, haciaVia: [vx, vy], recintoCarto: Boolean(c.vallaCarto),
     trafos: (c.trafos || []).map(([pk, of]) => { const q = marcoEnPk(pk, of, 1, 1); return [q.E, q.N]; }),
     e: edificio.E, n: edificio.N,
@@ -921,7 +923,7 @@ for (const ct of CENTROS_TRACCION_CORREDOR) {
   if (!arr) { arr = []; edificiosPorKm.set(kmCt, arr); }
   // La etiqueta del inventario sustituye a la que hubiera de otra fuente para el mismo centro
   for (let i = arr.length - 1; i >= 0; i--) if (arr[i].cat === 'energia' && Math.abs(arr[i].pk - ct.pk) < 300) arr.splice(i, 1);
-  arr.push({ km: kmCt, pk: ct.pk, e: ct.e, n: ct.n, nombre: ct.nombre, sub: ct.sub, cat: ct.cat, h: ct.tipo === 'SUB' ? 7 : 6 });
+  arr.push({ km: kmCt, pk: ct.pk, e: ct.e, n: ct.n, nombre: ct.nombre, sub: ct.sub, info: ct.info, cat: ct.cat, h: ct.tipo === 'SUB' ? 7 : 6 });
 }
 // Perfil transversal de cajón monocelular pretensado de viaducto AV (coordenadas respecto a cota de carril Z=0)
 const PERFIL_VIADUCTO = [

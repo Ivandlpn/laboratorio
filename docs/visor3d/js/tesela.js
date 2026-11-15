@@ -1555,7 +1555,7 @@ export function crearGestorTeselas(ctx) {
         const extra = construirCentroTraccion(M, { ...ct, trafosLoc }, R, Ed, zSuelo - anclaZ, [ct.haciaVia[0], -ct.haciaVia[1]],
           (F) => vallaRecinto(mValla, mAlambreValla, inst.posteValla, F.cx, F.cz, zSuelo - anclaZ + 0.05, F.ux, F.uz, 2 * F.A, 2 * F.B, 2.27, matInst));
         for (const m of extra) {
-          m.userData = { ...fichaElemento('050012', null, ct.pk), nombre: ct.nombre, info: ct.sub };
+          m.userData = { ...fichaElemento('050012', null, ct.pk), nombre: ct.nombre, info: ct.info };
           grupos.estructuras?.add(m);
         }
       }
@@ -2278,7 +2278,7 @@ export function crearGestorTeselas(ctx) {
             ed.cat === 'energia' ? 'Tracción y Autotransformación 2×25 kV' : ed.cat === 'bts' ? 'Comunicaciones GSM-R' : 'Edificación / Instalación ADIF',
             ed.nombre,
             ed.cat === 'energia'
-              ? `${ed.sub || ''} · Centro técnico de tracción 2×25 kV 50 Hz. Alimentación directa a hilo de contacto (+25 kV), retorno de carril neutro (0 kV) y feeder (-25 kV).`
+              ? `${ed.info || ed.sub || ''} · Centro técnico de tracción 2×25 kV 50 Hz. Alimentación directa a hilo de contacto (+25 kV), retorno de carril neutro (0 kV) y feeder (-25 kV).`
               : (ed.sub || ''),
             [...filasEmp, ...pt.filas], pt);
         });
