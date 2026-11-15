@@ -877,3 +877,66 @@
   #btnReanudarCine[hidden] { display: none; }
   @media (max-width: 760px) { #btnReanudarCine { top: auto; bottom: calc(86px + env(safe-area-inset-bottom, 0px)); } }
   body.modo-cine #btnReanudarCine, body.limpio #btnReanudarCine { display: none !important; }
+
+  /* ---- Trenes de Renfe en tiempo real: botón de la isla y desplegable con la lista y la ficha ---- */
+  #btnTrenesReales b { font-variant-numeric: tabular-nums; }
+  #btnTrenesReales .tr-punto { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  #btnTrenesReales.con-trenes .tr-punto { background: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, .6); animation: tr-latido 1.8s infinite; }
+  @keyframes tr-latido { 70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+  #panelTrenesReales {
+    position: fixed; z-index: 8; top: calc(100px + env(safe-area-inset-top, 0px));
+    left: var(--izq-libre); right: var(--der-top); margin-inline: auto; width: min(380px, calc(100vw - 24px));
+    max-height: calc(100vh - 100px - var(--reserva-inf)); display: flex; flex-direction: column; overflow: hidden;
+    background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: var(--hud-radio);
+    box-shadow: var(--hud-sombra); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font: 12px/1.35 var(--sans);
+  }
+  #panelTrenesReales[hidden] { display: none; }
+  #panelTrenesReales .tr-cab { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  #panelTrenesReales .tr-tit { font-weight: 700; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #panelTrenesReales .tr-cab small { color: var(--muted); font: 10px var(--mono); white-space: nowrap; }
+  #panelTrenesReales .tr-cab button { border: 0; background: transparent; color: var(--muted); font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
+  #panelTrenesReales .tr-cab button:hover { color: var(--fg); background: rgba(148, 163, 184, .18); }
+  #trCuerpo { overflow: auto; flex: 1 1 auto; min-height: 0; padding: 4px; }
+  .tr-item { display: grid; gap: 2px; width: 100%; text-align: left; padding: 7px 8px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--fg); cursor: pointer; font: inherit; }
+  .tr-item + .tr-item { margin-top: 2px; }
+  .tr-item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .tr-item.sel { border-color: var(--accent); }
+  .tr-l1 { display: flex; align-items: center; gap: 6px; }
+  .tr-l1 b { font: 700 13px var(--mono); }
+  .tr-tipo { font: 700 9.5px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 3px 5px; border-radius: 5px; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+  .tr-sent { color: var(--muted); font-size: 11px; }
+  .tr-ret { margin-left: auto; font: 700 10.5px var(--mono); padding: 2px 6px; border-radius: 999px; }
+  .tr-ret.ok { color: #16a34a; background: rgba(22, 163, 74, .12); }
+  .tr-ret.aviso { color: #d97706; background: rgba(217, 119, 6, .14); }
+  .tr-ret.mal { color: #dc2626; background: rgba(220, 38, 38, .14); }
+  .tr-l2 { font-weight: 600; }
+  .tr-l3 { color: var(--muted); font-size: 11px; }
+  .tr-vacio { color: var(--muted); padding: 14px 10px; text-align: center; margin: 0; }
+  .tr-vacio button, .tr-seguir { margin-top: 8px; border: 1px solid var(--line); background: transparent; color: var(--fg); border-radius: 999px; padding: 7px 14px; font: 600 12px var(--sans); cursor: pointer; }
+  .tr-det { padding: 6px 6px 8px; display: grid; gap: 8px; }
+  .tr-det dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; }
+  .tr-det dt { color: var(--muted); }
+  .tr-det dd { margin: 0; }
+  .tr-det s { color: var(--muted); }
+  .tr-paradas { list-style: none; margin: 0; padding: 0 0 0 12px; border-left: 2px solid var(--line); display: grid; gap: 3px; }
+  .tr-paradas li { position: relative; display: flex; justify-content: space-between; gap: 8px; }
+  .tr-paradas li::before { content: ''; position: absolute; left: -17px; top: 5px; width: 8px; height: 8px; border-radius: 50%; background: var(--panel); border: 2px solid var(--line); }
+  .tr-paradas li.pasada { color: var(--muted); }
+  .tr-paradas li.pasada::before { background: var(--muted); border-color: var(--muted); }
+  .tr-paradas li.actual { font-weight: 700; }
+  .tr-paradas li.actual::before { background: var(--accent); border-color: var(--accent); }
+  .tr-paradas small { color: var(--muted); font: 10.5px var(--mono); white-space: nowrap; }
+  .tr-seguir { justify-self: center; margin-top: 2px; }
+  .tr-seguir[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .tr-pie { margin: 0; padding: 6px 10px 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+  body.modo-cine #panelTrenesReales, body.limpio #panelTrenesReales { display: none !important; }
+  /* Móvil: hoja inferior que abre el botón «Trenes» de la barra */
+  @media (max-width: 760px) {
+    #btnTrenesReales, #btnTrenesReales + .sep { display: none; }
+    body:not(.m-trenes) #panelTrenesReales { display: none !important; }
+    body.m-trenes #panelTrenesReales {
+      display: flex !important; top: auto; left: 12px; right: 12px; width: auto; margin: 0;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: 56vh;
+    }
+    #dockMovil button { min-width: 52px; }
+  }

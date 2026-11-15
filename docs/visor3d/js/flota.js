@@ -637,7 +637,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
   function actualizarFlota(dt, pkTerminal, trenSeguido = null) {
     const pkTope = Math.min(Eje3D.pkFin - 200, pkTerminal + 580);
     for (const tr of flota) {
-      if (tr === trenSeguido) continue;
+      if (tr === trenSeguido || tr.real) continue;
       if (tr.paradaTimer > 0) {
         tr.paradaTimer = Math.max(0, tr.paradaTimer - dt);
         tr.velActual = 0;
@@ -725,5 +725,19 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
   }
   for (const tr of flota) posicionarTren(tr);
 
-  return { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota };
+  /** Tren real (Renfe en tiempo real): lo mueve tiempo-real.js, no la simulación. */
+  function crearTrenReal({ tipo = 'ave', nCoches = 8, pk, sentido = 1 }) {
+    const tr = { real: true, pk, sentido, velBase: 0, velActual: 0, viaSigno: sentido > 0 ? -1 : 1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(nCoches, tipo) };
+    flota.push(tr);
+    grupoFlota.add(tr.modelo.grupo);
+    posicionarTren(tr);
+    return tr;
+  }
+  function quitarTren(tr) {
+    const i = flota.indexOf(tr);
+    if (i >= 0) flota.splice(i, 1);
+    grupoFlota.remove(tr.modelo.grupo);
+  }
+
+  return { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota, crearTrenReal, quitarTren };
 }

@@ -67,7 +67,7 @@ export function fichaArqueta(a, fmtPk) {
   return {
     capa: 'Arqueta de fibra óptica',
     nombre: `${a.codigo} · ${a.funcion}`,
-    info: `PK ${fmtPk(a.pkReal)} (listado: PK ${pkListado}) · Vía ${a.via}, lado ${a.lado} (supuesto: vía 1 a la derecha en sentido de PK creciente) · `
+    info: `PK ${fmtPk(a.pkReal)} (listado: PK ${pkListado}) · Vía ${a.via}, lado ${a.lado} (vía 1 a la izquierda en sentido de PK creciente) · `
       + `${a.funcion} · Cable de ${a.fibras} fibras.${ados} ${encaje}`,
   };
 }
