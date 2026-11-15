@@ -473,6 +473,13 @@ export function crearGestorTeselas(ctx) {
           const perfil = [[-a, -0.45], [a, -0.45], [a - 0.05, -0.7], [a * 0.55, -0.95], [a * 0.42, -2.25], [-a * 0.42, -2.25], [-a * 0.55, -0.95], [-a + 0.05, -0.7]];
           extruirSeccion(mViadTablero, pts, perfil, true, 0.08);
           cinta(mBal, pts, 3.4, -0.45, -0.18, 0.5, 0.25);
+          // Pilas cada 32 m (separación supuesta), corridas al punto más próximo que no caiga en la plataforma de la vía
+          // principal (donde el ramal la cruza por encima)
+          const pilas = new Set();
+          for (let i = 12; i < r.p.length - 5; i += 8) {
+            const j = [i, i + 1, i - 1, i + 2, i - 2, i + 3, i - 3].find((k) => Eje3D.proyUTM(r.p[k][0], r.p[k][1]).d >= 7);
+            if (j !== undefined) pilas.add(j);
+          }
           for (let i = 0; i < r.p.length; i++) {
             const q = r.p[i], qn = r.p[Math.min(i + 1, r.p.length - 1)], qp = r.p[Math.max(i - 1, 0)];
             const tx = qn[0] - qp[0], ty = qn[1] - qp[1], lt = Math.hypot(tx, ty) || 1, nx = -ty / lt, ny = tx / lt;
@@ -481,7 +488,7 @@ export function crearGestorTeselas(ctx) {
               if (i % 2 === 0) cajaOrientada(mAceroGalv, pm[0], pm[2], pm[1] - 0.45, pm[1] + 1.1, tx / lt, -ty / lt, 0.12, 0.14);
             }
             // Pilas cada 32 m (separación supuesta; la cartografía no trae pilas): fuste ovalado con capitel y zapata
-            if (i % 8 === 4 && i > 4 && i < r.p.length - 5) {
+            if (pilas.has(i)) {
               const zSuelo = Math.min(cotaTerrenoUTM(q[0], q[1]), cotaTerrenoUTM(q[0] - ny * 2.5, q[1] + nx * 2.5), cotaTerrenoUTM(q[0] + ny * 2.5, q[1] - nx * 2.5));
               const yFondo = q[2] + 0.3 - 2.25;
               if (yFondo - zSuelo < 1.5) continue;
@@ -509,10 +516,59 @@ export function crearGestorTeselas(ctx) {
           const a = ps.ancho / 2;
           // Canto supuesto de losa o vigas: luz/20 con el vano mayor (3 vanos ≈ 0,45 L; 2 ≈ 0,5 L; 1 = L)
           const luz = ps.vanos === 1 ? ps.longitud : ps.vanos === 2 ? ps.longitud * 0.5 : ps.longitud * 0.45;
-          const canto = Math.min(2.2, Math.max(1.15, luz / 20));
+          let canto = Math.min(2.2, Math.max(1.15, luz / 20));
+          // Pilas: nunca en la plataforma de la vía principal (±9,8 m) ni sobre el tablero de un ramal que pase por debajo
+          const sobreRamal = (E, N, margen) => RAMALES.lista.some((r) => r.p.some((q) => Math.hypot(q[0] - E, q[1] - N) < q[3] / 2 + margen));
+          const libre = (q) => Math.abs(q[4]) >= 9.8 && !sobreRamal(q[0], q[1], 2.5);
+          const sAc = [0];
+          for (let i = 1; i < P.length; i++) sAc.push(sAc[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+          const sTot = sAc[sAc.length - 1];
+          // Pasos largos (más de 100 m, como el de la salida de Alicante): pilas cada ~30 m y tablero de canto variable,
+          // fino en el centro del vano y creciendo hacia las pilas (intradós en arco)
+          const largo = sTot > 100;
+          const apoyos = [];
+          if (largo) {
+            const n = Math.max(ps.vanos, Math.round(sTot / 30));
+            for (let k = 1; k < n; k++) {
+              const obj = sTot * k / n;
+              let iMej = -1;
+              P.forEach((q, i) => { if (libre(q) && Math.abs(sAc[i] - obj) < 11 && (iMej < 0 || Math.abs(sAc[i] - obj) < Math.abs(sAc[iMej] - obj))) iMej = i; });
+              if (iMej > 0 && iMej < P.length - 1 && !apoyos.includes(iMej)) apoyos.push(iMej);
+            }
+            apoyos.sort((x, y) => x - y);
+          }
+          const sop = [0, ...apoyos.map((i) => sAc[i]), sTot];
+          const luzMax = Math.max(...sop.slice(1).map((v, k) => v - sop[k]));
+          const cantoPila = largo ? Math.min(4.2, Math.max(2.6, luzMax / 11)) : canto;
+          if (largo) canto = Math.min(1.8, Math.max(1.3, luzMax / 26));
+          const cantoEn = (i) => {
+            if (!largo) return canto;
+            let k = 0; while (k < sop.length - 2 && sAc[i] > sop[k + 1]) k++;
+            const u = (sAc[i] - sop[k]) / Math.max(1, sop[k + 1] - sop[k]);
+            return canto + (cantoPila - canto) * Math.abs(2 * u - 1) ** 3;
+          };
           // Losa con imposta vertical de 0,9 m y voladizo de 0,6 m (antes el canto achaflanado se leía como un tubo)
-          const perfil = [[-a, 0], [a, 0], [a, -0.9], [a - 0.6, -0.95], [a - 0.6, -canto], [-(a - 0.6), -canto], [-(a - 0.6), -0.95], [-a, -0.9]];
-          extruirSeccion(mTab, pts, perfil, true, 0.08);
+          extruirSeccion(mTab, pts, [[-a, 0], [a, 0], [a, -0.9], [a - 0.6, -0.95], [-(a - 0.6), -0.95], [-a, -0.9]], true, 0.08);
+          // Alma bajo la losa, de canto variable en los pasos largos
+          {
+            const b = a - 0.6;
+            let prev = null;
+            P.forEach((q, i) => {
+              const [tx, ty] = (() => { const q1 = P[Math.min(i + 1, P.length - 1)], q0 = P[Math.max(i - 1, 0)]; const dx = q1[0] - q0[0], dy = q1[1] - q0[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; })();
+              const c = cantoEn(i), z = zTab(q), u = sAc[i] * 0.08;
+              const pI = L(q[0] - ty * b, q[1] + tx * b, z), pD = L(q[0] + ty * b, q[1] - tx * b, z);
+              const v = {
+                si: mTab.v(pI[0], pI[1] - 0.95, pI[2], 0, u), sd: mTab.v(pD[0], pD[1] - 0.95, pD[2], 1, u),
+                ii: mTab.v(pI[0], pI[1] - c, pI[2], 0, u), id: mTab.v(pD[0], pD[1] - c, pD[2], 1, u),
+              };
+              if (prev) {
+                mTab.quad(prev.si, prev.ii, v.ii, v.si);
+                mTab.quad(prev.id, prev.sd, v.sd, v.id);
+                mTab.quad(prev.ii, prev.id, v.id, v.ii);
+              }
+              prev = v;
+            });
+          }
           cinta(mFirme, pts, ps.ancho - 1.3, 0.0, 0.07, 0, 0.12);
           const tangente = (i) => {
             const q1 = P[Math.min(i + 1, P.length - 1)], q0 = P[Math.max(i - 1, 0)];
@@ -605,8 +661,8 @@ export function crearGestorTeselas(ctx) {
           // Pilas fuera de la plataforma (a ±11 m del eje) y estribos en los extremos, hasta el terreno real
           const suelo = (q) => cotaTerrenoUTM(q[0], q[1]);
           const pila = (q, i) => {
-            if (Math.abs(q[4]) < 9.8) return; // nunca invadir el gálibo ferroviario (±9,8 m)
-            const zs = suelo(q), yFondo = zTab(q) - canto;
+            if (!libre(q)) return; // nunca invadir el gálibo ferroviario (±9,8 m) ni un ramal
+            const zs = suelo(q), yFondo = zTab(q) - cantoEn(i);
             if (yFondo - zs < 1.2) return;
             const [tx, ty] = tangente(i), c = L(q[0], q[1], 0);
             // Fuste + zapata de cimentación enterrada 1,8 m + apoyos de neopreno bajo tablero
@@ -617,11 +673,12 @@ export function crearGestorTeselas(ctx) {
               cajaOrientada(mApoyoViad, ca[0], ca[2], yFondo - 0.14 - anclaZ, yFondo + 0.02 - anclaZ, tx, -ty, 0.65, 0.65);
             }
           };
-          if (ps.vanos >= 2) {
+          if (largo) for (const i of apoyos) pila(P[i], i);
+          else if (ps.vanos >= 2) {
             for (const lado of (ps.vanos === 3 ? [-1, 1] : [P[0][4] < -P[P.length - 1][4] ? -1 : 1])) {
               let iMej = -1, dMej = Infinity;
               P.forEach((q, i) => {
-                if (Math.abs(q[4]) < 9.8) return;
+                if (!libre(q)) return;
                 const d = Math.abs(q[4] - lado * 11.2);
                 if (d < dMej) { dMej = d; iMej = i; }
               });
@@ -631,7 +688,7 @@ export function crearGestorTeselas(ctx) {
           for (const i of [0, P.length - 1]) {
             const q = P[i];
             if (Math.abs(q[4]) < 10.5) continue; // nunca colocar un estribo sobre las vías
-            const zs = suelo(q), yFondo = zTab(q) - canto;
+            const zs = suelo(q), yFondo = zTab(q) - cantoEn(i);
             const [tx, ty] = tangente(i), dir = i === 0 ? -1 : 1, c = L(q[0] + tx * dir * 1.2, q[1] + ty * dir * 1.2, 0);
             const yBaseEst = Math.min(zs, yFondo) - 1.8 - anclaZ;
             // Estribo cerrado (hasta el terreno del terraplén de acceso) y aletas laterales abocinadas 25°
@@ -648,7 +705,7 @@ export function crearGestorTeselas(ctx) {
             capa: 'Estructuras',
             nombre: `Paso superior PK ${fmtPk(ps.pk)}`,
             info: `Medido en la cartografía 3D de Adif: ${ps.longitud.toFixed(0)} m de largo, ${ps.ancho.toFixed(1)} m de ancho, gálibo ${ps.galibo.toFixed(1)} m sobre el carril y esviaje de ${ps.esviaje.toFixed(0)}°. `
-              + `Supuesto: ${ps.vanos} vano(s), canto de ${canto.toFixed(1)} m, pilas a ±11 m del eje, estribos y pretiles tipo. `
+              + (largo ? `Supuesto: ${apoyos.length + 1} vanos de hasta ${luzMax.toFixed(0)} m, canto de ${canto.toFixed(1)} m en el centro del vano a ${cantoPila.toFixed(1)} m sobre las pilas, estribos y pretiles tipo. ` : `Supuesto: ${ps.vanos} vano(s), canto de ${canto.toFixed(1)} m, pilas a ±11 m del eje, estribos y pretiles tipo. `)
               + `Sobre las vías (proyección de la plataforma más 8 m a cada lado), detector de caída de objetos (DCO): panel de lamas, malla, panel superior inclinado hacia la vía y dos circuitos de fibra óptica que se cortan si un objeto abate la barrera.`,
           };
           for (const [m, material, sombra] of [
@@ -1311,12 +1368,21 @@ export function crearGestorTeselas(ctx) {
         }
       };
 
-      const aLoc = (cs, modoZ = 'terreno', zExtra = 0) => cs.map((c) => {
+      // zProp: la cota (o el rango [mín, máx]) que trae la línea en la cartografía, para no subir al tablero de un ramal
+      // las vías que pasan por debajo de él
+      const aLoc = (cs, modoZ = 'terreno', zExtra = 0, zProp = null) => cs.map((c) => {
+        const zMaxProp = Array.isArray(zProp) ? Math.max(...zProp) : Number.isFinite(zProp) ? zProp : null;
         const [E, N] = lonlatAUTM(c[0], c[1]);
         let z = c.length > 2 && Number.isFinite(c[2]) && c[2] > 5 ? c[2] : null;
         // Vías de ramal sobre su viaducto: a la cota del tablero, no a la de la vía principal
-        if (z === null && modoZ === 'via' && RAMALES.lista.length) z = RAMALES.cotaCarril(E, N);
-        if (z === null) z = modoZ === 'via' ? Eje3D.proyUTM(E, N).Z : cotaTerrenoUTM(E, N);
+        if (z === null && modoZ === 'via' && RAMALES.lista.length) {
+          const zR = RAMALES.cotaCarril(E, N);
+          if (zR !== null && (zMaxProp === null || zMaxProp > zR - 2.5)) z = zR;
+        }
+        // Vía lejos del eje y fuera de todo tablero: a la cota del terreno (no a la de la vía principal, que puede ir
+        // en trinchera 10 m más abajo, como a la salida de Alicante)
+        if (z === null && modoZ === 'via') { const q = Eje3D.proyUTM(E, N); z = q.d > 16 ? cotaTerrenoUTM(E, N) : q.Z; }
+        if (z === null) z = cotaTerrenoUTM(E, N);
         return L(E, N, z + zExtra);
       });
 
@@ -1639,7 +1705,7 @@ export function crearGestorTeselas(ctx) {
           const cs = g.coordinates; if (cs.length < 2) continue;
           if ((id === '050147' || id === '050117') && PK_TERMINAL < Infinity) {
             // Balasto y traviesas para ejes de vía reales en terminal (pk > PK_TERMINAL) y en desvíos / vías de apartado de PAET y PB
-            const ptsRaw = aLoc(cs, 'via');
+            const ptsRaw = aLoc(cs, 'via', 0, f.properties?.z);
             const esExtra = cs.map((c) => {
               const [E, N] = lonlatAUTM(c[0], c[1]);
               const q = Eje3D.proyUTM(E, N);
@@ -1683,7 +1749,7 @@ export function crearGestorTeselas(ctx) {
           } else if (id === '050177') {
             // Hilos de carril reales del DXF (desvíos, escapes y vías de apartado en PAET y estaciones).
             // Umbral ajustado (0,22 m) para conservar íntegras las agujas y ramas divergentes de los desvíos.
-            const ptsH = aLoc(cs, 'via');
+            const ptsH = aLoc(cs, 'via', 0, f.properties?.z);
             let maxDev = 0;
             const dup = cs.map((c) => {
               const [E, N] = lonlatAUTM(c[0], c[1]);
@@ -1712,13 +1778,22 @@ export function crearGestorTeselas(ctx) {
             cinta(mBal, ptsIb, 3.3, -0.36, -0.08, 0.7, 0.25);
             cinta(mCarCab, ptsIb, 1.72, -0.08, -0.02, 0, 0.4);
           } else if (id === '030175') {
-            cinta(mEdif, aLoc(cs, 'terreno'), 0.28, -0.2, 1.85, 0, 0.25);
+            // Tapia en su sitio, salvo donde va sobre el tablero de un ramal (son sus pretiles: los pone el viaducto) o
+            // sobre la plataforma de la vía principal (no puede cruzar las vías a ras de suelo)
+            let seg = [];
+            const tapia = () => { if (seg.length >= 2) cinta(mEdif, aLoc(seg, 'terreno'), 0.28, -0.2, 1.85, 0, 0.25); seg = []; };
+            for (const c of cs) {
+              const [Ev, Nv] = lonlatAUTM(c[0], c[1]);
+              if (Eje3D.proyUTM(Ev, Nv).d < 6.5 || (RAMALES.lista.length && RAMALES.cotaCarril(Ev, Nv) !== null)) tapia();
+              else seg.push(c);
+            }
+            tapia();
           } else if (id === '050150') {
             const [Em, Nm] = lonlatAUTM(cs[cs.length >> 1][0], cs[cs.length >> 1][1]);
             const qm = Eje3D.proyUTM(Em, Nm);
             // La vía principal ya genera una única canaleta continua a cada lado; evitar duplicados de cartografía
             if (qm.pk > PK_TERMINAL || qm.d >= 10) {
-              cinta(mCanaleta, aLoc(cs, 'via', -0.32), 0.52, -0.26, 0.08, 0.04, 2.0);
+              cinta(mCanaleta, aLoc(cs, 'via', -0.32, f.properties?.z), 0.52, -0.26, 0.08, 0.04, 2.0);
             }
           } else if (id === '050185') {
             // Pantalla que cruza el eje: es la del borde de un paso superior (o del cajón / falso túnel), a la cota
