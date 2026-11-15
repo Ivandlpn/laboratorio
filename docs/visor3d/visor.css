@@ -673,4 +673,37 @@
     .leyenda-p { display: none; }
     #cvPerfil { height: 62px; }
     #brujula { display: none; }
+
+    /* ---- Pantalla limpia: todo plegado tras la barra inferior; se abre un panel cada vez ---- */
+    #dockMovil {
+      position: fixed; z-index: 9; left: 50%; transform: translateX(-50%);
+      bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+      display: flex; gap: 2px; padding: 4px; max-width: calc(100vw - 24px);
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0,0,0,.28);
+    }
+    #dockMovil button {
+      display: grid; justify-items: center; gap: 2px; min-width: 58px; min-height: 46px; padding: 5px 4px;
+      border: 0; border-radius: 10px; background: transparent; color: var(--muted);
+      font: 600 10px/1 var(--mono); letter-spacing: .02em;
+    }
+    #dockMovil button span { font-size: 17px; line-height: 1; }
+    #dockMovil button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+    #dockMovil button:disabled { opacity: .35; }
+    body.limpio #dockMovil, body.modo-cine #dockMovil { display: none; }
+    /* Cerrados por defecto */
+    body:not(.m-mandos) #cab,
+    body:not(.m-perfil) #barraPerfil,
+    body:not(.m-hitos) #panelEmplazamientos,
+    body:not(.m-ambiente) #islaRapida,
+    #btnCarrusel, #cineHint { display: none !important; }
+    /* Abiertos: una hoja sobre la barra inferior, a todo el ancho */
+    #cab, #barraPerfil, #panelEmplazamientos, #islaRapida {
+      left: 12px !important; right: 12px !important; top: auto !important; transform: none !important;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important; max-width: none !important; width: auto !important;
+    }
+    #islaRapida { justify-content: center; flex-wrap: wrap; }
+    #panelEmplazamientos { max-height: 46vh; overflow: auto; }
+    #panel { max-height: calc(100% - 150px); }
   }
+  @media (min-width: 761px) { #dockMovil { display: none; } }

@@ -1678,7 +1678,8 @@ export function crearGestorTeselas(ctx) {
             const psCerca = PASOS_SUP.find((ps) => Math.abs(ps.pk - q.pk) <= 130);
             if (psCerca && Math.abs(q.of) >= 4.8 && Math.abs(q.of) <= 28) {
               const mPs = Eje3D.enPk(psCerca.pk);
-              const yawCam = Math.atan2(-(mPs.N - N), mPs.E - E);
+              // El modelo mira a +X y L() lleva el norte a -z: un giro θ en Y apunta a (cos θ, sin θ) en (E, N)
+              const yawCam = Math.atan2(mPs.N - N, mPs.E - E);
               const zBac = Math.max(zTer, zDxf ?? zTer);
               inst.baculoCamara.push(matInst(pSup, yawCam));
               const pMira = L(mPs.E, mPs.N, mPs.Z + 5.2);
@@ -2228,7 +2229,7 @@ export function crearGestorTeselas(ctx) {
           const EB = mB.E - mB.ty * ofB, NB = mB.N + mB.tx * ofB;
           const zBac = Math.max(mB.Z - 0.35, cotaTerrenoUTM(EB, NB));
           const pB = L(EB, NB, zBac);
-          const yawCam = Math.atan2(-(mPs.N - NB), mPs.E - EB);
+          const yawCam = Math.atan2(mPs.N - NB, mPs.E - EB); // ver nota en los báculos de la cartografía
           inst.baculoCamara.push(matInst(pB, yawCam));
           const pMira = L(mPs.E, mPs.N, mPs.Z + 5.2);
           agregarConoCamara(pB[0] + Math.cos(yawCam) * 0.9, pB[1] + 9.05, pB[2] - Math.sin(yawCam) * 0.9, pMira[0], pMira[1], pMira[2]);
