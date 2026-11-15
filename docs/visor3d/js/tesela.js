@@ -11,6 +11,10 @@ export function crearGestorTeselas(ctx) {
     RUTA, meta, capasMeta, gruposVisibles, entornoKms, escena, Eje3D, MdtCorredor, HashCotas, W, cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja, MODELOS, ARB, matTejaArabe, PK_TERMINAL, VIADUCTOS_REALES, viaductoReal, PERFIL_VIADUCTO, PERFIL_CAJON_VIAD, ESTACION_VILLENA, enZonaEstacion, PASOS_INF, PASOS_SUP, enPasoSuperior, RAMALES, CENTROS_TRACCION_CORREDOR, edificiosPorKm, COLOR_CAT_EDIF, fichaElemento, datosDePunto, mostrarFicha, ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matTunelBoveda, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, GEO,
   } = ctx;
 
+  // Pilas de viaductos y pasos superiores: mismo hormigón visto pero en gris (el del tablero tira a beige)
+  const matHormigonPila = matHormigonViad.clone();
+  matHormigonPila.color.set('#a3abb4');
+
   const teselasDisponibles = new Set();
   for (let k = Math.floor(Eje3D.pkIni / 1000); k <= Math.floor(Eje3D.pkFin / 1000); k++) teselasDisponibles.add(k);
   const teselasCargadas = new Map();
@@ -22,35 +26,49 @@ export function crearGestorTeselas(ctx) {
   const RADIO_TESELAS = 2;
   let ultimoKmCentral = -1;
 
-  // Placas azules de PK Adif con letras blancas sobre los postes de catenaria (cacheadas por hectómetro)
-  const GEO_PLACA_PK = new THREE.PlaneGeometry(0.42, 0.54);
+  // Placas de PK Adif en los postes de catenaria (formato actual): rectángulo azul horizontal con el km en cifras grandes,
+  // el hectómetro en cifra mediana y los metros en pequeño («428 7 63» = PK 428+763), y arriba a la derecha un recuadro
+  // con borde amarillo con el número de vía. Cacheadas por metro y vía.
+  const GEO_PLACA_PK = new THREE.PlaneGeometry(0.66, 0.34);
+  GEO_PLACA_PK.userData.compartida = true;
   const cacheMatPlacaPk = new Map();
-  function materialPlacaPk(pkM) {
-    const pkRed = Math.round(pkM / 100) * 100;
-    let m = cacheMatPlacaPk.get(pkRed);
+  function materialPlacaPk(pkM, via) {
+    const pkR = Math.round(pkM);
+    const clave = pkR * 10 + via;
+    let m = cacheMatPlacaPk.get(clave);
     if (m) return m;
-    const kmStr = String(Math.floor(pkRed / 1000));
-    const hmStr = String(Math.abs(pkRed % 1000)).padStart(3, '0');
+    const km = String(Math.floor(pkR / 1000)), resto = pkR % 1000;
+    const hm = String(Math.floor(resto / 100)), mts = String(resto % 100).padStart(2, '0');
     const cv = document.createElement('canvas');
-    cv.width = 128; cv.height = 160;
+    cv.width = 256; cv.height = 132;
     const x = cv.getContext('2d');
-    x.fillStyle = '#134e9b';
-    x.fillRect(0, 0, 128, 160);
-    x.strokeStyle = '#ffffff';
-    x.lineWidth = 6;
-    x.strokeRect(5, 5, 118, 150);
+    x.fillStyle = '#1626e6';
+    x.fillRect(0, 0, 256, 132);
     x.fillStyle = '#ffffff';
-    x.textAlign = 'center';
-    x.textBaseline = 'middle';
-    x.font = 'bold 52px "IBM Plex Mono", monospace';
-    x.fillText(kmStr, 64, 54);
-    x.fillRect(22, 86, 84, 3);
-    x.font = 'bold 40px "IBM Plex Mono", monospace';
-    x.fillText(hmStr, 64, 122);
+    x.textBaseline = 'alphabetic';
+    x.textAlign = 'left';
+    const fuente = (px) => `700 ${px}px "Arial Narrow", "Roboto Condensed", Arial, sans-serif`;
+    // Cifras estrechas y altas, como en la placa real
+    const texto = (t, px, cx, base, estrecho = 0.78) => {
+      x.save(); x.font = fuente(px); x.translate(cx, base); x.scale(estrecho, 1); x.fillText(t, 0, 0);
+      const w = x.measureText(t).width * estrecho; x.restore(); return w;
+    };
+    let cx = 12;
+    cx += texto(km, 92, cx, 116) + 10;
+    cx += texto(hm, 64, cx, 116) + 8;
+    texto(mts, 48, cx, 116);
+    // Recuadro de vía con borde amarillo
+    x.strokeStyle = '#f5c400'; x.lineWidth = 3;
+    x.strokeRect(206, 6, 44, 40);
+    x.font = fuente(20); x.textAlign = 'center';
+    x.fillText(String(via), 228, 25);
+    x.font = fuente(13);
+    x.fillText('VÍA', 228, 41);
     const tex = new THREE.CanvasTexture(cv);
     tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
     m = new THREE.MeshBasicMaterial({ map: tex });
-    cacheMatPlacaPk.set(pkRed, m);
+    cacheMatPlacaPk.set(clave, m);
     return m;
   }
 
@@ -174,6 +192,7 @@ export function crearGestorTeselas(ctx) {
       const mSubbal = new Malla(), mBal = new Malla(), mCarAlma = new Malla(), mCarCab = new Malla();
       const mHiloContacto = new Malla(), mApoyoViad = new Malla();
       const mViadTablero = new Malla(), mPretil = new Malla(), mAceroGalv = new Malla();
+      const mPilaGris = new Malla(); // pilas de viaductos y pasos superiores: hormigón gris
       const mTunelBoveda = new Malla(), mTunelAcera = new Malla(), mBarandillaTunel = new Malla();
       const mHormigonObra = new Malla(), mCanaleta = new Malla(), mCuneta = new Malla();
       const mAsfalto = new Malla(), mMarcaVial = new Malla(), mMallaAntivand = new Malla(), mBionda = new Malla(), mZahorraPI = new Malla();
@@ -394,8 +413,8 @@ export function crearGestorTeselas(ctx) {
               }
               // Fuste de pila de 5,2 m de ancho con aristas achaflanadas (dos cajas cruzadas) hasta 1 m bajo el terreno
               const yPie = ySuelo - 1.0;
-              cajaOrientada(mViadTablero, pC[0], pC[2], yPie, yCoron, ux, uz, vr.pilas.grueso, vr.pilas.ancho - 0.5);
-              cajaOrientada(mViadTablero, pC[0], pC[2], yPie, yCoron, ux, uz, vr.pilas.grueso - 0.5, vr.pilas.ancho);
+              cajaOrientada(mPilaGris, pC[0], pC[2], yPie, yCoron, ux, uz, vr.pilas.grueso, vr.pilas.ancho - 0.5);
+              cajaOrientada(mPilaGris, pC[0], pC[2], yPie, yCoron, ux, uz, vr.pilas.grueso - 0.5, vr.pilas.ancho);
               // Encepado enterrado (solo se ve en modo Rayos X)
               cajaOrientada(mHormigonObra, pC[0], pC[2], yPie - 1.6, yPie, ux, uz, 4.2, 7.6);
             });
@@ -434,10 +453,10 @@ export function crearGestorTeselas(ctx) {
             }
             // Capitel abocinado superior con imposta biselada
             const yBaseCap = Math.max(yTer + 0.8, yTopCap - 1.85);
-            cajaOrientada(mViadTablero, pC[0], pC[2], yBaseCap, yTopCap + 0.02, ux, uz, 2.7, 5.0, 3.6, 9.2);
+            cajaOrientada(mPilaGris, pC[0], pC[2], yBaseCap, yTopCap + 0.02, ux, uz, 2.7, 5.0, 3.6, 9.2);
             // Fuste esbelto achaflanado de hormigón visto hasta terreno
             if (yBaseCap > yTer + 0.35) {
-              cajaOrientada(mViadTablero, pC[0], pC[2], yTer + 0.35, yBaseCap + 0.04, ux, uz, 2.9, 5.4, 2.5, 4.8);
+              cajaOrientada(mPilaGris, pC[0], pC[2], yTer + 0.35, yBaseCap + 0.04, ux, uz, 2.9, 5.4, 2.5, 4.8);
               if (yBaseCap - yTer > 14) {
                 cajaOrientada(mApoyoViad, pC[0], pC[2], yTer + 0.35, yBaseCap - 2.0, ux, uz, 3.0, 0.45);
               }
@@ -471,8 +490,8 @@ export function crearGestorTeselas(ctx) {
               const pC = L(q[0], q[1], 0), ux = tx / lt, uz = -ty / lt;
               const yZap = zSuelo - 1.4 - anclaZ;
               cajaOrientada(mHormigonObra, pC[0], pC[2], yZap, zSuelo + 0.45 - anclaZ, ux, uz, 3.6, 4.6);
-              cajaOrientada(mViadTablero, pC[0], pC[2], zSuelo + 0.4 - anclaZ, yFondo - 1.2 - anclaZ, ux, uz, 2.0, 3.2);
-              cajaOrientada(mViadTablero, pC[0], pC[2], Math.max(zSuelo + 0.4 - anclaZ, yFondo - 1.25 - anclaZ), yFondo - 0.28 - anclaZ, ux, uz, 2.0, 3.2, 2.6, 4.0);
+              cajaOrientada(mPilaGris, pC[0], pC[2], zSuelo + 0.4 - anclaZ, yFondo - 1.2 - anclaZ, ux, uz, 2.0, 3.2);
+              cajaOrientada(mPilaGris, pC[0], pC[2], Math.max(zSuelo + 0.4 - anclaZ, yFondo - 1.25 - anclaZ), yFondo - 0.28 - anclaZ, ux, uz, 2.0, 3.2, 2.6, 4.0);
               const nx2 = -uz, nz2 = ux;
               for (const s of [-1, 1]) cajaOrientada(mApoyoViad, pC[0] + nx2 * s * 0.9, pC[2] + nz2 * s * 0.9, yFondo - 0.3 - anclaZ, yFondo + 0.02 - anclaZ, ux, uz, 0.7, 0.7);
             }
@@ -482,7 +501,7 @@ export function crearGestorTeselas(ctx) {
         // 2c ter. Pasos superiores reconstruidos: tablero, calzada, pretiles, malla antivandálica, pilas y estribos
         for (const ps of PASOS_SUP) {
           if (ps.km !== km) continue;
-          const mTab = new Malla(), mFirme = new Malla(), mPret = new Malla(), mMarcas = new Malla();
+          const mTab = new Malla(), mFirme = new Malla(), mPret = new Malla(), mMarcas = new Malla(), mPilaPs = new Malla();
           // Detector de caída de objetos (DCO), como en el entorno 3D «paso-superior»: panel de lamas, malla, panel superior
           // inclinado hacia la vía, montantes verdes, dos tubos con fibra óptica y cajas terminales
           const mDcoLamas = new Malla(), mDcoMalla = new Malla(), mDcoVerde = new Malla(), mFibraA = new Malla(), mFibraB = new Malla(), mCajaDco = new Malla(), mFarola = new Malla(), mLed = new Malla();
@@ -492,8 +511,9 @@ export function crearGestorTeselas(ctx) {
           const a = ps.ancho / 2;
           // Canto supuesto de losa o vigas: luz/20 con el vano mayor (3 vanos ≈ 0,45 L; 2 ≈ 0,5 L; 1 = L)
           const luz = ps.vanos === 1 ? ps.longitud : ps.vanos === 2 ? ps.longitud * 0.5 : ps.longitud * 0.45;
-          const canto = Math.min(2.2, Math.max(0.9, luz / 20));
-          const perfil = [[-a, 0], [a, 0], [a, -0.32], [a - 0.9, -canto], [-(a - 0.9), -canto], [-a, -0.32]];
+          const canto = Math.min(2.2, Math.max(1.15, luz / 20));
+          // Losa con imposta vertical de 0,9 m y voladizo de 0,6 m (antes el canto achaflanado se leía como un tubo)
+          const perfil = [[-a, 0], [a, 0], [a, -0.9], [a - 0.6, -0.95], [a - 0.6, -canto], [-(a - 0.6), -canto], [-(a - 0.6), -0.95], [-a, -0.9]];
           extruirSeccion(mTab, pts, perfil, true, 0.08);
           cinta(mFirme, pts, ps.ancho - 1.3, 0.0, 0.07, 0, 0.12);
           const tangente = (i) => {
@@ -592,8 +612,8 @@ export function crearGestorTeselas(ctx) {
             if (yFondo - zs < 1.2) return;
             const [tx, ty] = tangente(i), c = L(q[0], q[1], 0);
             // Fuste + zapata de cimentación enterrada 1,8 m + apoyos de neopreno bajo tablero
-            cajaOrientada(mTab, c[0], c[2], zs - 1.8 - anclaZ, zs + 0.35 - anclaZ, tx, -ty, 2.2, ps.ancho - 0.8);
-            cajaOrientada(mTab, c[0], c[2], zs - 0.2 - anclaZ, yFondo - 0.14 - anclaZ, tx, -ty, 1.1, ps.ancho - 2.0, 1.1, ps.ancho - 1.6);
+            cajaOrientada(mPilaPs, c[0], c[2], zs - 1.8 - anclaZ, zs + 0.35 - anclaZ, tx, -ty, 2.2, ps.ancho - 0.8);
+            cajaOrientada(mPilaPs, c[0], c[2], zs - 0.2 - anclaZ, yFondo - 0.14 - anclaZ, tx, -ty, 1.1, ps.ancho - 2.0, 1.1, ps.ancho - 1.6);
             for (const sb of [-0.32, 0.32]) {
               const ca = L(q[0] - ty * sb * (ps.ancho - 2.2), q[1] + tx * sb * (ps.ancho - 2.2), 0);
               cajaOrientada(mApoyoViad, ca[0], ca[2], yFondo - 0.14 - anclaZ, yFondo + 0.02 - anclaZ, tx, -ty, 0.65, 0.65);
@@ -634,7 +654,7 @@ export function crearGestorTeselas(ctx) {
               + `Sobre las vías (proyección de la plataforma más 8 m a cada lado), detector de caída de objetos (DCO): panel de lamas, malla, panel superior inclinado hacia la vía y dos circuitos de fibra óptica que se cortan si un objeto abate la barrera.`,
           };
           for (const [m, material, sombra] of [
-            [mTab, matHormigonViad, true], [mFirme, mat('#3b4048', 1, { roughness: 0.9 }), false], [mPret, matHormigonViad, true],
+            [mTab, matHormigonPila, true], [mPilaPs, matHormigonPila, true], [mFirme, mat('#3b4048', 1, { roughness: 0.9 }), false], [mPret, matHormigonViad, true],
             [mMarcas, mat('#f1f5f9', 1, { roughness: 0.5 }), false],
             [mDcoLamas, mat('#2f4d3b', 1, { roughness: 0.6, metalness: 0.3 }), true],
             [mDcoMalla, mat('#cfd6d8', 0.32, { roughness: 0.6, depthWrite: false }), false],
@@ -1136,15 +1156,17 @@ export function crearGestorTeselas(ctx) {
           inst.mensula.push(matInst(L(E + dx * tFin * 0.5, N + dy * tFin * 0.5, zHilo + 5.55), ang + Math.PI, tFin, 1, 1));
           for (const h of [5.55, 6.32]) inst.aislador.push(matInst(L(E + dx * 0.42, N + dy * 0.42, zHilo + h), ang));
         };
-        const agregarPlacaPkPoste = (E, N, zBase, tx, ty, yaw, pkM) => {
+        // lado: +1 izquierda del sentido creciente de PK, −1 derecha. Supuesto: vía 1 a la derecha y vía 2 a la izquierda.
+        const agregarPlacaPkPoste = (E, N, zBase, tx, ty, yaw, pkM, lado = -1) => {
           if (!grupos.catenaria) return;
-          const matP = materialPlacaPk(pkM);
+          const via = lado > 0 ? 2 : 1;
+          const matP = materialPlacaPk(pkM, via);
           for (const dir of [1, -1]) {
             const pPl = L(E + tx * dir * 0.185, N + ty * dir * 0.185, zBase + 3.6);
             const mesh = new THREE.Mesh(GEO_PLACA_PK, matP);
             mesh.position.set(pPl[0], pPl[1], pPl[2]);
             mesh.rotation.y = yaw + (dir > 0 ? Math.PI * 0.5 : -Math.PI * 0.5);
-            mesh.userData = { capa: 'Catenaria y señalización', nombre: `Placa PK ${fmtPk(Math.round(pkM / 100) * 100)}`, info: `PK ${fmtPk(pkM)} · Placa hectométrica azul Adif en poste de catenaria.` };
+            mesh.userData = { placaPk: Math.round(pkM) * 10 + via, capa: 'Catenaria y señalización', nombre: `Placa PK ${fmtPk(Math.round(pkM))}`, info: `PK ${fmtPk(pkM)} · Placa kilométrica azul Adif en poste de catenaria (km, hectómetro y metros). Supuesto: número de vía según el lado (vía ${via}).` };
             grupos.catenaria.add(mesh);
           }
         };
@@ -1162,7 +1184,7 @@ export function crearGestorTeselas(ctx) {
             inst.poste.push(mtP);
             inst.cimientoPoste.push(mtP);
             inst.placaPoste.push(mtP);
-            if (q.d <= 12) agregarPlacaPkPoste(E, N, zBase, m.tx, m.ty, yaw, q.pk);
+            if (q.d <= 12) agregarPlacaPkPoste(E, N, zBase, m.tx, m.ty, yaw, q.pk, s);
             if (q.pk > PK_TERMINAL) { mensulaTerminal(E, N, f.properties.g); return; }
             if (q.d > 12) return; // poste de otra línea o de un ramal: sin ménsula hacia esta vía
             if (iP % 20 === 0) inst.contrapeso.push(mtP);
@@ -1218,7 +1240,7 @@ export function crearGestorTeselas(ctx) {
               inst.poste.push(mtP);
               inst.cimientoPoste.push(mtP);
               inst.placaPoste.push(mtP);
-              agregarPlacaPkPoste(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.35, mA.tx, mA.ty, yaw, pkA);
+              agregarPlacaPkPoste(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.35, mA.tx, mA.ty, yaw, pkA, s);
               if (idxVano % 20 === 0) inst.contrapeso.push(mtP);
               const pMen = L(mA.E + nx * (offPoste - s * alcance * 0.5), mA.N + ny * (offPoste - s * alcance * 0.5), mA.Z + 5.55);
               inst.mensula.push(matInst(pMen, yaw + (s > 0 ? Math.PI * 0.5 : -Math.PI * 0.5), alcance, 1, 1));
@@ -1908,7 +1930,7 @@ export function crearGestorTeselas(ctx) {
               const zTab = cs[i].length > 2 && cs[i][2] > 5 ? cs[i][2] : zSuelo;
               if (q.d > 9.5 && q.d < 25 && zTab - zSuelo > 2.8) {
                 const pPila = L(E, N, zTab);
-                cajaOrientada(mHormigonObra, pPila[0], pPila[2], (zSuelo - 0.8) - anclaZ, pPila[1] - 0.9, 1, 0, 1.4, 3.8);
+                cajaOrientada(mPilaGris, pPila[0], pPila[2], (zSuelo - 0.8) - anclaZ, pPila[1] - 0.9, 1, 0, 1.4, 3.8);
               }
             }
           } else if (id === '040011' || id === '050235') {
@@ -2546,6 +2568,7 @@ export function crearGestorTeselas(ctx) {
       addMalla(mHiloContacto, matCobreContacto, 'catenaria', '040242', false, true);
 
       addMalla(mViadTablero, matHormigonViad, 'estructuras', '050025', true, true);
+      addMalla(mPilaGris, matHormigonPila, 'estructuras', '050025', true, true);
       addMalla(mApoyoViad, mat('#272b33', 1, { metalness: 0.55, roughness: 0.45 }), 'estructuras', '050025');
       addMalla(mPretil, mat('#cbd5e1', 0.78, { roughness: 0.35, metalness: 0.25 }), 'estructuras', '050025');
       addMalla(mAceroGalv, mat('#94a3b8', 1, { metalness: 0.65, roughness: 0.35 }), 'estructuras', '050025', true);
@@ -2712,6 +2735,10 @@ export function crearGestorTeselas(ctx) {
         if ((o.isMesh || o.isLineSegments) && o.geometry && !o.geometry.userData?.compartida) o.geometry.dispose();
         // InstancedMesh guarda su propia textura de matrices (y de colores): se libera aparte de la geometría
         if (o.isInstancedMesh) o.dispose();
+        // Placas de PK: una textura por poste, se liberan con su km
+        if (o.userData?.placaPk && cacheMatPlacaPk.has(o.userData.placaPk)) {
+          o.material.map?.dispose(); o.material.dispose(); cacheMatPlacaPk.delete(o.userData.placaPk);
+        }
       });
       grupoTeselas.remove(t.raiz);
       teselasCargadas.delete(kmBorrar);

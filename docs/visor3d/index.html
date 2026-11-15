@@ -323,6 +323,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { crearFlota } from './js/flota.js';
+import { crearTrafico } from './js/trafico.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
 import { crearArboles } from './js/arboles.js';
@@ -622,10 +623,25 @@ function aplicarTema() {
   }
   solUltimoTarget.set(Infinity, 0, 0);
 
-  const c = new THREE.Color(cl.fogColor && !modoNoche ? cl.fogColor : (tm.niebla || token('--cielo')));
+  // Día despejado: cielo totalmente azul y luminoso (cúpula con degradado propio; el shader Sky sale casi blanco con esta exposición)
+  const cieloAzul = !modoNoche && horaSol === 'dia' && climaActual === 'despejado';
+  const c = new THREE.Color(cieloAzul ? '#9fc8f2' : (cl.fogColor && !modoNoche ? cl.fogColor : (tm.niebla || token('--cielo'))));
   const lienzo = document.createElement('canvas'); lienzo.width = 1024; lienzo.height = 512;
   const x = lienzo.getContext('2d'), grad = x.createLinearGradient(0, 0, 0, 512);
-  if (modoNoche) {
+  if (cieloAzul) {
+    grad.addColorStop(0.0, '#0a47ad');
+    grad.addColorStop(0.25, '#1b66cf');
+    grad.addColorStop(0.40, '#3a86e0');
+    grad.addColorStop(0.47, '#6faaeb');
+    grad.addColorStop(0.5, '#9fc8f2');
+    grad.addColorStop(1.0, '#9fc8f2');
+    x.fillStyle = grad; x.fillRect(0, 0, 1024, 512);
+    const gSol = x.createRadialGradient(tm.solHaloX, tm.solHaloY, 4, tm.solHaloX, tm.solHaloY, 120);
+    gSol.addColorStop(0, 'rgba(255, 255, 248, 0.95)');
+    gSol.addColorStop(0.18, 'rgba(225, 240, 255, 0.45)');
+    gSol.addColorStop(1, 'rgba(225, 240, 255, 0)');
+    x.fillStyle = gSol; x.fillRect(tm.solHaloX - 130, 0, 260, 260);
+  } else if (modoNoche) {
     grad.addColorStop(0.0, tm.cieloTop);
     grad.addColorStop(0.32, tm.cieloMid);
     grad.addColorStop(0.49, tm.cieloLow);
@@ -673,15 +689,16 @@ function aplicarTema() {
   const fNear = modoNoche ? Math.min(550, cl.fogNear) : cl.fogNear;
   const fFar = modoNoche ? Math.min(4200, cl.fogFar) : cl.fogFar;
   escena.fog = new THREE.Fog(c, fNear, fFar);
-  luzHemi.intensity = tm.hemiInt * cl.hemiMult;
+  luzHemi.intensity = tm.hemiInt * cl.hemiMult * (cieloAzul ? 1.12 : 1);
   luzHemi.color.set(tm.hemiCol);
-  sol.intensity = tm.solInt * cl.solMult;
+  sol.intensity = tm.solInt * cl.solMult * (cieloAzul ? 1.1 : 1);
   sol.color.set(tm.solCol);
-  expBaseSol = tm.exp;
-  render.toneMappingExposure = tm.exp;
+  expBaseSol = tm.exp * (cieloAzul ? 1.06 : 1);
+  render.toneMappingExposure = expBaseSol;
   if (skyShader) {
-    skyShader.visible = !modoNoche;
-    cupulaCielo.visible = modoNoche;
+    skyShader.visible = !modoNoche && !cieloAzul;
+    cupulaCielo.visible = modoNoche || cieloAzul;
+    matCupulaCielo.toneMapped = !cieloAzul;
     if (!modoNoche) {
       const skyU = skyShader.material.uniforms;
       const cubierto = climaActual === 'tormenta' || climaActual === 'lluvia' || climaActual === 'nieve' || climaActual === 'nublado';
@@ -888,7 +905,7 @@ const {
   grupoTerrenoMalla, bloquesTerreno, cotaTerrenoUTM,
   actualizarVentanaTerreno, invalidarTerrenoEnCaja, actualizarHuecos,
   procesarColaTerreno, procesarUnBloque, reubicarTerreno,
-  setRayosX, reiniciarOrtofoto, setPasosInfTerreno, registrarHuecos,
+  setRayosX, reiniciarOrtofoto, setPasosInfTerreno, setPasosSupTerreno, registrarHuecos,
 } = crearTerreno({
   escena, Eje3D, MdtCorredor, HashCotas, Ortofoto3D,
   W, UTMdeMundo, camara,
@@ -969,6 +986,7 @@ const PASOS_SUP = (pasosSupReales?.pasos || []).filter((p) => {
   for (const q of p.p) { if (q[4] < minD) minD = q[4]; if (q[4] > maxD) maxD = q[4]; }
   return minD < -7 && maxD > 7;
 });
+setPasosSupTerreno(PASOS_SUP);
 const pasosSupPorKm = new Map();
 for (const ps of PASOS_SUP) {
   for (const k of [ps.km - 1, ps.km, ps.km + 1]) {
@@ -1032,6 +1050,8 @@ const { teselasCargadas, caminosPorKm, grupoTeselas, cargarTeselaKm, recortarCac
 
 // ---- Flota de trenes de alta velocidad ----
 const { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota } = crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkArranque });
+// Coches, autobuses, camiones, tractores, bicis y personas en las carreteras y caminos que cruzan la línea (supuesto)
+const trafico = params.has('sinTrafico') ? null : crearTrafico({ escena, W, cotaTerrenoUTM, PASOS_SUP, PASOS_INF });
 const Vida = crearVidaEscena({ escena, Eje3D, W, cotaTerrenoUTM, caminosPorKm });
 
 // ---- Nubes de puntos LiDAR / fotogramétricas ----
@@ -2419,6 +2439,7 @@ function fotograma(ahora) {
   if (!pausaTrenes && grupoFlota.visible) {
     actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' ? flota[0] : null);
   }
+  trafico?.actualizar(dt, UTMdeMundo(camara.position));
 
   let pkObservado = pkRecorrido;
   if (vistaActiva === 'cabina' || vistaActiva === 'dron') {

@@ -52,6 +52,7 @@ export function crearTerreno({
   const colaBloques = new Set();
 
   let pasosInfTerreno = [];
+  let pasosSupTerreno = [];
   const HUECOS = [];
   let rayosXActivo = false;
   let mallaRegional = null, bxRegPrev = -1e9, byRegPrev = -1e9;
@@ -59,6 +60,32 @@ export function crearTerreno({
   let genOrto = 0; // generación de la fuente de ortofoto; sube en cada reiniciarOrtofoto()
 
   function setPasosInfTerreno(pasos) { pasosInfTerreno = pasos; }
+  // Pasos superiores: el MDT y los puntos de la cartografía toman la calzada del puente como suelo, y bajo el tablero
+  // el terreno subía hasta él. Se guarda para cada paso su caja y el alcance de sus estribos.
+  function setPasosSupTerreno(pasos) {
+    pasosSupTerreno = pasos.map((ps) => {
+      let E0 = Infinity, E1 = -Infinity, N0 = Infinity, N1 = -Infinity, ofMax = 0;
+      for (const q of ps.p) {
+        E0 = Math.min(E0, q[0]); E1 = Math.max(E1, q[0]); N0 = Math.min(N0, q[1]); N1 = Math.max(N1, q[1]);
+        ofMax = Math.max(ofMax, Math.abs(q[4]));
+      }
+      const pad = ps.ancho / 2 + 3;
+      return { ps, E0: E0 - pad, E1: E1 + pad, N0: N0 - pad, N1: N1 + pad, ofMax };
+    });
+  }
+  /** Si (E, N) cae bajo el tablero de un paso superior (fuera de sus estribos), devuelve la cota del tablero allí. */
+  function tableroPasoSuperior(E, N) {
+    for (const c of pasosSupTerreno) {
+      if (E < c.E0 || E > c.E1 || N < c.N0 || N > c.N1) continue;
+      let dMej = Infinity, qMej = null;
+      for (const q of c.ps.p) {
+        const d = (q[0] - E) ** 2 + (q[1] - N) ** 2;
+        if (d < dMej) { dMej = d; qMej = q; }
+      }
+      if (qMej && Math.sqrt(dMej) < qMej[3] / 2 + 2.5 && Math.abs(qMej[4]) < c.ofMax - 4) return { zTablero: qMej[2], ancho: qMej[3] };
+    }
+    return null;
+  }
   function registrarHuecos(lista) { for (const h of lista) HUECOS.push(h); }
 
   function fondoPasoInferior(E, N, q) {
@@ -79,6 +106,9 @@ export function crearTerreno({
     for (const pi of pasosInfTerreno) {
       if (pi.E >= E0 - pad && pi.E <= E1 + pad && pi.N >= N0 - pad && pi.N <= N1 + pad) return true;
     }
+    for (const c of pasosSupTerreno) {
+      if (c.E1 >= E0 - pad && c.E0 <= E1 + pad && c.N1 >= N0 - pad && c.N0 <= N1 + pad) return true;
+    }
     for (const t of Eje3D.tuneles) {
       for (const pkB of [t.pkIni, t.pkFin]) {
         const m = Eje3D.enPk(pkB);
@@ -88,8 +118,19 @@ export function crearTerreno({
     return false;
   }
 
-  function cotaTerrenoUTM(E, N) {
+  function cotaTerrenoUTM(E, N, sinPasoSup = false) {
     const q = Eje3D.proyUTM(E, N);
+    // Bajo un paso superior, como bajo los viaductos: el terreno no sube al tablero. Sigue el talud que hay a ambos lados
+    // del paso (a lo largo de la vía) y queda al menos 3,2 m por debajo de la calzada (canto del tablero y holgura).
+    if (!sinPasoSup && pasosSupTerreno.length && q.d > 7.4) {
+      const t = tableroPasoSuperior(E, N);
+      if (t) {
+        const m = Eje3D.enPk(q.pk), sep = t.ancho / 2 + 6;
+        const zA = cotaTerrenoUTM(E + m.tx * sep, N + m.ty * sep, true);
+        const zB = cotaTerrenoUTM(E - m.tx * sep, N - m.ty * sep, true);
+        return Math.min((zA + zB) / 2, t.zTablero - 3.2);
+      }
+    }
     if (pasosInfTerreno.length) { const zF = fondoPasoInferior(E, N, q); if (zF !== null) return zF; }
     // Playa de vías de Alicante (PK y desplazamiento en el marco de la terminal): el terreno queda bajo el carril
     const qT = q.pk > PK_TERMINAL - 30 ? Eje3D.marcoTerminal.proyUTM(E, N) : null;
@@ -459,6 +500,7 @@ export function crearTerreno({
     grupoTerrenoMalla,
     bloquesTerreno,
     setPasosInfTerreno,
+    setPasosSupTerreno,
     registrarHuecos,
     cotaTerrenoUTM,
     actualizarVentanaTerreno,
