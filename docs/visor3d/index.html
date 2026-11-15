@@ -338,7 +338,7 @@ import { crearArquetas, fichaArqueta } from './js/arquetas.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
 import { crearArboles } from './js/arboles.js';
-import { crearMatTejaArabe } from './js/geometria.js';
+import { crearMatTejaArabe, rectMinimo } from './js/geometria.js';
 import { crearMdtCorredor, crearHashCotas } from './js/mdt.js';
 import { crearOrtofoto3D } from './js/ortofoto.js';
 import { conHuecos, crearTerreno } from './js/terreno.js';
@@ -424,9 +424,9 @@ const Carga = (() => {
 })();
 Carga.avance(0.03, 'Leyendo eje 3D y cartografía de Adif…');
 
-let meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales;
+let meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales, centrosTraccionDatos;
 try {
-  [meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales] = await Promise.all([
+  [meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales, centrosTraccionDatos] = await Promise.all([
     fetch(`${RUTA}/meta.json`).then((r) => { if (!r.ok) throw new Error('meta ' + r.status); return r.json(); }),
     fetch(`${RUTA}/eje-3d.json`).then((r) => { if (!r.ok) throw new Error('eje-3d ' + r.status); return r.json(); }),
     fetch(`${RUTA}/mdt/index.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
@@ -443,6 +443,8 @@ try {
     params.has('sinEstructuras') ? null : fetch(`${RUTA}/pasos-superiores.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
     // Pasos inferiores deducidos de impostas y aletas de la cartografía (scripts/importar-pasos-inferiores.py)
     params.has('sinEstructuras') ? null : fetch(`${RUTA}/pasos-inferiores.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    // ATI, ATF y subestaciones del inventario con su recinto y edificio (scripts/importar-centros-traccion.py)
+    fetch(`${RUTA}/centros-traccion.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
   ].map((p) => Carga.contar(p, 0.035)));
 } catch (err) {
   Carga.error(String(err.message || err));
@@ -863,30 +865,63 @@ for (const b of (Eje3D.btsInfo || [])) {
   }
 }
 
-// Catálogo oficial de centros de autotransformación 2×25 kV (ATI / ATF) y subestaciones del corredor
-const CENTROS_TRACCION_CORREDOR = [
-  { tipo: 'ATI', pk: 327730, nombre: 'ATI 327.7 ADIF', sub: 'Chinchilla Norte · PK 327+730', off: 33.5, cat: 'energia' },
-  { tipo: 'ATI', pk: 340180, nombre: 'ATI 340.2 ADIF', sub: 'Villar de Chinchilla · PK 340+180', off: 34.0, cat: 'energia' },
-  { tipo: 'ATF', pk: 355700, nombre: 'ATF 355.7 ADIF', sub: 'Higueruela · PK 355+700', off: 35.0, cat: 'energia' },
-  { tipo: 'ATI', pk: 387400, nombre: 'ATI 387.4 ADIF', sub: 'Almansa Oeste · PK 387+400', off: 32.0, cat: 'energia' },
-  { tipo: 'ATI', pk: 429610, nombre: 'ATI 429.6 ADIF', sub: 'La Encina - Villena · PK 429+610', off: 34.0, cat: 'energia' },
-  { tipo: 'ATF', pk: 465480, nombre: 'ATF 465.5 ADIF', sub: 'Base Mantenimiento Monforte · PK 465+480', off: 36.0, cat: 'energia' },
-  { tipo: 'ATI', pk: 478200, nombre: 'ATI 478.2 ADIF', sub: 'Torrellano · PK 478+200', off: 33.0, cat: 'energia' },
-  { tipo: 'ATF', pk: 485450, nombre: 'ATF 485.4 ADIF', sub: 'Alicante Término · PK 485+450', off: 30.0, cat: 'energia' },
-];
+// Centros de tracción 2×25 kV del inventario de la L042 (ATI, ATF y subestaciones) con su recinto y edificio reales:
+// de la cartografía de Adif (valla y huella del edificio) o, en las subestaciones, medidos sobre el PNOA. Lo que falta va
+// con las medidas tipo y se marca como supuesto. Marcos en UTM: centro (E, N), eje largo (ux, uy) y semilados A × B
+const DESC_CENTRO = { ATI: 'Autotransformador intermedio 2×25 kV', ATF: 'Autotransformador final 2×25 kV', SUB: 'Subestación de tracción 2×25 kV' };
+function marcoDeAnillo(anillo) {
+  const r = rectMinimo(anillo.map(([lon, lat]) => lonlatAUTM(lon, lat)));
+  return r && { E: r.sc * r.ux - r.tc * r.uz, N: r.sc * r.uz + r.tc * r.ux, ux: r.ux, uy: r.uz, A: r.A, B: r.B };
+}
+function marcoEnPk(pk, of, largo, ancho) {
+  const m = Eje3D.enPk(pk);
+  return { E: m.E - m.ty * of, N: m.N + m.tx * of, ux: m.tx, uy: m.ty, A: largo / 2, B: ancho / 2 };
+}
+const CENTROS_TRACCION_CORREDOR = (centrosTraccionDatos?.centros || []).map((c) => {
+  const signo = c.lado === 'izquierda' ? 1 : -1;
+  const esSub = c.tipo === 'SUB';
+  let recinto = null, edificio = null, origen;
+  if (c.caja) {
+    recinto = marcoEnPk((c.caja.pk[0] + c.caja.pk[1]) / 2, (c.caja.of[0] + c.caja.of[1]) / 2, Math.abs(c.caja.pk[1] - c.caja.pk[0]), Math.abs(c.caja.of[1] - c.caja.of[0]));
+    edificio = marcoEnPk(c.edificio.pk, c.edificio.of, c.edificio.largo, c.edificio.ancho);
+    origen = 'recinto y edificio medidos sobre el PNOA y la cartografía';
+  } else {
+    if (c.recinto) recinto = marcoDeAnillo(c.recinto);
+    if (c.edificio) edificio = marcoDeAnillo(c.edificio);
+    origen = recinto && edificio ? 'recinto y edificio de la cartografía de Adif' : recinto ? 'recinto de la cartografía; edificio en su posición tipo (supuesto)' : edificio ? 'edificio de la cartografía; recinto tipo (supuesto)' : 'posición y medidas tipo (supuesto: no está en la cartografía)';
+  }
+  if (!recinto) {
+    recinto = edificio
+      ? { ...edificio, A: edificio.A + 7.3, B: edificio.B + 7.6 }
+      : marcoEnPk(c.pk, signo * 30, 29, 23);
+  }
+  // Vector unitario (UTM) del recinto hacia la vía
+  const pV = Eje3D.proyUTM(recinto.E, recinto.N), mV = Eje3D.enPk(pV.pk);
+  let vx = mV.E - recinto.E, vy = mV.N - recinto.N;
+  const lv = Math.hypot(vx, vy) || 1; vx /= lv; vy /= lv;
+  if (!edificio) {
+    // Edificio tipo (14,4 × 7,9 m en ATI y ATF) a lo largo del recinto y retirado de la vía, para dejar sitio a los pórticos
+    const L = esSub ? 26 : 14.4, Wd = esSub ? 10 : 7.9;
+    const nx = -recinto.uy, ny = recinto.ux, sg = Math.sign(nx * vx + ny * vy) || 1;
+    const d = Math.max(0, recinto.B - Wd / 2 - 3.5);
+    edificio = { E: recinto.E - nx * sg * d, N: recinto.N - ny * sg * d, ux: recinto.ux, uy: recinto.uy, A: L / 2, B: Wd / 2 };
+  }
+  return {
+    tipo: c.tipo, pk: c.pk, nombre: c.tipo === 'SUB' ? `Subestación ${c.nombre.replace(/ \d+$/, '')}` : c.nombre,
+    sub: `${DESC_CENTRO[c.tipo]} · PK ${fmtPk(c.pk)} · vía ${c.via} (${c.lado}) · ${origen}`,
+    cat: 'energia', recinto, edificio, haciaVia: [vx, vy], recintoCarto: Boolean(c.vallaCarto),
+    trafos: (c.trafos || []).map(([pk, of]) => { const q = marcoEnPk(pk, of, 1, 1); return [q.E, q.N]; }),
+    e: edificio.E, n: edificio.N,
+  };
+});
 
 for (const ct of CENTROS_TRACCION_CORREDOR) {
-  const m = Eje3D.enPk(ct.pk);
-  const nx = -m.ty, ny = m.tx;
-  ct.e = m.E + nx * ct.off;
-  ct.n = m.N + ny * ct.off;
   const kmCt = Math.floor(ct.pk / 1000);
   let arr = edificiosPorKm.get(kmCt);
   if (!arr) { arr = []; edificiosPorKm.set(kmCt, arr); }
-  const yaExiste = arr.some(e => e.cat === 'energia' && Math.abs(e.pk - ct.pk) < 300);
-  if (!yaExiste) {
-    arr.push({ km: kmCt, pk: ct.pk, e: ct.e, n: ct.n, nombre: ct.nombre, sub: ct.sub, cat: ct.cat, h: 6 });
-  }
+  // La etiqueta del inventario sustituye a la que hubiera de otra fuente para el mismo centro
+  for (let i = arr.length - 1; i >= 0; i--) if (arr[i].cat === 'energia' && Math.abs(arr[i].pk - ct.pk) < 300) arr.splice(i, 1);
+  arr.push({ km: kmCt, pk: ct.pk, e: ct.e, n: ct.n, nombre: ct.nombre, sub: ct.sub, cat: ct.cat, h: ct.tipo === 'SUB' ? 7 : 6 });
 }
 // Perfil transversal de cajón monocelular pretensado de viaducto AV (coordenadas respecto a cota de carril Z=0)
 const PERFIL_VIADUCTO = [
@@ -1279,7 +1314,7 @@ const HITOS_PRINCIPALES = (() => {
   return [
     ...est.map((e) => ({ nombre: e.nombre, pk: e.pk })),
     { nombre: ed('energia', /ATF 321\.1/)?.nombre || 'Autotransformador ATF 321.1', pk: ed('energia', /ATF 321\.1/)?.pk || 405992 },
-    { nombre: 'Subestación 2×25 kV PK 340', pk: 340185 },
+    { nombre: 'Subestación Campanario', pk: 378076 },
     { nombre: 'Paso superior PK 428+764', pk: 428764 },
     { nombre: 'Viaducto Sax (1,48 km)', pk: 437020 },
     { nombre: bts ? `BTS ${bts.id}` : 'BTS GSM-R', pk: bts?.pk || 437951 },

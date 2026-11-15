@@ -5,6 +5,7 @@ import { Malla, cinta, extruirSeccion, cajaOrientada, prisma, lamina, rectMinimo
 import { decodificarArboles } from './arboles.js';
 import { hash2 } from './terreno.js';
 import { cargarEdificiosOsmKm } from './entorno-osm.js';
+import { construirCentroTraccion } from './centros-traccion.js';
 
 export function crearGestorTeselas(ctx) {
   const {
@@ -199,6 +200,9 @@ export function crearGestorTeselas(ctx) {
       const mPantalla = new Malla(), mValla = new Malla(), mPuerta = new Malla(), mAlambreValla = new Malla();
       const mEdif = new Malla(), mEdifTec = new Malla(), mCubierta = new Malla(), mTejaAdif = new Malla(), mMarquesina = new Malla(), mAnden = new Malla();
       const mArmarioVia = new Malla(), mSubest = new Malla(), mTrafo = new Malla(), mAisladorAT = new Malla(), mCajaControl = new Malla(), mAgua = new Malla();
+      // Centros de tracción (ATI, ATF y subestaciones): paneles blancos, juntas, puertas, grava, bloque, autotransformador…
+      const mCT = { panel: new Malla(), junta: new Malla(), puerta: new Malla(), grava: new Malla(), bloque: new Malla(), trafo: new Malla(),
+        aisladorGris: new Malla(), barandilla: new Malla(), bajante: new Malla(), rejilla: new Malla() };
       const caminosKm = [];
       const registrarCamino = (seg, zOff = 0.08) => {
         if (!seg || seg.length < 2) return;
@@ -1490,155 +1494,32 @@ export function crearGestorTeselas(ctx) {
         }
       }
 
-      // Modelo oficial ADIF de Centro de Autotransformación (ATI / ATF) 2×25 kV
-      // Fiel a la arquitectura estándar de Adif Alta Velocidad según captura real de ATI 327.7 ADIF:
-      // - Edificio técnico de celdas GIS SF6 con muros de hormigón blanco prefabricado, petos longitudinales y cubierta curva
-      // - Escalera de acceso exterior, puerta metálica, rejillas de ventilación
-      // - Patio exterior amurallado (muros cortafuegos continuos al edificio) con autotransformador de tracción
-      // - Cuba de acero grafito con radiadores de aletas, depósito de expansión superior, 3 pasatapas cerámicos de AT a 45°
-      // - Foso de recogida de aceite con lecho de grava y rejilla cortafuegos
-      // - Pórtico de conexión de alta tensión hacia catenaria y feeder
-      // - Explanada pavimentada y cerramiento perimetral de seguridad
-      function construirCentroAutotransformador(cx, cz, zSuelo, ux, uz, nombre, pk, tipo = 'ATI') {
-        const activo = document.getElementById('chkBtsModelos')?.checked ?? true;
-        if (!activo) return;
-        const nx = -uz, nz = ux;
-
-        // 1. Explanada pavimentada del centro y vallado perimetral de seguridad (32.0 × 17.0 m)
-        cajaOrientada(mAsfalto, cx, cz, zSuelo - 0.25, zSuelo + 0.10, ux, uz, 32.0, 17.0);
-        cajaOrientada(mHormigonObra, cx, cz, zSuelo + 0.08, zSuelo + 0.18, ux, uz, 32.4, 17.4); // bordillo perimetral
-        cajaOrientada(mSubest, cx, cz, zSuelo + 0.10, zSuelo + 0.14, ux, uz, 31.8, 16.8); // solera
-
-        // Vallado perimetral (alambre y malla sobre postes)
-        const vY0 = zSuelo + 0.18, vY1 = zSuelo + 2.45;
-        vallaRecinto(mValla, mAlambreValla, inst.posteValla, cx, cz, vY0, ux, uz, 32.0, 17.0, 2.27, matInst);
-        // Cancela corredera metálica de acceso para vehículos de mantenimiento
-        cajaOrientada(mPuerta, cx - 11.0 * ux, cz + 8.5 * nz, vY0, vY1, ux, uz, 4.8, 0.14);
-
-        // 2. Edificio Técnico de Celdas GIS y Mando (12.2 × 5.6 m, altura 4.5 m a alero)
-        const bCx = cx - 3.4 * ux, bCz = cz;
-        const hAlero = 4.5, hPeto = 5.15, hCumbrera = 4.88;
-
-        // Muros perimetrales de hormigón prefabricado blanco/gris claro
-        cajaOrientada(mEdifTec, bCx, bCz, zSuelo + 0.14, zSuelo + hAlero, ux, uz, 12.2, 5.6);
-
-        // Petos perimetrales longitudinales (muros que suben por encima de la cubierta en fachada delantera y trasera)
-        cajaOrientada(mHormigonObra, bCx, bCz + 2.7 * nz, zSuelo + hAlero - 0.05, zSuelo + hPeto, ux, uz, 12.4, 0.38);
-        cajaOrientada(mHormigonObra, bCx, bCz - 2.7 * nz, zSuelo + hAlero - 0.05, zSuelo + hPeto, ux, uz, 12.4, 0.38);
-
-        // Remates estilizados en ala / esquinas de los petos (fieles a las 4 capturas de ATI 327.7 ADIF)
-        for (const sx of [-1, 1]) {
-          for (const sz of [-1, 1]) {
-            const cRx = bCx + sx * 6.1 * ux + sz * 2.7 * nx;
-            const cRz = bCz + sx * 6.1 * uz + sz * 2.7 * nz;
-            cajaOrientada(mHormigonObra, cRx, cRz, zSuelo + hPeto, zSuelo + hPeto + 0.28, ux, uz, 0.55, 0.55);
-          }
-        }
-
-        // Cubierta curva metálica autoportante encajada entre los petos
-        // Segmentada en arco bajo para conseguir la curvatura cilíndrica real vista en las fotos
-        const N_SEG_ARC = 6;
-        for (let s = 0; s < N_SEG_ARC; s++) {
-          const uA = s / N_SEG_ARC, uB = (s + 1) / N_SEG_ARC;
-          const offA = (uA - 0.5) * 5.0, offB = (uB - 0.5) * 5.0;
-          const yA = zSuelo + hAlero + (1 - 4 * (uA - 0.5) ** 2) * (hCumbrera - hAlero);
-          const yB = zSuelo + hAlero + (1 - 4 * (uB - 0.5) ** 2) * (hCumbrera - hAlero);
-          const midOff = (offA + offB) * 0.5;
-          const midY = (yA + yB) * 0.5;
-          const thick = Math.abs(offB - offA);
-          cajaOrientada(mCubierta, bCx, bCz + midOff * nz, midY - 0.06, midY + 0.06, ux, uz, 12.0, thick);
-        }
-
-        // Puerta principal centrada en fachada delantera (bCz + 2.8 * nz)
-        cajaOrientada(mTrafo, bCx, bCz + 2.81 * nz, zSuelo + 0.55, zSuelo + 2.75, ux, uz, 1.35, 0.12);
-        // Visera / moldura sobre puerta principal
-        cajaOrientada(mHormigonObra, bCx, bCz + 2.95 * nz, zSuelo + 2.80, zSuelo + 2.92, ux, uz, 1.8, 0.35);
-
-        // Escalera de acceso exterior prefabricada de hormigón (4 escalones de acceso)
-        cajaOrientada(mHormigonObra, bCx, bCz + 3.25 * nz, zSuelo + 0.14, zSuelo + 0.55, ux, uz, 2.2, 0.8);
-        cajaOrientada(mHormigonObra, bCx, bCz + 3.75 * nz, zSuelo + 0.14, zSuelo + 0.40, ux, uz, 2.2, 0.6);
-        cajaOrientada(mHormigonObra, bCx, bCz + 4.15 * nz, zSuelo + 0.14, zSuelo + 0.25, ux, uz, 2.2, 0.5);
-
-        // Puerta lateral de emergencia (tester izquierdo bCx - 6.1 * ux)
-        cajaOrientada(mTrafo, bCx - 6.11 * ux, bCz, zSuelo + 0.25, zSuelo + 2.35, nx, nz, 1.15, 0.12);
-        cajaOrientada(mHormigonObra, bCx - 6.45 * ux, bCz, zSuelo + 0.14, zSuelo + 0.25, nx, nz, 1.6, 0.6);
-
-        // Puerta trasera de servicio (fachada posterior bCz - 2.8 * nz)
-        cajaOrientada(mTrafo, bCx + 2.5 * ux, bCz - 2.81 * nz, zSuelo + 0.25, zSuelo + 2.35, ux, uz, 1.15, 0.12);
-        cajaOrientada(mHormigonObra, bCx + 2.5 * ux, bCz - 3.20 * nz, zSuelo + 0.14, zSuelo + 0.25, ux, uz, 1.6, 0.6);
-
-        // Rejillas de ventilación cuadradas en parte superior de muros
-        for (const dxV of [-4.2, 4.2]) {
-          cajaOrientada(mTrafo, bCx + dxV * ux, bCz + 2.82 * nz, zSuelo + 3.4, zSuelo + 4.0, ux, uz, 0.65, 0.08);
-          cajaOrientada(mTrafo, bCx + dxV * ux, bCz - 2.82 * nz, zSuelo + 3.4, zSuelo + 4.0, ux, uz, 0.65, 0.08);
-        }
-
-        // 3. Patio Exterior Amurallado del Autotransformador (Recinto Cortafuegos adosado a la derecha)
-        // Muros de hormigón de la misma altura que el edificio que abrazan el transformador
-        const tCx = cx + 5.8 * ux, tCz = cz;
-        const lPatio = 6.2, wPatio = 5.6;
-
-        // Muro cortafuegos trasero (continuación longitudinal directa del muro trasero del edificio)
-        cajaOrientada(mEdifTec, tCx, tCz - 2.7 * nz, zSuelo + 0.14, zSuelo + hAlero, ux, uz, lPatio, 0.38);
-        cajaOrientada(mHormigonObra, tCx, tCz - 2.7 * nz, zSuelo + hAlero, zSuelo + hPeto, ux, uz, lPatio + 0.2, 0.42);
-
-        // Muro cortafuegos lateral exterior (cierre derecho del patio)
-        cajaOrientada(mEdifTec, tCx + 3.0 * ux, tCz, zSuelo + 0.14, zSuelo + hAlero, nx, nz, wPatio, 0.38);
-        cajaOrientada(mHormigonObra, tCx + 3.0 * ux, tCz, zSuelo + hAlero, zSuelo + hPeto, nx, nz, wPatio + 0.2, 0.42);
-
-        // Murete frontal de contención y apantallamiento (más bajo para refrigeración y acceso)
-        cajaOrientada(mEdifTec, tCx, tCz + 2.7 * nz, zSuelo + 0.14, zSuelo + 1.45, ux, uz, lPatio, 0.35);
-        cajaOrientada(mHormigonObra, tCx, tCz + 2.7 * nz, zSuelo + 1.40, zSuelo + 1.48, ux, uz, lPatio + 0.1, 0.40);
-
-        // Foso colector de aceite con lecho de grava y rejilla cortafuegos bajo el autotransformador
-        cajaOrientada(mSubest, tCx - 0.2 * ux, tCz, zSuelo - 0.65, zSuelo + 0.14, ux, uz, 4.4, 3.6);
-        cajaOrientada(mAceroGalv, tCx - 0.2 * ux, tCz, zSuelo + 0.14, zSuelo + 0.18, ux, uz, 4.2, 3.4);
-
-        // 4. Autotransformador de Tracción 2×25 kV (10-15 MVA, ONAN)
-        const trX = tCx - 0.2 * ux, trZ = tCz;
-        // Cuba principal de acero soldado
-        cajaOrientada(mTrafo, trX, trZ, zSuelo + 0.18, zSuelo + 2.45, ux, uz, 2.65, 1.85);
-        cajaOrientada(mHormigonObra, trX, trZ, zSuelo + 0.14, zSuelo + 0.22, ux, uz, 2.85, 2.05); // bancada
-
-        // Baterías laterales de radiadores con aletas de refrigeración
-        for (const sR of [-1, 1]) {
-          const rZ = trZ + sR * 1.18 * nz, rX = trX + sR * 1.18 * nx;
-          cajaOrientada(mTrafo, rX, rZ, zSuelo + 0.52, zSuelo + 2.25, ux, uz, 2.25, 0.38);
-          // Aletas verticales
-          for (let af = -0.9; af <= 0.9; af += 0.45) {
-            cajaOrientada(mAceroGalv, rX + af * ux, rZ, zSuelo + 0.55, zSuelo + 2.22, ux, uz, 0.08, 0.42);
-          }
-        }
-
-        // Depósito cilíndrico de expansión de aceite (conservador) en parte superior
-        cajaOrientada(mTrafo, trX, trZ - 0.35 * nz, zSuelo + 2.65, zSuelo + 3.25, ux, uz, 1.85, 0.62);
-        cajaOrientada(mAceroGalv, trX - 0.65 * ux, trZ - 0.35 * nz, zSuelo + 2.45, zSuelo + 2.68, ux, uz, 0.14, 0.14);
-        cajaOrientada(mAceroGalv, trX + 0.65 * ux, trZ - 0.35 * nz, zSuelo + 2.45, zSuelo + 2.68, ux, uz, 0.14, 0.14);
-
-        // 3 Pasatapas cerámicos de alta tensión marrón/teja a 45° (+25 kV, 0 kV retorno, -25 kV feeder)
-        const offBush = [-0.75, 0, 0.75];
-        for (let i = 0; i < 3; i++) {
-          const bX = trX + offBush[i] * ux + 0.25 * nx;
-          const bZ = trZ + offBush[i] * uz + 0.25 * nz;
-          // Aislador cerámico marrón escalonado
-          cajaOrientada(mAisladorAT, bX, bZ, zSuelo + 2.45, zSuelo + 3.45, ux, uz, 0.26, 0.26, 0.16, 0.16);
-          cajaOrientada(mAceroGalv, bX, bZ, zSuelo + 3.45, zSuelo + 3.75, ux, uz, 0.06, 0.06); // terminal de conexión
-          // Pararrayos adyacente
-          cajaOrientada(mAisladorAT, bX, bZ - 0.45 * nz, zSuelo + 2.45, zSuelo + 3.25, ux, uz, 0.15, 0.15);
-        }
-
-        // Armario local de mando y bornes de control (caja rosada/roja visible en esquina de foto)
-        cajaOrientada(mCajaControl, tCx + 2.1 * ux, tCz + 1.8 * nz, zSuelo + 0.18, zSuelo + 1.25, ux, uz, 0.65, 0.45);
-        cajaOrientada(mTrafo, tCx + 2.1 * ux, tCz + 2.05 * nz, zSuelo + 0.22, zSuelo + 1.20, ux, uz, 0.55, 0.08);
-
-        // 5. Pórtico metálico de conexión aérea hacia catenaria y feeder 2×25 kV
-        const pX = tCx, pZ = tCz - 2.7 * nz;
-        cajaOrientada(mAceroGalv, pX - 2.2 * ux, pZ, zSuelo + hPeto, zSuelo + 7.8, ux, uz, 0.22, 0.22);
-        cajaOrientada(mAceroGalv, pX + 2.2 * ux, pZ, zSuelo + hPeto, zSuelo + 7.8, ux, uz, 0.22, 0.22);
-        cajaOrientada(mAceroGalv, pX, pZ, zSuelo + 7.6, zSuelo + 7.85, ux, uz, 4.8, 0.22);
-        // Aisladores de suspensión del pórtico
-        for (const dxP of [-1.5, 0, 1.5]) {
-          cajaOrientada(mAisladorAT, pX + dxP * ux, pZ, zSuelo + 6.8, zSuelo + 7.6, ux, uz, 0.18, 0.18);
+      // Centros de tracción 2×25 kV del inventario (js/centros-traccion.js) en su recinto y con su edificio reales
+      const dentroMarco = (E, N, F, margen = 0) => {
+        const dE = E - F.E, dN = N - F.N;
+        return Math.abs(dE * F.ux + dN * F.uy) <= F.A + margen && Math.abs(-dE * F.uy + dN * F.ux) <= F.B + margen;
+      };
+      // Huellas de la cartografía que el modelo ya dibuja (edificio del centro y lo que hay dentro de su recinto)
+      const enCentroTraccion = (E, N, soloEdificio = false) => (CENTROS_TRACCION_CORREDOR || []).some((ct) =>
+        Math.abs(ct.pk - km * 1000 - 500) < 1500 && (soloEdificio ? dentroMarco(E, N, ct.edificio, 2.5) : dentroMarco(E, N, ct.recinto, 1)));
+      const marcoLocal = (F) => {
+        const p = L(F.E, F.N, 0);
+        return { cx: p[0], cz: p[2], ux: F.ux, uz: -F.uy, A: F.A, B: F.B };
+      };
+      function construirCentro(ct) {
+        if (!(document.getElementById('chkBtsModelos')?.checked ?? true)) return;
+        // Explanada a la cota media del recinto (la plataforma real está nivelada)
+        const cotas = [[0, 0], [1, 1], [1, -1], [-1, 1], [-1, -1], [0.5, 0], [-0.5, 0]].map(([a, b]) =>
+          cotaTerrenoUTM(ct.recinto.E + (a * ct.recinto.ux - b * ct.recinto.uy) * ct.recinto.A * 0.8, ct.recinto.N + (a * ct.recinto.uy + b * ct.recinto.ux) * ct.recinto.B * 0.8));
+        const zSuelo = cotas.reduce((x, y) => x + y, 0) / cotas.length;
+        const R = marcoLocal(ct.recinto), Ed = marcoLocal(ct.edificio);
+        const trafosLoc = ct.trafos.map(([E, N]) => { const q = L(E, N, 0); return [q[0], q[2]]; });
+        const M = { ...mCT, hormigon: mHormigonObra, acero: mAceroGalv, aislador: mAisladorAT, cubierta: mCubierta, armario: mArmarioVia };
+        const extra = construirCentroTraccion(M, { ...ct, trafosLoc }, R, Ed, zSuelo - anclaZ, [ct.haciaVia[0], -ct.haciaVia[1]],
+          (F) => vallaRecinto(mValla, mAlambreValla, inst.posteValla, F.cx, F.cz, zSuelo - anclaZ + 0.05, F.ux, F.uz, 2 * F.A, 2 * F.B, 2.27, matInst));
+        for (const m of extra) {
+          m.userData = { ...fichaElemento('050012', null, ct.pk), nombre: ct.nombre, info: ct.sub };
+          grupos.estructuras?.add(m);
         }
       }
 
@@ -2080,28 +1961,9 @@ export function crearGestorTeselas(ctx) {
               cinta(mHormigonObra, aLoc(seg, 'terreno', 0), id === '030203' ? 0.55 : 1.15, -0.95, altoMuro, 0.12, 0.18);
             }
           } else if ((id === '050012' || id === '030240') && cs.length >= 4 && cs[0][0] === cs[cs.length - 1][0] && cs[0][1] === cs[cs.length - 1][1]) {
-            let sE = 0, sN = 0, sZ = 0, nP = 0;
-            for (const c of cs) {
-              const [E, N] = lonlatAUTM(c[0], c[1]);
-              const z = c.length > 2 && c[2] > 5 ? c[2] : cotaTerrenoUTM(E, N);
-              sE += E; sN += N; sZ += z; nP++;
-            }
-            const cE = sE / nP, cN = sN / nP, zBase = (sZ / nP) - anclaZ;
-            const cLoc = L(cE, cN, sZ / nP);
-            centrosPoligEdif.push([cE, cN]);
-            let ctCercano = null, distMinCt = Infinity;
-            for (const ct of CENTROS_TRACCION_CORREDOR) {
-              const d = Math.hypot(ct.e - cE, ct.n - cN);
-              if (d < distMinCt) { distMinCt = d; ctCercano = ct; }
-            }
-            if (ctCercano && distMinCt < 550) {
-              if (!centrosTraccionConstruidos.has(ctCercano)) {
-                centrosTraccionConstruidos.add(ctCercano);
-                const mTang = Eje3D.enPk(ctCercano.pk);
-                const ux = mTang.tx, uz = -mTang.ty;
-                construirCentroAutotransformador(cLoc[0], cLoc[2], zBase, ux, uz, ctCercano.nombre, `PK ${fmtPk(ctCercano.pk)}`, ctCercano.tipo);
-              }
-            }
+            // Dentro de un centro de tracción ya lo dibuja su modelo
+            const [Ec, Nc] = lonlatAUTM(cs[0][0], cs[0][1]);
+            centrosPoligEdif.push([Ec, Nc]);
           } else if (id === '040023') {
             let sE = 0, sN = 0, minE = Infinity, maxE = -Infinity, minN = Infinity, maxN = -Infinity;
             const nV = cs.length > 2 && cs[0][0] === cs[cs.length - 1][0] && cs[0][1] === cs[cs.length - 1][1] ? cs.length - 1 : cs.length;
@@ -2156,22 +2018,10 @@ export function crearGestorTeselas(ctx) {
             }
           } else if (id === '050012' || id === '030240') {
             centrosPoligEdif.push([cE, cN]);
-            let ctCercano = null, distMinCt = Infinity;
-            for (const ct of CENTROS_TRACCION_CORREDOR) {
-              const d = Math.hypot(ct.e - cE, ct.n - cN);
-              if (d < distMinCt) { distMinCt = d; ctCercano = ct; }
-            }
-            if (ctCercano && distMinCt < 550) {
-              if (!centrosTraccionConstruidos.has(ctCercano)) {
-                centrosTraccionConstruidos.add(ctCercano);
-                const mTang = Eje3D.enPk(ctCercano.pk);
-                const ux = mTang.tx, uz = -mTang.ty;
-                construirCentroAutotransformador(cLoc[0], cLoc[2], zBase, ux, uz, ctCercano.nombre, `PK ${fmtPk(ctCercano.pk)}`, ctCercano.tipo);
-              }
-            } else {
-              const mTang = Eje3D.enPk(Eje3D.proyUTM(cE, cN).pk);
-              const ux = mTang.tx, uz = -mTang.ty;
-              construirCentroAutotransformador(cLoc[0], cLoc[2], zBase, ux, uz, 'Centro Autotransformador 2×25 kV', `PK ${fmtPk(Eje3D.proyUTM(cE, cN).pk)}`, 'ATI');
+            // Los de los centros de tracción los dibuja su modelo; el resto, como recinto técnico bajo
+            if (!enCentroTraccion(cE, cN)) {
+              prisma(mEdifTec, pts2, zBase, zBase + (id === '030240' ? 2.6 : 4.2));
+              prisma(mCubierta, pts2, zBase + (id === '030240' ? 2.55 : 4.15), zBase + (id === '030240' ? 2.6 : 4.2));
             }
           } else if (id === '030051') {
             centrosPoligEdif.push([cE, cN]);
@@ -2189,6 +2039,7 @@ export function crearGestorTeselas(ctx) {
             prisma(mArmarioVia, pts2, zBase + 0.15, zBase + 1.55);
           } else if (metaCapa?.grupo === 'edificios') {
             centrosPoligEdif.push([cE, cN]);
+            if (enCentroTraccion(cE, cN, true)) continue;
             // Edificios y casetas junto a la vía en 3D (modelo Blender caseta-via.glb para casetas; cubiertas inclinadas / petos para edificios)
             const hEd = id === '030025' ? 3.0 : id === '030067' ? 3.5 : id === '030235' ? 6.5 : id === '030129' ? 1.2 : 5.0;
             let areaPol = 0;
@@ -2337,11 +2188,7 @@ export function crearGestorTeselas(ctx) {
       for (const ct of (CENTROS_TRACCION_CORREDOR || [])) {
         if (Math.floor(ct.pk / 1000) === km && !centrosTraccionConstruidos.has(ct)) {
           centrosTraccionConstruidos.add(ct);
-          const zSueloCt = cotaTerrenoUTM(ct.e, ct.n);
-          const pCt = L(ct.e, ct.n, zSueloCt);
-          const mTang = Eje3D.enPk(ct.pk);
-          const ux = mTang.tx, uz = -mTang.ty;
-          construirCentroAutotransformador(pCt[0], pCt[2], zSueloCt - anclaZ, ux, uz, ct.nombre, `PK ${fmtPk(ct.pk)}`, ct.tipo);
+          construirCentro(ct);
         }
       }
 
@@ -2655,6 +2502,16 @@ export function crearGestorTeselas(ctx) {
       addMalla(mTrafo, mat('#2d3748', 1, { metalness: 0.65, roughness: 0.35 }), 'estructuras', '050012', true);
       addMalla(mAisladorAT, mat('#854d0e', 1, { roughness: 0.28, metalness: 0.15 }), 'estructuras', '050012', true);
       addMalla(mCajaControl, mat('#be123c', 1, { metalness: 0.15, roughness: 0.45 }), 'estructuras', '050012', true);
+      addMalla(mCT.panel, mat('#eeede8', 1, { roughness: 0.82 }), 'estructuras', '050012', true);
+      addMalla(mCT.junta, mat('#c7c6c0', 1, { roughness: 0.9 }), 'estructuras', '050012');
+      addMalla(mCT.puerta, mat('#4b5157', 1, { metalness: 0.45, roughness: 0.5 }), 'estructuras', '050012', true);
+      addMalla(mCT.grava, mat('#a99d87', 1, { roughness: 1 }), 'estructuras', '050012');
+      addMalla(mCT.bloque, mat('#8f8578', 1, { roughness: 0.92 }), 'estructuras', '050012', true);
+      addMalla(mCT.trafo, mat('#3d6b8f', 1, { metalness: 0.4, roughness: 0.45 }), 'estructuras', '050012', true);
+      addMalla(mCT.aisladorGris, mat('#9aa1a8', 1, { roughness: 0.35 }), 'estructuras', '050012');
+      addMalla(mCT.barandilla, mat('#26292c', 1, { metalness: 0.5, roughness: 0.5 }), 'estructuras', '050012');
+      addMalla(mCT.bajante, mat('#5b6168', 1, { metalness: 0.3, roughness: 0.55 }), 'estructuras', '050012');
+      addMalla(mCT.rejilla, mat('#30353a', 1, { metalness: 0.4, roughness: 0.6 }), 'estructuras', '050012');
       addMalla(mAgua, mat('#2b7bbb', 0.88, { roughness: 0.12, metalness: 0.38 }), 'entorno', '020137', false, true);
 
       const addInst = (arr, geo, material, idGrupo, idCapaRef, sombra = false) => {

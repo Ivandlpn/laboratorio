@@ -154,8 +154,8 @@ export function crearEje3D(ejeDatos, ramalesReales) {
   });
 
   const saltos = (ejeDatos.saltos || []).slice();
-  const idxInsert = saltos.findIndex((s) => s.pk > 327730);
-  const hitoAti = { id: 'ati327', pk: 327730, nombre: 'ATI 327.7 ADIF', sub: 'PK 327+730 · Centro 2×25 kV' };
+  const idxInsert = saltos.findIndex((s) => s.pk > 330036);
+  const hitoAti = { id: 'ati311-5', pk: 330036, nombre: 'ATI 311.5', sub: 'PK 330+036 · Autotransformador intermedio 2×25 kV' };
   if (idxInsert >= 0) saltos.splice(idxInsert, 0, hitoAti);
   else saltos.push(hitoAti);
 
