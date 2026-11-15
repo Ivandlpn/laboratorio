@@ -710,3 +710,51 @@
     #panel { max-height: calc(100% - 150px); }
   }
   @media (min-width: 761px) { #dockMovil { display: none; } }
+
+  /* ---- Paneles: un solo estilo para todos (fondo, borde, radio y sombra del tema) ---- */
+  :root { --hud-radio: 12px; --hud-sombra: 0 10px 28px rgba(0, 0, 0, 0.24); --reserva-inf: 152px; --izq-libre: 12px; --der-top: 12px; --der-cab: 12px; --top-radar: 78px; }
+  #panel, #abrir, #islaRapida, #badgePkLinea, #panelEmplazamientos, #cab, #barraPerfil, #brujula, #inspector3D, #medidaBadge, #dockMovil {
+    background: var(--panel) !important; color: var(--fg) !important;
+    border: 1px solid var(--line) !important; border-radius: var(--hud-radio) !important;
+    box-shadow: var(--hud-sombra) !important;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  /* Interior del radar con los colores del tema */
+  .emp-cab { background: transparent; border-bottom: 1px solid var(--line); color: var(--muted); }
+  .emp-cab-tit, .emp-nom { color: var(--fg); }
+  .emp-cab small, .emp-sep-pk { color: var(--accent); background: transparent; border-color: var(--line); }
+  .emp-meta, .emp-sep-txt, .emp-item.ant .emp-dist { color: var(--muted); }
+  .emp-dist { color: var(--accent); }
+  .emp-sep { background: transparent; border-color: var(--line); }
+  .emp-item:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  /* Interior de los mandos de cabina y dron */
+  #cab b { color: var(--accent); }
+  #cab .controles-cab button { background: transparent; color: var(--fg); border-color: var(--line); }
+  #cab .controles-cab button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #cabProx, #lblTrenDron { color: var(--muted); }
+  #selTrenDron { background: var(--panel); color: var(--fg); border: 1px solid var(--line); }
+  /* Cartel de PK con el mismo estilo: línea en gris y PK en el color de acento */
+  #badgePkLinea .linea { color: var(--muted); }
+  #badgePkLinea .pk { color: var(--fg); }
+
+  /* ---- Escritorio: cada panel en su hueco, sin solaparse (las medidas las pone ajustarDisposicion()) ----
+     Columna izquierda: panel lateral · arriba al centro: isla rápida · columna derecha: cartel de PK y radar ·
+     abajo: perfil y brújula · encima del perfil, centrados en el hueco libre: mandos de cabina y dron */
+  @media (min-width: 761px) {
+    #panel { max-height: calc(100vh - var(--reserva-inf) - 12px - env(safe-area-inset-top, 0px)) !important; }
+    #islaRapida {
+      left: var(--izq-libre) !important; right: var(--der-top) !important; transform: none !important;
+      margin-inline: auto; width: max-content; max-width: calc(100vw - var(--izq-libre) - var(--der-top));
+    }
+    #panelEmplazamientos {
+      top: var(--top-radar) !important;
+      max-height: calc(100vh - var(--top-radar) - var(--reserva-inf)); display: flex; flex-direction: column;
+    }
+    #panelEmplazamientos #empLista { max-height: none; flex: 1 1 auto; min-height: 0; }
+    #cab {
+      bottom: var(--reserva-inf) !important; left: var(--izq-libre) !important; right: var(--der-cab) !important;
+      transform: none !important; margin-inline: auto; width: max-content;
+      max-width: calc(100vw - var(--izq-libre) - var(--der-cab));
+    }
+    #cineHint { bottom: var(--reserva-inf); }
+  }

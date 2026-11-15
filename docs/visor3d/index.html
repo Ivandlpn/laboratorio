@@ -2381,6 +2381,33 @@ if (params.has('esperarOrto') && ortofotoActiva) {
 }
 Carga.cerrar();
 
+// ---- Escritorio: reparto del espacio entre paneles para que no se solapen ----
+// Mide el perfil (abajo), el panel lateral (izquierda), el cartel de PK y el radar (derecha) y deja en variables CSS
+// el hueco libre que usan la isla rápida, el radar y los mandos de cabina/dron (ver «Escritorio» en visor.css).
+function ajustarDisposicion() {
+  if (innerWidth <= 760) return;
+  const st = document.documentElement.style;
+  const visible = (el) => Boolean(el) && !el.hidden && getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0;
+  const perfil = document.getElementById('barraPerfil');
+  const hPerfil = visible(perfil) ? perfil.getBoundingClientRect().height : 0;
+  st.setProperty('--reserva-inf', `${Math.round(hPerfil ? hPerfil + 24 : 12)}px`);
+  const panel = document.getElementById('panel'), abrir = document.getElementById('abrir');
+  const izq = visible(panel) ? panel : visible(abrir) ? abrir : null;
+  // Solo cuenta si el panel sigue en su columna (se puede arrastrar a otro sitio)
+  const rIzq = izq?.getBoundingClientRect();
+  st.setProperty('--izq-libre', `${rIzq && rIzq.left < innerWidth / 3 ? Math.round(rIzq.right + 12) : 12}px`);
+  const badge = document.getElementById('badgePkLinea');
+  const rB = visible(badge) ? badge.getBoundingClientRect() : null;
+  st.setProperty('--der-top', `${rB ? Math.round(innerWidth - rB.left + 12) : 12}px`);
+  st.setProperty('--top-radar', `${rB ? Math.round(rB.bottom + 12) : 12}px`);
+  const radar = document.getElementById('panelEmplazamientos');
+  const rR = visible(radar) ? radar.getBoundingClientRect() : null;
+  st.setProperty('--der-cab', `${rR && rR.right > innerWidth * 2 / 3 ? Math.round(innerWidth - rR.left + 12) : 12}px`);
+}
+addEventListener('resize', ajustarDisposicion);
+setInterval(ajustarDisposicion, 400);
+ajustarDisposicion();
+
 // ---- Móvil: barra inferior que abre los paneles plegados de uno en uno (el CSS los oculta sin su clase m-*) ----
 {
   const dock = document.getElementById('dockMovil');
