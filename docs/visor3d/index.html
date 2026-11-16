@@ -363,6 +363,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { crearFlota } from './js/flota.js';
 import { crearCatenaria } from './js/catenaria.js';
 import { crearMantenimiento } from './js/mantenimiento.js';
+import { NOMBRE_FASE } from './js/bateadora.js';
 import { crearTrenesReales } from './js/tiempo-real.js';
 import { crearTrafico } from './js/trafico.js';
 import { crearLaguna } from './js/laguna.js';
@@ -1770,7 +1771,33 @@ document.getElementById('btnTrVolver').addEventListener('click', () => { detalle
 // ---- Trabajos de mantenimiento: modo noche con un tajo de vía (bateadora, perfiladora y estabilizador) ----
 // Tajo supuesto: vía 2 (derecha) cortada desde el PK 399+000, en recta y a cielo abierto, en la banda nocturna sin
 // circulaciones (se ocultan los trenes). Al terminar se restauran la hora y los trenes.
-const mantenimiento = crearMantenimiento({ escena, Eje3D, W, mat });
+// La vía fija del visor se recorta (planos de corte) donde batea la bateadora, que dibuja su propio tramo deformable
+render.localClippingEnabled = true;
+const mantenimiento = crearMantenimiento({
+  escena, Eje3D, W, mat, GEO,
+  matsVia: { balasto: matBalasto, traviesa: matTraviesa, carrilAlma: matCarrilAlma, carrilCabeza: matCarrilCabeza, placa: MAT_PLACA_GUIA, grapa: MAT_GRAPA, tirafondo: MAT_TIRAFONDO },
+  audioActivo: () => audioAmbiental.activo,
+});
+// Cámaras del simulador de bateo: general, bateo (primer plano en corte) y geometría (vía exagerada); null = libre
+let camMant = null;
+const CAMS_MANT = [['general', 'General'], ['bateo', 'Bateo'], ['geometria', 'Geometría'], [null, 'Libre']];
+function fijarCamMant(modo) {
+  camMant = modo;
+  mantenimiento.bateo?.setVista(modo);
+  pintarMant();
+}
+controles.addEventListener('start', () => { if (camMant) fijarCamMant(null); });
+function seguirCamMant() {
+  const b = mantenimiento.bateo;
+  if (!camMant || !b?.estado.activo) return;
+  const pose = b.poseCamara(camMant);
+  const pc = W(pose.pos.E, pose.pos.N, pose.pos.Z), pt = W(pose.obj.E, pose.obj.N, pose.obj.Z);
+  // Seguimiento suave salvo en la vista de bateo (va pegada al grupo de bateo con su sacudida)
+  const k = camMant === 'bateo' ? 1 : 0.12;
+  camara.position.lerp(pc, k);
+  controles.target.lerp(pt, k);
+  camara.lookAt(controles.target);
+}
 const TAJO_MANT = { pkIni: 399000, s: -1, largo: 1500 };
 const elPanelMant = document.getElementById('panelMant'), elCuerpoMant = document.getElementById('mantCuerpo');
 const elBtnMant = document.getElementById('btnMantenimiento');
@@ -1790,10 +1817,17 @@ function encuadrarMaquina(clave) {
   pintarMant();
 }
 function pintarMant() {
-  const t = mantenimiento.tajo;
+  const t = mantenimiento.tajo, eb = mantenimiento.bateo?.estado;
   document.getElementById('mantEstado').textContent = t ? `Vía ${t.s > 0 ? 1 : 2} cortada · PK ${fmtPk(t.pkIni)} – ${fmtPk(t.pkIni + t.largo)}` : 'Banda nocturna';
   if (elPanelMant.hidden && !document.body.classList.contains('m-mant')) return;
-  elCuerpoMant.innerHTML = mantenimiento.lista().map((x) => `
+  const estadoBateo = eb?.activo ? `
+    <div class="mant-ciclo">
+      <div class="mant-fases">${Object.entries(NOMBRE_FASE).map(([k, n]) => `<span class="${k === eb.fase ? 'on' : ''}" title="${n}">${n.split(' ')[0]}</span>`).join('')}</div>
+      <div class="mant-dato"><b>${NOMBRE_FASE[eb.fase]}</b> · traviesa ${eb.bateadas + 1}</div>
+      <div class="mant-dato">Levante ${eb.levanteMm >= 0 ? '+' : ''}${eb.levanteMm} mm · ripado ${eb.ripadoMm >= 0 ? '+' : ''}${eb.ripadoMm} mm</div>
+      <div class="mant-cams">${CAMS_MANT.map(([k, n]) => `<button type="button" data-cam-mant="${k ?? ''}" aria-pressed="${camMant === k}">${n}</button>`).join('')}</div>
+    </div>` : '';
+  elCuerpoMant.innerHTML = estadoBateo + mantenimiento.lista().map((x) => `
     <button type="button" class="tr-item${x.clave === maquinaVista ? ' sel' : ''}" data-maq="${x.clave}">
       <span class="tr-l1"><span class="tr-tipo">${ACCION_MAQ[x.clave] || 'Trabajando'}</span><b>${escHtml(x.nombre)}</b></span>
       <span class="tr-l3">PK ${fmtPk(x.pk)} · ${(x.vel * 3.6).toFixed(1).replace('.', ',')} km/h · ${escHtml(x.tipo)}</span>
@@ -1816,8 +1850,10 @@ function activarMantenimiento(on = !mantenimiento.estado.activo) {
     if (vistaActiva !== 'aerea') setModoVista('aerea');
     irAPk(TAJO_MANT.pkIni + 120, 'aerea');
     encuadrarMaquina('bateadora');
+    fijarCamMant('general');
     if (!matchMedia('(max-width: 760px)').matches) abrirPanelMant(true);
   } else {
+    camMant = null;
     mantenimiento.desmontar();
     if (antesMant) {
       horaSol = antesMant.hora;
@@ -1840,8 +1876,10 @@ document.getElementById('btnMantCerrar').addEventListener('click', () => {
   else abrirPanelMant(false);
 });
 elCuerpoMant.addEventListener('click', (ev) => {
+  const c = ev.target.closest('button[data-cam-mant]');
+  if (c) { fijarCamMant(c.dataset.camMant || null); return; }
   const b = ev.target.closest('button[data-maq]');
-  if (b) encuadrarMaquina(b.dataset.maq);
+  if (b) { fijarCamMant(null); encuadrarMaquina(b.dataset.maq); }
 });
 elCuerpoTR.addEventListener('click', (ev) => {
   const b = ev.target.closest('button');
@@ -2967,7 +3005,13 @@ function fotograma(ahora) {
     actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' || esPasajero(vistaActiva) || cineInterior ? flota[idxTrenDron] : null);
   }
   trenesReales.actualizar(dt);
-  if (mantenimiento.estado.activo) { mantenimiento.actualizar(dt); mantenimiento.encendidoLuces(modoNoche); if ((nFotograma & 15) === 0) pintarMant(); }
+  if (mantenimiento.estado.activo) {
+    const pb = mantenimiento.posicion('bateadora');
+    mantenimiento.actualizar(dt, pb ? camara.position.distanceTo(W(pb.E, pb.N, pb.Z)) : 60);
+    seguirCamMant();
+    mantenimiento.encendidoLuces(modoNoche);
+    if ((nFotograma & 7) === 0) pintarMant();
+  }
   const utmCam = UTMdeMundo(camara.position);
   // Interiores de los trenes: solo se dibujan con la cámara cerca; dentro, plano cercano corto para no recortar nada
   for (const tr of flota) {

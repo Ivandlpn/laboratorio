@@ -10,6 +10,7 @@
 // largo de la vía (hacia delante) y eje Z transversal.
 
 import * as THREE from 'three';
+import { crearSimulacionBateo } from './bateadora.js';
 
 const AMARILLO = '#f2b705';
 
@@ -41,8 +42,11 @@ export const MAQUINAS = {
  * @param {object} o.Eje3D
  * @param {Function} o.W  (E, N, Z) → Vector3 en la escena
  * @param {Function} o.mat (color, opacidad, opciones) → material
+ * @param {object} o.matsVia materiales de la vía del visor que se recortan donde batea la bateadora
+ * @param {object} o.GEO geometrías compartidas (traviesa y sujeciones)
+ * @param {Function} o.audioActivo () → boolean (audio del visor encendido)
  */
-export function crearMantenimiento({ escena, Eje3D, W, mat }) {
+export function crearMantenimiento({ escena, Eje3D, W, mat, matsVia, GEO, audioActivo }) {
   const grupo = new THREE.Group();
   grupo.name = 'Trabajos de mantenimiento';
   grupo.visible = false;
@@ -251,7 +255,9 @@ export function crearMantenimiento({ escena, Eje3D, W, mat }) {
   }
 
   // ---- Estado del tajo ----
-  let tajo = null;
+  let tajo = null, sim = null;
+  // Distancia entre centros por detrás de la bateadora (m)
+  const SEPARACION = { perfiladora: 42, estabilizador: 80 };
   const estado = { activo: false };
 
   function enVia(pk, s, d = 0) {
@@ -282,9 +288,15 @@ export function crearMantenimiento({ escena, Eje3D, W, mat }) {
     const m0 = Eje3D.enPk(pkMed);
     tajo = { pkIni, s, largo, ancla: { E: m0.E, N: m0.N, Z: m0.Z }, maquinas: [], torres: [], piquetes: [], operarios: [], t: 0 };
     // Tren de trabajo: bateadora delante, perfiladora y estabilizador detrás (en sentido de avance)
-    const orden = [['bateadora', 120], ['perfiladora', 78], ['estabilizador', 40]];
+    // La bateadora es la simulación completa del ciclo de bateo (js/bateadora.js), con su propio tramo de vía
+    sim = sim || crearSimulacionBateo({ Eje3D, aLocal: (p) => aLocal(p), mats: matsVia, GEO, mat, mundo: (p) => W(p.E, p.N, p.Z), audioActivo });
+    grupo.position.copy(W(tajo.ancla.E, tajo.ancla.N, tajo.ancla.Z));
+    sim.montar({ pkIni: pkIni + 84, via: s });
+    grupo.add(sim.grupo);
+    tajo.maquinas.push({ clave: 'bateadora', def: { ...MAQUINAS.bateadora, vel: sim.VEL_MEDIA }, obj: sim.grupo, pk: sim.pkMaquina, sim: true });
+    const orden = [['perfiladora', 120 - SEPARACION.perfiladora], ['estabilizador', 120 - SEPARACION.estabilizador]];
     for (const [clave, pkRel] of orden) {
-      const def = MAQUINAS[clave];
+      const def = { ...MAQUINAS[clave], vel: sim.VEL_MEDIA };
       const obj = CONSTRUIR[clave](def);
       const ficha = { capa: 'Trabajos de mantenimiento', nombre: def.nombre, info: `${def.tipo}. ${def.funcion} Modelo provisional.` };
       obj.traverse((n) => { if (n.isMesh) n.userData = ficha; });
@@ -331,43 +343,36 @@ export function crearMantenimiento({ escena, Eje3D, W, mat }) {
   }
 
   function desmontar() {
+    sim?.desmontar();
     for (const c of [...grupo.children]) {
       grupo.remove(c);
-      c.traverse?.((n) => { if (n.isMesh) n.geometry?.dispose?.(); });
+      if (c !== sim?.grupo) c.traverse?.((n) => { if (n.isMesh) n.geometry?.dispose?.(); });
     }
     tajo = null;
     grupo.visible = false;
     estado.activo = false;
   }
 
-  function actualizar(dt) {
+  function actualizar(dt, distCam = 60) {
     if (!tajo) return;
     tajo.t += dt;
     grupo.position.copy(W(tajo.ancla.E, tajo.ancla.N, tajo.ancla.Z));
     const t = tajo.t;
     for (const mq of tajo.maquinas) {
+      if (mq.sim) { sim.actualizar(dt, distCam); mq.pk = sim.pkMaquina; continue; }
       const { def, obj } = mq, an = obj.userData.anim || {};
-      if (def.ciclo === 'bateo') {
-        // Ciclo de 2,15 s por traviesa: avanza 0,6 m en 0,8 s y batea (bajar, vibrar, subir) el resto
-        const ciclo = 2.15, u = ((t + mq.fase) % ciclo) / ciclo;
-        if (u < 0.37) mq.pk += (0.6 / (0.37 * ciclo)) * dt;
-        if (an.bateo) {
-          const b = u < 0.37 ? 0 : u < 0.55 ? (u - 0.37) / 0.18 : u < 0.85 ? 1 : 1 - (u - 0.85) / 0.15;
-          an.bateo.position.y = -0.42 * b + (b === 1 ? Math.sin(t * 90) * 0.012 : 0);
-        }
-      } else {
-        mq.pk += def.vel * dt;
-      }
+      // Perfiladora y estabilizador siguen a la bateadora en marcha continua (sin sus paradas)
+      const objetivo = sim.pkMaquina - SEPARACION[mq.clave];
+      mq.pk += Math.max(0, objetivo - mq.pk) * Math.min(1, dt * 0.35) + def.vel * dt * 0.2;
+      mq.pk = Math.min(mq.pk, objetivo + 1.5);
       if (an.cepillo) an.cepillo.rotation.z -= dt * 9;
       if (an.vibr) an.vibr.position.z = Math.sin(t * 2 * Math.PI * 30) * 0.008;
       // Destellos naranjas giratorios (parpadeo alterno)
       if (an.destellos) an.destellos.forEach((d, i) => { d.material = Math.sin(t * 7 + i * 1.7) > 0.1 ? M.destello : M.destelloApagado; });
-      // Tajo cíclico: al llegar al final vuelve a empezar (largo de trabajo de una noche)
-      if (mq.pk > tajo.pkIni + tajo.largo) mq.pk -= tajo.largo;
       colocar(obj, mq.pk, tajo.s, def.largo);
     }
     // Los operarios acompañan al tren de trabajo con pequeños paseos
-    const pkTren = tajo.maquinas[0].pk - 120;
+    const pkTren = sim.pkCabeza - 120;
     for (const o of tajo.operarios) {
       const g = o.userData.sig;
       const pk = pkTren + g.dPk + Math.sin(t * 0.25 + g.fase) * 2.5;
@@ -400,5 +405,5 @@ export function crearMantenimiento({ escena, Eje3D, W, mat }) {
   }
   const lista = () => (tajo ? tajo.maquinas.map((m) => ({ clave: m.clave, nombre: m.def.nombre, tipo: m.def.tipo, funcion: m.def.funcion, pk: m.pk, vel: m.def.vel })) : []);
 
-  return { grupo, estado, montar, desmontar, actualizar, encendidoLuces, posicion, lista, get tajo() { return tajo; } };
+  return { grupo, estado, montar, desmontar, actualizar, encendidoLuces, posicion, lista, get tajo() { return tajo; }, get bateo() { return sim; } };
 }
