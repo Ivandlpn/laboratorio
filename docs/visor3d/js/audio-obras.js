@@ -99,6 +99,25 @@ export function crearAudioObras() {
       o.connect(lp); n.connect(nf); nf.connect(gn); gn.connect(lp); lp.connect(sal);
       return { sal, set({ nivel = 0.5, rpm = 800 }) { T(sal.gain, nivel * 0.3, 0.2); T(o.frequency, rpm / 60 * 2); } };
     },
+    // Soplete de precalentamiento: rugido de la llama a presión
+    soplete() {
+      const sal = ganancia(0), n = ruido(), bp = filtro('bandpass', 900, 0.5), hp = filtro('highpass', 3500), n2 = ruido(), g2 = ganancia(0.25), lp = filtro('lowpass', 160), n3 = ruido(), g3 = ganancia(0.6);
+      n.connect(bp); bp.connect(sal); n2.connect(hp); hp.connect(g2); g2.connect(sal); n3.connect(lp); lp.connect(g3); g3.connect(sal);
+      return { sal, set({ nivel = 0 }) { T(sal.gain, nivel * 0.5, 0.15); } };
+    },
+    // Disco de tronzadora o muela de la esmeriladora: chirrido agudo con el acero
+    disco() {
+      const sal = ganancia(0), o = osc('sawtooth', 2900), bp = filtro('bandpass', 3200, 4), n = ruido(), nb = filtro('bandpass', 5200, 1.5), gn = ganancia(0.5);
+      const m = osc('sine', 7), mg = ganancia(180); m.connect(mg); mg.connect(o.frequency);
+      o.connect(bp); bp.connect(sal); n.connect(nb); nb.connect(gn); gn.connect(sal);
+      return { sal, set({ nivel = 0, tono = 0.5 }) { T(sal.gain, nivel * 0.35, 0.05); T(o.frequency, 2200 + 1600 * tono, 0.1); T(bp.frequency, 2400 + 1800 * tono, 0.1); } };
+    },
+    // Reacción aluminotérmica: hervor burbujeante y siseo del humo
+    reaccion() {
+      const sal = ganancia(0), n = ruido(), bp = filtro('bandpass', 420, 0.8), am = ganancia(0.5), lfo = osc('square', 11), lg = ganancia(0.5), n2 = ruido(), hp = filtro('highpass', 2500), g2 = ganancia(0.3);
+      lfo.connect(lg); lg.connect(am.gain); n.connect(bp); bp.connect(am); am.connect(sal); n2.connect(hp); hp.connect(g2); g2.connect(sal);
+      return { sal, set({ nivel = 0 }) { T(sal.gain, nivel * 0.6, 0.1); T(lfo.frequency, 8 + Math.random() * 7, 0.05); } };
+    },
     zumbido() {
       const sal = ganancia(0), o = osc('sine', 100), o2 = osc('square', 50), g2 = ganancia(0.08), n = ruido(), hp = filtro('highpass', 4000), gn = ganancia(0.04);
       o.connect(sal); o2.connect(g2); g2.connect(sal); n.connect(hp); hp.connect(gn); gn.connect(sal);

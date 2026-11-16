@@ -305,7 +305,20 @@
   <button type="button" id="btnMantenimiento" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="mant" title="Bateadora, perfiladora y estabilizador en un tajo con la vía cortada">🚧 Tren de trabajo<small>Bateadora, perfiladora y estabilizador</small></button>
   <button type="button" id="btnInspeccion" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="insp" title="Inspección de superestructura a pie de noche, con coche de apoyo y dron en modo cine">🔦 Inspección de superestructura<small>Patrulla a pie con coche de apoyo</small></button>
   <button type="button" id="btnEnergia" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="ener" title="Mantenimiento de energía: dresina de catenaria con castillete elevador y puesta a tierra">⚡ Mantenimiento de energía<small>Dresina de catenaria</small></button>
+  <button type="button" id="btnSoldadura" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="sold" title="Soldadura aluminotérmica de un carril UIC 60: corte, moldes, precalentamiento, colada, rebarbado y esmerilado">🔥 Soldadura aluminotérmica<small>Unión de carril UIC 60 in situ</small></button>
   <label class="menu-sonido"><input type="checkbox" id="chkSonidoObras" checked> 🔊 Sonido de las obras<small>Máquinas, generadores, viento y pasos</small></label>
+</div>
+<div id="panelSold" hidden role="dialog" aria-label="Soldadura aluminotérmica">
+  <div class="tr-cab">
+    <span class="tr-tit">🔥 Soldadura aluminotérmica</span>
+    <small id="soldEstado">Banda nocturna</small>
+    <button type="button" id="btnSoldCerrar" aria-label="Ocultar el panel">✕</button>
+  </div>
+  <div id="soldCuerpo"></div>
+  <div class="mant-pie">
+    <button type="button" id="btnSoldTerminar">Terminar soldadura</button>
+    <p class="tr-pie">Simulación de la secuencia, con los tiempos acortados (entre paréntesis, la duración real). Vía cortada y catenaria sin tensión. Posición supuesta.</p>
+  </div>
 </div>
 <div id="panelMant" hidden role="dialog" aria-label="Trabajos de mantenimiento">
   <div class="tr-cab">
@@ -356,6 +369,7 @@
   <button type="button" data-hoja="mant" aria-pressed="false" hidden><span aria-hidden="true">🚧</span>Obras</button>
   <button type="button" data-hoja="insp" aria-pressed="false" hidden><span aria-hidden="true">🔦</span>Inspección</button>
   <button type="button" data-hoja="ener" aria-pressed="false" hidden><span aria-hidden="true">⚡</span>Energía</button>
+  <button type="button" data-hoja="sold" aria-pressed="false" hidden><span aria-hidden="true">🔥</span>Soldadura</button>
   <button type="button" data-hoja="ambiente" aria-pressed="false"><span aria-hidden="true">🌤</span>Ambiente</button>
 </nav>
 
@@ -399,6 +413,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { crearFlota } from './js/flota.js';
 import { crearCatenaria } from './js/catenaria.js';
 import { crearMantenimiento } from './js/mantenimiento.js';
+import { crearSoldadura, FASES_SOLD } from './js/soldadura.js';
 import { crearInspeccion, ESTADOS_INSP } from './js/inspeccion.js';
 import { crearEnergia, FASES_ENER } from './js/energia.js';
 import { urlGeoLibre } from './js/geolibre.js';
@@ -1961,6 +1976,63 @@ const elPanelInsp = document.getElementById('panelInsp'), elCuerpoInsp = documen
 // ---- Mantenimiento de energía (dresina de catenaria con castillete) ----
 const energia = crearEnergia({ escena, Eje3D, W, Catenaria, matHilo: matCobreContacto });
 const SITIO_ENER = { pk: 400900, s: 1 };
+// ---- Soldadura aluminotérmica (js/soldadura.js): carril exterior de la vía 1 en PK 401+500 (supuesto) ----
+const soldadura = crearSoldadura({
+  escena, Eje3D, W, GEO,
+  matsVia: { balasto: matBalasto, traviesa: matTraviesa, carrilAlma: matCarrilAlma, carrilCabeza: matCarrilCabeza, placa: MAT_PLACA_GUIA, grapa: MAT_GRAPA, tirafondo: MAT_TIRAFONDO },
+});
+const SITIO_SOLD = { pk: 401500, s: 1 };
+const elPanelSold = document.getElementById('panelSold'), elCuerpoSold = document.getElementById('soldCuerpo'), elBtnSold = document.getElementById('btnSoldadura');
+let camSold = null, antesSold = null;
+const CAMS_SOLD = [['general', 'General'], ['crisol', 'Crisol y molde'], ['carril', 'Carril'], [null, 'Libre']];
+function pintarSold() {
+  const e = soldadura.estado, st = soldadura.sitio;
+  document.getElementById('soldEstado').textContent = st ? `Vía ${st.s > 0 ? 1 : 2} · PK ${fmtPk(st.pk)} · carril exterior` : 'Banda nocturna';
+  if (elPanelSold.hidden && !document.body.classList.contains('m-sold')) return;
+  const f = FASES_SOLD.find((x) => x[0] === e.fase) || FASES_SOLD[0];
+  elCuerpoSold.innerHTML = `
+    <div class="mant-ciclo">
+      <div class="mant-fases sold-fases">${FASES_SOLD.map(([k, , n]) => `<span class="${k === e.fase ? 'on' : ''}" title="${n}">${n.split(' ')[0]}</span>`).join('')}</div>
+      <div class="mant-dato"><b>${f[2]}</b> <span class="sold-real">(${f[4]} reales)</span></div>
+      <div class="mant-dato">${f[3]}.</div>
+      <div class="mant-dato">Pirómetro: <b>${e.temperatura} °C</b> en la junta · carril UIC 60 · separación 25 mm</div>
+      <div class="mant-cams">${CAMS_SOLD.map(([k, n]) => `<button type="button" data-cam-sold="${k ?? ''}" aria-pressed="${camSold === k}">${n}</button>`).join('')}</div>
+    </div>
+    ${soldadura.cuadrilla().map((c) => `<div class="tr-item"><span class="tr-l1"><b>${escHtml(c.nombre)}</b></span><span class="tr-l3">${escHtml(c.equipo)}</span></div>`).join('')}`;
+}
+function activarSoldadura(on = !soldadura.estado.activo) {
+  if (on === soldadura.estado.activo) { if (on && !matchMedia('(max-width: 760px)').matches) elPanelSold.hidden = false; return; }
+  if (on) {
+    salirOtrosModos('sold');
+    antesSold = entrarNoche();
+    soldadura.montar(SITIO_SOLD);
+    if (vistaActiva !== 'aerea') setModoVista('aerea');
+    irAPk(SITIO_SOLD.pk, 'aerea');
+    camSold = 'general';
+    if (!matchMedia('(max-width: 760px)').matches) elPanelSold.hidden = false;
+  } else {
+    camSold = null;
+    soldadura.desmontar();
+    salirNoche(antesSold); antesSold = null;
+    elPanelSold.hidden = true;
+    if (document.body.classList.contains('m-sold')) document.querySelector('#dockMovil [data-hoja="sold"]')?.click();
+  }
+  elBtnSold.setAttribute('aria-pressed', String(on));
+  elBtnSold.classList.toggle('activo', on);
+  pintarSold();
+}
+elBtnSold.addEventListener('click', () => activarSoldadura());
+document.getElementById('btnSoldTerminar').addEventListener('click', () => activarSoldadura(false));
+document.getElementById('btnSoldCerrar').addEventListener('click', () => {
+  if (document.body.classList.contains('m-sold')) document.querySelector('#dockMovil [data-hoja="sold"]')?.click();
+  else elPanelSold.hidden = true;
+});
+elPanelSold.querySelector('.tr-cab').addEventListener('click', (e) => { if (!e.target.closest('button')) elPanelSold.classList.toggle('plegado'); });
+elCuerpoSold.addEventListener('click', (ev) => {
+  const c = ev.target.closest('button[data-cam-sold]');
+  if (c) { camSold = c.dataset.camSold || null; pintarSold(); }
+});
+controles.addEventListener('start', () => { if (camSold) { camSold = null; pintarSold(); } });
 let camEner = null, antesEner = null;
 const elPanelEner = document.getElementById('panelEner'), elCuerpoEner = document.getElementById('enerCuerpo'), elBtnEner = document.getElementById('btnEnergia');
 const CAMS_ENER = [['general', 'General'], ['castillete', 'Castillete'], ['pantografo', 'Pantógrafo'], [null, 'Libre']];
@@ -1986,6 +2058,7 @@ function salirOtrosModos(excepto) {
   if (excepto !== 'mant' && mantenimiento.estado.activo) activarMantenimiento(false);
   if (excepto !== 'insp' && inspeccion.estado.activo) activarInspeccion(false);
   if (excepto !== 'ener' && energia.estado.activo) activarEnergia(false);
+  if (excepto !== 'sold' && soldadura.estado.activo) activarSoldadura(false);
 }
 const hojaMovil = (h) => document.querySelector(`#dockMovil [data-hoja="${h}"]`);
 
@@ -3103,7 +3176,7 @@ ajustarDisposicion();
 // ---- Móvil: barra inferior que abre los paneles plegados de uno en uno (el CSS los oculta sin su clase m-*) ----
 {
   const dock = document.getElementById('dockMovil');
-  const HOJAS = { mandos: 'cab', perfil: 'barraPerfil', hitos: 'panelEmplazamientos', trenes: 'panelTrenesReales', mant: 'panelMant', insp: 'panelInsp', ener: 'panelEner', ambiente: 'islaRapida' };
+  const HOJAS = { mandos: 'cab', perfil: 'barraPerfil', hitos: 'panelEmplazamientos', trenes: 'panelTrenesReales', mant: 'panelMant', insp: 'panelInsp', ener: 'panelEner', sold: 'panelSold', ambiente: 'islaRapida' };
   const botones = [...dock.querySelectorAll('button[data-hoja]')];
   let abierta = null;
   function abrirHoja(h) {
@@ -3120,13 +3193,15 @@ ajustarDisposicion();
     if (abierta === 'insp') pintarInsp();
     if (abierta === 'ener' && !energia.estado.activo) activarEnergia(true);
     if (abierta === 'ener') pintarEner();
+    if (abierta === 'sold' && !soldadura.estado.activo) activarSoldadura(true);
+    if (abierta === 'sold') { document.getElementById('panelSold').classList.add('plegado'); pintarSold(); }
   }
   function pintarDock() {
     for (const b of botones) {
       const h = b.dataset.hoja;
       b.setAttribute('aria-pressed', String(abierta === h));
       // Sin contenido que mostrar (p. ej. mandos fuera de cabina y dron): botón apagado
-      b.disabled = !['trenes', 'mant', 'insp', 'ener'].includes(h) && Boolean(document.getElementById(HOJAS[h])?.hidden);
+      b.disabled = !['trenes', 'mant', 'insp', 'ener', 'sold'].includes(h) && Boolean(document.getElementById(HOJAS[h])?.hidden);
       if (b.disabled && abierta === h) { abierta = null; document.body.classList.remove('m-' + h); }
     }
   }
@@ -3193,6 +3268,14 @@ function fotograma(ahora) {
   }
   trenesReales.actualizar(dt);
   audioObras.actualizar(camara, dt);
+  if (soldadura.estado.activo) {
+    soldadura.actualizar(dt);
+    if (camSold) {
+      const pose = soldadura.poseCamara(camSold);
+      if (pose) { camara.position.lerp(pose.pos, camSold === 'general' ? 0.08 : 0.2); controles.target.lerp(pose.obj, camSold === 'general' ? 0.08 : 0.2); camara.lookAt(controles.target); }
+    }
+    if ((nFotograma & 15) === 0) pintarSold();
+  }
   if (mantenimiento.estado.activo) {
     const pb = mantenimiento.posicion('bateadora');
     mantenimiento.actualizar(dt, { distCam: pb ? camara.position.distanceTo(W(pb.E, pb.N, pb.Z)) : 60, noche: modoNoche });
@@ -3336,7 +3419,7 @@ function fotograma(ahora) {
     const enVuelo = gestorVuelo.actualizar(ahora);
     if (!enVuelo) controles.update();
     // Las cámaras de detalle de la maquinaria van a ras de carril: sin colisión con el terreno
-    if (!(camMant && mantenimiento.estado.activo) && !(camInsp && inspeccion.estado.activo) && !(camEner && energia.estado.activo)) aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado: pkRecorrido, rayosX: rayosXActivo });
+    if (!(camMant && mantenimiento.estado.activo) && !(camInsp && inspeccion.estado.activo) && !(camEner && energia.estado.activo) && !(camSold && soldadura.estado.activo)) aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado: pkRecorrido, rayosX: rayosXActivo });
     const m = UTMdeMundo(controles.target);
     if (Math.hypot(m.E - origen.E, m.N - origen.N) > 2500) recentrarOrigen(m.E, m.N, m.Z);
     const q = Eje3D.proyUTM(m.E, m.N);
@@ -3434,7 +3517,7 @@ if (params.has('pausaLoop')) {
 window.__env = {
   camara, controles, escena, render, renderEtq, Eje3D, MdtCorredor, aplicarTema,
   irAPk, setModoVista, teselasCargadas, bloquesTerreno, flota, dibujarPerfil, fotograma,
-  CENTROS_TRACCION_CORREDOR, W, Catenaria, mantenimiento, activarMantenimiento, inspeccion, activarInspeccion, energia, activarEnergia,
+  CENTROS_TRACCION_CORREDOR, W, Catenaria, mantenimiento, activarMantenimiento, inspeccion, activarInspeccion, energia, activarEnergia, soldadura, activarSoldadura,
   avanzar: (dt = 0.06) => fotograma(tPrev + dt * 1000),
 };
 </script>

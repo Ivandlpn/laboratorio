@@ -24,6 +24,9 @@ const materiales = (() => {
       pantalon: std('#1d2633', 0.85), bota: std('#22201e', 0.7), casco: std('#f4f4ef', 0.35), cinta: std('#d97706', 0.5),
       guante: std('#3b3b37', 0.8), radio: std('#151515', 0.5), farolR: new THREE.MeshBasicMaterial({ color: '#ff2a1a' }), farolB: new THREE.MeshBasicMaterial({ color: '#fff3d0' }),
       pieles: PIEL.map((c) => std(c, 0.8)),
+      cuero: std('#6b4a2e', 0.85), visor: new THREE.MeshStandardMaterial({ color: '#1c2a1a', roughness: 0.08, metalness: 0.6, transparent: true, opacity: 0.85 }),
+      gafas: new THREE.MeshStandardMaterial({ color: '#cfe8ff', roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.35 }),
+      led: new THREE.MeshBasicMaterial({ color: '#e8f2ff' }), pantallaTab: new THREE.MeshBasicMaterial({ color: '#7fd4ff' }),
     };
     return M;
   };
@@ -45,8 +48,14 @@ function ik2(dx, dy) {
 /**
  * @param {object} o  piel (0..3), farol: 'rojo'|'blanco'|null, nombre
  */
-export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'blanco', nombre = 'Operario' } = {}) {
-  const M = materiales();
+export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'blanco', nombre = 'Operario', chaleco = null, ropa = null, colorCasco = null, extras = [] } = {}) {
+  const M0 = materiales();
+  // Variantes de vestuario: chaleco, ropa y casco de otro color sin tocar los materiales compartidos
+  const M = { ...M0 };
+  if (chaleco) M.chaleco = new THREE.MeshStandardMaterial({ color: chaleco, roughness: 0.6 });
+  if (ropa) M.pantalon = new THREE.MeshStandardMaterial({ color: ropa, roughness: 0.85 });
+  if (colorCasco) M.casco = new THREE.MeshStandardMaterial({ color: colorCasco, roughness: 0.35 });
+  const ex = new Set(extras);
   const raiz = new THREE.Group(); raiz.name = nombre;
   const pelvis = new THREE.Group(); pelvis.position.y = Y_CADERA; raiz.add(pelvis);
   pelvis.add(caja(0.2, 0.16, 0.34, M.pantalon, 0, 0, 0));
@@ -87,6 +96,20 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
   farolG.visible = Boolean(farol);
   brazos[0].mano.add(farolG);
   tronco.add(caja(0.05, 0.12, 0.04, M.radio, 0.13, 0.42, -0.1));
+  // Equipos de protección y útiles
+  let pantalla = null, frontal = null, tablet = null;
+  if (ex.has('pantalla')) {                // pantalla facial tintada abatible (soldador)
+    pantalla = new THREE.Group(); pantalla.position.set(0.12, 0.06, 0);
+    pantalla.add(caja(0.02, 0.2, 0.24, M.visor, 0.03, -0.1, 0), caja(0.05, 0.03, 0.26, M.radio, 0.0, 0.0, 0));
+    cabeza.add(pantalla);
+  }
+  if (ex.has('gafas')) cabeza.add(caja(0.03, 0.045, 0.2, M.gafas, 0.1, 0.02, 0));
+  if (ex.has('orejeras')) { for (const z of [-1, 1]) cabeza.add(caja(0.08, 0.1, 0.04, M.radio, 0, 0, z * 0.12)); cabeza.add(caja(0.03, 0.03, 0.26, M.radio, 0, 0.12, 0)); }
+  if (ex.has('frontal')) { frontal = caja(0.04, 0.035, 0.06, M.led, 0.125, 0.075, 0); cabeza.add(frontal); }
+  if (ex.has('polainas')) for (const p of piernas) p.rodilla.add(capsula(0.072, 0.16, M.cuero, -0.3));
+  if (ex.has('guantesLargos')) for (const b of brazos) b.codo.add(capsula(0.06, 0.12, M.cuero, -0.2));
+  if (ex.has('tablet')) { tablet = new THREE.Group(); tablet.add(caja(0.02, 0.2, 0.15, M.radio, 0, 0, 0), caja(0.022, 0.17, 0.12, M.pantallaTab, 0.003, 0, 0)); tablet.position.set(0.05, -0.08, 0); tablet.rotation.z = 0.4; brazos[1].mano.add(tablet); }
+  if (ex.has('emisoraHombro')) tronco.add(caja(0.05, 0.1, 0.04, M.radio, 0.02, 0.56, 0.2));
   const ficha = { capa: 'Trabajos de mantenimiento', nombre, info: 'Operario del tajo con chaleco de alta visibilidad, casco, farol y emisora.' };
   raiz.traverse((n) => { if (n.isMesh) n.userData = ficha; });
 
@@ -97,11 +120,11 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
    * @param {object} o  estado, vel (m/s de la marcha, ya aplicada a la posición de raiz por quien lo mueve),
    *                    alPisar(lado) callback de cada pisada
    */
-  function actualizar(dt, { estado = st.estado, vel = 0, alPisar = null } = {}) {
+  function actualizar(dt, { estado = st.estado, vel = 0, alPisar = null, pose = null } = {}) {
     st.estado = estado; st.vel = vel; st.t += dt;
     const t = st.t;
     // Transición suave a cuclillas
-    const objA = estado === 'agacharse' ? 1 : 0;
+    const objA = pose?.agacha ?? (estado === 'agacharse' ? 1 : 0);
     st.agacha += (objA - st.agacha) * Math.min(1, dt * 3);
     const a = st.agacha;
     const andando = vel > 0.05 && estado === 'andar';
@@ -163,6 +186,17 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
       // De pie mirando: manos en la cintura
       for (const b of brazos) { b.hombro.rotation.z = -0.25; b.hombro.rotation.x = -b.lado * 0.55; b.codo.rotation.z = 1.75; }
     }
+    // Pose impuesta por quien dirige la tarea (soldadura: palear, sostener el soplete, golpear…)
+    if (pose) {
+      if (pose.tronco !== undefined) tronco.rotation.z = -pose.tronco;
+      if (pose.cabeza) { cabeza.rotation.z = pose.cabeza.z ?? cabeza.rotation.z; cabeza.rotation.y = pose.cabeza.y ?? cabeza.rotation.y; }
+      for (const [k, b] of [['izq', izq], ['der', der]]) {
+        const q = pose[k];
+        if (!q) continue;
+        b.hombro.rotation.z = q.z ?? b.hombro.rotation.z; b.hombro.rotation.x = q.x ?? b.hombro.rotation.x; b.codo.rotation.z = q.codo ?? b.codo.rotation.z;
+      }
+      if (pantalla && pose.pantalla !== undefined) pantalla.rotation.z = pose.pantalla ? 0 : 1.4;   // bajada o levantada
+    }
   }
-  return { raiz, actualizar, estado: st, farol: farolG };
+  return { raiz, actualizar, estado: st, farol: farolG, manos: { izq: brazos[0].mano, der: brazos[1].mano }, cabeza, frontal, tablet };
 }

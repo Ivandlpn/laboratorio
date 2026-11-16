@@ -929,6 +929,27 @@
     box-shadow: var(--hud-sombra); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font: 12px/1.35 var(--sans);
   }
   #panelMant[hidden] { display: none; }
+  /* ---- Soldadura aluminotérmica: mismo panel que el tren de trabajo, con el borde de fuego ---- */
+  #panelSold {
+    position: fixed; z-index: 8; top: calc(100px + env(safe-area-inset-top, 0px));
+    right: 12px; width: min(350px, calc(100vw - 24px));
+    max-height: calc(100vh - 100px - var(--reserva-inf)); display: flex; flex-direction: column; overflow: hidden;
+    background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-top: 3px solid #ff6a1a; border-radius: var(--hud-radio);
+    box-shadow: var(--hud-sombra); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font: 12px/1.35 var(--sans);
+  }
+  #panelSold[hidden] { display: none; }
+  #panelSold .tr-cab { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  #panelSold .tr-tit { font-weight: 700; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #panelSold .tr-cab small { color: var(--muted); font: 10px var(--mono); white-space: nowrap; }
+  #panelSold .tr-cab button { border: 0; background: transparent; color: var(--muted); font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
+  #soldCuerpo { overflow: auto; flex: 1 1 auto; min-height: 0; padding: 4px; }
+  #soldCuerpo .tr-item { cursor: default; }
+  .sold-fases { grid-template-columns: repeat(13, 1fr) !important; }
+  .sold-fases span.on { background: #ff6a1a !important; color: #111 !important; }
+  .sold-real { color: var(--muted); font-size: 11px; }
+  #btnSoldTerminar { border: 1px solid #ff6a1a; background: transparent; color: var(--fg); border-radius: 999px; padding: 7px 16px; font: 600 12px var(--sans); cursor: pointer; }
+  #btnSoldadura.activo, #btnSoldadura[aria-pressed="true"] { background: #ff6a1a; color: #111; }
+  body.modo-cine #panelSold, body.limpio #panelSold { display: none !important; }
   #panelMant .tr-cab { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
   #panelMant .tr-tit { font-weight: 700; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #panelMant .tr-cab small { color: var(--muted); font: 10px var(--mono); white-space: nowrap; }
@@ -1013,6 +1034,13 @@
       display: flex !important; top: auto; left: 12px; right: 12px; width: auto; margin: 0;
       bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: 56vh;
     }
+    body:not(.m-sold) #panelSold { display: none !important; }
+    body.m-sold #panelSold {
+      display: flex !important; top: auto; left: 12px; right: 12px; width: auto; margin: 0;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: 56vh;
+    }
+    body.m-sold #panelSold.plegado > :not(.tr-cab) { display: none !important; }
+    body.m-sold #panelSold .tr-cab { cursor: pointer; }
     body.m-mant #panelMant.plegado > :not(.tr-cab) { display: none !important; }
     body.m-mant #panelMant.plegado .tr-cab::after { content: '▴'; color: var(--muted); }
     body.m-mant #panelMant .tr-cab { cursor: pointer; }

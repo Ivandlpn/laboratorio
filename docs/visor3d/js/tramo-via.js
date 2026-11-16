@@ -166,6 +166,8 @@ export function crearTramoVia({ Eje3D, aLocal, mundo, mats, GEO, atras = 112, de
 
   const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _sc = new THREE.Vector3(1, 1, 1), _bx = new THREE.Matrix4(), _z = new THREE.Vector3(), _y = new THREE.Vector3();
   const ptsR = [[], []];
+  const huecos = [];   // { r: 0 der. / 1 izq., a, b } tramos de carril ocultos
+  const _cero = new THREE.Matrix4().makeScale(0, 0, 0);
   function actualizarVia() {
     for (let k = 0; k < N_TRAV; k++) {
       const b = base[k], d = desviacion(b.pk);
@@ -189,6 +191,9 @@ export function crearTramoVia({ Eje3D, aLocal, mundo, mats, GEO, atras = 112, de
       const a = ptsR[r][k], b2 = ptsR[r][k + 1];
       _v.subVectors(b2, a);
       const L = _v.length();
+      // Tramos de carril que dibuja otro módulo (p. ej. la soldadura): escala nula
+      const pkM = base[k].pk + ESPACIADO / 2;
+      if (huecos.some((h) => h.r === r && pkM > h.a && pkM < h.b)) { imCab.setMatrixAt(n, _cero); imAlma.setMatrixAt(n, _cero); imPatin.setMatrixAt(n, _cero); n++; continue; }
       _v.divideScalar(L);
       _z.crossVectors(_v, _up).normalize();
       _y.crossVectors(_z, _v);
@@ -294,6 +299,10 @@ export function crearTramoVia({ Eje3D, aLocal, mundo, mats, GEO, atras = 112, de
   return {
     grupo, N_TRAV, PASO_F, prov, base, montar, desmontar, reanclar, actualizarVia, actualizarBalasto, marcar, hundir, rellenar, borrarHuellas,
     traviesa, punto, cotaBalasto, enVia, desviacion, refrescarCorte,
+    /** Oculta el carril r (0 = derecho, 1 = izquierdo, en sentido creciente) entre dos PK. */
+    ocultarCarril(r, a, b) { huecos.push({ r, a, b }); }, mostrarCarriles() { huecos.length = 0; },
+    /** Puntos de los carriles por traviesa (local): ptsR[r][k]. */
+    get carriles() { return ptsR; },
     get s() { return s; }, get pkIni() { return pkVentana; }, get pkFin() { return pkVentana + (N_TRAV - 1) * ESPACIADO; },
     marcarTodo() { sucia = [0, NF - 1]; },
   };
