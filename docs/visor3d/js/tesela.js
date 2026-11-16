@@ -315,8 +315,10 @@ export function crearGestorTeselas(ctx) {
           flushContacto();
         }
 
-        // 2b. Traviesas AI-04 + sujeciones Vossloh SKL-14 cada 1,25 m + arquetas cada 50 m + hitos PK
-        for (let pk = pk0; pk < Math.min(pk1, PK_TERMINAL); pk += 1.25) {
+        // 2b. Traviesas AI-04 + sujeciones Vossloh SKL-14 a su espaciado real de 0,6 m, en una rejilla global de PK (la misma
+        // del tramo dinámico de los trabajos de mantenimiento y de las pisadas de la inspección a pie)
+        for (let iT = Math.ceil(pk0 / 0.6); iT * 0.6 < Math.min(pk1, PK_TERMINAL); iT++) {
+          const pk = iT * 0.6;
           const m = Eje3D.enPk(pk);
           const yaw = Math.atan2(m.ty, m.tx), nx = -m.ty, ny = m.tx;
           for (const signo of [-1, 1]) {
@@ -1727,7 +1729,7 @@ export function crearGestorTeselas(ctx) {
                 if (l < 0.01) continue;
                 const yaw = Math.atan2(-dz, dx);
                 let d = resto;
-                for (; d < l; d += 1.25) {
+                for (; d < l; d += 0.6) {
                   const t = d / l, pT = [a[0] + dx * t, a[1] + (b[1] - a[1]) * t - 0.16, a[2] + dz * t];
                   const mt = matInst(pT, yaw);
                   inst.traviesa.push(mt);
@@ -2580,7 +2582,7 @@ export function crearGestorTeselas(ctx) {
             im.computeBoundingSphere();
             im.userData = fichaElemento('050117', null, pkCentro);
             im.userData.nombre = 'Sujeción de carril';
-            im.userData.info = 'Sujeción elástica tipo Vossloh SKL sobre traviesa monobloque: grapa de varilla en verde Adif, placa guía acodada, tirafondo con arandela y placa de asiento de 10 mm bajo el patín del carril UIC 60. Una cada 0,6 m por carril (aquí se dibuja una por traviesa del modelo, cada 1,25 m).';
+            im.userData.info = 'Sujeción elástica tipo Vossloh SKL sobre traviesa monobloque: grapa de varilla en verde Adif, placa guía acodada, tirafondo con arandela y placa de asiento de 10 mm bajo el patín del carril UIC 60. Una por traviesa y carril, cada 0,6 m.';
             tramo.add(im);
           }
           for (const c of tramo.children) c.visible = false;

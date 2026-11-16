@@ -953,6 +953,38 @@
   #btnMantTerminar { border: 1px solid #f2b705; background: transparent; color: var(--fg); border-radius: 999px; padding: 7px 16px; font: 600 12px var(--sans); cursor: pointer; }
   #btnMantTerminar:hover { background: rgba(242, 183, 5, .18); }
   body.modo-cine #panelMant, body.limpio #panelMant { display: none !important; }
+  #panelInsp {
+    position: fixed; z-index: 8; top: calc(100px + env(safe-area-inset-top, 0px));
+    right: 12px; width: min(340px, calc(100vw - 24px));
+    max-height: calc(100vh - 100px - var(--reserva-inf)); display: flex; flex-direction: column; overflow: hidden;
+    background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-top: 3px solid #f2b705; border-radius: var(--hud-radio);
+    box-shadow: var(--hud-sombra); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font: 12px/1.35 var(--sans);
+  }
+  #panelInsp[hidden] { display: none; }
+  #panelInsp .tr-cab { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  #panelInsp .tr-tit { font-weight: 700; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #panelInsp .tr-cab small { color: var(--muted); font: 10px var(--mono); white-space: nowrap; }
+  #panelInsp .tr-cab button { border: 0; background: transparent; color: var(--muted); font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
+  #panelEner {
+    position: fixed; z-index: 8; top: calc(100px + env(safe-area-inset-top, 0px));
+    right: 12px; width: min(340px, calc(100vw - 24px));
+    max-height: calc(100vh - 100px - var(--reserva-inf)); display: flex; flex-direction: column; overflow: hidden;
+    background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-top: 3px solid #f2b705; border-radius: var(--hud-radio);
+    box-shadow: var(--hud-sombra); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); font: 12px/1.35 var(--sans);
+  }
+  #panelEner[hidden] { display: none; }
+  #panelEner .tr-cab { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  #panelEner .tr-tit { font-weight: 700; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #panelEner .tr-cab small { color: var(--muted); font: 10px var(--mono); white-space: nowrap; }
+  #panelEner .tr-cab button { border: 0; background: transparent; color: var(--muted); font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
+  body.modo-cine #panelInsp, body.limpio #panelInsp, body.modo-cine #panelEner, body.limpio #panelEner { display: none !important; }
+  #btnInspeccion.activo, #btnInspeccion[aria-pressed="true"] { background: #7fb3ff; color: #0b1222; border-color: #7fb3ff; }
+  #btnEnergia.activo, #btnEnergia[aria-pressed="true"] { background: #f2b705; color: #111; border-color: #f2b705; }
+  #panelInsp { border-top-color: #7fb3ff; }
+  .insp-tit { padding: 8px 8px 2px; }
+  .insp-inc { padding: 2px 8px; }
+  #inspCuerpo, #enerCuerpo { overflow: auto; flex: 1 1 auto; min-height: 0; padding: 4px; }
+  .ener-fases { grid-template-columns: repeat(7, 1fr); }
   #hudAsiento { position: fixed; z-index: 8; left: 50%; transform: translateX(-50%); bottom: calc(var(--reserva-inf, 120px) + 12px); width: 360px; height: 150px; border-radius: 10px; border: 1px solid rgba(242, 183, 5, .6); }
   #hudAsiento[hidden] { display: none; }
   .mant-ciclo { padding: 6px 8px 8px; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
@@ -970,6 +1002,12 @@
     body:not(.m-trenes) #panelTrenesReales { display: none !important; }
     #btnMantenimiento { display: none; }
     body:not(.m-mant) #panelMant { display: none !important; }
+    #btnInspeccion, #btnEnergia { display: none; }
+    body:not(.m-insp) #panelInsp, body:not(.m-ener) #panelEner { display: none !important; }
+    body.m-insp #panelInsp, body.m-ener #panelEner {
+      display: flex !important; top: auto; left: 12px; right: 12px; width: auto; margin: 0;
+      bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: 56vh;
+    }
     body.m-mant #panelMant {
       display: flex !important; top: auto; left: 12px; right: 12px; width: auto; margin: 0;
       bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: 56vh;

@@ -32,7 +32,7 @@
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="./visor.css?v=9">
+<link rel="stylesheet" href="./visor.css?v=10">
 <link rel="stylesheet" href="./comun/panel.css">
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
@@ -281,6 +281,8 @@
 <div id="islaRapida" role="toolbar" aria-label="Controles rápidos de realismo">
   <button type="button" id="btnTrenesReales" aria-expanded="false" title="Trenes de Renfe circulando ahora entre Albacete y Alicante (tiempo real)"><span class="tr-punto" aria-hidden="true"></span>Trenes en directo <b id="nTrenesReales">…</b> ▾</button>
   <button type="button" id="btnMantenimiento" aria-pressed="false" title="Trabajos de mantenimiento nocturnos: bateadora, perfiladora y estabilizador en un tajo con la vía cortada">🚧 Trabajos Mantenimiento</button>
+  <button type="button" id="btnInspeccion" aria-pressed="false" title="Inspección de superestructura a pie de noche, con coche de apoyo y dron en modo cine">🔦 Inspección</button>
+  <button type="button" id="btnEnergia" aria-pressed="false" title="Mantenimiento de energía: dresina de catenaria con castillete elevador y puesta a tierra">⚡ Energía</button>
   <span class="sep"></span>
   <button type="button" id="btnIslaSol" title="Cambiar hora solar">☀️ Día</button>
   <button type="button" id="btnIslaClima" title="Cambiar atmósfera / visibilidad">🌤 Despejado</button>
@@ -313,6 +315,30 @@
     <p class="tr-pie">Simulación: tajo, posiciones y ritmos supuestos. Modelos de las máquinas provisionales.</p>
   </div>
 </div>
+<div id="panelInsp" hidden role="dialog" aria-label="Inspección de superestructura">
+  <div class="tr-cab">
+    <span class="tr-tit">🔦 Inspección de superestructura</span>
+    <small id="inspEstado">Escenario nocturno</small>
+    <button type="button" id="btnInspCerrar" aria-label="Ocultar el panel">✕</button>
+  </div>
+  <div id="inspCuerpo"></div>
+  <div class="mant-pie">
+    <button type="button" id="btnInspTerminar">Terminar inspección</button>
+    <p class="tr-pie">Simulación: patrulla, incidencias y camino de servicio supuestos.</p>
+  </div>
+</div>
+<div id="panelEner" hidden role="dialog" aria-label="Mantenimiento de energía">
+  <div class="tr-cab">
+    <span class="tr-tit">⚡ Mantenimiento de energía</span>
+    <small id="enerEstado">Escenario nocturno</small>
+    <button type="button" id="btnEnerCerrar" aria-label="Ocultar el panel">✕</button>
+  </div>
+  <div id="enerCuerpo"></div>
+  <div class="mant-pie">
+    <button type="button" id="btnEnerTerminar">Terminar trabajos de catenaria</button>
+    <p class="tr-pie">Simulación: dresina, ciclo de trabajo y física del hilo supuestos.</p>
+  </div>
+</div>
 <canvas id="hudAsiento" width="360" height="150" hidden aria-label="Asiento de la vía medido por el estabilizador"></canvas>
 <div id="cineHint">Modo cine · Pulsa H o Esc para mostrar la interfaz</div>
 <!-- Móvil: pantalla limpia. Los paneles van plegados y se abren de uno en uno desde esta barra inferior -->
@@ -322,6 +348,8 @@
   <button type="button" data-hoja="hitos" aria-pressed="false"><span aria-hidden="true">📡</span>Hitos</button>
   <button type="button" data-hoja="trenes" aria-pressed="false"><span aria-hidden="true">🚆</span>Trenes</button>
   <button type="button" data-hoja="mant" aria-pressed="false"><span aria-hidden="true">🚧</span>Obras</button>
+  <button type="button" data-hoja="insp" aria-pressed="false"><span aria-hidden="true">🔦</span>Inspección</button>
+  <button type="button" data-hoja="ener" aria-pressed="false"><span aria-hidden="true">⚡</span>Energía</button>
   <button type="button" data-hoja="ambiente" aria-pressed="false"><span aria-hidden="true">🌤</span>Ambiente</button>
 </nav>
 
@@ -365,6 +393,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { crearFlota } from './js/flota.js';
 import { crearCatenaria } from './js/catenaria.js';
 import { crearMantenimiento } from './js/mantenimiento.js';
+import { crearInspeccion, ESTADOS_INSP } from './js/inspeccion.js';
+import { crearEnergia, FASES_ENER } from './js/energia.js';
 import { urlGeoLibre } from './js/geolibre.js';
 import { NOMBRE_FASE } from './js/bateadora.js';
 import { crearTrenesReales } from './js/tiempo-real.js';
@@ -1874,6 +1904,7 @@ function abrirPanelMant(abrir = elPanelMant.hidden) {
 function activarMantenimiento(on = !mantenimiento.estado.activo) {
   if (on === mantenimiento.estado.activo) { if (on) abrirPanelMant(true); return; }
   if (on) {
+    salirOtrosModos('mant');
     salirModoVivo();
     antesMant = { hora: horaSol, trenes: grupoFlota.visible };
     horaSol = 'noche';
@@ -1913,6 +1944,133 @@ elCuerpoMant.addEventListener('click', (ev) => {
   const b = ev.target.closest('button[data-maq]');
   if (b) encuadrarMaquina(b.dataset.maq);
 });
+
+// ---- Inspección de superestructura (noche, patrulla a pie, coche de apoyo y dron en modo cine) ----
+const inspeccion = crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM });
+const SITIO_INSP = { pk: 400300, s: 1 };
+let camInsp = null, antesInsp = null;
+const elPanelInsp = document.getElementById('panelInsp'), elCuerpoInsp = document.getElementById('inspCuerpo'), elBtnInsp = document.getElementById('btnInspeccion');
+// ---- Mantenimiento de energía (dresina de catenaria con castillete) ----
+const energia = crearEnergia({ escena, Eje3D, W, Catenaria, matHilo: matCobreContacto });
+const SITIO_ENER = { pk: 400900, s: 1 };
+let camEner = null, antesEner = null;
+const elPanelEner = document.getElementById('panelEner'), elCuerpoEner = document.getElementById('enerCuerpo'), elBtnEner = document.getElementById('btnEnergia');
+const CAMS_ENER = [['general', 'General'], ['castillete', 'Castillete'], ['pantografo', 'Pantógrafo'], [null, 'Libre']];
+
+// Los modos nocturnos se excluyen: al entrar en uno se sale de los otros. Guardan y devuelven la hora y los trenes
+function entrarNoche() {
+  salirModoVivo();
+  const antes = { hora: horaSol, trenes: grupoFlota.visible };
+  horaSol = 'noche';
+  aplicarTema();
+  grupoFlota.visible = false;
+  return antes;
+}
+function salirNoche(antes) {
+  if (!antes) return;
+  horaSol = antes.hora;
+  aplicarTema();
+  grupoFlota.visible = antes.trenes;
+  const chk = document.getElementById('chkTrenes');
+  if (chk) chk.checked = antes.trenes;
+}
+function salirOtrosModos(excepto) {
+  if (excepto !== 'mant' && mantenimiento.estado.activo) activarMantenimiento(false);
+  if (excepto !== 'insp' && inspeccion.estado.activo) activarInspeccion(false);
+  if (excepto !== 'ener' && energia.estado.activo) activarEnergia(false);
+}
+const hojaMovil = (h) => document.querySelector(`#dockMovil [data-hoja="${h}"]`);
+
+function pintarInsp() {
+  const st = inspeccion.sitio;
+  document.getElementById('inspEstado').textContent = st ? `Vía ${st.s > 0 ? 1 : 2} · PK ${fmtPk(st.pk0)} · plano ${inspeccion.estado.plano}` : 'Escenario nocturno';
+  if (elPanelInsp.hidden && !document.body.classList.contains('m-insp')) return;
+  const inc = inspeccion.incidencias;
+  elCuerpoInsp.innerHTML = `
+    <div class="mant-ciclo"><div class="mant-cams">
+      <button type="button" data-cam-insp="cine" aria-pressed="${camInsp === 'cine'}">🎥 Dron en modo cine</button>
+      <button type="button" data-cam-insp="" aria-pressed="${camInsp === null}">Libre</button></div></div>
+    ${inspeccion.lista().map((g) => `<div class="tr-item">
+      <span class="tr-l1"><span class="tr-tipo">${escHtml(g.estado.replace('_', ' '))}</span><b>${escHtml(g.nombre)}</b><span class="tr-sent">${g.luz === 'frontal' ? 'frontal' : 'linterna'}</span></span>
+      <span class="tr-l3">PK ${fmtPk(g.pk)} · ${escHtml(ESTADOS_INSP[g.estado])} · ${g.anotadas} anotadas</span></div>`).join('')}
+    <div class="mant-dato insp-tit"><b>Incidencias registradas · ${inc.length}</b></div>
+    ${inc.slice(0, 8).map((x) => `<div class="tr-l3 insp-inc">${x.foto ? '📷' : '📝'} PK ${fmtPk(x.pk)} · ${escHtml(x.tipo)} · ${escHtml(x.quien)} ${x.hora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>`).join('') || '<p class="tr-vacio">Aún sin incidencias.</p>'}`;
+}
+function activarInspeccion(on = !inspeccion.estado.activo) {
+  if (on === inspeccion.estado.activo) { if (on) elPanelInsp.hidden = false; return; }
+  if (on) {
+    salirOtrosModos('insp');
+    antesInsp = entrarNoche();
+    inspeccion.montar(SITIO_INSP);
+    if (vistaActiva !== 'aerea') setModoVista('aerea');
+    irAPk(SITIO_INSP.pk, 'aerea');
+    camInsp = 'cine';
+    if (!matchMedia('(max-width: 760px)').matches) elPanelInsp.hidden = false;
+  } else {
+    camInsp = null;
+    inspeccion.desmontar();
+    salirNoche(antesInsp); antesInsp = null;
+    elPanelInsp.hidden = true;
+    if (document.body.classList.contains('m-insp')) hojaMovil('insp')?.click();
+  }
+  elBtnInsp.setAttribute('aria-pressed', String(on));
+  elBtnInsp.classList.toggle('activo', on);
+  pintarInsp();
+}
+function pintarEner() {
+  const st = energia.sitio, e = energia.estado;
+  document.getElementById('enerEstado').textContent = st ? `Vía ${st.s > 0 ? 1 : 2} · PK ${fmtPk(st.pk)} · vano ${e.vano}` : 'Escenario nocturno';
+  if (elPanelEner.hidden && !document.body.classList.contains('m-ener')) return;
+  elCuerpoEner.innerHTML = `
+    <div class="mant-ciclo">
+      <div class="mant-fases ener-fases">${Object.entries(FASES_ENER).map(([k, n]) => `<span class="${k === e.fase ? 'on' : ''}" title="${n}">${n.split(' ')[0]}</span>`).join('')}</div>
+      <div class="mant-dato"><b>${FASES_ENER[e.fase]}</b></div>
+      <div class="mant-dato">Pantógrafo de auscultación: descentramiento ${e.descentramiento >= 0 ? '+' : ''}${e.descentramiento} mm · elevación del hilo ${e.alturaHilo} mm</div>
+      <div class="mant-cams">${CAMS_ENER.map(([k, n]) => `<button type="button" data-cam-ener="${k ?? ''}" aria-pressed="${camEner === k}">${n}</button>`).join('')}</div>
+    </div>
+    <div class="tr-l3 insp-inc">Dresina de catenaria con castillete de tijera, grúa-cesta plegada y pantógrafo de auscultación. Antes de tocar el hilo se pone a tierra con la pértiga; las péndolas se ajustan con la catenaria descargada.</div>`;
+}
+function activarEnergia(on = !energia.estado.activo) {
+  if (on === energia.estado.activo) { if (on) elPanelEner.hidden = false; return; }
+  if (on) {
+    salirOtrosModos('ener');
+    antesEner = entrarNoche();
+    energia.montar(SITIO_ENER);
+    if (vistaActiva !== 'aerea') setModoVista('aerea');
+    irAPk(SITIO_ENER.pk, 'aerea');
+    camEner = 'general';
+    if (!matchMedia('(max-width: 760px)').matches) elPanelEner.hidden = false;
+  } else {
+    camEner = null;
+    energia.desmontar();
+    salirNoche(antesEner); antesEner = null;
+    elPanelEner.hidden = true;
+    if (document.body.classList.contains('m-ener')) hojaMovil('ener')?.click();
+  }
+  elBtnEner.setAttribute('aria-pressed', String(on));
+  elBtnEner.classList.toggle('activo', on);
+  pintarEner();
+}
+// Seguimiento de cámara de los dos modos (amortiguado; el usuario la toma al arrastrar)
+function seguirCamModo(pose, k) {
+  if (!pose) return;
+  camara.position.lerp(pose.pos, k);
+  controles.target.lerp(pose.obj, k);
+  camara.lookAt(controles.target);
+}
+controles.addEventListener('start', () => {
+  if (camInsp) { camInsp = null; pintarInsp(); }
+  if (camEner) { camEner = null; pintarEner(); }
+});
+elBtnInsp.addEventListener('click', () => activarInspeccion());
+elBtnEner.addEventListener('click', () => activarEnergia());
+document.getElementById('btnInspTerminar').addEventListener('click', () => activarInspeccion(false));
+document.getElementById('btnEnerTerminar').addEventListener('click', () => activarEnergia(false));
+document.getElementById('btnInspCerrar').addEventListener('click', () => { if (document.body.classList.contains('m-insp')) hojaMovil('insp')?.click(); else elPanelInsp.hidden = true; });
+document.getElementById('btnEnerCerrar').addEventListener('click', () => { if (document.body.classList.contains('m-ener')) hojaMovil('ener')?.click(); else elPanelEner.hidden = true; });
+elCuerpoInsp.addEventListener('click', (ev) => { const b = ev.target.closest('button[data-cam-insp]'); if (b) { camInsp = b.dataset.camInsp || null; pintarInsp(); } });
+elCuerpoEner.addEventListener('click', (ev) => { const b = ev.target.closest('button[data-cam-ener]'); if (b) { camEner = b.dataset.camEner || null; pintarEner(); } });
+
 elCuerpoTR.addEventListener('click', (ev) => {
   const b = ev.target.closest('button');
   if (!b) return;
@@ -2956,7 +3114,7 @@ ajustarDisposicion();
 // ---- Móvil: barra inferior que abre los paneles plegados de uno en uno (el CSS los oculta sin su clase m-*) ----
 {
   const dock = document.getElementById('dockMovil');
-  const HOJAS = { mandos: 'cab', perfil: 'barraPerfil', hitos: 'panelEmplazamientos', trenes: 'panelTrenesReales', mant: 'panelMant', ambiente: 'islaRapida' };
+  const HOJAS = { mandos: 'cab', perfil: 'barraPerfil', hitos: 'panelEmplazamientos', trenes: 'panelTrenesReales', mant: 'panelMant', insp: 'panelInsp', ener: 'panelEner', ambiente: 'islaRapida' };
   const botones = [...dock.querySelectorAll('button')];
   let abierta = null;
   function abrirHoja(h) {
@@ -2968,13 +3126,17 @@ ajustarDisposicion();
     // «Obras» en el móvil: abre la hoja y arranca los trabajos (o los deja como estaban si ya están en marcha)
     if (abierta === 'mant' && !mantenimiento.estado.activo) activarMantenimiento(true);
     if (abierta === 'mant') pintarMant();
+    if (abierta === 'insp' && !inspeccion.estado.activo) activarInspeccion(true);
+    if (abierta === 'insp') pintarInsp();
+    if (abierta === 'ener' && !energia.estado.activo) activarEnergia(true);
+    if (abierta === 'ener') pintarEner();
   }
   function pintarDock() {
     for (const b of botones) {
       const h = b.dataset.hoja;
       b.setAttribute('aria-pressed', String(abierta === h));
       // Sin contenido que mostrar (p. ej. mandos fuera de cabina y dron): botón apagado
-      b.disabled = h !== 'trenes' && h !== 'mant' && Boolean(document.getElementById(HOJAS[h])?.hidden);
+      b.disabled = !['trenes', 'mant', 'insp', 'ener'].includes(h) && Boolean(document.getElementById(HOJAS[h])?.hidden);
       if (b.disabled && abierta === h) { abierta = null; document.body.classList.remove('m-' + h); }
     }
   }
@@ -3045,6 +3207,16 @@ function fotograma(ahora) {
     mantenimiento.actualizar(dt, { distCam: pb ? camara.position.distanceTo(W(pb.E, pb.N, pb.Z)) : 60, noche: modoNoche });
     seguirCamMant();
     if ((nFotograma & 7) === 0) pintarMant();
+  }
+  if (inspeccion.estado.activo) {
+    inspeccion.actualizar(dt, { noche: modoNoche });
+    if (camInsp === 'cine') seguirCamModo(inspeccion.poseDron(dt), 1 - Math.exp(-dt * 1.6));
+    if ((nFotograma & 15) === 0) pintarInsp();
+  }
+  if (energia.estado.activo) {
+    energia.actualizar(dt, { noche: modoNoche });
+    if (camEner) seguirCamModo(energia.pose(camEner), camEner === 'general' ? 1 - Math.exp(-dt * 2) : 1);
+    if ((nFotograma & 7) === 0) pintarEner();
   }
   const utmCam = UTMdeMundo(camara.position);
   // Interiores de los trenes: solo se dibujan con la cámara cerca; dentro, plano cercano corto para no recortar nada
@@ -3173,7 +3345,7 @@ function fotograma(ahora) {
     const enVuelo = gestorVuelo.actualizar(ahora);
     if (!enVuelo) controles.update();
     // Las cámaras de detalle de la maquinaria van a ras de carril: sin colisión con el terreno
-    if (!(camMant && mantenimiento.estado.activo)) aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado: pkRecorrido, rayosX: rayosXActivo });
+    if (!(camMant && mantenimiento.estado.activo) && !(camInsp && inspeccion.estado.activo) && !(camEner && energia.estado.activo)) aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado: pkRecorrido, rayosX: rayosXActivo });
     const m = UTMdeMundo(controles.target);
     if (Math.hypot(m.E - origen.E, m.N - origen.N) > 2500) recentrarOrigen(m.E, m.N, m.Z);
     const q = Eje3D.proyUTM(m.E, m.N);
@@ -3271,7 +3443,7 @@ if (params.has('pausaLoop')) {
 window.__env = {
   camara, controles, escena, render, renderEtq, Eje3D, MdtCorredor, aplicarTema,
   irAPk, setModoVista, teselasCargadas, bloquesTerreno, flota, dibujarPerfil, fotograma,
-  CENTROS_TRACCION_CORREDOR, W, Catenaria, mantenimiento, activarMantenimiento,
+  CENTROS_TRACCION_CORREDOR, W, Catenaria, mantenimiento, activarMantenimiento, inspeccion, activarInspeccion, energia, activarEnergia,
   avanzar: (dt = 0.06) => fotograma(tPrev + dt * 1000),
 };
 </script>

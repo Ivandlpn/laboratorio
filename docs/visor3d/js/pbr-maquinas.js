@@ -21,11 +21,11 @@ const lienzo = (w, h, pintar) => {
  * @param {string} color
  * @param {object} o  alturaSucio: m sobre el carril hasta donde sube el polvo; colorSucio; fuerza; hollin: nº de chimeneas
  */
-export function pinturaSucia(color, { rough = 0.62, metal = 0.12, alturaSucio = 0.9, colorSucio = '#bfb8aa', fuerza = 1, hollin = 0, rayas = 0 } = {}) {
+export function pinturaSucia(color, { rough = 0.62, metal = 0.12, alturaSucio = 0.9, colorSucio = '#bfb8aa', fuerza = 1, hollin = 0, rayas = 0, arriba = 0 } = {}) {
   const m = new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal });
   const u = {
     yCarril: { value: 0 }, alturaSucio: { value: alturaSucio }, colorSucio: { value: new THREE.Color(colorSucio) }, fuerza: { value: fuerza },
-    chimeneas: { value: Array.from({ length: 2 }, () => new THREE.Vector3(0, -1e6, 0)) }, nHollin: { value: hollin }, rayas: { value: rayas },
+    chimeneas: { value: Array.from({ length: 2 }, () => new THREE.Vector3(0, -1e6, 0)) }, nHollin: { value: hollin }, rayas: { value: rayas }, arriba: { value: arriba },
   };
   m.userData.uniforms = u;
   m.onBeforeCompile = (sh) => {
@@ -36,16 +36,22 @@ export function pinturaSucia(color, { rough = 0.62, metal = 0.12, alturaSucio = 
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
 varying vec3 vPosM;
-uniform float yCarril; uniform float alturaSucio; uniform vec3 colorSucio; uniform float fuerza; uniform vec3 chimeneas[2]; uniform int nHollin; uniform float rayas;
+uniform float yCarril; uniform float alturaSucio; uniform vec3 colorSucio; uniform float fuerza; uniform vec3 chimeneas[2]; uniform int nHollin; uniform float rayas; uniform float arriba;
 float hS(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float nS(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 w = f * f * (3.0 - 2.0 * f);
   return mix(mix(hS(i), hS(i + vec2(1, 0)), w.x), mix(hS(i + vec2(0, 1)), hS(i + vec2(1, 1)), w.x), w.y); }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
   float hRel = vPosM.y - yCarril;
   float n = nS(vPosM.xz * 3.1 + vPosM.y * 1.7) * 0.6 + nS(vPosM.xz * 11.0 + vPosM.y * 7.0) * 0.4;
-  float sucio = (1.0 - smoothstep(alturaSucio * 0.35, alturaSucio * (1.0 + 0.25 * n), hRel)) * fuerza;
-  // Chorreones finos que suben un poco más
-  sucio = max(sucio, (1.0 - smoothstep(0.0, alturaSucio * 1.8, hRel)) * step(0.72, nS(vec2(vPosM.x * 6.0 + vPosM.z * 6.0, 0.0))) * 0.45 * fuerza);
+  float sucio;
+  if (arriba > 0.0) {
+    // Polvo que cae de arriba (grafito del hilo de contacto sobre el techo de la dresina)
+    sucio = smoothstep(arriba - 0.6, arriba + 0.15, hRel) * fuerza * (0.75 + 0.35 * n);
+  } else {
+    sucio = (1.0 - smoothstep(alturaSucio * 0.35, alturaSucio * (1.0 + 0.25 * n), hRel)) * fuerza;
+    // Chorreones finos que suben un poco más
+    sucio = max(sucio, (1.0 - smoothstep(0.0, alturaSucio * 1.8, hRel)) * step(0.72, nS(vec2(vPosM.x * 6.0 + vPosM.z * 6.0, 0.0))) * 0.45 * fuerza);
+  }
   diffuseColor.rgb = mix(diffuseColor.rgb, colorSucio * (0.85 + 0.3 * n), clamp(sucio, 0.0, 1.0));
   // Desgaste general: pintura algo más oscura y sucia en manchas
   diffuseColor.rgb *= 0.88 + 0.12 * n;
@@ -56,7 +62,7 @@ float nS(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 w = f * f * (3.0 - 2.0 *
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
   roughnessFactor = mix(roughnessFactor, 1.0, clamp(sucio, 0.0, 1.0));`);
   };
-  m.customProgramCacheKey = () => `pinturaSucia:${hollin}:${rayas > 0 ? 1 : 0}`;
+  m.customProgramCacheKey = () => `pinturaSucia:${hollin}:${rayas > 0 ? 1 : 0}:${arriba > 0 ? 1 : 0}`;
   return m;
 }
 /** Actualiza la cota del carril (y chimeneas) de los materiales sucios de una máquina. */
@@ -113,11 +119,11 @@ export const texPegatina = (tipo) => lienzo(64, 64, (g) => {
 });
 
 /** Juego de materiales de una máquina. */
-export function materialesMaquina({ sucio = '#bfb8aa', alturaSucio = 0.9, fuerza = 1, hollin = 0, grafito = false } = {}) {
+export function materialesMaquina({ sucio = '#bfb8aa', alturaSucio = 0.9, fuerza = 1, hollin = 0, grafito = false, arriba = 0 } = {}) {
   const colorSucio = grafito ? '#1d1e20' : sucio;
   const M = {
-    amarillo: pinturaSucia('#f6a800', { alturaSucio, colorSucio, fuerza, hollin }),
-    amarilloOsc: pinturaSucia('#d99400', { alturaSucio, colorSucio, fuerza, hollin }),
+    amarillo: pinturaSucia('#f6a800', { alturaSucio, colorSucio, fuerza, hollin, arriba }),
+    amarilloOsc: pinturaSucia('#d99400', { alturaSucio, colorSucio, fuerza, hollin, arriba }),
     verde: pinturaSucia('#5fa83a', { alturaSucio: alturaSucio * 1.4, colorSucio, fuerza: fuerza * 1.2, rough: 0.7 }),
     chasis: pinturaSucia('#2b2e31', { alturaSucio: alturaSucio * 1.2, colorSucio, fuerza, rough: 0.75, metal: 0.4 }),
     acero: new THREE.MeshStandardMaterial({ color: '#9aa1a8', roughness: 0.35, metalness: 0.85 }),
