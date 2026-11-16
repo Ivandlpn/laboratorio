@@ -310,6 +310,8 @@ export default function CameraTracker({
   // Body Gesture Control state & refs
   const [gestureHudState, setGestureHudState] = useState<{ type: BodyGestureType; progress: number } | null>(null);
   const [gestureFlash, setGestureFlash] = useState<string | null>(null);
+  const [roundCompletedAlert, setRoundCompletedAlert] = useState<boolean>(false);
+  const prevRepsLenRef = useRef<number>(activeSessionReps.length);
   const activeGestureRef = useRef<{ type: BodyGestureType; startTime: number } | null>(null);
   const gestureCooldownUntilRef = useRef<number>(0);
 
@@ -422,10 +424,23 @@ export default function CameraTracker({
     lastTickRef.current = -1;
   }, [settings.pauseDuration, settings.targetAngle]);
 
-  // Sync rep count from parent session
+  // Sync rep count from parent session & trigger on-screen round completed alert
   useEffect(() => {
     setRepCount(activeSessionReps.length);
-  }, [activeSessionReps]);
+    if (
+      prevRepsLenRef.current < settings.targetReps &&
+      activeSessionReps.length >= settings.targetReps
+    ) {
+      setRoundCompletedAlert(true);
+      const t = setTimeout(() => setRoundCompletedAlert(false), 3200);
+      prevRepsLenRef.current = activeSessionReps.length;
+      return () => clearTimeout(t);
+    }
+    if (activeSessionReps.length < settings.targetReps) {
+      setRoundCompletedAlert(false);
+    }
+    prevRepsLenRef.current = activeSessionReps.length;
+  }, [activeSessionReps, settings.targetReps]);
 
   // Load MediaPipe scripts dynamically
   useEffect(() => {
@@ -755,10 +770,15 @@ export default function CameraTracker({
 
     if (!results.poseLandmarks) {
       setPersonInFrame(false);
+      if (stateRef.current !== "STANDING") {
+        stateRef.current = "STANDING";
+        setSquatState("STANDING");
+        pauseStartTimeRef.current = null;
+        setCountdown(settingsRef.current.pauseDuration);
+        lastTickRef.current = -1;
+      }
       return;
     }
-
-    setPersonInFrame(true);
 
     // Helper to calculate X and Y coordinates according to mirroring
     const getCanvasX = (pt: any) => (isMirrored ? (1 - pt.x) : pt.x) * canvas.width;
@@ -820,6 +840,19 @@ export default function CameraTracker({
     const lWrist = lm[15];
     const rWrist = lm[16];
 
+    // Full-body visibility gate: camera must see head/shoulders, hips, knees, and ankles inside frame
+    const inFrame = (pt: any, minVis: number) =>
+      !!pt && (pt.visibility ?? 0) >= minVis && pt.x >= 0.01 && pt.x <= 0.99 && pt.y >= 0.01 && pt.y <= 0.99;
+
+    const hasHeadOrShoulders = inFrame(nose, 0.3) || inFrame(lShoulder, 0.45) || inFrame(rShoulder, 0.45);
+    const hasShoulder = inFrame(lShoulder, 0.4) || inFrame(rShoulder, 0.4);
+    const hasHip = inFrame(lHip, 0.4) || inFrame(rHip, 0.4);
+    const hasKnee = inFrame(lKnee, 0.4) || inFrame(rKnee, 0.4);
+    const hasAnkle = inFrame(lAnkle, 0.35) || inFrame(rAnkle, 0.35);
+    const fullBodyDetected = hasHeadOrShoulders && hasShoulder && hasHip && hasKnee && hasAnkle;
+
+    setPersonInFrame(fullBodyDetected);
+
     // Determine biomechanical angles
     const leftKnee = calculateAngle(lHip, lKnee, lAnkle);
     const rightKnee = calculateAngle(rHip, rKnee, rAnkle);
@@ -836,14 +869,29 @@ export default function CameraTracker({
     if ((lKnee?.visibility ?? 0) < 0.3) activeKneeAngle = rightKnee;
     if ((rKnee?.visibility ?? 0) < 0.3) activeKneeAngle = leftKnee;
 
-    // Run the main squat tracking state machine
-    processSquatTelemetry(activeKneeAngle);
+    if (fullBodyDetected) {
+      // Run the main squat tracking state machine ONLY when full body is visible
+      processSquatTelemetry(activeKneeAngle);
 
-    // Run hands-free body gesture detection (only when standing & not in prep countdown)
-    processBodyGestures({
-      lShoulder, rShoulder, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle, lHeel, rHeel, lFoot, rFoot,
-      leftKnee, rightKnee
-    });
+      // Run hands-free body gesture detection (only when standing & not in prep countdown)
+      processBodyGestures({
+        lShoulder, rShoulder, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle, lHeel, rHeel, lFoot, rFoot,
+        leftKnee, rightKnee
+      });
+    } else {
+      // Do NOT count pause seconds or start a rep if full body is not visible
+      if (stateRef.current !== "STANDING") {
+        stateRef.current = "STANDING";
+        setSquatState("STANDING");
+        pauseStartTimeRef.current = null;
+        setCountdown(settingsRef.current.pauseDuration);
+        lastTickRef.current = -1;
+      }
+      if (activeGestureRef.current) {
+        activeGestureRef.current = null;
+        setGestureHudState(null);
+      }
+    }
 
     // DRAW CYBER ATHLETIC SKELETON
     // Choose neon color based on state
@@ -1640,6 +1688,30 @@ export default function CameraTracker({
           )}
         </AnimatePresence>
 
+        {/* Round Completed Center Screen Alert */}
+        <AnimatePresence>
+          {roundCompletedAlert && !gestureFlash && !gestureHudState && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/65 backdrop-blur-[2px] pointer-events-none select-none px-4 text-center"
+            >
+              <div className="px-7 py-5 rounded-3xl bg-brand text-black border-2 border-white shadow-[0_0_50px_rgba(226,255,49,0.85)] flex flex-col items-center gap-1.5">
+                <span className="text-[10px] font-mono font-black uppercase tracking-widest">
+                  RONDA {currentSet} / {settings.targetSets}
+                </span>
+                <span className="text-2xl sm:text-3xl font-black font-mono uppercase tracking-tight">
+                  ¡RONDA COMPLETADA!
+                </span>
+                <span className="text-xs font-mono font-bold uppercase">
+                  {activeSessionReps.length} / {settings.targetReps} REPS • BRAZOS ARRIBA PARA SIGUIENTE
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Massive Gym Focus Angle Display when standing or descending */}
         {isGymFocusMode && squatState !== "HOLDING" && squatState !== "COMPLETED_HOLD" && (
           <div className="absolute top-6 left-6 z-20 pointer-events-none flex flex-col bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-white/10">
@@ -1896,37 +1968,60 @@ export default function CameraTracker({
 
         {/* User posture safety helper notifications */}
         {!settings.isSimulationMode && !modelLoading && !cameraError && !personInFrame && (
-          <div className="absolute bottom-6 left-6 right-6 bg-black/90 border border-white/10 p-4 rounded-2xl flex items-start gap-3 backdrop-blur-md z-10">
-            <AlertCircle className="h-5 w-5 text-brand shrink-0 mt-0.5" />
+          <div className="absolute bottom-6 left-6 right-6 bg-black/90 border border-amber-500/40 p-4 rounded-2xl flex items-start gap-3 backdrop-blur-md z-10">
+            <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-xs font-black text-white uppercase tracking-wider">Alineación del Atleta</h4>
-              <p className="text-[10px] text-zinc-400 mt-0.5 leading-normal font-mono">Colócate a unos 2.5 metros para que la cámara capture todo tu cuerpo (hombros, caderas, rodillas y tobillos) de frente.</p>
+              <h4 className="text-xs font-black text-amber-400 uppercase tracking-wider">Cuerpo Completo Requerido</h4>
+              <p className="text-[10px] text-zinc-300 mt-0.5 leading-normal font-mono">Aléjate (~2.5 m) hasta que se vean hombros, caderas, rodillas y tobillos. No contará hasta detectar todo el cuerpo.</p>
             </div>
           </div>
         )}
 
-        {/* Dynamic athlete-aligned feedback banner */}
+        {/* Dynamic athlete-aligned or round-completed feedback banner */}
         {!settings.isSimulationMode && !modelLoading && !cameraError && personInFrame && squatState === "STANDING" && (
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-            className="absolute bottom-6 left-6 right-6 bg-black/95 border border-brand/55 p-4 rounded-2xl flex items-center justify-between gap-3 backdrop-blur-md z-10 shadow-[0_10px_35px_rgba(226,255,49,0.3)]"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand/20 text-brand animate-pulse">
-                <Check className="h-4 w-4 stroke-[3px]" />
+          activeSessionReps.length >= settings.targetReps ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 10 }}
+              className="absolute bottom-6 left-6 right-6 bg-brand text-black border-2 border-white p-4 rounded-2xl flex items-center justify-between gap-3 z-10 shadow-[0_10px_40px_rgba(226,255,49,0.55)]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black text-brand shrink-0">
+                  <Check className="h-4 w-4 stroke-[3px]" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-black uppercase tracking-wider">
+                    ¡RONDA {currentSet}/{settings.targetSets} COMPLETADA! ({activeSessionReps.length}/{settings.targetReps})
+                  </h4>
+                  <p className="text-[10px] text-zinc-900 mt-0.5 leading-normal font-mono font-bold">
+                    Brazos arriba (1.2s) = Siguiente ronda • Cruza pies = Reiniciar
+                  </p>
+                </div>
               </div>
-              <div>
-                <h4 className="text-xs font-black text-brand uppercase tracking-wider">✓ ATLETA ALINEADO Y DETECTADO</h4>
-                <p className="text-[10px] text-zinc-300 mt-0.5 leading-normal font-mono">Estructura biomecánica detectada correctamente. Todo preparado para comenzar.</p>
+            </motion.div>
+          ) : (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 10 }}
+              className="absolute bottom-6 left-6 right-6 bg-black/95 border border-brand/55 p-4 rounded-2xl flex items-center justify-between gap-3 backdrop-blur-md z-10 shadow-[0_10px_35px_rgba(226,255,49,0.3)]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand/20 text-brand animate-pulse">
+                  <Check className="h-4 w-4 stroke-[3px]" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-brand uppercase tracking-wider">✓ CUERPO COMPLETO DETECTADO</h4>
+                  <p className="text-[10px] text-zinc-300 mt-0.5 leading-normal font-mono">Estructura biomecánica alineada. Listo para bajar.</p>
+                </div>
               </div>
-            </div>
-            
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand text-black text-[9px] font-mono font-black uppercase tracking-widest shadow-[0_0_15px_rgba(226,255,49,0.4)]">
-              <span className="h-1.5 w-1.5 rounded-full bg-black animate-ping"></span> SISTEMA LISTO
-            </div>
-          </motion.div>
+              
+              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-brand text-black text-[9px] font-mono font-black uppercase tracking-widest shadow-[0_0_15px_rgba(226,255,49,0.4)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-black animate-ping"></span> SISTEMA LISTO
+              </div>
+            </motion.div>
+          )
         )}
 
         {/* Camera Permission/Access Errors */}
