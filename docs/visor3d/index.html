@@ -78,7 +78,6 @@
 <div id="fundidoCine" aria-hidden="true"></div>
 <button type="button" id="btnReanudarCine" hidden title="Volver a la vista de cine que sigue al tren">🎥 Reanudar seguimiento</button>
 <button type="button" id="btnEntrarTunel" hidden>🚇 Entrar en el túnel</button>
-<div id="medidaBadge" hidden><span id="medidaTxt">Medidor 3D: pulsa 2 puntos</span><button type="button" id="btnLimpiarMedida">✕</button></div>
 <div id="avisoNube" role="status" aria-live="polite" hidden><span class="giro" aria-hidden="true"></span><span id="avisoNubeTxt">Cargando nube de puntos…</span></div>
 <div id="badgePkLinea" aria-live="polite"><span class="linea">Línea L042 · Albacete–Alicante</span><span class="pk" id="badgePkValor">PK 437+020</span></div>
 <button id="abrir" type="button" aria-controls="panel" aria-expanded="false">Capas y PK</button>
@@ -280,9 +279,7 @@
 
 <div id="islaRapida" role="toolbar" aria-label="Controles rápidos de realismo">
   <button type="button" id="btnTrenesReales" aria-expanded="false" title="Trenes de Renfe circulando ahora entre Albacete y Alicante (tiempo real)"><span class="tr-punto" aria-hidden="true"></span>Trenes en directo <b id="nTrenesReales">…</b> ▾</button>
-  <button type="button" id="btnMantenimiento" aria-pressed="false" title="Trabajos de mantenimiento nocturnos: bateadora, perfiladora y estabilizador en un tajo con la vía cortada">🚧 Trabajos Mantenimiento</button>
-  <button type="button" id="btnInspeccion" aria-pressed="false" title="Inspección de superestructura a pie de noche, con coche de apoyo y dron en modo cine">🔦 Inspección</button>
-  <button type="button" id="btnEnergia" aria-pressed="false" title="Mantenimiento de energía: dresina de catenaria con castillete elevador y puesta a tierra">⚡ Energía</button>
+  <button type="button" id="btnTrabajos" aria-haspopup="menu" aria-expanded="false" aria-controls="menuTrabajos" title="Trabajos de mantenimiento nocturnos: tren de trabajo, inspección de superestructura y energía">🚧 Trabajos Mantenimiento ▾</button>
   <span class="sep"></span>
   <button type="button" id="btnIslaSol" title="Cambiar hora solar">☀️ Día</button>
   <button type="button" id="btnIslaClima" title="Cambiar atmósfera / visibilidad">🌤 Despejado</button>
@@ -302,6 +299,12 @@
   </div>
   <div id="trCuerpo"></div>
   <p class="tr-pie">Renfe · GTFS en tiempo real (AV y Larga Distancia). Posición GPS proyectada sobre la traza e interpolada entre lecturas.</p>
+</div>
+<!-- Menú de «Trabajos Mantenimiento»: los tres modos nocturnos (fuera de la isla, que se desplaza en horizontal y lo recortaría) -->
+<div id="menuTrabajos" hidden role="menu" aria-label="Trabajos de mantenimiento">
+  <button type="button" id="btnMantenimiento" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="mant" title="Bateadora, perfiladora y estabilizador en un tajo con la vía cortada">🚧 Tren de trabajo<small>Bateadora, perfiladora y estabilizador</small></button>
+  <button type="button" id="btnInspeccion" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="insp" title="Inspección de superestructura a pie de noche, con coche de apoyo y dron en modo cine">🔦 Inspección de superestructura<small>Patrulla a pie con coche de apoyo</small></button>
+  <button type="button" id="btnEnergia" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="ener" title="Mantenimiento de energía: dresina de catenaria con castillete elevador y puesta a tierra">⚡ Mantenimiento de energía<small>Dresina de catenaria</small></button>
 </div>
 <div id="panelMant" hidden role="dialog" aria-label="Trabajos de mantenimiento">
   <div class="tr-cab">
@@ -347,9 +350,11 @@
   <button type="button" data-hoja="perfil" aria-pressed="false"><span aria-hidden="true">📈</span>Perfil</button>
   <button type="button" data-hoja="hitos" aria-pressed="false"><span aria-hidden="true">📡</span>Hitos</button>
   <button type="button" data-hoja="trenes" aria-pressed="false"><span aria-hidden="true">🚆</span>Trenes</button>
-  <button type="button" data-hoja="mant" aria-pressed="false"><span aria-hidden="true">🚧</span>Obras</button>
-  <button type="button" data-hoja="insp" aria-pressed="false"><span aria-hidden="true">🔦</span>Inspección</button>
-  <button type="button" data-hoja="ener" aria-pressed="false"><span aria-hidden="true">⚡</span>Energía</button>
+  <button type="button" id="dockTrabajos" aria-haspopup="menu" aria-expanded="false" aria-controls="menuTrabajos"><span aria-hidden="true">🚧</span>Trabajos</button>
+  <!-- Hojas de los tres modos: se abren desde el menú de Trabajos -->
+  <button type="button" data-hoja="mant" aria-pressed="false" hidden><span aria-hidden="true">🚧</span>Obras</button>
+  <button type="button" data-hoja="insp" aria-pressed="false" hidden><span aria-hidden="true">🔦</span>Inspección</button>
+  <button type="button" data-hoja="ener" aria-pressed="false" hidden><span aria-hidden="true">⚡</span>Energía</button>
   <button type="button" data-hoja="ambiente" aria-pressed="false"><span aria-hidden="true">🌤</span>Ambiente</button>
 </nav>
 
@@ -2755,7 +2760,6 @@ btnAbrir.addEventListener('click', () => {
 });
 activarVentanaFlotante(panel, { clave: 'panel' });
 activarVentanaFlotante(document.getElementById('barraPerfil'), { clave: 'perfil' });
-activarVentanaFlotante(document.getElementById('medidaBadge'));
 activarVentanaFlotante(document.getElementById('cab'));
 activarVentanaFlotante(document.getElementById('panelEmplazamientos'), { asa: document.querySelector('#panelEmplazamientos .emp-cab'), clave: 'emplazamientos' });
 activarVentanaFlotante(document.getElementById('panelMinimapa'), { asa: document.querySelector('.minimapa-cab'), clave: 'minimapa' });
@@ -2827,65 +2831,45 @@ document.getElementById('btnCopiarCoord').addEventListener('click', async (ev) =
   setTimeout(() => { ev.target.textContent = 'Copiar coordenadas'; }, 1500);
 });
 
-// ---- Medidor 3D interactivo (distancia 3D, horizontal y desnivel) y Captura HD ----
-const medidaGrupo = new THREE.Group();
-escena.add(medidaGrupo);
-const matMedidaPts = new THREE.MeshBasicMaterial({ color: 0x22d3ee, depthTest: false });
-const matMedidaLin = new THREE.LineBasicMaterial({ color: 0x22d3ee, depthTest: false });
-let midiendo3D = false;
-let puntosMedida = [];
-const btnMedir3D = document.getElementById('btnMedir3D');
-const medidaBadge = document.getElementById('medidaBadge');
-const medidaTxt = document.getElementById('medidaTxt');
+// ---- Menú «Trabajos Mantenimiento»: tren de trabajo, inspección de superestructura y energía ----
+{
+  const menu = document.getElementById('menuTrabajos');
+  const btn = document.getElementById('btnTrabajos'), btnDock = document.getElementById('dockTrabajos');
+  const items = [...menu.querySelectorAll('button')];
+  const esMovil = () => matchMedia('(max-width: 760px)').matches;
+  function abrirMenu(abrir, origen = btn) {
+    menu.hidden = !abrir;
+    for (const b of [btn, btnDock]) b?.setAttribute('aria-expanded', String(abrir && b === origen));
+    if (!abrir) return;
+    // Bajo el botón de la isla, o encima de la barra inferior en el móvil
+    const r = origen.getBoundingClientRect();
+    if (origen === btnDock) { menu.style.left = '12px'; menu.style.right = '12px'; menu.style.top = 'auto'; menu.style.bottom = `${innerHeight - r.top + 8}px`; }
+    else { menu.style.left = `${Math.max(12, Math.min(innerWidth - 300, r.left))}px`; menu.style.right = 'auto'; menu.style.top = `${r.bottom + 6}px`; menu.style.bottom = 'auto'; }
+  }
+  btn.addEventListener('click', (e) => { e.stopPropagation(); abrirMenu(menu.hidden, btn); });
+  btnDock?.addEventListener('click', (e) => { e.stopPropagation(); abrirMenu(menu.hidden, btnDock); });
+  // En el móvil cada modo abre su hoja inferior (que lo arranca); en el escritorio actúa el propio botón
+  menu.addEventListener('click', (e) => {
+    const it = e.target.closest('button');
+    if (!it) return;
+    abrirMenu(false);
+    if (esMovil()) {
+      e.stopPropagation();
+      document.querySelector(`#dockMovil [data-hoja="${it.dataset.hojaMovil}"]`)?.click();
+    }
+  }, true);
+  document.addEventListener('click', (e) => { if (!menu.hidden && !menu.contains(e.target)) abrirMenu(false); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') abrirMenu(false); });
+  // El botón del menú se marca cuando hay algún modo en marcha
+  const marcar = () => {
+    const on = items.some((b) => b.getAttribute('aria-pressed') === 'true');
+    btn.classList.toggle('activo', on);
+    btnDock?.classList.toggle('activo', on);
+  };
+  new MutationObserver(marcar).observe(menu, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
+}
 
-function limpiarMedida3D() {
-  puntosMedida = [];
-  while (medidaGrupo.children.length) {
-    const ch = medidaGrupo.children[0];
-    ch.geometry?.dispose();
-    medidaGrupo.remove(ch);
-  }
-  if (medidaTxt) medidaTxt.textContent = 'Medidor 3D: pulsa 2 puntos en el modelo';
-}
-function actualizarMedida3D(ptMundo) {
-  if (puntosMedida.length >= 2) limpiarMedida3D();
-  puntosMedida.push(ptMundo.clone());
-  const sph = new THREE.Mesh(new THREE.SphereGeometry(0.45, 12, 12), matMedidaPts);
-  sph.position.copy(ptMundo);
-  sph.renderOrder = 999;
-  medidaGrupo.add(sph);
-  if (puntosMedida.length === 2) {
-    const [a, b] = puntosMedida;
-    const geoL = new THREE.BufferGeometry().setFromPoints([a, b]);
-    const lin = new THREE.Line(geoL, matMedidaLin);
-    lin.renderOrder = 999;
-    medidaGrupo.add(lin);
-    const d3d = a.distanceTo(b);
-    const dHz = Math.hypot(b.x - a.x, b.z - a.z);
-    const dz = b.y - a.y;
-    if (medidaTxt) medidaTxt.textContent = `Dist 3D: ${d3d.toFixed(2)} m · Horiz: ${dHz.toFixed(2)} m · ΔZ: ${(dz >= 0 ? '+' : '') + dz.toFixed(2)} m`;
-  } else if (medidaTxt) {
-    medidaTxt.textContent = 'Medidor 3D: pulsa el segundo punto';
-  }
-}
-// Estado del medidor y del botón: el CSS marca la selección con aria-pressed
-function marcarMedidor(activo) {
-  midiendo3D = activo;
-  btnMedir3D?.classList.toggle('activo', activo);
-  btnMedir3D?.setAttribute('aria-pressed', String(activo));
-}
-btnMedir3D?.addEventListener('click', () => {
-  marcarMedidor(!midiendo3D);
-  if (medidaBadge) medidaBadge.hidden = !midiendo3D && puntosMedida.length === 0;
-  if (midiendo3D && puntosMedida.length === 0 && medidaTxt) {
-    medidaTxt.textContent = 'Medidor 3D: pulsa 2 puntos en el modelo';
-  }
-});
-document.getElementById('btnLimpiarMedida')?.addEventListener('click', () => {
-  limpiarMedida3D();
-  marcarMedidor(false);
-  if (medidaBadge) medidaBadge.hidden = true;
-});
+// ---- Captura HD ----
 function capturarPNG() {
   render.render(escena, camara);
   const a = document.createElement('a');
@@ -2922,10 +2906,6 @@ render.domElement.addEventListener('pointerup', (e) => {
   const hitArq = visibles.find((h) => h.object?.userData?.arquetas && h.distance < (visibles[0]?.distance ?? 0) + 1.5);
   const hit = hitArq || visibles.find((h) => h.object?.userData?.nombre);
   const primero = hit || visibles[0];
-  if (midiendo3D && primero) {
-    actualizarMedida3D(primero.point);
-    return;
-  }
   if (!primero) { document.getElementById('ficha').hidden = true; return; }
   const u = UTMdeMundo(primero.point);
   const pt = datosDePunto(u.E, u.N, u.Z);
@@ -3115,7 +3095,7 @@ ajustarDisposicion();
 {
   const dock = document.getElementById('dockMovil');
   const HOJAS = { mandos: 'cab', perfil: 'barraPerfil', hitos: 'panelEmplazamientos', trenes: 'panelTrenesReales', mant: 'panelMant', insp: 'panelInsp', ener: 'panelEner', ambiente: 'islaRapida' };
-  const botones = [...dock.querySelectorAll('button')];
+  const botones = [...dock.querySelectorAll('button[data-hoja]')];
   let abierta = null;
   function abrirHoja(h) {
     abierta = abierta === h ? null : h;
