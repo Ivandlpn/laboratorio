@@ -312,6 +312,7 @@
     <p class="tr-pie">Simulación: tajo, posiciones y ritmos supuestos. Modelos de las máquinas provisionales.</p>
   </div>
 </div>
+<canvas id="hudAsiento" width="360" height="150" hidden aria-label="Asiento de la vía medido por el estabilizador"></canvas>
 <div id="cineHint">Modo cine · Pulsa H o Esc para mostrar la interfaz</div>
 <!-- Móvil: pantalla limpia. Los paneles van plegados y se abren de uno en uno desde esta barra inferior -->
 <nav id="dockMovil" aria-label="Paneles del visor">
@@ -1778,58 +1779,88 @@ const mantenimiento = crearMantenimiento({
   matsVia: { balasto: matBalasto, traviesa: matTraviesa, carrilAlma: matCarrilAlma, carrilCabeza: matCarrilCabeza, placa: MAT_PLACA_GUIA, grapa: MAT_GRAPA, tirafondo: MAT_TIRAFONDO },
   audioActivo: () => audioAmbiental.activo,
 });
-// Cámaras del simulador de bateo: general, bateo (primer plano en corte) y geometría (vía exagerada); null = libre
+// Cámaras del tren de trabajo (por máquina); null = libre. Sacudida de cámara cerca de las máquinas que vibran
 let camMant = null;
-const CAMS_MANT = [['general', 'General'], ['bateo', 'Bateo'], ['geometria', 'Geometría'], [null, 'Libre']];
+const _jitMant = new THREE.Vector3();
 function fijarCamMant(modo) {
   camMant = modo;
-  mantenimiento.bateo?.setVista(modo);
+  mantenimiento.setVista(modo);
+  const hud = document.getElementById('hudAsiento');
+  if (hud) hud.hidden = modo !== 'laser';
   pintarMant();
 }
 controles.addEventListener('start', () => { if (camMant) fijarCamMant(null); });
 function seguirCamMant() {
-  const b = mantenimiento.bateo;
-  if (!camMant || !b?.estado.activo) return;
-  const pose = b.poseCamara(camMant);
-  const pc = W(pose.pos.E, pose.pos.N, pose.pos.Z), pt = W(pose.obj.E, pose.obj.N, pose.obj.Z);
-  // Seguimiento suave salvo en la vista de bateo (va pegada al grupo de bateo con su sacudida)
-  const k = camMant === 'bateo' ? 1 : 0.12;
-  camara.position.lerp(pc, k);
-  controles.target.lerp(pt, k);
-  camara.lookAt(controles.target);
+  camara.position.sub(_jitMant);
+  _jitMant.set(0, 0, 0);
+  if (!mantenimiento.estado.activo) return;
+  if (camMant) {
+    const pose = mantenimiento.poseCamara(camMant);
+    if (pose) {
+      // Seguimiento suave salvo en las vistas pegadas a las herramientas
+      const k = ['bateo', 'rodillos', 'arado', 'cepillo'].includes(camMant) ? 1 : 0.12;
+      camara.position.lerp(pose.pos, k);
+      controles.target.lerp(pose.obj, k);
+    }
+  }
+  const sac = mantenimiento.sacudida(camara.position, camMant);
+  if (sac > 0.01) {
+    _jitMant.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).multiplyScalar(0.016 * sac);
+    camara.position.add(_jitMant);
+  }
+  if (camMant) camara.lookAt(controles.target);
+  if (camMant === 'laser') pintarHudAsiento();
+}
+// HUD del asiento medido por los láseres del estabilizador (mm a lo largo de la vía)
+function pintarHudAsiento() {
+  const cv = document.getElementById('hudAsiento');
+  const e = mantenimiento.estabilizador;
+  if (!cv || !e) return;
+  const g = cv.getContext('2d'), w = cv.width, h = cv.height;
+  g.clearRect(0, 0, w, h);
+  g.fillStyle = 'rgba(8,15,30,.78)'; g.fillRect(0, 0, w, h);
+  g.strokeStyle = 'rgba(148,163,184,.35)'; g.lineWidth = 1;
+  const y0 = 34, y1 = h - 26, mmMax = 5;
+  for (let mm = 0; mm <= mmMax; mm++) { const y = y0 + (y1 - y0) * mm / mmMax; g.beginPath(); g.moveTo(40, y); g.lineTo(w - 10, y); g.stroke(); g.fillStyle = '#94a3b8'; g.font = '10px monospace'; g.fillText(`-${mm}`, 8, y + 3); }
+  const datos = e.perfilAsiento();
+  g.strokeStyle = '#ff4d2e'; g.lineWidth = 2.5; g.beginPath();
+  datos.forEach(([x, mm], i) => { const px = 40 + (x + 30) / 60 * (w - 50), py = y0 + (y1 - y0) * Math.min(mmMax, mm) / mmMax; if (i) g.lineTo(px, py); else g.moveTo(px, py); });
+  g.stroke();
+  const xm = 40 + 0.5 * (w - 50);
+  g.strokeStyle = '#f2b705'; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(xm, y0 - 6); g.lineTo(xm, y1); g.stroke(); g.setLineDash([]);
+  g.fillStyle = '#e2e8f0'; g.font = 'bold 12px sans-serif';
+  g.fillText(`Asiento controlado · ${e.estado.asientoMm.toFixed(1).replace('.', ',')} mm`, 40, 18);
+  g.fillStyle = '#94a3b8'; g.font = '10px sans-serif';
+  g.fillText('← detrás (asentada)', 40, h - 8); g.fillText('delante (cota de bateo) →', w - 150, h - 8);
 }
 const TAJO_MANT = { pkIni: 399000, s: -1, largo: 1500 };
 const elPanelMant = document.getElementById('panelMant'), elCuerpoMant = document.getElementById('mantCuerpo');
 const elBtnMant = document.getElementById('btnMantenimiento');
 let antesMant = null, maquinaVista = 'bateadora';
-const ACCION_MAQ = { bateadora: 'Bateando', perfiladora: 'Perfilando', estabilizador: 'Estabilizando' };
+const CAM_INICIAL = { bateadora: 'general', perfiladora: 'perf-general', estabilizador: 'est-general' };
 function encuadrarMaquina(clave) {
-  const p = mantenimiento.posicion(clave);
-  if (!p) return;
   maquinaVista = clave;
-  const m = p.m, s = p.s, nx = -m.ty, ny = m.tx;
-  // Cámara por fuera de la vía en trabajo, por delante y algo elevada, mirando a la máquina
-  const lat = -s * 16, del = p.largo * 0.9;
-  camara.position.copy(W(p.E + nx * lat + m.tx * del, p.N + ny * lat + m.ty * del, p.Z + 7.5));
-  controles.target.copy(W(p.E, p.N, p.Z + 1.6));
-  camara.lookAt(controles.target);
-  controles.update();
-  pintarMant();
+  fijarCamMant(CAM_INICIAL[clave]);
 }
 function pintarMant() {
   const t = mantenimiento.tajo, eb = mantenimiento.bateo?.estado;
   document.getElementById('mantEstado').textContent = t ? `Vía ${t.s > 0 ? 1 : 2} cortada · PK ${fmtPk(t.pkIni)} – ${fmtPk(t.pkIni + t.largo)}` : 'Banda nocturna';
   if (elPanelMant.hidden && !document.body.classList.contains('m-mant')) return;
-  const estadoBateo = eb?.activo ? `
-    <div class="mant-ciclo">
+  const lista = mantenimiento.lista();
+  const sel = lista.find((x) => x.clave === maquinaVista) || lista[0];
+  const camaras = sel ? [...sel.camaras, [null, 'Libre']] : [];
+  const cicloBateo = maquinaVista === 'bateadora' && eb?.activo ? `
       <div class="mant-fases">${Object.entries(NOMBRE_FASE).map(([k, n]) => `<span class="${k === eb.fase ? 'on' : ''}" title="${n}">${n.split(' ')[0]}</span>`).join('')}</div>
       <div class="mant-dato"><b>${NOMBRE_FASE[eb.fase]}</b> · traviesa ${eb.bateadas + 1}</div>
-      <div class="mant-dato">Levante ${eb.levanteMm >= 0 ? '+' : ''}${eb.levanteMm} mm · ripado ${eb.ripadoMm >= 0 ? '+' : ''}${eb.ripadoMm} mm</div>
-      <div class="mant-cams">${CAMS_MANT.map(([k, n]) => `<button type="button" data-cam-mant="${k ?? ''}" aria-pressed="${camMant === k}">${n}</button>`).join('')}</div>
+      <div class="mant-dato">Levante ${eb.levanteMm >= 0 ? '+' : ''}${eb.levanteMm} mm · ripado ${eb.ripadoMm >= 0 ? '+' : ''}${eb.ripadoMm} mm</div>` : '';
+  const cab = sel ? `
+    <div class="mant-ciclo">
+      ${cicloBateo || `<div class="mant-dato"><b>${escHtml(sel.estado)}</b></div>`}
+      <div class="mant-cams">${camaras.map(([k, n]) => `<button type="button" data-cam-mant="${k ?? ''}" aria-pressed="${camMant === k}">${n}</button>`).join('')}</div>
     </div>` : '';
-  elCuerpoMant.innerHTML = estadoBateo + mantenimiento.lista().map((x) => `
+  elCuerpoMant.innerHTML = cab + lista.map((x) => `
     <button type="button" class="tr-item${x.clave === maquinaVista ? ' sel' : ''}" data-maq="${x.clave}">
-      <span class="tr-l1"><span class="tr-tipo">${ACCION_MAQ[x.clave] || 'Trabajando'}</span><b>${escHtml(x.nombre)}</b></span>
+      <span class="tr-l1"><span class="tr-tipo">${escHtml(x.estado.split(' ')[0])}</span><b>${escHtml(x.nombre)}</b></span>
       <span class="tr-l3">PK ${fmtPk(x.pk)} · ${(x.vel * 3.6).toFixed(1).replace('.', ',')} km/h · ${escHtml(x.tipo)}</span>
       ${x.clave === maquinaVista ? `<span class="tr-l2 mant-func">${escHtml(x.funcion)}</span>` : ''}
     </button>`).join('');
@@ -1850,7 +1881,6 @@ function activarMantenimiento(on = !mantenimiento.estado.activo) {
     if (vistaActiva !== 'aerea') setModoVista('aerea');
     irAPk(TAJO_MANT.pkIni + 120, 'aerea');
     encuadrarMaquina('bateadora');
-    fijarCamMant('general');
     if (!matchMedia('(max-width: 760px)').matches) abrirPanelMant(true);
   } else {
     camMant = null;
@@ -1879,7 +1909,7 @@ elCuerpoMant.addEventListener('click', (ev) => {
   const c = ev.target.closest('button[data-cam-mant]');
   if (c) { fijarCamMant(c.dataset.camMant || null); return; }
   const b = ev.target.closest('button[data-maq]');
-  if (b) { fijarCamMant(null); encuadrarMaquina(b.dataset.maq); }
+  if (b) encuadrarMaquina(b.dataset.maq);
 });
 elCuerpoTR.addEventListener('click', (ev) => {
   const b = ev.target.closest('button');
@@ -3007,9 +3037,8 @@ function fotograma(ahora) {
   trenesReales.actualizar(dt);
   if (mantenimiento.estado.activo) {
     const pb = mantenimiento.posicion('bateadora');
-    mantenimiento.actualizar(dt, pb ? camara.position.distanceTo(W(pb.E, pb.N, pb.Z)) : 60);
+    mantenimiento.actualizar(dt, { distCam: pb ? camara.position.distanceTo(W(pb.E, pb.N, pb.Z)) : 60, noche: modoNoche });
     seguirCamMant();
-    mantenimiento.encendidoLuces(modoNoche);
     if ((nFotograma & 7) === 0) pintarMant();
   }
   const utmCam = UTMdeMundo(camara.position);
@@ -3138,7 +3167,8 @@ function fotograma(ahora) {
     render.toneMappingExposure = expBaseSol;
     const enVuelo = gestorVuelo.actualizar(ahora);
     if (!enVuelo) controles.update();
-    aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado: pkRecorrido, rayosX: rayosXActivo });
+    // Las cámaras de detalle de la maquinaria van a ras de carril: sin colisión con el terreno
+    if (!(camMant && mantenimiento.estado.activo)) aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMdeMundo, Eje3D, pkObservado: pkRecorrido, rayosX: rayosXActivo });
     const m = UTMdeMundo(controles.target);
     if (Math.hypot(m.E - origen.E, m.N - origen.N) > 2500) recentrarOrigen(m.E, m.N, m.Z);
     const q = Eje3D.proyUTM(m.E, m.N);
