@@ -27,10 +27,23 @@ const INCIDENCIAS = [
   'Clip de sujeción desplazado', 'Falta de balasto en el cajón', 'Soldadura aluminotérmica con rebaba', 'Traviesa con fisura en la cabeza',
   'Placa de asiento deteriorada', 'Desgaste ondulatorio en la cabeza del carril', 'Tirafondo flojo', 'Junta aislante con suciedad',
 ];
+// Tres parejas separadas entre sí; una tablet por pareja (la lleva el primero de cada una)
 const EQUIPO = [
-  { nombre: 'Lucía', mujer: true, luz: 'frontal' }, { nombre: 'Andrés', mujer: false, luz: 'linterna' }, { nombre: 'Marta', mujer: true, luz: 'linterna' },
-  { nombre: 'Javier', mujer: false, luz: 'frontal' }, { nombre: 'Elena', mujer: true, luz: 'frontal' }, { nombre: 'Raúl', mujer: false, luz: 'linterna' },
+  { nombre: 'Ana', mujer: true, luz: 'frontal', pareja: 0, tablet: true }, { nombre: 'Edu', mujer: false, luz: 'linterna', pareja: 0 },
+  { nombre: 'Iván', mujer: false, luz: 'linterna', pareja: 1, tablet: true }, { nombre: 'Pepe', mujer: false, luz: 'frontal', pareja: 1 },
+  { nombre: 'Manuel', mujer: false, luz: 'frontal', pareja: 2, tablet: true }, { nombre: 'Raúl', mujer: false, luz: 'linterna', pareja: 2 },
 ];
+const SEPARACION_PAREJAS = 26;   // m entre parejas
+// Logotipo de Ineco (texto) para la espalda del chaleco y el coche
+function texLogo(color = '#0b4ea2', fondo = null) {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 96;
+  const g = cv.getContext('2d');
+  if (fondo) { g.fillStyle = fondo; g.fillRect(0, 0, 256, 96); }
+  g.fillStyle = color; g.font = 'bold 78px Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText('ineco', 128, 52);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+  return t;
+}
 const suave = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 
 export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
@@ -50,7 +63,6 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     lente: new THREE.MeshBasicMaterial({ color: '#eaf2ff' }),
     blanco: std('#f2f3f1', 0.35, 0.2), cristal: std('#0e1418', 0.1, 0.6), llanta: std('#2a2d30', 0.6, 0.5), neumatico: std('#121314', 0.9),
     faro: new THREE.MeshBasicMaterial({ color: '#fffbe8' }), piloto: new THREE.MeshBasicMaterial({ color: '#ff1e1e' }),
-    ambar: new THREE.MeshBasicMaterial({ color: '#ffa31a' }), ambarOff: std('#6b4310', 0.5),
     grava: std('#867e70', 1.0),
   };
   // Grava del camino de servicio: textura con piedrecitas
@@ -60,6 +72,8 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     for (let i = 0; i < 1600; i++) { const v = 90 + Math.random() * 90; g.fillStyle = `rgb(${v},${v * 0.95},${v * 0.86})`; g.fillRect(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 2.2, 1 + Math.random() * 2.2); }
     const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t;
   })();
+  const matLogoChaleco = new THREE.MeshStandardMaterial({ map: texLogo('#0b3f86'), transparent: true, roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2 });
+  const matLogoCoche = new THREE.MeshStandardMaterial({ map: texLogo('#0b4ea2'), transparent: true, roughness: 0.35, polygonOffset: true, polygonOffsetFactor: -2 });
   const caja = (sx, sy, sz, m, x = 0, y = 0, z = 0) => { const me = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), m); me.position.set(x, y, z); me.castShadow = true; return me; };
   const cil = (r, h, m, x = 0, y = 0, z = 0, eje = 'y', seg = 12) => {
     const me = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), m); me.position.set(x, y, z);
@@ -103,6 +117,10 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     tronco.add(caja(0.235, 0.42, 0.395 * anch, matChaleco, 0, 0.3, 0));
     for (const y of [0.17, 0.32]) tronco.add(caja(0.24, 0.045, 0.4 * anch, matBanda, 0, y, 0));
     for (const z of [-0.1, 0.1]) tronco.add(caja(0.24, 0.3, 0.04, matBanda, 0, 0.38, z * anch));
+    // Logotipo de Ineco en la espalda del chaleco
+    const logo = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.11), matLogoChaleco);
+    logo.position.set(-0.12, 0.46, 0); logo.rotation.y = -Math.PI / 2;
+    tronco.add(logo);
     const cuello = new THREE.Group(); cuello.position.y = 0.55; tronco.add(cuello);
     cuello.add(cil(0.05, 0.08, piel, 0, 0.03, 0));
     const cabeza = new THREE.Group(); cabeza.position.y = 0.08; cuello.add(cabeza);
@@ -123,11 +141,12 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     const bI = brazo(-1), bD = brazo(1);
     // Tablet en la mano izquierda (pantalla emisiva y tenue luz azul verdosa hacia la cara)
     const tablet = new THREE.Group();
+    tablet.visible = Boolean(def.tablet);
     tablet.add(caja(0.012, 0.24, 0.17, M.tablet, 0, 0, 0));
     const pant = new THREE.Mesh(new THREE.PlaneGeometry(0.15, 0.215), M.pantalla); pant.position.x = 0.007; pant.rotation.y = Math.PI / 2; tablet.add(pant);
     tablet.position.set(0.05, -0.08, 0.02);
     bI.mano.add(tablet);
-    const luzTablet = new THREE.PointLight('#7fe0d0', 0.25, 0.9, 2); luzTablet.position.set(0.12, 0, 0); tablet.add(luzTablet);
+    const luzTablet = new THREE.PointLight('#7fe0d0', def.tablet ? 0.25 : 0, 0.9, 2); luzTablet.position.set(0.12, 0, 0); tablet.add(luzTablet);
     // Frontal o linterna de mano
     let lampara;
     if (def.luz === 'frontal') {
@@ -149,7 +168,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       return { cad, rod, tob, lado };
     };
     const pI = pierna(-1), pD = pierna(1);
-    raiz.traverse((o) => { if (o.isMesh) o.userData = { capa: 'Inspección de superestructura', nombre: `${def.nombre} · agente de inspección`, info: `Patrulla nocturna de inspección de vía: chaleco retrorreflectante, ${def.luz === 'frontal' ? 'frontal en la cabeza' : 'linterna de mano'} y tablet para registrar incidencias.` }; });
+    raiz.traverse((o) => { if (o.isMesh) o.userData = { capa: 'Inspección de superestructura', nombre: `${def.nombre} · agente de inspección`, info: `Patrulla nocturna de inspección de vía: chaleco retrorreflectante, ${def.luz === 'frontal' ? 'frontal en la cabeza' : 'linterna de mano'} ${def.tablet ? 'y la tablet de la pareja para registrar incidencias' : 'junto a su compañero, que lleva la tablet'}.` }; });
     return { def, raiz, caderas, tronco, cabeza, cuello, bI, bD, pI, pD, tablet, pant, luzTablet, lampara, matChaleco, matBanda };
   }
 
@@ -167,7 +186,9 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       r.position.set(x, 0.38, z); c.add(r); ruedas.push(r);
     }
     for (const z of [-0.65, 0.65]) { c.add(caja(0.04, 0.12, 0.3, M.faro, 2.36, 0.88, z)); c.add(caja(0.04, 0.16, 0.12, M.piloto, -2.36, 0.95, z * 1.2)); }
-    const ambar = cil(0.1, 0.12, M.ambar, -0.2, 1.95, 0); c.add(ambar);
+    // Logotipo de Ineco en las puertas y en el capó (sin rotativo en el techo)
+    for (const z of [-1, 1]) { const l = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.41), matLogoCoche); l.position.set(-0.15, 0.82, z * 0.935); l.rotation.y = z > 0 ? 0 : Math.PI; c.add(l); }
+    const lc = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.34), matLogoCoche); lc.position.set(1.75, 1.126, 0); lc.rotation.set(-Math.PI / 2, 0, Math.PI / 2); c.add(lc);
     const faros = [];
     for (const z of [-0.65, 0.65]) {
       const f = new THREE.SpotLight('#fff4dc', 0, 48, 0.4, 0.4, 1.3);
@@ -177,7 +198,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     }
     const pilotosLuz = new THREE.PointLight('#ff2020', 0.6, 4, 2); pilotosLuz.position.set(-2.5, 0.95, 0); c.add(pilotosLuz);
     c.traverse((o) => { if (o.isMesh) o.userData = { capa: 'Inspección de superestructura', nombre: 'Vehículo de apoyo 4x4', info: 'Todoterreno blanco de apoyo a la patrulla: avanza por el camino de servicio a 3-5 km/h a la altura del grupo con los faros encendidos.' }; });
-    return { obj: c, ruedas, faros, ambar };
+    return { obj: c, ruedas, faros };
   }
 
   // ---- Estado ----
@@ -193,11 +214,13 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     const m0 = Eje3D.enPk(pk);
     sit = { pk0: pk, s, ancla: { E: m0.E, N: m0.N, Z: m0.Z }, agentes: [], incidencias: [], t: 0, tPlano: 0, flash: null };
     grupo.position.copy(W(sit.ancla.E, sit.ancla.N, sit.ancla.Z));
-    // Agentes repartidos por el eje y por fuera de los carriles, a pocos metros unos de otros
+    // Tres parejas separadas entre sí; en cada pareja uno por el eje y otro por fuera del carril, a un par de metros
     EQUIPO.forEach((def, i) => {
       const ag = crearAgente(def, i);
-      const lat = [0, 1.0, -1.0, 0, -1.0, 1.0][i];
-      const iT = Math.round((pk - i * 3.1) / ESP);
+      const lat = [0, 1.0, -1.0, 0, 1.0, -1.0][i];
+      const desfase = -def.pareja * SEPARACION_PAREJAS - (i % 2) * 2.4;
+      ag.desfase = desfase;
+      const iT = Math.round((pk + desfase) / ESP);
       Object.assign(ag, {
         lat, pk: iT * ESP + ESP * 0.5, vel: 0.42 + Math.random() * 0.2, estado: 'Walk_Track', tEst: 3 + Math.random() * 6,
         pies: [{ pk: iT * ESP, desde: 0, hasta: 0, t: 1 }, { pk: (iT + 1) * ESP, desde: 0, hasta: 0, t: 1 }], vuelo: -1,
@@ -260,12 +283,19 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     const r = Math.random();
     const prev = ag.estado;
     if (prev !== 'Walk_Track') { ag.estado = 'Walk_Track'; ag.tEst = 5 + Math.random() * 7; ag.lat = [0, 1.0, -1.0][Math.floor(Math.random() * 3)] * (Math.random() < 0.7 ? 1 : 1); return; }
+    if (!ag.def.tablet) {
+      // Sin tablet: inspecciona agachado y su compañero anota
+      if (r < 0.55) { ag.estado = 'Crouch_Inspect'; ag.tEst = 5 + Math.random() * 4; ag.objetivo = { pk: Math.round(ag.pk / ESP + 1) * ESP, rail: Math.sign(ag.lat || (Math.random() - 0.5)) || 1 }; }
+      else { ag.estado = 'Walk_Track'; ag.tEst = 4 + Math.random() * 5; }
+      return;
+    }
     if (r < 0.34) { ag.estado = 'NoteTaking'; ag.tEst = 4 + Math.random() * 3; }
     else if (r < 0.72) { ag.estado = 'Crouch_Inspect'; ag.tEst = 5 + Math.random() * 4; ag.objetivo = { pk: Math.round(ag.pk / ESP + 1) * ESP, rail: Math.sign(ag.lat || (Math.random() - 0.5)) || 1 }; }
     else { ag.estado = 'Photograph'; ag.tEst = 2.2; ag.flashT = 0.9; }
   }
   function registrar(ag, tipo) {
-    sit.incidencias.unshift({ pk: ag.pk, quien: ag.def.nombre, tipo: INCIDENCIAS[Math.floor(Math.random() * INCIDENCIAS.length)], hora: new Date(), foto: tipo === 'foto' });
+    const anota = ag.def.tablet ? null : sit.agentes.find((g) => g.def.pareja === ag.def.pareja && g.def.tablet);
+    sit.incidencias.unshift({ pk: ag.pk, quien: anota ? `${ag.def.nombre} (anota ${anota.def.nombre})` : ag.def.nombre, tipo: INCIDENCIAS[Math.floor(Math.random() * INCIDENCIAS.length)], hora: new Date(), foto: tipo === 'foto' });
     sit.incidencias.length = Math.min(sit.incidencias.length, 30);
     ag.anotadas++;
   }
@@ -277,6 +307,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     grupo.position.copy(W(sit.ancla.E, sit.ancla.N, sit.ancla.Z));
     const s = sit.s, t = sit.t;
     const pkMedio = sit.agentes.reduce((a, g) => a + g.pk, 0) / sit.agentes.length;
+    const desfaseMedio = sit.agentes.reduce((a, g) => a + g.desfase, 0) / sit.agentes.length;
     let flashOn = 0;
     for (const ag of sit.agentes) {
       // ---- Máquina de estados ----
@@ -292,7 +323,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
         if (ag.flashT <= 0 && ag.flashT > -0.12) { flashOn = 1 - (-ag.flashT / 0.12); sit.flash.position.copy(ag.raiz.position).add(_v.set(0, 1.35, 0)); }
       }
       // Velocidad: andar, andar despacio tecleando, o parado; los rezagados aprietan el paso para no separarse
-      const cohes = Math.max(-0.15, Math.min(0.15, (pkMedio - ag.pk) * 0.03));
+      const cohes = Math.max(-0.15, Math.min(0.15, (pkMedio + ag.desfase - desfaseMedio - ag.pk) * 0.03));
       const vObj = ag.estado === 'Walk_Track' ? ag.vel + cohes : ag.estado === 'NoteTaking' ? ag.vel * 0.55 + cohes : 0;
       ag.v = (ag.v ?? 0) + (Math.max(0, vObj) - (ag.v ?? 0)) * Math.min(1, dt * 3);
       ag.pk += ag.v * dt;
@@ -408,7 +439,6 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     co.obj.rotation.set(0, Math.atan2(-(b.z - a.z), b.x - a.x), Math.atan2(b.y - a.y, Math.hypot(b.x - a.x, b.z - a.z)));
     for (const r of co.ruedas) r.rotation.z -= co.vel * dt / 0.38;
     for (const f of co.faros) f.intensity = noche ? 70 : 0;
-    co.ambar.material = Math.sin(t * 6) > 0 ? M.ambar : M.ambarOff;
   }
 
   // ---- Dron en modo cine automático (director de planos) ----
@@ -425,7 +455,8 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       }
     }
     const u = sit.tPlano / DUR[estado.plano], s = sit.s;
-    const pkMedio = sit.agentes.reduce((a, g) => a + g.pk, 0) / sit.agentes.length;
+    // El dron sigue a la pareja de cabeza (las tres van separadas)
+    const pkMedio = (sit.agentes[0].pk + sit.agentes[1].pk) / 2;
     const centro = aLocal({ ...enVia(pkMedio, s), Z: cotaTrav(pkMedio) + 0.9 });
     let pos, obj;
     if (estado.plano === 'A') {
