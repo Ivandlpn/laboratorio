@@ -26,20 +26,29 @@ import {
   Sun, 
   History, 
   Flame,
-  ChevronRight
+  ChevronRight,
+  RotateCcw,
+  SkipForward,
+  Undo2,
+  Hand,
+  Layers
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function App() {
   // 1. Initial State Definitions
   const [settings, setSettings] = useState<WorkoutSettings>({
-    pauseDuration: 3,
+    pauseDuration: 2,
     targetAngle: 100, // parallel by default
+    targetSets: 3,
+    targetReps: 4,
+    gesturesEnabled: true,
     soundType: "BEEPS",
     volume: 0.6,
     isSimulationMode: false
   });
 
+  const [currentSet, setCurrentSet] = useState<number>(1);
   const [activeSessionReps, setActiveSessionReps] = useState<Repetition[]>([]);
   const [showSaveSuccess, setShowSaveSuccess] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -133,6 +142,13 @@ export default function App() {
             : typeof parsed.targetAngle === "string"
               ? parseInt(parsed.targetAngle, 10) || 100
               : 100,
+          targetSets: typeof parsed.targetSets === "number" && !isNaN(parsed.targetSets)
+            ? Math.max(1, Math.min(20, parsed.targetSets))
+            : 3,
+          targetReps: typeof parsed.targetReps === "number" && !isNaN(parsed.targetReps)
+            ? Math.max(1, Math.min(30, parsed.targetReps))
+            : 4,
+          gesturesEnabled: parsed.gesturesEnabled !== undefined ? !!parsed.gesturesEnabled : true,
           soundType: parsed.soundType === "VOICE" || parsed.soundType === "BEEPS" || parsed.soundType === "MUTE"
             ? parsed.soundType
             : "BEEPS",
@@ -149,6 +165,14 @@ export default function App() {
       const savedReps = localStorage.getItem("pause_squat_active_reps_v1");
       if (savedReps) {
         setActiveSessionReps(JSON.parse(savedReps));
+      }
+
+      const savedCurrentSet = localStorage.getItem("pause_squat_current_set_v1");
+      if (savedCurrentSet) {
+        const parsedSet = parseInt(savedCurrentSet, 10);
+        if (!isNaN(parsedSet) && parsedSet >= 1) {
+          setCurrentSet(parsedSet);
+        }
       }
     } catch (e) {
       console.warn("Could not restore data from localStorage", e);
@@ -179,79 +203,163 @@ export default function App() {
     });
   };
 
-  // Add a newly tracked repetition
-  const handleRepCompleted = (rep: Repetition) => {
-    const updatedReps = [...activeSessionReps, rep];
-    setActiveSessionReps(updatedReps);
+  // Persist currentSet
+  const updateCurrentSet = (nextSet: number) => {
+    setCurrentSet(nextSet);
     try {
-      localStorage.setItem("pause_squat_active_reps_v1", JSON.stringify(updatedReps));
+      localStorage.setItem("pause_squat_current_set_v1", String(nextSet));
     } catch (e) {
       console.warn(e);
     }
   };
 
-  // Clear current active series
-  const handleClearActiveSet = () => {
-    if (confirm("¿Deseas reiniciar esta serie de entrenamiento? Se borrarán las repeticiones actuales.")) {
-      setActiveSessionReps([]);
+  // Add a newly tracked repetition
+  const handleRepCompleted = (rep: Repetition) => {
+    setActiveSessionReps((prev) => {
+      const updatedReps = [...prev, rep];
       try {
-        localStorage.removeItem("pause_squat_active_reps_v1");
+        localStorage.setItem("pause_squat_active_reps_v1", JSON.stringify(updatedReps));
       } catch (e) {
         console.warn(e);
       }
-    }
+
+      // Check if we just hit the target reps for the current round
+      if (updatedReps.length === settings.targetReps) {
+        setTimeout(() => {
+          if (settings.soundType === "VOICE") {
+            speakText(`¡Ronda ${currentSet} completada! ${settings.targetReps} de ${settings.targetReps}.`, settings.volume);
+          } else {
+            playSoundCue("SET_COMPLETE", settings.soundType, settings.volume);
+          }
+        }, 250);
+      }
+      return updatedReps;
+    });
   };
 
-  // Save series to persistent workout history
-  const handleSaveSet = () => {
-    if (activeSessionReps.length === 0) return;
-
-    // Save in persistent history log
-    try {
-      const newSession: WorkoutSession = {
-        id: "session_" + Date.now(),
-        date: new Date().toLocaleDateString("es-ES", {
-          day: "2-digit",
-          month: "short",
-          hour: "2-digit",
-          minute: "2-digit"
-        }),
-        reps: activeSessionReps,
-        targetPause: settings.pauseDuration,
-        targetAngle: settings.targetAngle
-      };
-
-      const existingHistoryStr = localStorage.getItem("pause_squat_history_sessions_v1");
-      const historyList: WorkoutSession[] = existingHistoryStr ? JSON.parse(existingHistoryStr) : [];
-      historyList.unshift(newSession);
-      localStorage.setItem("pause_squat_history_sessions_v1", JSON.stringify(historyList));
-    } catch (e) {
-      console.warn("Error saving workout history session", e);
-    }
-
-    // Voice confirmation / log toast
-    if (settings.soundType === "VOICE") {
-      speakText("Serie completada y guardada. ¡Excelente trabajo!", settings.volume);
-    } else {
-      playSoundCue("READY", settings.soundType, settings.volume);
-    }
-
-    setShowSaveSuccess(true);
-    setTimeout(() => {
-      setShowSaveSuccess(false);
-    }, 3500);
-
-    // Clear active reps
+  // Instant reset of current round reps (hands-free / gesture friendly)
+  const handleResetRound = (silent = false) => {
     setActiveSessionReps([]);
     try {
       localStorage.removeItem("pause_squat_active_reps_v1");
     } catch (e) {
       console.warn(e);
     }
+    if (!silent) {
+      if (settings.soundType === "VOICE") {
+        speakText(`Ronda ${currentSet} reiniciada a cero.`, settings.volume);
+      } else {
+        playSoundCue("GESTURE_OK", settings.soundType, settings.volume);
+      }
+    }
+  };
+
+  // Undo last counted repetition
+  const handleUndoLastRep = () => {
+    setActiveSessionReps((prev) => {
+      if (prev.length === 0) return prev;
+      const next = prev.slice(0, -1);
+      try {
+        localStorage.setItem("pause_squat_active_reps_v1", JSON.stringify(next));
+      } catch (e) {
+        console.warn(e);
+      }
+      return next;
+    });
+    if (settings.soundType === "VOICE") {
+      speakText("Última repetición borrada.", settings.volume);
+    } else {
+      playSoundCue("GESTURE_OK", settings.soundType, settings.volume);
+    }
+  };
+
+  // Save current round (if any reps) and advance to next round
+  const handleNextRound = () => {
+    if (activeSessionReps.length > 0) {
+      try {
+        const newSession: WorkoutSession = {
+          id: "session_" + Date.now(),
+          date: new Date().toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit"
+          }),
+          reps: activeSessionReps,
+          targetPause: settings.pauseDuration,
+          targetAngle: settings.targetAngle
+        };
+
+        const existingHistoryStr = localStorage.getItem("pause_squat_history_sessions_v1");
+        const historyList: WorkoutSession[] = existingHistoryStr ? JSON.parse(existingHistoryStr) : [];
+        historyList.unshift(newSession);
+        localStorage.setItem("pause_squat_history_sessions_v1", JSON.stringify(historyList));
+      } catch (e) {
+        console.warn("Error saving workout history session", e);
+      }
+    }
+
+    const isLastSet = currentSet >= settings.targetSets;
+    const nextSet = isLastSet ? 1 : currentSet + 1;
+    updateCurrentSet(nextSet);
+    setActiveSessionReps([]);
+    try {
+      localStorage.removeItem("pause_squat_active_reps_v1");
+    } catch (e) {
+      console.warn(e);
+    }
+
+    if (settings.soundType === "VOICE") {
+      speakText(
+        isLastSet
+          ? "¡Entrenamiento completado! Reiniciando a ronda 1."
+          : `Ronda ${nextSet} de ${settings.targetSets}.`,
+        settings.volume
+      );
+    } else {
+      playSoundCue(isLastSet ? "SET_COMPLETE" : "GESTURE_OK", settings.soundType, settings.volume);
+    }
+
+    if (activeSessionReps.length > 0) {
+      setShowSaveSuccess(true);
+      setTimeout(() => setShowSaveSuccess(false), 2800);
+    }
+  };
+
+  // Reset all sets back to Round 1
+  const handleResetAllSets = () => {
+    updateCurrentSet(1);
+    handleResetRound(true);
+    if (settings.soundType === "VOICE") {
+      speakText("Contador reiniciado. Ronda 1.", settings.volume);
+    } else {
+      playSoundCue("GESTURE_OK", settings.soundType, settings.volume);
+    }
+  };
+
+  // Clear current active series
+  const handleClearActiveSet = () => {
+    handleResetRound(false);
+  };
+
+  // Save series to persistent workout history (and advance round)
+  const handleSaveSet = () => {
+    if (activeSessionReps.length === 0) return;
+    handleNextRound();
   };
 
   // Pre-configured pause times
   const pausePresets = [1, 2, 3, 4, 5];
+
+  // Pre-configured sets x reps presets
+  const programPresets = [
+    { sets: 3, reps: 4, label: "3×4" },
+    { sets: 4, reps: 2, label: "4×2" },
+    { sets: 4, reps: 5, label: "4×5" },
+    { sets: 5, reps: 3, label: "5×3" },
+    { sets: 3, reps: 8, label: "3×8" },
+    { sets: 5, reps: 5, label: "5×5" }
+  ];
 
   // Pre-configured depth angles
   const depthPresets = [
@@ -385,7 +493,10 @@ export default function App() {
                 2. <strong>Línea de Paralela Láser</strong>: La app proyecta una línea horizontal virtual. Cuando rompas la paralela ({settings.targetAngle}°), la línea brillará en verde neón.
               </p>
               <p>
-                3. <strong>Cuenta Atrás de Preparación (PREP 3s)</strong>: Pulsa el botón para tener 3 segundos de preparación antes de iniciar la primera repetición.
+                3. <strong>Cuenta Atrás de Preparación (PREP 3s)</strong>: Pulsa el botón (o levanta una rodilla 1s) para tener 3 segundos antes de empezar.
+              </p>
+              <p>
+                4. <strong>Gestos Corporales (Móvil en el Suelo)</strong>: De pie, mantén 1.2s: <strong>Cruzar pies</strong> = Reiniciar ronda • <strong>Ambos brazos arriba</strong> = Guardar y Siguiente ronda • <strong>Una mano arriba</strong> = Deshacer última rep • <strong>Rodilla arriba</strong> = PREP 3s.
               </p>
             </div>
           </motion.div>
@@ -408,7 +519,11 @@ export default function App() {
               <section className="w-full">
                 <CameraTracker 
                   settings={settings} 
+                  currentSet={currentSet}
                   onRepCompleted={handleRepCompleted}
+                  onResetRound={() => handleResetRound(false)}
+                  onNextRound={handleNextRound}
+                  onUndoLastRep={handleUndoLastRep}
                   activeSessionReps={activeSessionReps}
                   onToggleSimulation={() => updateSetting("isSimulationMode", !settings.isSimulationMode)}
                 />
@@ -434,8 +549,93 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* 1. Pause Slider with Ergonomic 44px Buttons */}
+                {/* 0. Program: Sets (Rondas) x Reps */}
                 <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                      <Layers className="h-3.5 w-3.5 text-brand" /> PROGRAMA (RONDAS × REPS)
+                    </label>
+                    <span className="text-xs font-black text-brand font-mono">
+                      {settings.targetSets} × {settings.targetReps} ({settings.targetSets * settings.targetReps} reps)
+                    </span>
+                  </div>
+
+                  {/* Quick presets like 3x4, 4x2 */}
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {programPresets.map((p) => {
+                      const isActive = settings.targetSets === p.sets && settings.targetReps === p.reps;
+                      return (
+                        <button
+                          key={p.label}
+                          onClick={() => handleSettingsChange({ ...settings, targetSets: p.sets, targetReps: p.reps })}
+                          className={`min-h-[44px] rounded-xl text-xs font-black font-mono transition-all cursor-pointer flex items-center justify-center ${
+                            isActive
+                              ? "bg-brand text-black shadow-[0_0_12px_rgba(226,255,49,0.3)] scale-[1.02]"
+                              : "bg-white/5 text-zinc-300 border border-white/5 hover:bg-white/10"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Steppers for Rondas and Reps */}
+                  <div className="grid grid-cols-2 gap-2.5 mt-0.5">
+                    <div className="flex items-center justify-between bg-white/[0.03] border border-white/5 p-1.5 rounded-xl">
+                      <button
+                        onClick={() => {
+                          const next = Math.max(1, settings.targetSets - 1);
+                          updateSetting("targetSets", next);
+                          if (currentSet > next) updateCurrentSet(next);
+                        }}
+                        disabled={settings.targetSets <= 1}
+                        className="min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 rounded-lg flex items-center justify-center active:scale-95 cursor-pointer disabled:opacity-30"
+                        title="Menos rondas"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-black text-white font-mono leading-none">{settings.targetSets}</span>
+                        <span className="text-[8px] font-mono text-zinc-500 uppercase mt-0.5">Rondas</span>
+                      </div>
+                      <button
+                        onClick={() => updateSetting("targetSets", Math.min(12, settings.targetSets + 1))}
+                        disabled={settings.targetSets >= 12}
+                        className="min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 rounded-lg flex items-center justify-center active:scale-95 cursor-pointer disabled:opacity-30"
+                        title="Más rondas"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between bg-white/[0.03] border border-white/5 p-1.5 rounded-xl">
+                      <button
+                        onClick={() => updateSetting("targetReps", Math.max(1, settings.targetReps - 1))}
+                        disabled={settings.targetReps <= 1}
+                        className="min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 rounded-lg flex items-center justify-center active:scale-95 cursor-pointer disabled:opacity-30"
+                        title="Menos repeticiones"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <div className="flex flex-col items-center">
+                        <span className="text-sm font-black text-white font-mono leading-none">{settings.targetReps}</span>
+                        <span className="text-[8px] font-mono text-zinc-500 uppercase mt-0.5">Reps</span>
+                      </div>
+                      <button
+                        onClick={() => updateSetting("targetReps", Math.min(25, settings.targetReps + 1))}
+                        disabled={settings.targetReps >= 25}
+                        className="min-h-[44px] min-w-[44px] bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border border-white/10 rounded-lg flex items-center justify-center active:scale-95 cursor-pointer disabled:opacity-30"
+                        title="Más repeticiones"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 1. Pause Slider with Ergonomic 44px Buttons */}
+                <div className="flex flex-col gap-2 border-t border-white/5 pt-3">
                   <div className="flex items-center justify-between">
                     <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
                       <Clock className="h-3.5 w-3.5 text-brand" /> TIEMPO DE PAUSA
@@ -600,6 +800,33 @@ export default function App() {
                   )}
                 </div>
 
+                {/* 4. Body Gestures Toggle & Quick Reference */}
+                <div className="flex flex-col gap-2 border-t border-white/5 pt-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                      <Hand className="h-3.5 w-3.5 text-brand" /> GESTOS MANOS LIBRES
+                    </label>
+                    <button
+                      onClick={() => updateSetting("gesturesEnabled", !settings.gesturesEnabled)}
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all cursor-pointer border ${
+                        settings.gesturesEnabled
+                          ? "bg-brand/15 text-brand border-brand/40 shadow-[0_0_10px_rgba(226,255,49,0.2)]"
+                          : "bg-white/5 text-zinc-400 border-white/10"
+                      }`}
+                    >
+                      {settings.gesturesEnabled ? "✓ ACTIVOS" : "DESACTIVADOS"}
+                    </button>
+                  </div>
+                  {settings.gesturesEnabled && (
+                    <div className="grid grid-cols-2 gap-1.5 text-[9px] font-mono text-zinc-400 bg-white/[0.02] border border-white/5 rounded-xl p-2.5">
+                      <div><strong className="text-brand">Cruzar pies:</strong> Reiniciar ronda</div>
+                      <div><strong className="text-brand">2 brazos arriba:</strong> Siguiente ronda</div>
+                      <div><strong className="text-brand">1 mano arriba:</strong> Deshacer rep</div>
+                      <div><strong className="text-brand">Rodilla arriba:</strong> Prep 3s</div>
+                    </div>
+                  )}
+                </div>
+
               </section>
 
               {/* BLOCK C: ACTIVE SET PANEL (REP COUNTER & COACH AI TRIGGER) */}
@@ -607,13 +834,19 @@ export default function App() {
                 
                 <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
                   <div>
-                    <span className="text-[10px] text-brand font-black uppercase tracking-widest font-mono">SERIE ACTIVA</span>
-                    <h3 className="text-xs font-extrabold text-white uppercase tracking-tight mt-0.5">Historial del Set</h3>
+                    <span className="text-[10px] text-brand font-black uppercase tracking-widest font-mono">
+                      RONDA {currentSet} / {settings.targetSets}
+                    </span>
+                    <h3 className="text-xs font-extrabold text-white uppercase tracking-tight mt-0.5">
+                      Historial del Set ({activeSessionReps.length}/{settings.targetReps})
+                    </h3>
                   </div>
                   
                   {/* Quick counters */}
                   <div className="flex items-center gap-1.5 font-mono text-[9px] font-bold">
-                    <span className="px-2.5 py-1 rounded-lg bg-white/5 text-zinc-300">Reps: <strong className="text-white">{statsSummary.total}</strong></span>
+                    <span className={`px-2.5 py-1 rounded-lg ${activeSessionReps.length >= settings.targetReps ? "bg-brand text-black font-black" : "bg-white/5 text-zinc-300"}`}>
+                      Reps: <strong>{statsSummary.total}/{settings.targetReps}</strong>
+                    </span>
                     <span className="px-2.5 py-1 rounded-lg bg-brand/10 text-brand">OK: <strong className="text-brand">{statsSummary.valid}</strong></span>
                   </div>
                 </div>
@@ -680,32 +913,57 @@ export default function App() {
                 </div>
 
                 {/* Core Controls Actions */}
-                <div className="flex gap-2.5 pt-1.5">
+                <div className="flex gap-2 pt-1.5">
                   <button
-                    onClick={handleClearActiveSet}
+                    onClick={handleUndoLastRep}
                     disabled={activeSessionReps.length === 0}
-                    className={`min-h-[48px] px-4 rounded-xl border flex items-center justify-center text-zinc-400 hover:text-red-400 cursor-pointer transition-all ${
+                    className={`min-h-[48px] px-3.5 rounded-xl border flex items-center justify-center gap-1 text-[10px] font-black uppercase cursor-pointer transition-all ${
                       activeSessionReps.length > 0
-                        ? "bg-white/5 hover:bg-white/10 border-white/10"
+                        ? "bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white border-white/10"
                         : "bg-zinc-950/20 text-zinc-700 border-transparent cursor-not-allowed"
                     }`}
-                    title="Borrar serie"
+                    title="Deshacer última repetición"
                   >
-                    <Trash2 className="h-5 w-5" />
+                    <Undo2 className="h-4 w-4" />
                   </button>
 
                   <button
-                    onClick={handleSaveSet}
+                    onClick={handleClearActiveSet}
                     disabled={activeSessionReps.length === 0}
+                    className={`min-h-[48px] px-3.5 rounded-xl border flex items-center justify-center gap-1.5 text-[10px] font-black uppercase cursor-pointer transition-all ${
+                      activeSessionReps.length > 0
+                        ? "bg-white/5 hover:bg-red-500/15 text-zinc-300 hover:text-red-400 border-white/10"
+                        : "bg-zinc-950/20 text-zinc-700 border-transparent cursor-not-allowed"
+                    }`}
+                    title="Reiniciar ronda actual a 0"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    <span className="hidden xs:inline">Reiniciar</span>
+                  </button>
+
+                  <button
+                    onClick={handleNextRound}
                     className={`flex-1 min-h-[48px] py-3 rounded-xl font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
                       activeSessionReps.length > 0
                         ? "bg-brand text-black hover:scale-[1.01] shadow-[0_4px_16px_rgba(226,255,49,0.3)]"
-                        : "bg-white/5 text-zinc-600 border border-white/5 cursor-not-allowed"
+                        : "bg-white/10 text-white border border-white/15 hover:bg-white/15"
                     }`}
                   >
-                    <Save className="h-4 w-4 stroke-[2.5px]" /> Finalizar y Guardar Serie
+                    <SkipForward className="h-4 w-4 stroke-[2.5px]" />
+                    {activeSessionReps.length > 0
+                      ? (currentSet >= settings.targetSets ? "Guardar y Terminar" : `Guardar y Ronda ${currentSet + 1}`)
+                      : (currentSet >= settings.targetSets ? "Volver a Ronda 1" : `Pasar a Ronda ${currentSet + 1}`)}
                   </button>
                 </div>
+
+                {currentSet > 1 && (
+                  <button
+                    onClick={handleResetAllSets}
+                    className="w-full py-2 rounded-xl text-[9px] font-mono font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-all cursor-pointer"
+                  >
+                    Reiniciar programa completo (volver a Ronda 1/{settings.targetSets})
+                  </button>
+                )}
 
               </section>
             </motion.div>
@@ -720,9 +978,7 @@ export default function App() {
               transition={{ duration: 0.2 }}
               className="w-full"
             >
-              <WorkoutHistory 
-                onSelectSessionForCoach={(reps, p, a) => openCoachForSession(reps, p, a)}
-              />
+              <WorkoutHistory />
             </motion.div>
           )}
 

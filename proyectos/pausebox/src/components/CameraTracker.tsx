@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Repetition, SquatState, WorkoutSettings } from "../types";
+import { BodyGestureType, Repetition, SquatState, WorkoutSettings } from "../types";
 import { playSoundCue, speakText, triggerRepCompletedVibration, playBeep } from "../lib/audioHelper";
 import { 
   Activity, 
@@ -32,12 +32,25 @@ let globalPoseInstance: any = null;
 
 interface CameraTrackerProps {
   settings: WorkoutSettings;
+  currentSet: number;
   onRepCompleted: (rep: Repetition) => void;
+  onResetRound: () => void;
+  onNextRound: () => void;
+  onUndoLastRep: () => void;
   activeSessionReps: Repetition[];
   onToggleSimulation?: () => void;
 }
 
-export default function CameraTracker({ settings, onRepCompleted, activeSessionReps, onToggleSimulation }: CameraTrackerProps) {
+export default function CameraTracker({
+  settings,
+  currentSet,
+  onRepCompleted,
+  onResetRound,
+  onNextRound,
+  onUndoLastRep,
+  activeSessionReps,
+  onToggleSimulation
+}: CameraTrackerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -288,6 +301,17 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
   // References to bypass stale closures in MediaPipe callbacks
   const settingsRef = useRef<WorkoutSettings>(settings);
   const onRepCompletedRef = useRef<(rep: Repetition) => void>(onRepCompleted);
+  const onResetRoundRef = useRef<() => void>(onResetRound);
+  const onNextRoundRef = useRef<() => void>(onNextRound);
+  const onUndoLastRepRef = useRef<() => void>(onUndoLastRep);
+  const activeSessionRepsRef = useRef<Repetition[]>(activeSessionReps);
+  const prepCountdownRef = useRef<number | null>(prepCountdown);
+
+  // Body Gesture Control state & refs
+  const [gestureHudState, setGestureHudState] = useState<{ type: BodyGestureType; progress: number } | null>(null);
+  const [gestureFlash, setGestureFlash] = useState<string | null>(null);
+  const activeGestureRef = useRef<{ type: BodyGestureType; startTime: number } | null>(null);
+  const gestureCooldownUntilRef = useRef<number>(0);
 
   // Sync refs on every render
   useEffect(() => {
@@ -297,6 +321,26 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
   useEffect(() => {
     onRepCompletedRef.current = onRepCompleted;
   }, [onRepCompleted]);
+
+  useEffect(() => {
+    onResetRoundRef.current = onResetRound;
+  }, [onResetRound]);
+
+  useEffect(() => {
+    onNextRoundRef.current = onNextRound;
+  }, [onNextRound]);
+
+  useEffect(() => {
+    onUndoLastRepRef.current = onUndoLastRep;
+  }, [onUndoLastRep]);
+
+  useEffect(() => {
+    activeSessionRepsRef.current = activeSessionReps;
+  }, [activeSessionReps]);
+
+  useEffect(() => {
+    prepCountdownRef.current = prepCountdown;
+  }, [prepCountdown]);
 
   // Screen Wake Lock API State
   const [isWakeLockActive, setIsWakeLockActive] = useState(false);
@@ -750,6 +794,12 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
     const rKnee = lm[26];
     const lAnkle = lm[27];
     const rAnkle = lm[28];
+    const lHeel = lm[29];
+    const rHeel = lm[30];
+    const lElbow = lm[13];
+    const rElbow = lm[14];
+    const lWrist = lm[15];
+    const rWrist = lm[16];
 
     // Determine biomechanical angles
     const leftKnee = calculateAngle(lHip, lKnee, lAnkle);
@@ -769,6 +819,12 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
 
     // Run the main squat tracking state machine
     processSquatTelemetry(activeKneeAngle);
+
+    // Run hands-free body gesture detection (only when standing & not in prep countdown)
+    processBodyGestures({
+      lShoulder, rShoulder, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle, lHeel, rHeel,
+      leftKnee, rightKnee
+    });
 
     // DRAW CYBER ATHLETIC SKELETON
     // Choose neon color based on state
@@ -909,6 +965,128 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
     drawJoint(rKnee, `${Math.round(rightKnee)}°`, rightKnee);
     drawJoint(lAnkle);
     drawJoint(rAnkle);
+
+    // Subtle arm & foot landmarks when gestures are enabled
+    if (settingsRef.current.gesturesEnabled) {
+      drawLine(lShoulder, lElbow);
+      drawLine(lElbow, lWrist);
+      drawLine(rShoulder, rElbow);
+      drawLine(rElbow, rWrist);
+      drawJoint(lWrist);
+      drawJoint(rWrist);
+    }
+  }
+
+  function processBodyGestures(p: {
+    lShoulder: any; rShoulder: any; lWrist: any; rWrist: any;
+    lHip: any; rHip: any; lKnee: any; rKnee: any;
+    lAnkle: any; rAnkle: any; lHeel: any; rHeel: any;
+    leftKnee: number; rightKnee: number;
+  }) {
+    const now = Date.now();
+    if (
+      !settingsRef.current.gesturesEnabled ||
+      stateRef.current !== "STANDING" ||
+      prepCountdownRef.current !== null ||
+      now < gestureCooldownUntilRef.current
+    ) {
+      if (activeGestureRef.current) {
+        activeGestureRef.current = null;
+        setGestureHudState(null);
+      }
+      return;
+    }
+
+    let detected: BodyGestureType | null = null;
+    const bothLegsStraight = p.leftKnee > 145 && p.rightKnee > 145;
+    const anklesVisible = p.lAnkle.visibility > 0.45 && p.rAnkle.visibility > 0.45 && p.lHip.visibility > 0.45 && p.rHip.visibility > 0.45;
+    const wristsVisible = p.lWrist.visibility > 0.45 && p.rWrist.visibility > 0.45 && p.lShoulder.visibility > 0.45 && p.rShoulder.visibility > 0.45;
+
+    // 1. CROSS_FEET -> Reiniciar ronda actual
+    if (bothLegsStraight && anklesVisible) {
+      const hipSpan = Math.abs(p.lHip.x - p.rHip.x);
+      if (hipSpan > 0.055) {
+        const hipDiff = p.lHip.x - p.rHip.x;
+        const ankleDiff = p.lAnkle.x - p.rAnkle.x;
+        if (hipDiff * ankleDiff < -0.0004) {
+          detected = "CROSS_FEET";
+        }
+      } else {
+        const heelsVisible = p.lHeel?.visibility > 0.4 && p.rHeel?.visibility > 0.4;
+        if (Math.abs(p.lAnkle.x - p.rAnkle.x) < 0.032 && heelsVisible && Math.abs(p.lHeel.y - p.rHeel.y) > 0.035) {
+          detected = "CROSS_FEET";
+        }
+      }
+    }
+
+    // 2. HANDS_UP -> Guardar y siguiente ronda
+    if (!detected && bothLegsStraight && wristsVisible) {
+      if (p.lWrist.y < p.lShoulder.y - 0.12 && p.rWrist.y < p.rShoulder.y - 0.12) {
+        detected = "HANDS_UP";
+      }
+    }
+
+    // 3. ONE_HAND_UP -> Deshacer última rep (solo si hay reps en la ronda)
+    if (!detected && bothLegsStraight && wristsVisible && activeSessionRepsRef.current.length > 0) {
+      const leftUp = p.lWrist.y < p.lShoulder.y - 0.14 && p.rWrist.y > p.rShoulder.y - 0.02;
+      const rightUp = p.rWrist.y < p.rShoulder.y - 0.14 && p.lWrist.y > p.lShoulder.y - 0.02;
+      if (leftUp || rightUp) {
+        detected = "ONE_HAND_UP";
+      }
+    }
+
+    // 4. KNEE_RAISE -> Activar PREP 3s
+    if (!detected) {
+      const leftRaised = p.rightKnee > 155 && p.leftKnee < 105 && p.lKnee.visibility > 0.45 && p.lHip.visibility > 0.45 && p.lKnee.y < p.lHip.y + 0.08;
+      const rightRaised = p.leftKnee > 155 && p.rightKnee < 105 && p.rKnee.visibility > 0.45 && p.rHip.visibility > 0.45 && p.rKnee.y < p.rHip.y + 0.08;
+      if (leftRaised || rightRaised) {
+        detected = "KNEE_RAISE";
+      }
+    }
+
+    if (!detected) {
+      if (activeGestureRef.current) {
+        activeGestureRef.current = null;
+        setGestureHudState(null);
+      }
+      return;
+    }
+
+    const holdMs = detected === "KNEE_RAISE" ? 1000 : 1200;
+    if (!activeGestureRef.current || activeGestureRef.current.type !== detected) {
+      activeGestureRef.current = { type: detected, startTime: now };
+      setGestureHudState({ type: detected, progress: 0.05 });
+      return;
+    }
+
+    const progress = Math.min(1, (now - activeGestureRef.current.startTime) / holdMs);
+    setGestureHudState({ type: detected, progress });
+
+    if (progress >= 1) {
+      gestureCooldownUntilRef.current = now + 3000;
+      activeGestureRef.current = null;
+      setGestureHudState(null);
+
+      let flashMsg = "";
+      if (detected === "CROSS_FEET") {
+        onResetRoundRef.current();
+        flashMsg = "✓ RONDA REINICIADA (0 REPS)";
+      } else if (detected === "HANDS_UP") {
+        onNextRoundRef.current();
+        flashMsg = "✓ SIGUIENTE RONDA";
+      } else if (detected === "ONE_HAND_UP") {
+        onUndoLastRepRef.current();
+        flashMsg = "✓ ÚLTIMA REP BORRADA";
+      } else if (detected === "KNEE_RAISE") {
+        startPrepCountdown();
+        flashMsg = "✓ PREP 3s ACTIVADO";
+      }
+
+      if (flashMsg) {
+        setGestureFlash(flashMsg);
+        setTimeout(() => setGestureFlash(null), 1800);
+      }
+    }
   }
 
   function rHipsJoint(lHip: any, rHip: any) {
@@ -1315,6 +1493,28 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
           </div>
         )}
 
+        {/* Top-Right Massive RONDA & REPS HUD (visible from 2.5m on gym floor) */}
+        {squatState !== "HOLDING" && squatState !== "COMPLETED_HOLD" && (
+          <div className="absolute top-4 right-4 z-20 pointer-events-none flex flex-col items-end bg-black/80 backdrop-blur-md px-3.5 py-2.5 rounded-2xl border border-white/15 shadow-2xl">
+            <span className="text-[9px] font-mono font-black text-brand uppercase tracking-widest leading-none">
+              RONDA {currentSet}/{settings.targetSets}
+            </span>
+            <div className="flex items-baseline gap-1 mt-1 leading-none font-mono">
+              <span className={`text-3xl sm:text-4xl font-black tracking-tighter ${
+                activeSessionReps.length >= settings.targetReps ? "text-brand" : "text-white"
+              }`}>
+                {activeSessionReps.length}
+              </span>
+              <span className="text-sm sm:text-base font-black text-zinc-500">
+                /{settings.targetReps}
+              </span>
+            </div>
+            <span className="text-[8px] font-mono text-zinc-400 uppercase font-bold mt-0.5">
+              {activeSessionReps.length >= settings.targetReps ? "✓ RONDA LISTA" : `PAUSA ${settings.pauseDuration}S`}
+            </span>
+          </div>
+        )}
+
         {/* Aesthetic Tech HUD Corner Brackets */}
         <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-brand z-20 pointer-events-none" />
         <div className="absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 border-brand z-20 pointer-events-none" />
@@ -1355,6 +1555,58 @@ export default function CameraTracker({ settings, onRepCompleted, activeSessionR
               <span className="text-8xl sm:text-9xl font-black text-brand font-mono tracking-tighter drop-shadow-[0_0_50px_rgba(226,255,49,0.8)]">
                 {prepCountdown === 0 ? "¡YA!" : prepCountdown}
               </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Body Gesture Hold Progress Ring Overlay */}
+        <AnimatePresence>
+          {gestureHudState && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/55 backdrop-blur-[2px] pointer-events-none select-none"
+            >
+              <div className="relative w-28 h-28 flex items-center justify-center">
+                <svg className="w-28 h-28 -rotate-90" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15.9155" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="3" />
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="15.9155"
+                    fill="none"
+                    stroke="#E2FF31"
+                    strokeWidth="3.5"
+                    strokeDasharray="100, 100"
+                    strokeDashoffset={100 - Math.round(gestureHudState.progress * 100)}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span className="absolute text-lg font-black font-mono text-brand">
+                  {Math.round(gestureHudState.progress * 100)}%
+                </span>
+              </div>
+              <div className="mt-3 px-5 py-2 rounded-2xl bg-black/90 border border-brand/50 text-brand font-mono font-black text-xs sm:text-sm uppercase tracking-wider shadow-[0_0_25px_rgba(226,255,49,0.4)]">
+                {gestureHudState.type === "CROSS_FEET" && "PIES CRUZADOS → REINICIAR RONDA"}
+                {gestureHudState.type === "HANDS_UP" && "BRAZOS ARRIBA → SIGUIENTE RONDA"}
+                {gestureHudState.type === "ONE_HAND_UP" && "MANO ARRIBA → DESHACER REP"}
+                {gestureHudState.type === "KNEE_RAISE" && "RODILLA ARRIBA → PREP 3S"}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Body Gesture Confirmation Flash */}
+        <AnimatePresence>
+          {gestureFlash && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -15, scale: 0.9 }}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 px-6 py-3.5 rounded-2xl bg-brand text-black font-mono font-black text-sm sm:text-base uppercase tracking-wider shadow-[0_0_40px_rgba(226,255,49,0.8)] pointer-events-none"
+            >
+              {gestureFlash}
             </motion.div>
           )}
         </AnimatePresence>

@@ -112,7 +112,7 @@ export function triggerRepCompletedVibration() {
 }
 
 // Play athletic beeps based on action
-export function playSoundCue(action: "START_PAUSE" | "TICK" | "UP_CUE" | "READY", option: SoundOption, volume: number = 0.5) {
+export function playSoundCue(action: "START_PAUSE" | "TICK" | "UP_CUE" | "READY" | "SET_COMPLETE" | "GESTURE_OK", option: SoundOption, volume: number = 0.5) {
   // Trigger tactile vibration patterns for mobile athletes
   if (action === "UP_CUE") {
     // Two long pulses when pause is finished
@@ -120,6 +120,8 @@ export function playSoundCue(action: "START_PAUSE" | "TICK" | "UP_CUE" | "READY"
   } else if (action === "START_PAUSE") {
     // One short vibration when starting pause at the bottom
     triggerStartPauseVibration();
+  } else if (action === "SET_COMPLETE" || action === "GESTURE_OK") {
+    triggerRepCompletedVibration();
   }
 
   if (option === "MUTE") return;
@@ -144,6 +146,16 @@ export function playSoundCue(action: "START_PAUSE" | "TICK" | "UP_CUE" | "READY"
         // Loud, long buzzer/high pitch beep
         playBeep(880, 0.5, vol * 1.2);
         break;
+      case "SET_COMPLETE":
+        playBeep(523.25, 0.12, vol);
+        setTimeout(() => playBeep(659.25, 0.12, vol), 120);
+        setTimeout(() => playBeep(783.99, 0.12, vol), 240);
+        setTimeout(() => playBeep(1046.5, 0.35, vol), 360);
+        break;
+      case "GESTURE_OK":
+        playBeep(660, 0.1, vol);
+        setTimeout(() => playBeep(880, 0.18, vol), 110);
+        break;
     }
   } else if (option === "VOICE") {
     switch (action) {
@@ -158,6 +170,12 @@ export function playSoundCue(action: "START_PAUSE" | "TICK" | "UP_CUE" | "READY"
         break;
       case "UP_CUE":
         speakText("¡Sube, sube!", vol);
+        break;
+      case "SET_COMPLETE":
+        speakText("¡Ronda completada!", vol);
+        break;
+      case "GESTURE_OK":
+        speakText("Confirmado", vol);
         break;
     }
   }

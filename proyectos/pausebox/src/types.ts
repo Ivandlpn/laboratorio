@@ -26,9 +26,18 @@ export interface WorkoutSession {
 }
 
 export interface WorkoutSettings {
-  pauseDuration: number;    // target pause (e.g. 3)
+  pauseDuration: number;    // target pause (e.g. 2)
   targetAngle: number;      // target knee angle for depth (e.g. 100)
+  targetSets: number;       // target number of sets/rounds (e.g. 3)
+  targetReps: number;       // target reps per set (e.g. 4)
+  gesturesEnabled: boolean; // enable body gestures for hands-free control
   soundType: SoundOption;
   volume: number;           // 0.0 to 1.0
   isSimulationMode: boolean; // allow testing without camera
 }
+
+export type BodyGestureType =
+  | "CROSS_FEET"    // Reiniciar ronda actual
+  | "HANDS_UP"      // Guardar y pasar a siguiente ronda
+  | "KNEE_RAISE"    // Activar cuenta atrás PREP 3s
+  | "ONE_HAND_UP";  // Deshacer última repetición
