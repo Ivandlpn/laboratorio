@@ -150,6 +150,7 @@
       <button type="button" id="btnCopiarCoord">Copiar coordenadas</button>
       <button type="button" id="btnFichaCctv" hidden>📹 Ver desde CCTV</button>
       <a id="lnkMapa" target="_blank" rel="noopener" style="align-self:center;font-size:12px">Abrir en mapa</a>
+      <a id="lnkGeoLibre" target="_blank" rel="noopener" style="align-self:center;font-size:12px" title="Abre la cartografía 3D de Adif de este tramo (km anterior, actual y siguiente) en GeoLibre, un SIG libre en el navegador: atributos, mediciones, SQL y geoproceso">Abrir en GeoLibre</a>
     </div>
   </div>
 </aside>
@@ -364,6 +365,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { crearFlota } from './js/flota.js';
 import { crearCatenaria } from './js/catenaria.js';
 import { crearMantenimiento } from './js/mantenimiento.js';
+import { urlGeoLibre } from './js/geolibre.js';
 import { NOMBRE_FASE } from './js/bateadora.js';
 import { crearTrenesReales } from './js/tiempo-real.js';
 import { crearTrafico } from './js/trafico.js';
@@ -2654,7 +2656,10 @@ function mostrarFicha(capa, nombre, info, filas = [], coord = null) {
   elFichaDatos.hidden = !filas.length;
   coordFicha = coord;
   elFichaAcc.hidden = !coord;
-  if (coord) document.getElementById('lnkMapa').href = `https://www.google.com/maps?q=${coord.lat.toFixed(6)},${coord.lon.toFixed(6)}`;
+  if (coord) {
+    document.getElementById('lnkMapa').href = `https://www.google.com/maps?q=${coord.lat.toFixed(6)},${coord.lon.toFixed(6)}`;
+    document.getElementById('lnkGeoLibre').href = urlGeoLibre({ pk: coord.pk, lat: coord.lat, lon: coord.lon, pkIni: Eje3D.pkIni, pkFin: Eje3D.pkFin });
+  }
   document.getElementById('ficha').hidden = false;
 }
 document.getElementById('btnCopiarCoord').addEventListener('click', async (ev) => {
