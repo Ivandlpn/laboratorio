@@ -9,7 +9,7 @@ import { construirCentroTraccion } from './centros-traccion.js';
 
 export function crearGestorTeselas(ctx) {
   const {
-    RUTA, meta, capasMeta, gruposVisibles, entornoKms, escena, Eje3D, MdtCorredor, HashCotas, W, cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja, MODELOS, ARB, matTejaArabe, PK_TERMINAL, VIADUCTOS_REALES, viaductoReal, PERFIL_VIADUCTO, PERFIL_CAJON_VIAD, ESTACION_VILLENA, enZonaEstacion, PASOS_INF, PASOS_SUP, enPasoSuperior, RAMALES, CENTROS_TRACCION_CORREDOR, edificiosPorKm, COLOR_CAT_EDIF, fichaElemento, datosDePunto, mostrarFicha, ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matTunelBoveda, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, GEO,
+    RUTA, meta, capasMeta, gruposVisibles, entornoKms, escena, Eje3D, Catenaria, MdtCorredor, HashCotas, W, cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja, MODELOS, ARB, matTejaArabe, PK_TERMINAL, VIADUCTOS_REALES, viaductoReal, PERFIL_VIADUCTO, PERFIL_CAJON_VIAD, ESTACION_VILLENA, enZonaEstacion, PASOS_INF, PASOS_SUP, enPasoSuperior, RAMALES, CENTROS_TRACCION_CORREDOR, edificiosPorKm, COLOR_CAT_EDIF, fichaElemento, datosDePunto, mostrarFicha, ALTO_VALLA, mat, MAT_ALI, GEO_ROTULO, MAT_EST, valla, vallaRecinto, MAT_MALLA_VALLA, MAT_PUERTA_VALLA, matFoco, matBalizaRoja, matLumTunel, matSalidaEmerg, matCobreContacto, matBalasto, matSubbalasto, matCanaleta, matHormigonViad, matTunelBoveda, matEdifCivil, matEdifTecnico, matCubiertaPlana, matAndenGranito, matCarrilAlma, matCarrilCabeza, MAT_GRAPA, MAT_PLACA_GUIA, MAT_TIRAFONDO, carrilUIC60, matTraviesa, GEO,
   } = ctx;
 
   // Pilas de viaductos y pasos superiores: mismo hormigón visto pero en gris (el del tablero tira a beige)
@@ -298,14 +298,17 @@ export function crearGestorTeselas(ctx) {
             });
             carrilUIC60(mCarAlma, mCarCab, ptsR);
           }
-          // Cinta 3D continua de cobre-plata para el hilo de contacto a Z + 5,300 m (fuera de túneles; interior de túnel con carril rígido/hilo tenso)
+          // Cinta 3D continua de cobre-plata para el hilo de contacto a Z + 5,300 m, en zigzag de ±20 cm entre apoyos (fuera de túneles)
           let trContacto = [];
           const flushContacto = () => {
             if (trContacto.length >= 2) cinta(mHiloContacto, trContacto, 0.024, 5.292, 5.312, 0, 0.5);
             trContacto = [];
           };
-          for (const m of muestrasVia) {
-            const nx = -m.ty, ny = m.tx, off = signo * (m.sep * 0.5);
+          const pksHilo = [...muestrasVia.map((m) => m.pk), ...Catenaria.apoyosEntre(muestrasVia[0]?.pk ?? pk0, muestrasVia[muestrasVia.length - 1]?.pk ?? pk1, signo).map((a) => a.pk)]
+            .sort((x, y) => x - y);
+          for (const pk of pksHilo) {
+            const m = Eje3D.enPk(pk);
+            const nx = -m.ty, ny = m.tx, off = signo * (m.sep * 0.5) + Catenaria.descentramiento(pk, signo);
             if (!m.enTunel) trContacto.push(L(m.E + nx * off, m.N + ny * off, m.Z));
             else flushContacto();
           }
@@ -1127,7 +1130,7 @@ export function crearGestorTeselas(ctx) {
         for (const m of muestras) { if (m.enTunel) tramoT.push(m); else cerrarTunel(); }
         cerrarTunel();
 
-        // 2e. Catenaria EAC-350 longitudinalmente estable (cero trazado sinusoidal): postes HEB, contrapesos, ménsulas, sustentador y péndolas
+        // 2e. Catenaria EAC-350: postes HEB, contrapesos, ménsulas, brazos de atirantado, sustentador, péndolas e hilo en zigzag
         // Postes: en la posición y cota de la cartografía de Adif (capa 040242, bloque 2253); solo si un km no los trae
         // se generan cada 55 m como antes.
         const postesCarto = (rGeo.features || []).filter((f) => f.properties?.c === '040242' && f.properties?.b === '2253' && f.geometry?.type === 'Point');
@@ -1215,7 +1218,7 @@ export function crearGestorTeselas(ctx) {
             if (q.d > 12) return; // poste de otra línea o de un ramal: sin ménsula hacia esta vía
             if (iP % 20 === 0) inst.contrapeso.push(mtP);
             // Ménsula desde el poste hasta el eje de la vía más cercana (a sep/2 del eje de la línea)
-            const alcance = Math.max(1.2, q.d - m.sep * 0.5);
+            const alcance = Math.max(1.2, q.d - m.sep * 0.5 - s * Catenaria.descentramiento(q.pk, s));
             const zHilo = m.Z;
             const pMen = L(E - nx * s * alcance * 0.5, N - ny * s * alcance * 0.5, zHilo + 5.55);
             inst.mensula.push(matInst(pMen, yaw + (s > 0 ? Math.PI * 0.5 : -Math.PI * 0.5), alcance, 1, 1));
@@ -1244,66 +1247,57 @@ export function crearGestorTeselas(ctx) {
           if (largo - ap[ap.length - 1] > 9 && largo - ap[ap.length - 1] < 256) tramo(ap[ap.length - 1], largo - 6, false);
         }
 
-        const VANO = 55;
-        const pkVanoIni = Math.floor((pk0 - VANO) / VANO) * VANO;
-        for (let pkA = pkVanoIni; pkA < pk1; pkA += VANO) {
-          const pkB = pkA + VANO;
-          if (pkB <= Eje3D.pkIni || pkA >= Eje3D.pkFin || pkA >= PK_TERMINAL) continue;
-          const a = Math.max(Eje3D.pkIni, pkA), b = Math.min(Eje3D.pkFin, pkB);
-          const mA = Eje3D.enPk(a), mB = Eje3D.enPk(b);
-          if (mA.enTunel || mB.enTunel) continue;
-
-          const idxVano = Math.round(pkA / VANO);
-
-          // Postes HEB a ±5,25 m y equipos de compensación mecánica cada 20 vanos (~1,1 km), solo sin postes cartografiados
-          if (!usarPostesCarto && pkA >= pk0 && pkA < pk1 && pkA >= Eje3D.pkIni) {
-            const yaw = Math.atan2(mA.ty, mA.tx), nx = -mA.ty, ny = mA.tx;
-            for (const s of [-1, 1]) {
-              const alcance = 2.90;
-              const offPoste = s * (mA.sep * 0.5 + alcance);
-              const pP = L(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.35);
-              const mtP = matInst(pP, yaw);
+        // Vanos de apoyo a apoyo de cada vía. El hilo de contacto y el sustentador (catenaria vertical) van en zigzag:
+        // ±20 cm del eje de la vía en cada apoyo, alternando, y rectos entre apoyos (js/catenaria.js). El feeder, recto.
+        const desc = (pk, s) => Catenaria.descentramiento(pk, s);
+        for (const s of [-1, 1]) {
+          const aps = Catenaria.apoyosEntre(Math.max(Eje3D.pkIni, pk0 - 90), Math.min(PK_TERMINAL, pk1 + 90), s);
+          for (let j = 0; j < aps.length; j++) {
+            const { pk: a } = aps[j];
+            const mA = Eje3D.enPk(a);
+            // Postes HEB y equipos de compensación cada 20 vanos, solo donde la cartografía no trae postes
+            if (!usarPostesCarto && a >= pk0 && a < pk1 && !mA.enTunel) {
+              const yaw = Math.atan2(mA.ty, mA.tx), nx = -mA.ty, ny = mA.tx;
+              const offPoste = s * (mA.sep * 0.5 + 2.9);
+              const alcance = 2.9 - s * desc(a, s);
+              const mtP = matInst(L(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.35), yaw);
               inst.poste.push(mtP);
               inst.cimientoPoste.push(mtP);
               inst.placaPoste.push(mtP);
-              agregarPlacaPkPoste(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.35, mA.tx, mA.ty, yaw, pkA, s);
-              if (idxVano % 20 === 0) inst.contrapeso.push(mtP);
-              const pMen = L(mA.E + nx * (offPoste - s * alcance * 0.5), mA.N + ny * (offPoste - s * alcance * 0.5), mA.Z + 5.55);
-              inst.mensula.push(matInst(pMen, yaw + (s > 0 ? Math.PI * 0.5 : -Math.PI * 0.5), alcance, 1, 1));
-              const pAis1 = L(mA.E + nx * (offPoste - s * 0.42), mA.N + ny * (offPoste - s * 0.42), mA.Z + 5.55);
-              const pAis2 = L(mA.E + nx * (offPoste - s * 0.42), mA.N + ny * (offPoste - s * 0.42), mA.Z + 6.32);
-              inst.aislador.push(matInst(pAis1, yaw + Math.PI * 0.5));
-              inst.aislador.push(matInst(pAis2, yaw + Math.PI * 0.5));
+              agregarPlacaPkPoste(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.35, mA.tx, mA.ty, yaw, a, s);
+              if (Math.round(a / 55) % 20 === 0) inst.contrapeso.push(mtP);
+              const oM = offPoste - s * alcance * 0.5;
+              inst.mensula.push(matInst(L(mA.E + nx * oM, mA.N + ny * oM, mA.Z + 5.55), yaw + (s > 0 ? Math.PI * 0.5 : -Math.PI * 0.5), alcance, 1, 1));
+              for (const h of [5.55, 6.32]) inst.aislador.push(matInst(L(mA.E + nx * (offPoste - s * 0.42), mA.N + ny * (offPoste - s * 0.42), mA.Z + h), yaw + Math.PI * 0.5));
             }
-          }
-
-          // Hilos del vano alineados exactamente sobre el eje de cada vía (±2,350 m) sin zigzag sinusoidal
-          const SUB = 12, pasoSub = (b - a) / SUB;
-          if (pasoSub < 1) continue;
-          for (let k = 0; k < SUB; k++) {
-            const sa = a + k * pasoSub, sb = sa + pasoSub;
-            const sm = (sa + sb) * 0.5;
-            if (sm < pk0 || sm >= pk1) continue;
-            const ua = (sa - pkA) / VANO, ub = (sb - pkA) / VANO;
-            const pa = Eje3D.enPk(sa), pb2 = Eje3D.enPk(sb);
-            const nxa = -pa.ty, nya = pa.tx, nxb = -pb2.ty, nyb = pb2.tx;
-            const hSustA = 6.46 - 0.38 * 4 * ua * (1 - ua);
-            const hSustB = 6.46 - 0.38 * 4 * ub * (1 - ub);
-            const hFeedA = 7.36 - 0.28 * 4 * ua * (1 - ua);
-            const hFeedB = 7.36 - 0.28 * 4 * ub * (1 - ub);
-
-            for (const s of [-1, 1]) {
-              const offCA = s * (pa.sep * 0.5), offCB = s * (pb2.sep * 0.5);
-              const c1 = L(pa.E + nxa * offCA, pa.N + nya * offCA, pa.Z + 5.30);
-              const c2 = L(pb2.E + nxb * offCB, pb2.N + nyb * offCB, pb2.Z + 5.30);
-              const s1 = L(pa.E + nxa * offCA, pa.N + nya * offCA, pa.Z + hSustA);
-              const s2 = L(pb2.E + nxb * offCB, pb2.N + nyb * offCB, pb2.Z + hSustB);
-              linSeg(segContacto, c1, c2);
-              linSeg(segSustent, s1, s2);
-              if (k > 0) linSeg(segPendolas, c1, s1);
-
-              const offFA = s * (pa.sep * 0.5 + 3.28), offFB = s * (pb2.sep * 0.5 + 3.28);
-              linSeg(segFeeder, L(pa.E + nxa * offFA, pa.N + nya * offFA, pa.Z + hFeedA), L(pb2.E + nxb * offFB, pb2.N + nyb * offFB, pb2.Z + hFeedB));
+            // Brazo de atirantado en el apoyo: del tubo de la ménsula al hilo, tirando de él hacia su lado
+            if (a >= pk0 && a < pk1 && !mA.enTunel) {
+              const nx = -mA.ty, ny = mA.tx, oH = s * mA.sep * 0.5 + desc(a, s), oT = oH + s * 1.05;
+              const pH = L(mA.E + nx * oH, mA.N + ny * oH, mA.Z + 5.30), pT = L(mA.E + nx * oT, mA.N + ny * oT, mA.Z + 5.40);
+              linSeg(segSustent, pH, pT);
+              linSeg(segSustent, pT, L(mA.E + nx * oT, mA.N + ny * oT, mA.Z + 5.55));
+            }
+            if (j === aps.length - 1) break;
+            const b = aps[j + 1].pk, mB = Eje3D.enPk(b);
+            if (mA.enTunel || mB.enTunel || b - a < 2) continue;
+            const nSub = Math.max(2, Math.round((b - a) / 4.6));
+            const flecha = 0.38 * Math.min(1, (b - a) / 55) ** 2, flechaF = 0.28 * Math.min(1, (b - a) / 55) ** 2;
+            let c0 = null, s0 = null, f0 = null;
+            for (let k = 0; k <= nSub; k++) {
+              const u = k / nSub, pk = a + (b - a) * u, m = Eje3D.enPk(pk);
+              const nx = -m.ty, ny = m.tx, o = s * m.sep * 0.5 + desc(pk, s), oF = s * (m.sep * 0.5 + 3.28);
+              const enTesela = pk >= pk0 - 0.01 && pk <= pk1 + 0.01;
+              const c1 = L(m.E + nx * o, m.N + ny * o, m.Z + 5.30);
+              const s1 = L(m.E + nx * o, m.N + ny * o, m.Z + 6.46 - flecha * 4 * u * (1 - u));
+              const f1 = L(m.E + nx * oF, m.N + ny * oF, m.Z + 7.36 - flechaF * 4 * u * (1 - u));
+              const pkMed = pk - (b - a) / nSub * 0.5;
+              if (c0 && pkMed >= pk0 && pkMed < pk1) {
+                linSeg(segContacto, c0, c1);
+                linSeg(segSustent, s0, s1);
+                linSeg(segFeeder, f0, f1);
+              }
+              if (k > 0 && k < nSub && enTesela && pk >= pk0 && pk < pk1) linSeg(segPendolas, c1, s1);
+              c0 = c1; s0 = s1; f0 = f1;
             }
           }
         }
@@ -2518,7 +2512,7 @@ export function crearGestorTeselas(ctx) {
       addMalla(mBarandillaTunel, mat('#eab308', 1, { metalness: 0.35, roughness: 0.4 }), 'estructuras', '050020');
       addMalla(mHormigonObra, matHormigonViad, 'estructuras', '030203', true, true);
 
-      addHilos(segContacto, '#9a5833', 'catenaria', 'Hilo de contacto EAC-350 (Cu-Ag)', `PK ${fmtPk(pkCentro)} · Altura nominal constante 5,30 m alineada sobre el eje de vía.`);
+      addHilos(segContacto, '#9a5833', 'catenaria', 'Hilo de contacto EAC-350 (Cu-Ag)', `PK ${fmtPk(pkCentro)} · Altura constante de 5,30 m sobre el carril. Descentramiento de ±20 cm: en cada ménsula el brazo de atirantado lleva el hilo a un lado y otro del eje de la vía, alternando, y entre postes va recto. Así barre las bandas de carbón del pantógrafo de lado a lado (desgaste uniforme) y gana rigidez frente al viento. Apoyos en los postes de la cartografía de Adif.`);
       addHilos(segSustent, '#475569', 'catenaria', 'Cable sustentador y celosía EAC-350', `PK ${fmtPk(pkCentro)} · Sustentador de bronce compensado mecánicamente y arriostramientos.`);
       addHilos(segPendolas, '#64748b', 'catenaria', 'Péndolas equipotenciales EAC-350', `PK ${fmtPk(pkCentro)} · Péndolas verticales de bronce cada 4,6 m entre sustentador e hilo de contacto.`);
       addHilos(segFeeder, '#334155', 'catenaria', 'Feeder negativo 2×25 kV', `PK ${fmtPk(pkCentro)} · Conductor de retorno/alimentación suspendido en cabeza de poste.`);

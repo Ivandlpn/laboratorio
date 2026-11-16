@@ -338,10 +338,20 @@ function crearMorroAerodinamico(tipo) {
   return g;
 }
 
-export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkArranque }) {
+export function crearFlota({ escena, Eje3D, Catenaria, W, mat, matFoco, matPilotoRojo, pkArranque }) {
   const grupoFlota = new THREE.Group();
   escena.add(grupoFlota);
   const matSombraTren = crearMatSombraTren();
+
+  // Materiales y geometrías compartidos del pantógrafo
+  const matCarbon = mat('#25282b', 1, { roughness: 0.85, metalness: 0.1 });
+  const matAisladorPanto = mat('#c9ccc8', 1, { roughness: 0.3, metalness: 0.05 });
+  const matNeumatico = mat('#1b1d20', 1, { roughness: 0.7, metalness: 0.05 });
+  const gAisladorPanto = new THREE.CylinderGeometry(0.06, 0.075, 0.34, 10);
+  const gMarcaContacto = new THREE.BoxGeometry(0.4, 0.004, 0.035);
+  const matMarcaContacto = new THREE.MeshBasicMaterial({ color: '#e8b26a' });
+  const gChispa = new THREE.SphereGeometry(0.05, 10, 8);
+  const matChispa = new THREE.MeshBasicMaterial({ color: '#cfe3ff', transparent: true, opacity: 0.9, depthWrite: false });
 
   function crearModeloTren(nCoches = 6, tipo = 'ave') {
     const lib = LIBREAS_L042[tipo] || LIBREAS_L042.ave;
@@ -451,19 +461,62 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
       return b;
     }
 
+    // Pantógrafo monobrazo (tipo Faiveley CX / Schunk WBL): bastidor sobre tres aisladores, brazo inferior doble,
+    // brazo superior, mesilla con dos bandas de carbón y trompas. El muelle neumático lo empuja contra el hilo: la cara
+    // de las bandas queda justo a la altura del hilo de contacto (5,29 m sobre la cabeza de carril). El hilo no va por el
+    // centro: con el descentramiento barre las bandas de lado a lado; la marca de contacto sigue ese punto (posicionarTren).
+    const ALTURA_HILO_CARROC = 5.292 - 0.022 - 0.78;   // cara inferior del hilo, en coordenadas de la carrocería
+    function tubo(r, a, b, matT) {
+      const d = new THREE.Vector3().subVectors(b, a), L = d.length();
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, L, 8), matT);
+      m.position.copy(a).addScaledVector(d, 0.5);
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+      return m;
+    }
     function crearPantografo(yBase) {
       const p = new THREE.Group();
-      const base = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.16, 1.4), matPanto);
-      base.position.set(0, yBase, 0);
-      const brazoInf = new THREE.Mesh(new THREE.BoxGeometry(1.62, 0.07, 0.09), matPanto);
-      brazoInf.position.set(-0.36, yBase + 0.41, 0);
-      brazoInf.rotation.z = -0.48;
-      const brazoSup = new THREE.Mesh(new THREE.BoxGeometry(1.74, 0.06, 0.07), matPanto);
-      brazoSup.position.set(-0.28, yBase + 0.94, 0);
-      brazoSup.rotation.z = 0.44;
-      const mesilla = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.048, 1.72), matPlata);
-      mesilla.position.set(0.38, yBase + 1.32, 0);
-      p.add(base, brazoInf, brazoSup, mesilla);
+      const yB = yBase + 0.34;                              // bastidor sobre los aisladores
+      const yCara = ALTURA_HILO_CARROC;                     // cara superior de las bandas de carbón
+      const yCab = yCara - 0.075;                           // tubo de la mesilla
+      // Aisladores de apoyo y bastidor
+      for (const [x, z] of [[-0.75, -0.42], [-0.75, 0.42], [0.55, 0]]) {
+        const ais = new THREE.Mesh(gAisladorPanto, matAisladorPanto);
+        ais.position.set(x, yBase + 0.17, z);
+        p.add(ais);
+      }
+      const bast = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.08, 0.95), matPanto);
+      bast.position.set(-0.1, yB, 0);
+      p.add(bast);
+      // Articulación inferior y rodilla: brazo inferior largo hacia delante hasta la rodilla, que queda más allá de la
+      // mesilla y por debajo de ella, y brazo superior corto de vuelta hasta la mesilla
+      const H = new THREE.Vector3(-0.85, yB + 0.1, 0), P = new THREE.Vector3(0.1, yCab, 0);
+      const K = new THREE.Vector3(1.05, H.y + 0.5 * (P.y - H.y), 0);
+      // Brazo inferior: dos tubos que convergen en la rodilla; barra de guiado y muelle neumático
+      for (const z of [-0.2, 0.2]) p.add(tubo(0.032, new THREE.Vector3(H.x, H.y, z), new THREE.Vector3(K.x, K.y, z * 0.3), matPanto));
+      p.add(tubo(0.012, new THREE.Vector3(H.x + 0.18, H.y - 0.04, 0), new THREE.Vector3(K.x - 0.06, K.y - 0.12, 0), matPanto));
+      p.add(tubo(0.045, new THREE.Vector3(H.x - 0.05, yB + 0.07, 0.3), new THREE.Vector3(H.x + 0.4, yB + 0.09, 0.3), matNeumatico));
+      p.add(tubo(0.03, new THREE.Vector3(H.x, H.y, -0.24), new THREE.Vector3(H.x, H.y, 0.24), matPanto));
+      // Brazo superior (más fino) y su barra de equilibrio de la mesilla
+      p.add(tubo(0.024, K, P, matPanto));
+      p.add(tubo(0.009, new THREE.Vector3(K.x - 0.05, K.y + 0.06, 0), new THREE.Vector3(P.x - 0.14, P.y - 0.04, 0), matPanto));
+      // Mesilla: tubo transversal, dos bandas de carbón con su soporte de aluminio y trompas inclinadas
+      p.add(tubo(0.022, new THREE.Vector3(P.x, yCab, -0.62), new THREE.Vector3(P.x, yCab, 0.62), matPanto));
+      for (const x of [-0.16, 0.16]) {
+        const sop = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.035, 1.16), matPlata);
+        sop.position.set(P.x + x, yCara - 0.045, 0);
+        const banda = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.028, 1.1), matCarbon);
+        banda.position.set(P.x + x, yCara - 0.014, 0);
+        p.add(sop, banda);
+        for (const z of [-1, 1]) p.add(tubo(0.014, new THREE.Vector3(P.x + x, yCara - 0.03, z * 0.58), new THREE.Vector3(P.x + x * 0.6, yCara - 0.2, z * 0.86), matPlata));
+      }
+      // Punto de contacto (barre las bandas con el zigzag) y chispa de arco ocasional
+      const marca = new THREE.Mesh(gMarcaContacto, matMarcaContacto);
+      marca.position.set(P.x, yCara + 0.002, 0);
+      const chispa = new THREE.Mesh(gChispa, matChispa);
+      chispa.position.copy(marca.position);
+      chispa.visible = false;
+      p.add(marca, chispa);
+      p.userData.contacto = { marca, chispa, t: 0 };
       return p;
     }
 
@@ -486,6 +539,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
     let interior = null;
     for (let i = 0; i < nCoches; i++) {
       const c = new THREE.Group();
+      let pantoCoche = null;
       const esMotriz = i === 0 || i === nCoches - 1;
       const largoC = largos[i];
       const altoC = esMotriz ? altoMotriz : altoRemolque;
@@ -553,6 +607,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
           const panto = crearPantografo(altoMotriz + 0.28);
           panto.position.set(2.0, 0, 0);
           carroceria.add(panto);
+          pantoCoche = panto;
         }
       } else if (esMotriz) {
         const s = i === 0 ? 1 : -1;
@@ -585,6 +640,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
           const panto = crearPantografo(altoMotriz + 0.28);
           panto.position.set(2.0, 0, 0);
           carroceria.add(panto);
+          pantoCoche = panto;
         }
       }
 
@@ -609,6 +665,7 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
       c.userData.bog1 = bog1;
       c.userData.bog2 = bog2;
       c.userData.carroceria = carroceria;
+      c.userData.panto = pantoCoche;
       c.userData.offsetX = offsetsX[i];
       c.userData.distBogie = dBogie;
       tren.add(c);
@@ -721,7 +778,29 @@ export function crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkAr
       if (coche.userData.bog1) coche.userData.bog1.rotation.y = normAng(Math.atan2(pD.ty * tr.sentido, pD.tx * tr.sentido) - yawCuerda);
       if (coche.userData.bog2) coche.userData.bog2.rotation.y = normAng(Math.atan2(pT.ty * tr.sentido, pT.tx * tr.sentido) - yawCuerda);
       if (coche.userData.carroceria) coche.userData.carroceria.rotation.x = -pM.peralte * tr.sentido * 0.55;
+      if (coche.userData.panto && Catenaria) seguirHilo(tr, coche, pkC);
     }
+  }
+  // El hilo de contacto, en zigzag, pasa por el pantógrafo a un lado u otro del centro: la marca de contacto sigue ese
+  // punto sobre las bandas de carbón (±20 cm en los apoyos) y, con el tren lanzado, salta de vez en cuando un arco
+  const _pH = new THREE.Vector3();
+  function seguirHilo(tr, coche, pkC) {
+    const panto = coche.userData.panto, ct = panto.userData.contacto;
+    const pkP = pkC + tr.sentido * 2.0;
+    const m = Eje3D.enPk(pkP);
+    const off = tr.viaSigno * semiejeEnPk(pkP, m.sep) + Catenaria.descentramiento(pkP, tr.viaSigno);
+    _pH.copy(W(m.E - m.ty * off, m.N + m.tx * off, m.Z + 5.30));
+    coche.updateMatrixWorld(true);
+    panto.worldToLocal(_pH);
+    const z = Math.max(-0.52, Math.min(0.52, _pH.z));
+    ct.marca.position.z = z;
+    ct.chispa.position.z = z;
+    const ahora = performance.now(), dt = Math.min(0.1, (ahora - (ct.tAnt || ahora)) / 1000);
+    ct.tAnt = ahora;
+    const v = tr.velActual || 0;
+    if (ct.t > 0) { ct.t -= dt; ct.chispa.scale.setScalar(0.5 + Math.random()); }
+    else if (v > 30 && Math.random() < dt * 0.6 * (v / 83)) ct.t = 0.05 + Math.random() * 0.06;
+    ct.chispa.visible = ct.t > 0;
   }
   for (const tr of flota) posicionarTren(tr);
 

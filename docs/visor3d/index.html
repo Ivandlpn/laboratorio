@@ -4,13 +4,30 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>VISOR3D · Corredor L042 Albacete–Alicante</title>
-<meta name="description" content="Gemelo digital 3D continuo del corredor de alta velocidad L042 Albacete–Alicante (164,2 km) con cartografía Adif, MDT LiDAR IGN y ortofoto PNOA.">
+<title>Simulador 3D · Alta velocidad Albacete–Alicante | VISOR3D</title>
+<meta name="description" content="Simulador 3D de la línea de alta velocidad L042 Albacete–Alicante: 164 km con la vía, la catenaria, los viaductos y los túneles reales de Adif, cabina AVE, vuelo en dron y trenes de Renfe en tiempo real.">
+<meta name="keywords" content="simulador, simulador 3D, simulador ferroviario, alta velocidad, AVE, Albacete, Alicante, gemelo digital, catenaria, Adif, Renfe">
+<meta name="application-name" content="Simulador VISOR3D">
 <meta name="theme-color" content="#0f172a">
-<meta property="og:title" content="VISOR3D · Corredor L042 Albacete–Alicante">
-<meta property="og:description" content="Gemelo digital 3D continuo de la línea de alta velocidad Albacete–Alicante con vía, catenaria, viaductos, túneles, pasos superiores y entorno real.">
+<!-- Vista previa al compartir (WhatsApp, Telegram, Teams, Slack, redes): URLs absolutas de la copia publicada -->
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Simulador VISOR3D · Laboratorio">
 <meta property="og:locale" content="es_ES">
+<meta property="og:url" content="https://ivandlpn.github.io/laboratorio/visor3d/">
+<meta property="og:title" content="Simulador 3D · Viaja en AVE de Albacete a Alicante">
+<meta property="og:description" content="Súbete a la cabina, vuela en dron sobre los viaductos y sigue los trenes de Renfe en tiempo real. 164 km de vía, catenaria y túneles reales. ¡Pruébalo en tu navegador!">
+<meta property="og:image" content="https://ivandlpn.github.io/laboratorio/visor3d/vista-previa.jpg">
+<meta property="og:image:secure_url" content="https://ivandlpn.github.io/laboratorio/visor3d/vista-previa.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Simulador 3D: tren de alta velocidad cruzando un viaducto de la línea Albacete–Alicante">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Simulador 3D · Viaja en AVE de Albacete a Alicante">
+<meta name="twitter:description" content="Cabina, dron y trenes de Renfe en tiempo real sobre 164 km de vía real. ¡Pruébalo!">
+<meta name="twitter:image" content="https://ivandlpn.github.io/laboratorio/visor3d/vista-previa.jpg">
+<meta name="twitter:image:alt" content="Simulador 3D de la alta velocidad Albacete–Alicante">
+<link rel="image_src" href="https://ivandlpn.github.io/laboratorio/visor3d/vista-previa.jpg">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -330,6 +347,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { crearFlota } from './js/flota.js';
+import { crearCatenaria } from './js/catenaria.js';
 import { crearTrenesReales } from './js/tiempo-real.js';
 import { crearTrafico } from './js/trafico.js';
 import { crearLaguna } from './js/laguna.js';
@@ -424,9 +442,9 @@ const Carga = (() => {
 })();
 Carga.avance(0.03, 'Leyendo eje 3D y cartografía de Adif…');
 
-let meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales, centrosTraccionDatos;
+let meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales, centrosTraccionDatos, apoyosCatenaria;
 try {
-  [meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales, centrosTraccionDatos] = await Promise.all([
+  [meta, ejeDatos, mdtIndex, mdt5Index, entornoIndex, estructurasReales, ramalesReales, pasosSupReales, pasosInfReales, centrosTraccionDatos, apoyosCatenaria] = await Promise.all([
     fetch(`${RUTA}/meta.json`).then((r) => { if (!r.ok) throw new Error('meta ' + r.status); return r.json(); }),
     fetch(`${RUTA}/eje-3d.json`).then((r) => { if (!r.ok) throw new Error('eje-3d ' + r.status); return r.json(); }),
     fetch(`${RUTA}/mdt/index.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
@@ -445,6 +463,8 @@ try {
     params.has('sinEstructuras') ? null : fetch(`${RUTA}/pasos-inferiores.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
     // ATI, ATF y subestaciones del inventario con su recinto y edificio (scripts/importar-centros-traccion.py)
     fetch(`${RUTA}/centros-traccion.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    // Apoyos de la catenaria de cada vía, para el descentramiento del hilo (scripts/generar-apoyos-catenaria.py)
+    fetch(`${RUTA}/catenaria.json`).then((r) => (r.ok ? r.json() : null)).catch(() => null),
   ].map((p) => Carga.contar(p, 0.035)));
 } catch (err) {
   Carga.error(String(err.message || err));
@@ -458,6 +478,8 @@ const entornoKms = new Set(entornoIndex?.kms || []);
 
 // ---- Columna vertebral 3D de 164,2 km (paso 20 m, precisión milimétrica + spline cúbico Hermite C¹) ----
 const Eje3D = crearEje3D(ejeDatos, ramalesReales);
+// Hilo de contacto en zigzag (descentramiento ±20 cm alternando en cada apoyo): lo usan la catenaria y el pantógrafo
+const Catenaria = crearCatenaria(Eje3D, apoyosCatenaria);
 
 // ---- Origen flotante (precisión submilimétrica en los 164 km) ----
 // Terminal de Alicante: al salir del falso túnel las vías reales se abren en abanico. El eje sigue las dos vías de alta
@@ -1091,7 +1113,7 @@ const { MODELOS, pModelos } = cargarCatalogoModelos(params.has('sinModelos'));
 // ---- Streaming progresivo de teselas kilométricas con superestructura e ingeniería de detalle ----
 const { teselasCargadas, caminosPorKm, grupoTeselas, cargarTeselaKm, recortarCacheTeselas, gestionarStreaming } = crearGestorTeselas({
   RUTA, meta, capasMeta, gruposVisibles, entornoKms,
-  escena, Eje3D, MdtCorredor, HashCotas, W,
+  escena, Eje3D, Catenaria, MdtCorredor, HashCotas, W,
   cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja,
   MODELOS, ARB, matTejaArabe,
   PK_TERMINAL, VIADUCTOS_REALES, viaductoReal, PERFIL_VIADUCTO, PERFIL_CAJON_VIAD,
@@ -1105,7 +1127,7 @@ const { teselasCargadas, caminosPorKm, grupoTeselas, cargarTeselaKm, recortarCac
 });
 
 // ---- Flota de trenes de alta velocidad ----
-const { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota, crearTrenReal, quitarTren } = crearFlota({ escena, Eje3D, W, mat, matFoco, matPilotoRojo, pkArranque });
+const { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota, crearTrenReal, quitarTren } = crearFlota({ escena, Eje3D, Catenaria, W, mat, matFoco, matPilotoRojo, pkArranque });
 // Coches, autobuses, camiones, tractores, bicis y personas en las carreteras y caminos que cruzan la línea (supuesto)
 const trafico = params.has('sinTrafico') ? null : crearTrafico({ escena, W, cotaTerrenoUTM, PASOS_SUP, PASOS_INF });
 // Laguna del Salobrejo (PK 360+400 a 361+700, a la derecha): lámina de agua, orilla salina y carrizo
@@ -3074,7 +3096,7 @@ if (params.has('pausaLoop')) {
 window.__env = {
   camara, controles, escena, render, renderEtq, Eje3D, MdtCorredor, aplicarTema,
   irAPk, setModoVista, teselasCargadas, bloquesTerreno, flota, dibujarPerfil, fotograma,
-  CENTROS_TRACCION_CORREDOR, W,
+  CENTROS_TRACCION_CORREDOR, W, Catenaria,
   avanzar: (dt = 0.06) => fotograma(tPrev + dt * 1000),
 };
 </script>
