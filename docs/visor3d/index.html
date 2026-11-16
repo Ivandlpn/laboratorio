@@ -32,7 +32,7 @@
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="./visor.css?v=8">
+<link rel="stylesheet" href="./visor.css?v=9">
 <link rel="stylesheet" href="./comun/panel.css">
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
@@ -279,6 +279,7 @@
 
 <div id="islaRapida" role="toolbar" aria-label="Controles rápidos de realismo">
   <button type="button" id="btnTrenesReales" aria-expanded="false" title="Trenes de Renfe circulando ahora entre Albacete y Alicante (tiempo real)"><span class="tr-punto" aria-hidden="true"></span>Trenes en directo <b id="nTrenesReales">…</b> ▾</button>
+  <button type="button" id="btnMantenimiento" aria-pressed="false" title="Trabajos de mantenimiento nocturnos: bateadora, perfiladora y estabilizador en un tajo con la vía cortada">🚧 Trabajos Mantenimiento</button>
   <span class="sep"></span>
   <button type="button" id="btnIslaSol" title="Cambiar hora solar">☀️ Día</button>
   <button type="button" id="btnIslaClima" title="Cambiar atmósfera / visibilidad">🌤 Despejado</button>
@@ -299,6 +300,18 @@
   <div id="trCuerpo"></div>
   <p class="tr-pie">Renfe · GTFS en tiempo real (AV y Larga Distancia). Posición GPS proyectada sobre la traza e interpolada entre lecturas.</p>
 </div>
+<div id="panelMant" hidden role="dialog" aria-label="Trabajos de mantenimiento">
+  <div class="tr-cab">
+    <span class="tr-tit">🚧 Trabajos de mantenimiento</span>
+    <small id="mantEstado">Banda nocturna</small>
+    <button type="button" id="btnMantCerrar" aria-label="Ocultar el panel">✕</button>
+  </div>
+  <div id="mantCuerpo"></div>
+  <div class="mant-pie">
+    <button type="button" id="btnMantTerminar">Terminar trabajos</button>
+    <p class="tr-pie">Simulación: tajo, posiciones y ritmos supuestos. Modelos de las máquinas provisionales.</p>
+  </div>
+</div>
 <div id="cineHint">Modo cine · Pulsa H o Esc para mostrar la interfaz</div>
 <!-- Móvil: pantalla limpia. Los paneles van plegados y se abren de uno en uno desde esta barra inferior -->
 <nav id="dockMovil" aria-label="Paneles del visor">
@@ -306,6 +319,7 @@
   <button type="button" data-hoja="perfil" aria-pressed="false"><span aria-hidden="true">📈</span>Perfil</button>
   <button type="button" data-hoja="hitos" aria-pressed="false"><span aria-hidden="true">📡</span>Hitos</button>
   <button type="button" data-hoja="trenes" aria-pressed="false"><span aria-hidden="true">🚆</span>Trenes</button>
+  <button type="button" data-hoja="mant" aria-pressed="false"><span aria-hidden="true">🚧</span>Obras</button>
   <button type="button" data-hoja="ambiente" aria-pressed="false"><span aria-hidden="true">🌤</span>Ambiente</button>
 </nav>
 
@@ -348,6 +362,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { crearFlota } from './js/flota.js';
 import { crearCatenaria } from './js/catenaria.js';
+import { crearMantenimiento } from './js/mantenimiento.js';
 import { crearTrenesReales } from './js/tiempo-real.js';
 import { crearTrafico } from './js/trafico.js';
 import { crearLaguna } from './js/laguna.js';
@@ -1751,6 +1766,83 @@ document.getElementById('btnTrCerrar').addEventListener('click', () => {
   else abrirPanelTR(false);
 });
 document.getElementById('btnTrVolver').addEventListener('click', () => { detalleTR = null; pintarTrenesReales(); });
+
+// ---- Trabajos de mantenimiento: modo noche con un tajo de vía (bateadora, perfiladora y estabilizador) ----
+// Tajo supuesto: vía 2 (derecha) cortada desde el PK 399+000, en recta y a cielo abierto, en la banda nocturna sin
+// circulaciones (se ocultan los trenes). Al terminar se restauran la hora y los trenes.
+const mantenimiento = crearMantenimiento({ escena, Eje3D, W, mat });
+const TAJO_MANT = { pkIni: 399000, s: -1, largo: 1500 };
+const elPanelMant = document.getElementById('panelMant'), elCuerpoMant = document.getElementById('mantCuerpo');
+const elBtnMant = document.getElementById('btnMantenimiento');
+let antesMant = null, maquinaVista = 'bateadora';
+const ACCION_MAQ = { bateadora: 'Bateando', perfiladora: 'Perfilando', estabilizador: 'Estabilizando' };
+function encuadrarMaquina(clave) {
+  const p = mantenimiento.posicion(clave);
+  if (!p) return;
+  maquinaVista = clave;
+  const m = p.m, s = p.s, nx = -m.ty, ny = m.tx;
+  // Cámara por fuera de la vía en trabajo, por delante y algo elevada, mirando a la máquina
+  const lat = -s * 16, del = p.largo * 0.9;
+  camara.position.copy(W(p.E + nx * lat + m.tx * del, p.N + ny * lat + m.ty * del, p.Z + 7.5));
+  controles.target.copy(W(p.E, p.N, p.Z + 1.6));
+  camara.lookAt(controles.target);
+  controles.update();
+  pintarMant();
+}
+function pintarMant() {
+  const t = mantenimiento.tajo;
+  document.getElementById('mantEstado').textContent = t ? `Vía ${t.s > 0 ? 1 : 2} cortada · PK ${fmtPk(t.pkIni)} – ${fmtPk(t.pkIni + t.largo)}` : 'Banda nocturna';
+  if (elPanelMant.hidden && !document.body.classList.contains('m-mant')) return;
+  elCuerpoMant.innerHTML = mantenimiento.lista().map((x) => `
+    <button type="button" class="tr-item${x.clave === maquinaVista ? ' sel' : ''}" data-maq="${x.clave}">
+      <span class="tr-l1"><span class="tr-tipo">${ACCION_MAQ[x.clave] || 'Trabajando'}</span><b>${escHtml(x.nombre)}</b></span>
+      <span class="tr-l3">PK ${fmtPk(x.pk)} · ${(x.vel * 3.6).toFixed(1).replace('.', ',')} km/h · ${escHtml(x.tipo)}</span>
+      ${x.clave === maquinaVista ? `<span class="tr-l2 mant-func">${escHtml(x.funcion)}</span>` : ''}
+    </button>`).join('');
+}
+function abrirPanelMant(abrir = elPanelMant.hidden) {
+  elPanelMant.hidden = !abrir;
+  if (abrir) pintarMant();
+}
+function activarMantenimiento(on = !mantenimiento.estado.activo) {
+  if (on === mantenimiento.estado.activo) { if (on) abrirPanelMant(true); return; }
+  if (on) {
+    salirModoVivo();
+    antesMant = { hora: horaSol, trenes: grupoFlota.visible };
+    horaSol = 'noche';
+    aplicarTema();
+    grupoFlota.visible = false;
+    mantenimiento.montar(TAJO_MANT);
+    if (vistaActiva !== 'aerea') setModoVista('aerea');
+    irAPk(TAJO_MANT.pkIni + 120, 'aerea');
+    encuadrarMaquina('bateadora');
+    if (!matchMedia('(max-width: 760px)').matches) abrirPanelMant(true);
+  } else {
+    mantenimiento.desmontar();
+    if (antesMant) {
+      horaSol = antesMant.hora;
+      aplicarTema();
+      grupoFlota.visible = antesMant.trenes;
+      const chk = document.getElementById('chkTrenes');
+      if (chk) chk.checked = antesMant.trenes;
+    }
+    antesMant = null;
+    abrirPanelMant(false);
+    if (document.body.classList.contains('m-mant')) document.querySelector('#dockMovil [data-hoja="mant"]')?.click();
+  }
+  elBtnMant.setAttribute('aria-pressed', String(on));
+  elBtnMant.classList.toggle('activo', on);
+}
+elBtnMant.addEventListener('click', () => activarMantenimiento());
+document.getElementById('btnMantTerminar').addEventListener('click', () => activarMantenimiento(false));
+document.getElementById('btnMantCerrar').addEventListener('click', () => {
+  if (document.body.classList.contains('m-mant')) document.querySelector('#dockMovil [data-hoja="mant"]')?.click();
+  else abrirPanelMant(false);
+});
+elCuerpoMant.addEventListener('click', (ev) => {
+  const b = ev.target.closest('button[data-maq]');
+  if (b) encuadrarMaquina(b.dataset.maq);
+});
 elCuerpoTR.addEventListener('click', (ev) => {
   const b = ev.target.closest('button');
   if (!b) return;
@@ -2791,7 +2883,7 @@ ajustarDisposicion();
 // ---- Móvil: barra inferior que abre los paneles plegados de uno en uno (el CSS los oculta sin su clase m-*) ----
 {
   const dock = document.getElementById('dockMovil');
-  const HOJAS = { mandos: 'cab', perfil: 'barraPerfil', hitos: 'panelEmplazamientos', trenes: 'panelTrenesReales', ambiente: 'islaRapida' };
+  const HOJAS = { mandos: 'cab', perfil: 'barraPerfil', hitos: 'panelEmplazamientos', trenes: 'panelTrenesReales', mant: 'panelMant', ambiente: 'islaRapida' };
   const botones = [...dock.querySelectorAll('button')];
   let abierta = null;
   function abrirHoja(h) {
@@ -2800,13 +2892,16 @@ ajustarDisposicion();
     pintarDock();
     if (abierta === 'perfil') dibujarPerfil(pkRecorrido);
     if (abierta === 'trenes') pintarTrenesReales();
+    // «Obras» en el móvil: abre la hoja y arranca los trabajos (o los deja como estaban si ya están en marcha)
+    if (abierta === 'mant' && !mantenimiento.estado.activo) activarMantenimiento(true);
+    if (abierta === 'mant') pintarMant();
   }
   function pintarDock() {
     for (const b of botones) {
       const h = b.dataset.hoja;
       b.setAttribute('aria-pressed', String(abierta === h));
       // Sin contenido que mostrar (p. ej. mandos fuera de cabina y dron): botón apagado
-      b.disabled = h !== 'trenes' && Boolean(document.getElementById(HOJAS[h])?.hidden);
+      b.disabled = h !== 'trenes' && h !== 'mant' && Boolean(document.getElementById(HOJAS[h])?.hidden);
       if (b.disabled && abierta === h) { abierta = null; document.body.classList.remove('m-' + h); }
     }
   }
@@ -2872,6 +2967,7 @@ function fotograma(ahora) {
     actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' || esPasajero(vistaActiva) || cineInterior ? flota[idxTrenDron] : null);
   }
   trenesReales.actualizar(dt);
+  if (mantenimiento.estado.activo) { mantenimiento.actualizar(dt); mantenimiento.encendidoLuces(modoNoche); if ((nFotograma & 15) === 0) pintarMant(); }
   const utmCam = UTMdeMundo(camara.position);
   // Interiores de los trenes: solo se dibujan con la cámara cerca; dentro, plano cercano corto para no recortar nada
   for (const tr of flota) {
@@ -3096,7 +3192,7 @@ if (params.has('pausaLoop')) {
 window.__env = {
   camara, controles, escena, render, renderEtq, Eje3D, MdtCorredor, aplicarTema,
   irAPk, setModoVista, teselasCargadas, bloquesTerreno, flota, dibujarPerfil, fotograma,
-  CENTROS_TRACCION_CORREDOR, W, Catenaria,
+  CENTROS_TRACCION_CORREDOR, W, Catenaria, mantenimiento, activarMantenimiento,
   avanzar: (dt = 0.06) => fotograma(tPrev + dt * 1000),
 };
 </script>
