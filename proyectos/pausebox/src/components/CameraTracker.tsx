@@ -494,8 +494,8 @@ export default function CameraTracker({
             modelComplexity: 1,
             smoothLandmarks: true,
             enableSegmentation: false,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5,
+            minDetectionConfidence: 0.45,
+            minTrackingConfidence: 0.45,
           });
 
           globalPoseInstance = pose;
@@ -591,18 +591,18 @@ export default function CameraTracker({
     if (prepTimerRef.current) clearInterval(prepTimerRef.current);
     let count = 3;
     setPrepCountdown(count);
-    playBeep(440, 0.15, settings.volume);
+    playBeep(440, 0.15, settingsRef.current.volume);
 
     prepTimerRef.current = setInterval(() => {
       count -= 1;
       if (count > 0) {
         setPrepCountdown(count);
-        playBeep(440, 0.15, settings.volume);
+        playBeep(440, 0.15, settingsRef.current.volume);
       } else if (count === 0) {
         setPrepCountdown(0);
-        playBeep(880, 0.35, settings.volume);
-        if (settings.soundType === "VOICE") {
-          speakText("¡Empieza!", settings.volume);
+        playBeep(880, 0.35, settingsRef.current.volume);
+        if (settingsRef.current.soundType === "VOICE") {
+          speakText("¡Empieza!", settingsRef.current.volume);
         }
       } else {
         clearInterval(prepTimerRef.current);
@@ -723,30 +723,42 @@ export default function CameraTracker({
 
   // Draw the skeleton and HUD on top of the canvas
   function onPoseResults(results: any) {
-    if (!canvasRef.current || !results.poseLandmarks) {
-      setPersonInFrame(false);
-      return;
-    }
-
-    setPersonInFrame(true);
+    if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    // Sync canvas resolution to actual incoming video frame to avoid cropping/stretching on mobile portrait
+    const imgW = results.image?.videoWidth || results.image?.width || 640;
+    const imgH = results.image?.videoHeight || results.image?.height || 480;
+    if (imgW > 0 && imgH > 0 && (canvas.width !== imgW || canvas.height !== imgH)) {
+      canvas.width = imgW;
+      canvas.height = imgH;
+    }
 
     ctx.save();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw video frame onto canvas (mirroring it only for user-facing camera)
     const isMirrored = facingModeRef.current === "user";
-    if (isMirrored) {
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
-      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-    } else {
-      ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+    if (results.image) {
+      if (isMirrored) {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+      } else {
+        ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+      }
     }
     ctx.restore();
+
+    if (!results.poseLandmarks) {
+      setPersonInFrame(false);
+      return;
+    }
+
+    setPersonInFrame(true);
 
     // Helper to calculate X and Y coordinates according to mirroring
     const getCanvasX = (pt: any) => (isMirrored ? (1 - pt.x) : pt.x) * canvas.width;
@@ -781,11 +793,16 @@ export default function CameraTracker({
     const lm = results.poseLandmarks;
     
     // Joint landmarks indices:
+    // Head: 0 (Nose)
     // Shoulder: 11 (L), 12 (R)
+    // Elbow: 13 (L), 14 (R)
+    // Wrist: 15 (L), 16 (R)
     // Hip: 23 (L), 24 (R)
     // Knee: 25 (L), 26 (R)
     // Ankle: 27 (L), 28 (R)
-    // Foot/Heel: 29 (L), 30 (R)
+    // Heel: 29 (L), 30 (R)
+    // Foot index (toes): 31 (L), 32 (R)
+    const nose = lm[0];
     const lShoulder = lm[11];
     const rShoulder = lm[12];
     const lHip = lm[23];
@@ -796,6 +813,8 @@ export default function CameraTracker({
     const rAnkle = lm[28];
     const lHeel = lm[29];
     const rHeel = lm[30];
+    const lFoot = lm[31];
+    const rFoot = lm[32];
     const lElbow = lm[13];
     const rElbow = lm[14];
     const lWrist = lm[15];
@@ -814,15 +833,15 @@ export default function CameraTracker({
 
     // Choose the tracked knee angle (the minimum is safest to enforce full depth, or average if one is hidden)
     let activeKneeAngle = Math.min(leftKnee, rightKnee);
-    if (lKnee.visibility < 0.4) activeKneeAngle = rightKnee;
-    if (rKnee.visibility < 0.4) activeKneeAngle = leftKnee;
+    if ((lKnee?.visibility ?? 0) < 0.3) activeKneeAngle = rightKnee;
+    if ((rKnee?.visibility ?? 0) < 0.3) activeKneeAngle = leftKnee;
 
     // Run the main squat tracking state machine
     processSquatTelemetry(activeKneeAngle);
 
     // Run hands-free body gesture detection (only when standing & not in prep countdown)
     processBodyGestures({
-      lShoulder, rShoulder, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle, lHeel, rHeel,
+      lShoulder, rShoulder, lWrist, rWrist, lHip, rHip, lKnee, rKnee, lAnkle, rAnkle, lHeel, rHeel, lFoot, rFoot,
       leftKnee, rightKnee
     });
 
@@ -837,9 +856,9 @@ export default function CameraTracker({
         
     const skeletonWidth = isPausing ? 6 : 4;
 
-    // Connect joints helper
-    const drawLine = (pt1: any, pt2: any) => {
-      if (pt1.visibility > 0.4 && pt2.visibility > 0.4) {
+    // Connect joints helper (lower threshold 0.25 so feet/hands at 2.5m are reliably drawn)
+    const drawLine = (pt1: any, pt2: any, customWidth?: number) => {
+      if (pt1 && pt2 && (pt1.visibility ?? 0) > 0.25 && (pt2.visibility ?? 0) > 0.25) {
         const x1 = getCanvasX(pt1);
         const y1 = getCanvasY(pt1);
         const x2 = getCanvasX(pt2);
@@ -849,7 +868,7 @@ export default function CameraTracker({
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.strokeStyle = colorTheme;
-        ctx.lineWidth = skeletonWidth;
+        ctx.lineWidth = customWidth ?? skeletonWidth;
         ctx.shadowColor = colorTheme;
         ctx.shadowBlur = isPausing ? 12 : 8; // Beautiful neon shadow glow when aligned
         ctx.stroke();
@@ -857,19 +876,30 @@ export default function CameraTracker({
       }
     };
 
-    // Draw major segments
+    // Draw full body segments: torso, arms, legs, feet, and head
     drawLine(lShoulder, rShoulder);
     drawLine(lShoulder, lHip);
     drawLine(rShoulder, rHip);
     drawLine(lHip, rHip);
     drawLine(lHip, lKnee);
-    drawLine(rHipsJoint(lHip, rHip) ? lHip : rHip, rKnee); // backup if hip offset is weird
     drawLine(rHip, rKnee);
     drawLine(lKnee, lAnkle);
     drawLine(rKnee, rAnkle);
+    // Arms
+    drawLine(lShoulder, lElbow, 3);
+    drawLine(lElbow, lWrist, 3);
+    drawLine(rShoulder, rElbow, 3);
+    drawLine(rElbow, rWrist, 3);
+    // Feet (ankles -> heels -> toes)
+    drawLine(lAnkle, lHeel, 3);
+    drawLine(lHeel, lFoot, 3);
+    drawLine(lAnkle, lFoot, 3);
+    drawLine(rAnkle, rHeel, 3);
+    drawLine(rHeel, rFoot, 3);
+    drawLine(rAnkle, rFoot, 3);
 
     // 2. Línea de Profundidad Virtual en Rodillas (Horizontal laser guide at knees)
-    if (lKnee.visibility > 0.4 && rKnee.visibility > 0.4) {
+    if ((lKnee?.visibility ?? 0) > 0.25 && (rKnee?.visibility ?? 0) > 0.25) {
       const kneeY = ((lKnee.y + rKnee.y) / 2) * canvas.height;
       const isDepthHit = activeKneeAngle <= settingsRef.current.targetAngle;
 
@@ -897,8 +927,8 @@ export default function CameraTracker({
     }
 
     // Draw Joint Circles with specific colors
-    const drawJoint = (pt: any, label?: string, currentAngle?: number) => {
-      if (pt.visibility > 0.4) {
+    const drawJoint = (pt: any, label?: string, currentAngle?: number, radiusOverride?: number) => {
+      if (pt && (pt.visibility ?? 0) > 0.25) {
         const x = getCanvasX(pt);
         const y = getCanvasY(pt);
 
@@ -939,7 +969,7 @@ export default function CameraTracker({
         }
 
         ctx.beginPath();
-        ctx.arc(x, y, isPausing ? 10 : 8, 0, 2 * Math.PI);
+        ctx.arc(x, y, radiusOverride ?? (isPausing ? 10 : 8), 0, 2 * Math.PI);
         ctx.fillStyle = isPausing ? "#ffedd5" : "#ffffff";
         ctx.fill();
         ctx.strokeStyle = colorTheme;
@@ -957,30 +987,27 @@ export default function CameraTracker({
       }
     };
 
+    drawJoint(nose, undefined, undefined, 6);
     drawJoint(lShoulder);
     drawJoint(rShoulder);
+    drawJoint(lElbow, undefined, undefined, 5);
+    drawJoint(rElbow, undefined, undefined, 5);
+    drawJoint(lWrist, undefined, undefined, 6);
+    drawJoint(rWrist, undefined, undefined, 6);
     drawJoint(lHip);
     drawJoint(rHip);
     drawJoint(lKnee, `${Math.round(leftKnee)}°`, leftKnee);
     drawJoint(rKnee, `${Math.round(rightKnee)}°`, rightKnee);
     drawJoint(lAnkle);
     drawJoint(rAnkle);
-
-    // Subtle arm & foot landmarks when gestures are enabled
-    if (settingsRef.current.gesturesEnabled) {
-      drawLine(lShoulder, lElbow);
-      drawLine(lElbow, lWrist);
-      drawLine(rShoulder, rElbow);
-      drawLine(rElbow, rWrist);
-      drawJoint(lWrist);
-      drawJoint(rWrist);
-    }
+    drawJoint(lFoot, undefined, undefined, 5);
+    drawJoint(rFoot, undefined, undefined, 5);
   }
 
   function processBodyGestures(p: {
     lShoulder: any; rShoulder: any; lWrist: any; rWrist: any;
     lHip: any; rHip: any; lKnee: any; rKnee: any;
-    lAnkle: any; rAnkle: any; lHeel: any; rHeel: any;
+    lAnkle: any; rAnkle: any; lHeel: any; rHeel: any; lFoot: any; rFoot: any;
     leftKnee: number; rightKnee: number;
   }) {
     const now = Date.now();
@@ -999,21 +1026,23 @@ export default function CameraTracker({
 
     let detected: BodyGestureType | null = null;
     const bothLegsStraight = p.leftKnee > 145 && p.rightKnee > 145;
-    const anklesVisible = p.lAnkle.visibility > 0.45 && p.rAnkle.visibility > 0.45 && p.lHip.visibility > 0.45 && p.rHip.visibility > 0.45;
-    const wristsVisible = p.lWrist.visibility > 0.45 && p.rWrist.visibility > 0.45 && p.lShoulder.visibility > 0.45 && p.rShoulder.visibility > 0.45;
+    const anklesVisible = (p.lAnkle?.visibility ?? 0) > 0.3 && (p.rAnkle?.visibility ?? 0) > 0.3 && (p.lHip?.visibility ?? 0) > 0.3 && (p.rHip?.visibility ?? 0) > 0.3;
+    const wristsVisible = (p.lWrist?.visibility ?? 0) > 0.3 && (p.rWrist?.visibility ?? 0) > 0.3 && (p.lShoulder?.visibility ?? 0) > 0.3 && (p.rShoulder?.visibility ?? 0) > 0.3;
 
     // 1. CROSS_FEET -> Reiniciar ronda actual
     if (bothLegsStraight && anklesVisible) {
       const hipSpan = Math.abs(p.lHip.x - p.rHip.x);
-      if (hipSpan > 0.055) {
+      if (hipSpan > 0.05) {
         const hipDiff = p.lHip.x - p.rHip.x;
         const ankleDiff = p.lAnkle.x - p.rAnkle.x;
-        if (hipDiff * ankleDiff < -0.0004) {
+        const feetVisible = (p.lFoot?.visibility ?? 0) > 0.3 && (p.rFoot?.visibility ?? 0) > 0.3;
+        const footDiff = feetVisible ? (p.lFoot.x - p.rFoot.x) : ankleDiff;
+        if (hipDiff * ankleDiff < -0.0003 || hipDiff * footDiff < -0.0003) {
           detected = "CROSS_FEET";
         }
       } else {
-        const heelsVisible = p.lHeel?.visibility > 0.4 && p.rHeel?.visibility > 0.4;
-        if (Math.abs(p.lAnkle.x - p.rAnkle.x) < 0.032 && heelsVisible && Math.abs(p.lHeel.y - p.rHeel.y) > 0.035) {
+        const heelsVisible = (p.lHeel?.visibility ?? 0) > 0.3 && (p.rHeel?.visibility ?? 0) > 0.3;
+        if (Math.abs(p.lAnkle.x - p.rAnkle.x) < 0.035 && heelsVisible && Math.abs(p.lHeel.y - p.rHeel.y) > 0.035) {
           detected = "CROSS_FEET";
         }
       }
@@ -1037,8 +1066,8 @@ export default function CameraTracker({
 
     // 4. KNEE_RAISE -> Activar PREP 3s
     if (!detected) {
-      const leftRaised = p.rightKnee > 155 && p.leftKnee < 105 && p.lKnee.visibility > 0.45 && p.lHip.visibility > 0.45 && p.lKnee.y < p.lHip.y + 0.08;
-      const rightRaised = p.leftKnee > 155 && p.rightKnee < 105 && p.rKnee.visibility > 0.45 && p.rHip.visibility > 0.45 && p.rKnee.y < p.rHip.y + 0.08;
+      const leftRaised = p.rightKnee > 155 && p.leftKnee < 105 && (p.lKnee?.visibility ?? 0) > 0.3 && (p.lHip?.visibility ?? 0) > 0.3 && p.lKnee.y < p.lHip.y + 0.08;
+      const rightRaised = p.leftKnee > 155 && p.rightKnee < 105 && (p.rKnee?.visibility ?? 0) > 0.3 && (p.rHip?.visibility ?? 0) > 0.3 && p.rKnee.y < p.rHip.y + 0.08;
       if (leftRaised || rightRaised) {
         detected = "KNEE_RAISE";
       }
@@ -1535,7 +1564,7 @@ export default function CameraTracker({
               ref={canvasRef}
               width={640}
               height={480}
-              className={`w-full h-full object-cover ${facingMode === "user" ? "scale-x-[-1]" : "scale-x-1"}`}
+              className="w-full h-full object-contain"
             />
           </>
         )}
