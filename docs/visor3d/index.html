@@ -305,6 +305,7 @@
   <button type="button" id="btnMantenimiento" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="mant" title="Bateadora, perfiladora y estabilizador en un tajo con la vía cortada">🚧 Tren de trabajo<small>Bateadora, perfiladora y estabilizador</small></button>
   <button type="button" id="btnInspeccion" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="insp" title="Inspección de superestructura a pie de noche, con coche de apoyo y dron en modo cine">🔦 Inspección de superestructura<small>Patrulla a pie con coche de apoyo</small></button>
   <button type="button" id="btnEnergia" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="ener" title="Mantenimiento de energía: dresina de catenaria con castillete elevador y puesta a tierra">⚡ Mantenimiento de energía<small>Dresina de catenaria</small></button>
+  <label class="menu-sonido"><input type="checkbox" id="chkSonidoObras" checked> 🔊 Sonido de las obras<small>Máquinas, generadores, viento y pasos</small></label>
 </div>
 <div id="panelMant" hidden role="dialog" aria-label="Trabajos de mantenimiento">
   <div class="tr-cab">
@@ -401,6 +402,7 @@ import { crearMantenimiento } from './js/mantenimiento.js';
 import { crearInspeccion, ESTADOS_INSP } from './js/inspeccion.js';
 import { crearEnergia, FASES_ENER } from './js/energia.js';
 import { urlGeoLibre } from './js/geolibre.js';
+import { crearAudioObras } from './js/audio-obras.js';
 import { NOMBRE_FASE } from './js/bateadora.js';
 import { crearTrenesReales } from './js/tiempo-real.js';
 import { crearTrafico } from './js/trafico.js';
@@ -1939,6 +1941,7 @@ function activarMantenimiento(on = !mantenimiento.estado.activo) {
 }
 elBtnMant.addEventListener('click', () => activarMantenimiento());
 document.getElementById('btnMantTerminar').addEventListener('click', () => activarMantenimiento(false));
+elPanelMant.querySelector('.tr-cab').addEventListener('click', (e) => { if (!e.target.closest('button')) elPanelMant.classList.toggle('plegado'); });
 document.getElementById('btnMantCerrar').addEventListener('click', () => {
   if (document.body.classList.contains('m-mant')) document.querySelector('#dockMovil [data-hoja="mant"]')?.click();
   else abrirPanelMant(false);
@@ -2831,11 +2834,13 @@ document.getElementById('btnCopiarCoord').addEventListener('click', async (ev) =
   setTimeout(() => { ev.target.textContent = 'Copiar coordenadas'; }, 1500);
 });
 
+// ---- Sonido de las obras (js/audio-obras.js): arranca al elegir un modo (gesto del usuario) y para sin modos ----
+const audioObras = crearAudioObras();
 // ---- Menú «Trabajos Mantenimiento»: tren de trabajo, inspección de superestructura y energía ----
 {
   const menu = document.getElementById('menuTrabajos');
   const btn = document.getElementById('btnTrabajos'), btnDock = document.getElementById('dockTrabajos');
-  const items = [...menu.querySelectorAll('button')];
+  const items = [...menu.querySelectorAll('button[role="menuitemcheckbox"]')];
   const esMovil = () => matchMedia('(max-width: 760px)').matches;
   function abrirMenu(abrir, origen = btn) {
     menu.hidden = !abrir;
@@ -2849,10 +2854,13 @@ document.getElementById('btnCopiarCoord').addEventListener('click', async (ev) =
   btn.addEventListener('click', (e) => { e.stopPropagation(); abrirMenu(menu.hidden, btn); });
   btnDock?.addEventListener('click', (e) => { e.stopPropagation(); abrirMenu(menu.hidden, btnDock); });
   // En el móvil cada modo abre su hoja inferior (que lo arranca); en el escritorio actúa el propio botón
+  const chkSonido = document.getElementById('chkSonidoObras');
+  chkSonido.addEventListener('change', () => { audioObras.alternarSilencio(!chkSonido.checked); if (chkSonido.checked) audioObras.activar(items.some((b) => b.getAttribute('aria-pressed') === 'true')); });
   menu.addEventListener('click', (e) => {
     const it = e.target.closest('button');
     if (!it) return;
     abrirMenu(false);
+    audioObras.activar(true);
     if (esMovil()) {
       e.stopPropagation();
       document.querySelector(`#dockMovil [data-hoja="${it.dataset.hojaMovil}"]`)?.click();
@@ -2865,6 +2873,7 @@ document.getElementById('btnCopiarCoord').addEventListener('click', async (ev) =
     const on = items.some((b) => b.getAttribute('aria-pressed') === 'true');
     btn.classList.toggle('activo', on);
     btnDock?.classList.toggle('activo', on);
+    if (!on && audioObras.activo) audioObras.activar(false);
   };
   new MutationObserver(marcar).observe(menu, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
 }
@@ -3105,7 +3114,8 @@ ajustarDisposicion();
     if (abierta === 'trenes') pintarTrenesReales();
     // «Obras» en el móvil: abre la hoja y arranca los trabajos (o los deja como estaban si ya están en marcha)
     if (abierta === 'mant' && !mantenimiento.estado.activo) activarMantenimiento(true);
-    if (abierta === 'mant') pintarMant();
+    // En el móvil la hoja se abre plegada (solo la cabecera); se despliega al tocarla
+    if (abierta === 'mant') { document.getElementById('panelMant').classList.add('plegado'); pintarMant(); }
     if (abierta === 'insp' && !inspeccion.estado.activo) activarInspeccion(true);
     if (abierta === 'insp') pintarInsp();
     if (abierta === 'ener' && !energia.estado.activo) activarEnergia(true);
@@ -3182,6 +3192,7 @@ function fotograma(ahora) {
     actualizarFlota(dt, PK_TERMINAL, vistaActiva === 'dron' || esPasajero(vistaActiva) || cineInterior ? flota[idxTrenDron] : null);
   }
   trenesReales.actualizar(dt);
+  audioObras.actualizar(camara, dt);
   if (mantenimiento.estado.activo) {
     const pb = mantenimiento.posicion('bateadora');
     mantenimiento.actualizar(dt, { distCam: pb ? camara.position.distanceTo(W(pb.E, pb.N, pb.Z)) : 60, noche: modoNoche });

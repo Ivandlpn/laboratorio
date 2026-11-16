@@ -12,7 +12,7 @@
 
 import * as THREE from 'three';
 import { ESPACIADO, GALGA, Z_CAJON, suave } from './tramo-via.js';
-import { materialesMaquina, caja, cil, tubo, mangueras, focoHalogeno, pegatina, cabina, bogie, crearPolvo, crearPiedras, fijarCarril } from './pbr-maquinas.js';
+import { materialesMaquina, caja, cil, tubo, mangueras, focoHalogeno, pegatina, cabina, bogie, crearPolvo, crearPiedras, fijarCarril, vidaMaquina } from './pbr-maquinas.js';
 
 const FASES = [['avance', 0.75], ['agarre', 0.22], ['levante', 0.4], ['descenso', 0.32], ['vibracion', 0.38], ['cierre', 0.45], ['retirada', 0.36]];
 const T_CICLO = FASES.reduce((a, f) => a + f[1], 0);
@@ -28,7 +28,7 @@ export const defectoH = (pk) => 0.009 * Math.sin(pk * 2 * Math.PI / 17.9 + 0.7) 
 
 const L = 26.5, XB = 4.4, XL = 6.4;   // largo, grupo de bateo y unidad de levante desde el centro
 
-export function crearBateadora({ tramo, audioActivo = () => false }) {
+export function crearBateadora({ tramo }) {
   const M = materialesMaquina({ alturaSucio: 0.85, fuerza: 0.8 });
   const raiz = new THREE.Group(); raiz.name = 'Root_Chassis';
 
@@ -154,7 +154,6 @@ export function crearBateadora({ tramo, audioActivo = () => false }) {
   }
   const ficha = { capa: 'Trabajos de mantenimiento', nombre: 'Bateadora-niveladora-alineadora', info: 'Bateadora de vía (tipo Plasser & Theurer 09-3X): levanta y alinea la vía con las pinzas de rodillos y compacta el balasto bajo cada traviesa con 16 bates vibrantes (35 Hz), traviesa a traviesa.' };
   raiz.traverse((n) => { if (n.isMesh) n.userData = ficha; });
-  const destellos = [...cDel.userData.destellos, ...cTra.userData.destellos];
 
   const ANG_AB = Math.atan2(0.17, LB), ANG_CE = -Math.atan2(0.03, LB), BAJADA = 0.69;
 
@@ -162,42 +161,7 @@ export function crearBateadora({ tramo, audioActivo = () => false }) {
   const polvo = crearPolvo(420);
   const piedras = crearPiedras(96, new THREE.MeshStandardMaterial({ color: '#8d8a84', roughness: 0.95 }));
   const efectos = new THREE.Group(); efectos.add(polvo.puntos, piedras.im);
-
-  // ---- Audio (Web Audio sintetizado) ----
-  let audio = null;
-  function crearAudio() {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return null;
-    const ctx = new AC(), master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
-    const b = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate), dd = b.getChannelData(0);
-    for (let i = 0; i < dd.length; i++) dd[i] = Math.random() * 2 - 1;
-    const ruido = ctx.createBufferSource(); ruido.buffer = b; ruido.loop = true; ruido.start();
-    const motor = ctx.createGain(); motor.gain.value = 0.32; motor.connect(master);
-    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 190; lp.connect(motor);
-    const o1 = ctx.createOscillator(); o1.type = 'sawtooth'; o1.frequency.value = 31; o1.connect(lp); o1.start();
-    const o2 = ctx.createOscillator(); o2.type = 'square'; o2.frequency.value = 62.5; const g2 = ctx.createGain(); g2.gain.value = 0.25; o2.connect(g2); g2.connect(lp); o2.start();
-    const nm = ctx.createBiquadFilter(); nm.type = 'lowpass'; nm.frequency.value = 260; const gn = ctx.createGain(); gn.gain.value = 0.35; ruido.connect(nm); nm.connect(gn); gn.connect(lp);
-    const hid = ctx.createGain(); hid.gain.value = 0; hid.connect(master);
-    const bh = ctx.createBiquadFilter(); bh.type = 'bandpass'; bh.frequency.value = 900; bh.Q.value = 6; bh.connect(hid);
-    const oh = ctx.createOscillator(); oh.type = 'sawtooth'; oh.frequency.value = 520; oh.connect(bh); oh.start();
-    const vib = ctx.createGain(); vib.gain.value = 0; vib.connect(master);
-    const ov = ctx.createOscillator(); ov.type = 'square'; ov.frequency.value = 35; const lv = ctx.createBiquadFilter(); lv.type = 'lowpass'; lv.frequency.value = 420; ov.connect(lv); lv.connect(vib); ov.start();
-    const br = ctx.createBiquadFilter(); br.type = 'bandpass'; br.frequency.value = 2200; br.Q.value = 0.8; const gr = ctx.createGain(); gr.gain.value = 0.55; ruido.connect(br); br.connect(gr); gr.connect(vib);
-    return { ctx, master, o1, o2, hid, oh, vib };
-  }
-  function actualizarAudio(fase, u, distCam) {
-    if (!(audioActivo() && estado.activo)) { if (audio) audio.master.gain.setTargetAtTime(0, audio.ctx.currentTime, 0.1); return; }
-    audio = audio || crearAudio();
-    if (!audio) return;
-    if (audio.ctx.state === 'suspended') audio.ctx.resume();
-    const t = audio.ctx.currentTime;
-    audio.master.gain.setTargetAtTime(Math.min(1, 22 / Math.max(6, distCam)) * 0.55, t, 0.15);
-    const carga = fase === 'vibracion' || fase === 'cierre' ? 1.18 : fase === 'avance' ? 1.08 : 1;
-    audio.o1.frequency.setTargetAtTime(31 * carga, t, 0.2); audio.o2.frequency.setTargetAtTime(62.5 * carga, t, 0.2);
-    audio.hid.gain.setTargetAtTime(fase === 'levante' || fase === 'agarre' ? 0.22 : fase === 'cierre' ? 0.16 : fase === 'retirada' ? 0.1 : 0, t, 0.05);
-    audio.oh.frequency.setTargetAtTime(fase === 'levante' ? 520 + 600 * u : fase === 'cierre' ? 700 + 300 * u : 480, t, 0.05);
-    audio.vib.gain.setTargetAtTime(fase === 'vibracion' ? 0.5 : fase === 'cierre' ? 0.42 : fase === 'descenso' ? 0.15 : 0, t, 0.04);
-  }
+  const vivir = vidaMaquina({ raiz, M, destellos: [...cDel.userData.destellos, ...cTra.userData.destellos], chimeneas: [chim], efectos });
 
   // ---- Cinta de geometría exagerada (Cam_Geometría) ----
   const EXAG = 30;
@@ -257,7 +221,6 @@ export function crearBateadora({ tramo, audioActivo = () => false }) {
   }
   function desmontar() {
     estado.activo = false;
-    if (audio) { audio.master.gain.value = 0; audio.ctx.suspend(); }
   }
 
   const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _x = new THREE.Vector3(), _y = new THREE.Vector3(), _z = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0), _bx = new THREE.Matrix4(), _w = new THREE.Vector3();
@@ -329,7 +292,6 @@ export function crearBateadora({ tramo, audioActivo = () => false }) {
     if (fase === 'cierre' && u > 0.9) for (let r = 0; r < 2; r++) for (const zl of [-0.17, 0.17]) for (const sx of [-1, 1]) tramo.rellenar(pkT + sx * 0.36, ((r ? GALGA : -GALGA) + zl) * s, 0.16, 0.35);
     sacudida = vibra ? 1 : Math.max(0, sacudida - dt * 4);
 
-    destellos.forEach((d, i) => { d.material = Math.sin(t * 7 + i * 1.7) > 0.1 ? M.destello : M.destelloApagado; });
     luzBateo.intensity = noche ? 60 : 0;
 
     carros.forEach((c) => { const d = tramo.desviacion(pkMaq - XB + c.position.x); c.position.y = d.v; c.position.z = -d.h; });
@@ -338,12 +300,15 @@ export function crearBateadora({ tramo, audioActivo = () => false }) {
     laser.scale.x = Math.hypot(cA.x - cB.x, cA.y - cB.y);
     laser.rotation.z = Math.atan2(cA.y - cB.y, cA.x - cB.x);
 
+    const pkAnt = raiz.userData.pkAnt ?? pkMaq;
+    raiz.userData.pkAnt = pkMaq;
     colocar();
+    vivir(dt, { ds: pkMaq - pkAnt, noche, carga: vibra ? 1 : fase === 'avance' ? 0.6 : 0.35 });
     fijarCarril(M.sucios, yCarril, [chim.getWorldPosition(_w)]);
     polvo.actualizar(dt);
     piedras.actualizar(dt);
     if (cintaGeo.visible) actualizarCintaGeo();
-    actualizarAudio(fase, u, distCam);
+    void distCam;
   }
 
   // ---- Cámaras ----

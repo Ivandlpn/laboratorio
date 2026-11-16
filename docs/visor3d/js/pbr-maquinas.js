@@ -201,11 +201,65 @@ export function bocina(M, x, y, z, sentido = 1) {
   return g;
 }
 /** Foco halógeno cuadrado (carcasa y cristal encendido) mirando hacia abajo. */
-export function focoHalogeno(M, x, y, z) {
+const matRotativo = new THREE.MeshBasicMaterial({ color: '#ff9a1a', transparent: true, opacity: 0.06, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+/** Rotativos naranjas: giran a ~1,5 vueltas/s y la cúpula destella cuando el espejo mira a la cámara. */
+export function animarRotativos(dest, M, dt, noche = true) {
+  for (const d of dest) {
+    const g = d.userData.giro;
+    if (g) { g.rotation.y += dt * 9.4; g.visible = noche; }
+    d.material = Math.cos(g ? g.rotation.y * 2 : performance.now() / 140) > 0.2 ? M.destello : M.destelloApagado;
+  }
+}
+// Haz de luz visible bajo los focos (de noche, en el polvo del tajo)
+const matHaz = new THREE.MeshBasicMaterial({ color: '#fff1cf', transparent: true, opacity: 0.075, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+export function focoHalogeno(M, x, y, z, { alto = 1.6, abre = 0.55 } = {}) {
   const g = new THREE.Group();
   g.add(caja(0.26, 0.12, 0.26, M.oscuro, 0, 0.06, 0), caja(0.22, 0.02, 0.22, M.foco, 0, -0.005, 0));
+  const haz = new THREE.Mesh(new THREE.ConeGeometry(abre, alto, 18, 1, true), matHaz);
+  haz.position.y = -alto / 2; haz.renderOrder = 5; haz.castShadow = false; haz.userData.haz = true;
+  g.add(haz);
   g.position.set(x, y, z);
   return g;
+}
+/** Enciende o apaga los haces de luz de una máquina (de noche). */
+export function hacesVisibles(raiz, on) { raiz.traverse((n) => { if (n.userData?.haz) n.visible = on; }); }
+/** Gira las ruedas de los bogies de una máquina según lo avanzado (m). */
+export function girarRuedas(raiz, ds) {
+  raiz.traverse((n) => { if (n.userData?.rueda) n.rotation.z -= ds / 0.42; });
+}
+/** Humo del escape (partículas oscuras que suben y se abren). */
+export function crearHumo(n = 160) { return crearPolvo(n, '#3a3836'); }
+/**
+ * Movimiento «vivo» común de una máquina, a llamar tras colocarla en la vía: ruedas que giran con lo avanzado,
+ * rotativos, haces de los focos de noche, cabeceo y balanceo de la caja sobre la suspensión, temblor del motor
+ * y humo del escape (más denso con carga).
+ */
+export function vidaMaquina({ raiz, M, destellos = [], chimeneas = [], efectos }) {
+  const humo = crearHumo(220);
+  efectos.add(humo.puntos);
+  let t = Math.random() * 10, acum = 0, nochePrev = null;
+  const _p = new THREE.Vector3();
+  return function vivir(dt, { ds = 0, noche = true, carga = 0.4 } = {}) {
+    t += dt;
+    girarRuedas(raiz, ds);
+    animarRotativos(destellos, M, dt, noche);
+    if (noche !== nochePrev) { hacesVisibles(raiz, noche); nochePrev = noche; }
+    const v = dt > 0 ? Math.abs(ds) / dt : 0;
+    // Suspensión: balanceo y cabeceo lentos en marcha; temblor fino del motor siempre
+    raiz.rotateX(Math.sin(t * 1.9) * 0.0016 * Math.min(1, v * 2 + 0.25) + Math.sin(t * 61) * 0.00025 * (0.5 + carga));
+    raiz.rotateZ(Math.sin(t * 1.3 + 1) * 0.0009 * Math.min(1, v * 2));
+    // Humo del escape
+    acum += dt * (3 + 9 * carga);
+    while (acum >= 1) {
+      acum -= 1;
+      for (const c of chimeneas) {
+        c.getWorldPosition(_p); _p.y += 0.5;
+        efectos.worldToLocal(_p);
+        humo.emitir(_p, 1, { tam: 0.22, crece: 0.85, vida: 3.2, alfa: 0.28 + 0.2 * carga, sube: 1.4, fuerza: 0.5 });
+      }
+    }
+    humo.actualizar(dt);
+  };
 }
 /** Pegatina plana (plano de 0,2 m) en una cara vertical. */
 export function pegatina(mat, x, y, z, rotY = 0, tam = 0.2) {
@@ -235,7 +289,14 @@ export function cabina(M, { largo = 2.6, alto = 2.3, ancho = 2.9, y0 = 1.35, sen
   // Bocinas y destellos
   c.add(bocina(M, 0, y0 + alto + 0.25, ancho * 0.3, sentido), bocina(M, 0, y0 + alto + 0.25, -ancho * 0.3, sentido));
   const dest = [];
-  for (const z of [-0.6, 0.6]) { const d = cil(0.12, 0.24, M.destello, -sentido * 0.6, y0 + alto + 0.22, z); c.add(d); dest.push(d); }
+  for (const z of [-0.6, 0.6]) {
+    const d = cil(0.12, 0.24, M.destello, -sentido * 0.6, y0 + alto + 0.22, z);
+    // Rotativo: espejo que gira dentro de la cúpula y barre dos haces naranjas
+    const giro = new THREE.Group(); giro.position.copy(d.position);
+    for (const k of [0, Math.PI]) { const h = new THREE.Mesh(new THREE.ConeGeometry(0.32, 2.2, 12, 1, true), matRotativo); h.rotation.z = Math.PI / 2; h.position.x = 1.1; const p = new THREE.Group(); p.rotation.y = k; p.add(h); giro.add(p); }
+    giro.rotation.y = Math.random() * 6;
+    c.add(d, giro); d.userData.giro = giro; dest.push(d);
+  }
   c.userData.destellos = dest;
   return c;
 }
@@ -244,7 +305,12 @@ export function bogie(M, x) {
   const b = new THREE.Group();
   b.add(caja(2.6, 0.32, 2.2, M.chasis, 0, 0.64, 0));
   for (const dx of [-0.9, 0.9]) for (const z of [-0.7175, 0.7175]) {
-    b.add(cil(0.42, 0.13, M.acero, dx, 0.42, z, 'z', 18), cil(0.43, 0.025, M.pulido, dx, 0.42, z * 0.92, 'z', 18));
+    // Rueda que gira (con radios y tornillería visibles para que se note el giro)
+    const r = new THREE.Group(); r.position.set(dx, 0.42, z); r.userData.rueda = true;
+    r.add(cil(0.42, 0.13, M.acero, 0, 0, 0, 'z', 18), cil(0.43, 0.025, M.pulido, 0, 0, -z * 0.08 / 0.7175 * 0.7175, 'z', 18));
+    for (const a of [0, Math.PI / 3, 2 * Math.PI / 3]) { const rad = caja(0.7, 0.05, 0.02, M.oscuro, 0, 0, Math.sign(z) * 0.07); rad.rotation.z = a; r.add(rad); }
+    r.add(cil(0.1, 0.16, M.oscuro, 0, 0, 0, 'z', 10));
+    b.add(r);
     b.add(caja(0.32, 0.3, 0.22, M.chasis, dx, 0.5, z * 1.42));
   }
   for (const z of [-1, 1]) b.add(cil(0.07, 0.4, M.oscuro, 0, 0.92, z * 0.9));

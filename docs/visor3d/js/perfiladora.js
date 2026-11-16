@@ -11,7 +11,7 @@
 
 import * as THREE from 'three';
 import { Z_TRAV, Z_CAJON, SEMI_BANQUETA, ruido, suave } from './tramo-via.js';
-import { materialesMaquina, caja, cil, tubo, mangueras, focoHalogeno, pegatina, bogie, crearPolvo, crearPiedras, fijarCarril } from './pbr-maquinas.js';
+import { materialesMaquina, caja, cil, tubo, mangueras, focoHalogeno, pegatina, bogie, crearPolvo, crearPiedras, fijarCarril, vidaMaquina } from './pbr-maquinas.js';
 
 const L = 17.2;
 const X_ARADO = 1.6, X_ALAS = -1.0, X_CEPILLO = -L / 2 + 0.9;
@@ -134,6 +134,7 @@ export function crearPerfiladora({ tramo }) {
   const polvo = crearPolvo(700, '#d2ccc0');
   const piedras = crearPiedras(220, new THREE.MeshStandardMaterial({ color: '#8f8b84', roughness: 0.95 }));
   const efectos = new THREE.Group(); efectos.add(polvo.puntos, piedras.im);
+  const vivir = vidaMaquina({ raiz, M, destellos: dest, chimeneas: [chim], efectos });
 
   // ---- Estado ----
   const estado = { activo: false, fase: 'despliegue', despliegue: 0, vel: 0 };
@@ -222,9 +223,9 @@ export function crearPerfiladora({ tramo }) {
       polvo.emitir(tramo.punto(pkCepillo(), (Math.random() - 0.5) * 2.4, Z_TRAV), 3, { tam: 0.2, crece: 1.2, vida: 2.5, alfa: 0.45, sube: 1.2, fuerza: 1.4 });
       for (const z of [-1, 1]) polvo.emitir(tramo.punto(pkAlas() - 0.6, 1.9 * z, -0.15), 1, { tam: 0.25, crece: 0.8, vida: 2.4, alfa: 0.35, sube: 0.4 });
     }
-    dest.forEach((dd, i) => { dd.material = Math.sin(tiempo * 7 + i * 1.7) > 0.1 ? M.destello : M.destelloApagado; });
     luz.intensity = noche ? 60 : 0;
     colocar();
+    vivir(dt, { ds: estado.vel * dt, noche, carga: 0.4 + 0.6 * d });
     fijarCarril(M.sucios, yCarril, [chim.getWorldPosition(_w)]);
     polvo.actualizar(dt);
     piedras.actualizar(dt);

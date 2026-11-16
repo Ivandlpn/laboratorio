@@ -12,6 +12,8 @@ import { crearTramoVia, ESPACIADO } from './tramo-via.js';
 import { crearBateadora, NOMBRE_FASE, VEL_MEDIA_BATEO } from './bateadora.js';
 import { crearPerfiladora, FASES_PERF } from './perfiladora.js';
 import { crearEstabilizador } from './estabilizador.js';
+import { crearOperario } from './operario.js';
+import { crearAudioObras } from './audio-obras.js';
 
 export const MAQUINAS = {
   bateadora: {
@@ -35,7 +37,7 @@ export { NOMBRE_FASE, FASES_PERF };
 const SEPARACION = { perfiladora: 4.4 + 42, estabilizador: 4.4 + 80 };
 const ATRAS = 112, DELANTE = 56;
 
-export function crearMantenimiento({ escena, Eje3D, W, mat, matsVia, GEO, audioActivo }) {
+export function crearMantenimiento({ escena, Eje3D, W, mat, matsVia, GEO }) {
   const grupo = new THREE.Group();
   grupo.name = 'Trabajos de mantenimiento';
   grupo.visible = false;
@@ -61,17 +63,6 @@ export function crearMantenimiento({ escena, Eje3D, W, mat, matsVia, GEO, audioA
     if (eje === 'z') me.rotation.x = Math.PI / 2; else if (eje === 'x') me.rotation.z = Math.PI / 2;
     return me;
   };
-  function operario() {
-    const o = new THREE.Group();
-    for (const z of [-0.11, 0.11]) o.add(caja(0.16, 0.85, 0.16, M.pantalon, 0, 0.43, z));
-    o.add(caja(0.3, 0.62, 0.46, M.chaleco, 0, 1.17, 0));
-    o.add(caja(0.31, 0.06, 0.47, M.reflectante, 0, 1.05, 0), caja(0.31, 0.06, 0.47, M.reflectante, 0, 1.3, 0));
-    o.add(caja(0.2, 0.22, 0.2, M.piel, 0, 1.6, 0));
-    const c = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), M.casco);
-    c.position.y = 1.68;
-    o.add(c, caja(0.04, 0.05, 0.08, M.foco, 0.13, 1.72, 0));
-    return o;
-  }
   function torreLuz() {
     const t = new THREE.Group();
     t.add(caja(2.2, 0.9, 1.3, M.amarillo, 0, 0.75, 0));
@@ -97,12 +88,13 @@ export function crearMantenimiento({ escena, Eje3D, W, mat, matsVia, GEO, audioA
   }
 
   // ---- Tramo y máquinas (se crean una vez) ----
-  let tajo = null, tramo = null, bat = null, perf = null, est = null;
+  let tajo = null, tramo = null, bat = null, perf = null, est = null, sonidos = null;
+  const audio = crearAudioObras();
   const estado = { activo: false };
   const aLocal = (p) => W(p.E, p.N, p.Z).sub(W(tajo.ancla.E, tajo.ancla.N, tajo.ancla.Z));
   function crearSistema() {
     tramo = crearTramoVia({ Eje3D, aLocal: (p) => aLocal(p), mundo: (p) => W(p.E, p.N, p.Z), mats: matsVia, GEO, atras: ATRAS, delante: DELANTE });
-    bat = crearBateadora({ tramo, audioActivo });
+    bat = crearBateadora({ tramo });
     perf = crearPerfiladora({ tramo });
     est = crearEstabilizador({ tramo });
     // Lo que hace cada máquina sobre la vía
@@ -147,14 +139,31 @@ export function crearMantenimiento({ escena, Eje3D, W, mat, matsVia, GEO, audioA
       grupo.add(pq);
       tajo.piquetes.push(pq);
     }
-    for (let k = 0; k < 7; k++) {
-      const o = operario();
-      // En la entrevía y en el paseo, sin acercarse a los grupos de trabajo por el lado exterior (cámaras de detalle)
-      o.userData.sig = { dPk: 18 - k * 15 + Math.random() * 4, d: s * (k % 2 ? 2.75 : -2.7), fase: Math.random() * 6 };
-      if (o.userData.sig.d * s > 0 && Math.abs(o.userData.sig.dPk) < 10) o.userData.sig.d = -o.userData.sig.d;
-      grupo.add(o);
-      tajo.operarios.push(o);
+    // Operarios con su oficio. Posición: PK relativo al grupo de bateo y lado (entrevía o paseo exterior); en la
+    // entrevía y lejos de los grupos de trabajo por fuera, para no tapar las cámaras de detalle
+    const INT = -s * 2.35, EXT = s * 3.2;
+    const ROLES = [
+      { nombre: 'Jefe de trabajos', ref: 'bat', dPk: -17, d: INT, tareas: [['andar', 6], ['mirar', 7], ['radio', 5]] },
+      { nombre: 'Encargado de bateo', ref: 'bat', dPk: -9, d: INT, tareas: [['agacharse', 7], ['mirar', 4], ['andar', 4]] },
+      { nombre: 'Operario de perfilado', ref: 'perf', dPk: -11, d: EXT, tareas: [['mirar', 6], ['agacharse', 6], ['andar', 5]] },
+      { nombre: 'Operario de estabilización', ref: 'est', dPk: -12, d: INT, tareas: [['agacharse', 8], ['radio', 4], ['andar', 4]] },
+      { nombre: 'Piquete de protección (delante)', ref: 'fijo', pk: pkT + 86, d: EXT + s * 0.6, tareas: [['senalizar', 60]], farol: 'rojo' },
+      { nombre: 'Piquete de protección (detrás)', ref: 'fijo', pk: pkT - 136, d: EXT + s * 0.6, tareas: [['senalizar', 60]], farol: 'rojo' },
+      { nombre: 'Operario de vía', ref: 'ronda', dPk: -40, d: EXT, tareas: [['andar', 30]] },
+    ];
+    for (const r of ROLES) {
+      const op = crearOperario({ nombre: r.nombre, farol: r.farol || 'blanco' });
+      grupo.add(op.raiz);
+      tajo.operarios.push({ ...r, op, pk: r.pk ?? pkT + r.dPk, iT: Math.floor(Math.random() * r.tareas.length), tT: Math.random() * 3, sentido: 1 });
     }
+    // Sonido: motores de las máquinas, bombas, bates, cepillo, estabilizador y los grupos electrógenos de las torres
+    sonidos = {
+      batMotor: audio.fuente('diesel', { ref: 8 }), batHid: audio.fuente('hidraulica', { ref: 4 }), batVib: audio.fuente('vibracion', { ref: 5 }),
+      perfMotor: audio.fuente('diesel', { ref: 8 }), perfCep: audio.fuente('cepillo', { ref: 6 }),
+      estMotor: audio.fuente('diesel', { ref: 9 }), estVib: audio.fuente('vibracion', { ref: 7 }),
+      torres: tajo.torres.map(() => audio.fuente('generador', { ref: 3 })),
+    };
+    tajo.bocinas = [2.0, 4.5];   // s: toques de bocina de aviso al arrancar el tren de trabajo
     grupo.visible = true;
     estado.activo = true;
     actualizar(0);
@@ -163,6 +172,7 @@ export function crearMantenimiento({ escena, Eje3D, W, mat, matsVia, GEO, audioA
 
   function desmontar() {
     if (tramo) { tramo.desmontar(); bat.desmontar(); perf.desmontar(); est.desmontar(); }
+    if (sonidos) { for (const f of Object.values(sonidos).flat()) f.parar(); sonidos = null; }
     for (const c of [...grupo.children]) {
       grupo.remove(c);
       if (![tramo?.grupo, bat?.raiz, bat?.efectos, perf?.raiz, perf?.efectos, est?.raiz, est?.efectos].includes(c)) c.traverse?.((n) => { if (n.isMesh) n.geometry?.dispose?.(); });
@@ -172,7 +182,7 @@ export function crearMantenimiento({ escena, Eje3D, W, mat, matsVia, GEO, audioA
     estado.activo = false;
   }
 
-  const _w = new THREE.Vector3();
+  const _w = new THREE.Vector3(), _s = new THREE.Vector3();
   function actualizar(dt, { distCam = 60, noche = true } = {}) {
     if (!tajo) return;
     tajo.t += dt;
@@ -189,12 +199,55 @@ export function crearMantenimiento({ escena, Eje3D, W, mat, matsVia, GEO, audioA
     tramo.actualizarBalasto();
 
     const t = tajo.t, s = tajo.s;
+    // Operarios: cumplen sus tareas por turnos y andan para no quedarse atrás de su máquina
     for (const o of tajo.operarios) {
-      const g = o.userData.sig;
-      const pk = pkT + g.dPk + Math.sin(t * 0.25 + g.fase) * 2.5;
-      const p = enVia(pk, s, g.d);
-      o.position.copy(aLocal(p));
-      o.rotation.y = Math.atan2(p.m.ty, p.m.tx) + (Math.cos(t * 0.25 + g.fase) > 0 ? 0 : Math.PI);
+      o.tT += dt;
+      let [tarea, dur] = o.tareas[o.iT];
+      if (o.tT > dur) { o.iT = (o.iT + 1) % o.tareas.length; o.tT = 0; [tarea, dur] = o.tareas[o.iT]; }
+      const base = o.ref === 'bat' ? pkT : o.ref === 'perf' ? perf.pk : o.ref === 'est' ? est.pk : o.ref === 'ronda' ? pkT : null;
+      let objetivo = base !== null ? base + o.dPk : o.pk;
+      if (o.ref === 'ronda') { objetivo = pkT + (Math.sin(t * 0.03) > 0 ? -25 : -75); }
+      const falta = objetivo - o.pk;
+      // Si se queda más de 4 m atrás (o le toca andar), camina hacia su sitio
+      let vel = 0;
+      if (tarea === 'andar' || Math.abs(falta) > 4) {
+        vel = Math.min(1.25, Math.abs(falta) * 0.6 + 0.35) * (Math.abs(falta) > 0.3 ? 1 : 0);
+        o.pk += Math.sign(falta) * vel * dt;
+        o.sentido = Math.sign(falta) || o.sentido;
+      }
+      const estadoOp = vel > 0.05 ? 'andar' : tarea === 'andar' ? 'mirar' : tarea;
+      const pie = enVia(o.pk, s, o.d);
+      pie.Z = pie.m.Z + (o.d * s > 0 ? -0.43 : -0.27);       // paseo (coronación) o entrevía (balasto)
+      o.op.raiz.position.copy(aLocal(pie));
+      // Mira hacia donde anda; parado, hacia la vía en trabajo (agachado o vigilando) o a lo largo (piquete)
+      const yawVia = Math.atan2(pie.m.ty, pie.m.tx);
+      // La normal izquierda es yawVia + π/2: desde la izquierda de la vía se mira a la derecha y al revés
+      const haciaVia = yawVia + (o.d > 0 ? -Math.PI / 2 : Math.PI / 2);
+      const yawObj = estadoOp === 'andar' ? yawVia + (o.sentido < 0 ? Math.PI : 0) : estadoOp === 'senalizar' ? yawVia + (o.pk > pkT ? 0 : Math.PI) : haciaVia;
+      const dy = Math.atan2(Math.sin(yawObj - o.op.raiz.rotation.y), Math.cos(yawObj - o.op.raiz.rotation.y));
+      o.op.raiz.rotation.y += dy * Math.min(1, dt * 3);
+      o.op.actualizar(dt, {
+        estado: estadoOp, vel,
+        alPisar: () => { o.op.raiz.getWorldPosition(_w); audio.golpe(_w, { tipo: 'paso', nivel: 0.7 }); },
+      });
+    }
+    // Sonido de las máquinas (posición y régimen según lo que hace cada una)
+    if (sonidos) {
+      const pos = (obj, y = 1.5) => obj.getWorldPosition(_w).add(_s.set(0, y, 0));
+      const eb = bat.estado, fb = eb.fase;
+      const vibB = fb === 'vibracion' ? 1 : fb === 'cierre' ? 0.85 : fb === 'descenso' ? 0.3 : 0;
+      sonidos.batMotor.colocar(pos(bat.raiz, 2.5)).set({ rpm: 1150 + 450 * vibB + (fb === 'avance' ? 250 : 0), carga: 0.35 + 0.6 * vibB });
+      sonidos.batHid.colocar(pos(bat.raiz, 1)).set({ nivel: fb === 'levante' || fb === 'agarre' ? 0.9 : fb === 'cierre' ? 0.7 : fb === 'retirada' ? 0.45 : 0.05, tono: fb === 'levante' ? eb.u : fb === 'cierre' ? 0.6 + 0.4 * eb.u : 0.3 });
+      sonidos.batVib.colocar(pos(bat.raiz, 0.3)).set({ nivel: vibB, frec: 35 });
+      const dP = perf.estado.despliegue;
+      sonidos.perfMotor.colocar(pos(perf.raiz, 2.2)).set({ rpm: 1000 + 500 * dP, carga: 0.3 + 0.5 * dP });
+      sonidos.perfCep.colocar(perf.raiz.localToWorld(_s.set(-7.7, 0.6, 0))).set({ nivel: dP });
+      const cE = est.estado.carga;
+      sonidos.estMotor.colocar(pos(est.raiz, 2.5)).set({ rpm: 1300 + 300 * cE, carga: 0.4 + 0.5 * cE });
+      sonidos.estVib.colocar(pos(est.raiz, 0.4)).set({ nivel: 0.9 * cE, frec: 35 });
+      tajo.torres.forEach((tr, i) => sonidos.torres[i]?.colocar(tr.obj.getWorldPosition(_w).add(_s.set(0, 0.8, 0))).set({ nivel: 1 }));
+      // Bocina de aviso antes de que arranque el tren de trabajo
+      while (tajo.bocinas.length && t > tajo.bocinas[0]) { tajo.bocinas.shift(); audio.golpe(pos(bat.raiz, 3.6), { tipo: 'bocina', nivel: 1 }); }
     }
     for (const pq of tajo.piquetes) pq.userData.luz.visible = Math.sin(t * 5) > -0.2;
     tajo.torres.forEach((tr, i) => {

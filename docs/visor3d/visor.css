@@ -980,6 +980,8 @@
   #menuTrabajos button small { font: 400 11px var(--sans); color: var(--muted); }
   #menuTrabajos button:hover { background: rgba(242, 183, 5, .14); }
   #menuTrabajos button[aria-pressed="true"] small { color: inherit; opacity: .8; }
+  #menuTrabajos .menu-sonido { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 8px; padding: 8px 10px 4px; border-top: 1px solid var(--line); margin-top: 2px; font: 600 12px var(--sans); cursor: pointer; }
+  #menuTrabajos .menu-sonido small { grid-column: 2; font: 400 11px var(--sans); color: var(--muted); }
   body.modo-cine #menuTrabajos, body.limpio #menuTrabajos { display: none !important; }
   #dockMovil button[hidden] { display: none !important; }
   #btnEnergia.activo, #btnEnergia[aria-pressed="true"] { background: #f2b705; color: #111; border-color: #f2b705; }
@@ -1011,6 +1013,9 @@
       display: flex !important; top: auto; left: 12px; right: 12px; width: auto; margin: 0;
       bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: 56vh;
     }
+    body.m-mant #panelMant.plegado > :not(.tr-cab) { display: none !important; }
+    body.m-mant #panelMant.plegado .tr-cab::after { content: '▴'; color: var(--muted); }
+    body.m-mant #panelMant .tr-cab { cursor: pointer; }
     body.m-mant #panelMant {
       display: flex !important; top: auto; left: 12px; right: 12px; width: auto; margin: 0;
       bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: 56vh;

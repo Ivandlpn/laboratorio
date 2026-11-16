@@ -8,7 +8,7 @@
 
 import * as THREE from 'three';
 import { GALGA, Z_CAJON, suave } from './tramo-via.js';
-import { materialesMaquina, caja, cil, mangueras, focoHalogeno, pegatina, cabina, bogie, crearPolvo, fijarCarril } from './pbr-maquinas.js';
+import { materialesMaquina, caja, cil, mangueras, focoHalogeno, pegatina, cabina, bogie, crearPolvo, fijarCarril, vidaMaquina } from './pbr-maquinas.js';
 
 const L = 16.5, X_UNID = [-1.6, 1.6];
 export const ASIENTO = 0.004;   // m de descenso controlado
@@ -107,6 +107,7 @@ export function crearEstabilizador({ tramo }) {
   const chispas = crearPolvo(120, '#ffc061');
   chispas.puntos.material.blending = THREE.AdditiveBlending;
   const efectos = new THREE.Group(); efectos.add(polvo.puntos, chispas.puntos);
+  const vivir = vidaMaquina({ raiz, M, destellos: cabs.flatMap((c) => c.userData.destellos || []), chimeneas: chims, efectos });
 
   // ---- Estado ----
   const estado = { activo: false, fase: 'agarre', agarre: 0, carga: 0, asientoMm: 0, vel: 0 };
@@ -176,6 +177,7 @@ export function crearEstabilizador({ tramo }) {
     }
     luz.intensity = noche ? 50 : 0;
     colocar();
+    vivir(dt, { ds: estado.vel * dt, noche, carga: 0.5 + 0.5 * estado.carga });
     fijarCarril(M.sucios, yCarril, chims.map((c) => c.getWorldPosition(new THREE.Vector3())));
     polvo.actualizar(dt);
     chispas.actualizar(dt);
