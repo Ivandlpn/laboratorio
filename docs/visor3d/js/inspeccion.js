@@ -16,6 +16,8 @@
 //   bajo viendo los haces).
 
 import * as THREE from 'three';
+import { crearAudioObras } from './audio-obras.js';
+import { crearPolvo } from './pbr-maquinas.js';
 
 const ESP = 0.6;                 // espaciado de traviesas (rejilla global de PK)
 const Z_TRAV = -0.16;            // cara superior de la traviesa respecto a la cabeza de carril
@@ -47,6 +49,7 @@ function texLogo(color = '#0b4ea2', fondo = null) {
 const suave = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 
 export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
+  const audio = crearAudioObras();
   const grupo = new THREE.Group();
   grupo.name = 'Inspeccion de superestructura';
   grupo.visible = false;
@@ -58,7 +61,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     ropa: std('#1d232b', 0.9), ropa2: std('#2a2f36', 0.9), bota: std('#15171a', 0.7),
     pieles: ['#e0b896', '#c99a78', '#a8765a', '#8a5c42'].map((c) => std(c, 0.75)),
     pelos: ['#1b1410', '#3b2a1e', '#5a4130', '#2a2422', '#7a5a3a'].map((c) => std(c, 0.85)),
-    tablet: std('#101214', 0.4, 0.4), linterna: std('#2b2f33', 0.4, 0.6),
+    tablet: std('#101214', 0.4, 0.4), linterna: std('#2b2f33', 0.4, 0.6), guante: std('#2b2b2b', 0.85), emisora: std('#16181b', 0.5, 0.2),
     pantalla: new THREE.MeshBasicMaterial({ color: '#7fd6c8' }),
     lente: new THREE.MeshBasicMaterial({ color: '#eaf2ff' }),
     blanco: std('#f2f3f1', 0.35, 0.2), cristal: std('#0e1418', 0.1, 0.6), llanta: std('#2a2d30', 0.6, 0.5), neumatico: std('#121314', 0.9),
@@ -117,6 +120,8 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     tronco.add(caja(0.235, 0.42, 0.395 * anch, matChaleco, 0, 0.3, 0));
     for (const y of [0.17, 0.32]) tronco.add(caja(0.24, 0.045, 0.4 * anch, matBanda, 0, y, 0));
     for (const z of [-0.1, 0.1]) tronco.add(caja(0.24, 0.3, 0.04, matBanda, 0, 0.38, z * anch));
+    // Emisora portátil en el pecho, con su antena
+    tronco.add(caja(0.035, 0.11, 0.06, M.emisora, 0.135, 0.42, -0.1 * anch), caja(0.008, 0.07, 0.008, M.emisora, 0.135, 0.51, -0.115 * anch));
     // Logotipo de Ineco en la espalda del chaleco
     const logo = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.11), matLogoChaleco);
     logo.position.set(-0.12, 0.46, 0); logo.rotation.y = -Math.PI / 2;
@@ -135,7 +140,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       const codo = new THREE.Group(); codo.position.y = -0.3; hombro.add(codo);
       codo.add(caja(0.065, 0.27, 0.065, M.ropa2, 0, -0.135, 0));
       const mano = new THREE.Group(); mano.position.y = -0.28; codo.add(mano);
-      mano.add(caja(0.06, 0.08, 0.05, piel, 0, -0.03, 0));
+      mano.add(caja(0.065, 0.085, 0.055, M.guante, 0, -0.03, 0));   // guantes de trabajo
       return { hombro, codo, mano };
     };
     const bI = brazo(-1), bD = brazo(1);
@@ -257,12 +262,19 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     // Flash de la foto (una sola luz que se mueve al agente que dispara)
     sit.flash = new THREE.PointLight('#ffffff', 0, 9, 1.6);
     grupo.add(sit.flash);
+    // Vaho de la respiración en la noche fría
+    sit.vaho = crearPolvo(160, '#e6edf5');
+    grupo.add(sit.vaho.puntos);
+    // Sonido: motor del 4x4 al ralentí y viento de ambiente con ráfagas
+    sit.motor = audio.fuente('motor', { ref: 4, caida: 1.2 }).set({ nivel: 0.55, rpm: 750 });
     grupo.visible = true;
     estado.activo = true;
     actualizar(0);
     return sit;
   }
   function desmontar() {
+    sit?.motor?.parar();
+    audio.viento(0);
     for (const c of [...grupo.children]) { grupo.remove(c); c.traverse?.((o) => { if (o.isMesh) o.geometry?.dispose?.(); }); }
     sit = null;
     grupo.visible = false;
@@ -332,25 +344,41 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       // ---- Pisadas: el pie de atrás vuela a la traviesa siguiente a la del pie de delante ----
       const pies = ag.pies;
       const tPaso = ESP / Math.max(0.25, ag.v);
-      if (ag.vuelo < 0 && ag.v > 0.05) {
+      const quieto = ag.estado === 'Crouch_Inspect' || ag.estado === 'Photograph';
+      if (ag.vuelo < 0 && ag.v > 0.05 && !quieto) {
         const atras = pies[0].pk <= pies[1].pk ? 0 : 1, del = 1 - atras;
         if (ag.pk - pies[atras].pk > ESP * 0.75) {
           ag.vuelo = atras;
           pies[atras].desde = pies[atras].pk; pies[atras].hasta = pies[del].pk + ESP; pies[atras].t = 0;
         }
       }
+      // Para agacharse (o fotografiar) junta los pies en la misma traviesa: así baja con las dos piernas
+      if (ag.vuelo < 0 && quieto && pies[0].pk !== pies[1].pk) {
+        const atras = pies[0].pk < pies[1].pk ? 0 : 1;
+        ag.vuelo = atras;
+        pies[atras].desde = pies[atras].pk; pies[atras].hasta = pies[1 - atras].pk; pies[atras].t = 0;
+      }
       if (ag.vuelo >= 0) {
         const p = pies[ag.vuelo];
-        p.t = Math.min(1, p.t + dt / Math.max(0.35, tPaso * 0.6));
-        if (p.t >= 1) { p.pk = p.hasta; ag.vuelo = -1; }
+        p.t = Math.min(1, p.t + dt / Math.max(0.3, quieto ? 0.45 : tPaso * 0.6));
+        if (p.t >= 1) {
+          p.pk = p.hasta;
+          // Pisada sobre la traviesa (con algo de balasto)
+          const pieM = ag.vuelo === 0 ? ag.pI : ag.pD;
+          audio.golpe(pieM.tob.getWorldPosition(_w), { tipo: 'paso', nivel: 0.45 + Math.random() * 0.35 });
+          ag.vuelo = -1;
+        }
       }
+      ag.juntos = ag.vuelo < 0 && pies[0].pk === pies[1].pk;
       // ---- Postura del cuerpo ----
-      const agacha = ag.estado === 'Crouch_Inspect' ? suave(Math.min(1, (5 - ag.tEst) * 1.5)) * suave(Math.min(1, ag.tEst * 1.5)) : 0;
+      // Sentadilla con las dos piernas: empieza cuando los pies están juntos en la traviesa
+      ag.tAgacha = ag.estado === 'Crouch_Inspect' && ag.juntos ? Math.min(1, (ag.tAgacha || 0) + dt * 1.4) : Math.max(0, (ag.tAgacha || 0) - dt * 1.6);
+      const agacha = suave(ag.tAgacha) * (ag.estado === 'Crouch_Inspect' ? suave(Math.min(1, ag.tEst * 1.5)) : 1);
       const fase = (t * ag.vel * 1.7 + ag.mirada);
-      const hip = 0.9 - 0.42 * agacha + (ag.v > 0.05 ? Math.abs(Math.sin(fase * Math.PI)) * 0.025 : 0);
+      const hip = 0.9 - 0.5 * agacha + (ag.v > 0.05 ? Math.abs(Math.sin(fase * Math.PI)) * 0.025 : 0);
       ag.caderas.position.y = hip;
-      ag.caderas.position.x = -0.16 * agacha;
-      ag.tronco.rotation.z = -0.12 - 0.55 * agacha - (ag.estado === 'NoteTaking' ? 0.1 : 0);
+      ag.caderas.position.x = -0.2 * agacha;
+      ag.tronco.rotation.z = -0.12 - 0.75 * agacha - (ag.estado === 'NoteTaking' ? 0.1 : 0);
       // Cabeza: mirando abajo y a los lados al andar; hacia la sujeción al agacharse; a la tablet al anotar
       const mirarLado = Math.sin(t * 0.6 + ag.mirada * 3) * 0.55 + Math.sin(t * 1.7 + ag.mirada) * 0.15;
       ag.cuello.rotation.y = ag.estado === 'Walk_Track' ? mirarLado : ag.estado === 'Crouch_Inspect' ? ag.objetivo.rail * s * -0.4 : 0;
@@ -361,7 +389,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       const pose = {
         Walk_Track: { iH: 0.25 - bal * 0.5, iC: 0.9, dH: 0.95 + ruidoBrazo + bal * 0.3, dC: 0.35 },
         NoteTaking: { iH: 0.9, iC: 1.25, dH: 0.85, dC: 1.4 + Math.sin(t * 14) * 0.06 },
-        Crouch_Inspect: { iH: 0.1, iC: 0.6, dH: 1.35 + ruidoBrazo * 0.4, dC: 0.15 },
+        Crouch_Inspect: ag.def.luz === 'linterna' ? { iH: 0.55, iC: 0.45, dH: 1.1 + ruidoBrazo * 0.4, dC: 0.25 } : { iH: 0.55, iC: 0.45, dH: 0.6, dC: 0.5 },
         Photograph: { iH: 1.3, iC: 0.55, dH: 1.3, dC: 0.55 },
       }[ag.estado];
       ag.bI.hombro.rotation.z = pose.iH; ag.bI.codo.rotation.z = pose.iC;
@@ -399,6 +427,17 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       lp.userData.objetivo.position.set(5, ag.def.luz === 'frontal' ? -1.8 : 0, 0);
     }
     sit.flash.intensity = noche ? flashOn * 260 : flashOn * 60;
+    // Vaho al respirar (cada 3-4 s) y viento con ráfagas
+    for (const ag of sit.agentes) {
+      ag.tVaho = (ag.tVaho ?? Math.random() * 3) - dt;
+      if (ag.tVaho <= 0 && noche) {
+        ag.tVaho = 3 + Math.random() * 1.5;
+        ag.cabeza.getWorldPosition(_w); grupo.worldToLocal(_w); _w.y += 0.08;
+        sit.vaho.emitir(_w, 3, { tam: 0.06, crece: 0.35, vida: 1.4, alfa: 0.22, sube: 0.12, fuerza: 0.25 });
+      }
+    }
+    sit.vaho.actualizar(dt);
+    audio.viento(0.42 + 0.18 * Math.sin(t * 0.11) + 0.22 * Math.max(0, Math.sin(t * 0.37 + 1.3)) ** 3);
 
     // ---- Retrorreflexión: cada chaleco brilla según la luz que le llega (frontales, linternas y faros) ----
     grupo.updateMatrixWorld(true);
@@ -439,6 +478,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     co.obj.rotation.set(0, Math.atan2(-(b.z - a.z), b.x - a.x), Math.atan2(b.y - a.y, Math.hypot(b.x - a.x, b.z - a.z)));
     for (const r of co.ruedas) r.rotation.z -= co.vel * dt / 0.38;
     for (const f of co.faros) f.intensity = noche ? 70 : 0;
+    sit.motor.colocar(co.obj.getWorldPosition(_w)).set({ nivel: 0.55, rpm: 750 + co.vel * 700 });
   }
 
   // ---- Dron en modo cine automático (director de planos) ----

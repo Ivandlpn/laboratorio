@@ -13,6 +13,7 @@
 // Ejes de la dresina: X adelante, Y arriba, Z a la derecha; origen sobre el eje de la vía a la cota de la cabeza de carril.
 
 import * as THREE from 'three';
+import { crearAudioObras } from './audio-obras.js';
 import { materialesMaquina, caja, cil, tubo, focoHalogeno, pegatina, cabina, bogie, crearPolvo, fijarCarril } from './pbr-maquinas.js';
 
 const L = 13.5, Y_TECHO = 3.05, X_PLAT = -0.6, X_PANTO = L / 2 - 1.3;
@@ -26,6 +27,7 @@ const ORDEN = ['parada', 'subida', 'tierra', 'trabajo', 'retirada', 'bajada', 'a
 const suave = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 
 export function crearEnergia({ escena, Eje3D, W, Catenaria, matHilo }) {
+  const audio = crearAudioObras();
   const grupo = new THREE.Group();
   grupo.name = 'Mantenimiento de energia';
   grupo.visible = false;
@@ -40,6 +42,7 @@ export function crearEnergia({ escena, Eje3D, W, Catenaria, matHilo }) {
   const matChaleco = new THREE.MeshStandardMaterial({ color: '#cddc2a', roughness: 0.6, emissive: new THREE.Color('#3a4200'), emissiveIntensity: 0.4 });
   const matPiel = new THREE.MeshStandardMaterial({ color: '#c99a78', roughness: 0.8 });
   const matCasco = new THREE.MeshStandardMaterial({ color: '#f4f4f0', roughness: 0.35 });
+  const matArnes = new THREE.MeshStandardMaterial({ color: '#1f2c45', roughness: 0.8 });
 
   // ---- Dresina ----
   const raiz = new THREE.Group(); raiz.name = 'Root_Chassis';
@@ -56,6 +59,11 @@ export function crearEnergia({ escena, Eje3D, W, Catenaria, matHilo }) {
   for (const z of [-1, 1]) raiz.add(cil(0.025, L - 5.6, matFibra, -0.4, Y_TECHO + 1.05, z * 1.3, 'x'));
   for (const z of [-1, 1]) raiz.add(pegatina(M.pegRayo, L / 2 - 2.9, 2.3, z * 1.37, z > 0 ? 0 : Math.PI, 0.26));
   const destellos = [...cA.userData.destellos, ...cB.userData.destellos];
+  // Escalera lateral de acceso al techo (los operarios suben por ella con la dresina parada)
+  for (const z of [-1, 1]) {
+    for (const dx of [-0.22, 0.22]) raiz.add(cil(0.022, Y_TECHO - 0.9, M.acero, -L / 2 + 3.4 + dx, 0.95 + (Y_TECHO - 0.9) / 2, z * 1.42));
+    for (let y = 1.1; y < Y_TECHO; y += 0.3) raiz.add(cil(0.016, 0.44, M.acero, -L / 2 + 3.4, y, z * 1.42, 'x'));
+  }
 
   // Castillete elevador de tijera
   const cast = new THREE.Group(); cast.name = 'Castillete_Elevador';
@@ -108,14 +116,22 @@ export function crearEnergia({ escena, Eje3D, W, Catenaria, matHilo }) {
   function operario(x, z) {
     const o = new THREE.Group();
     for (const dz of [-0.1, 0.1]) o.add(caja(0.14, 0.82, 0.14, matRopa, 0, 0.41, dz));
-    o.add(caja(0.24, 0.6, 0.42, matChaleco, 0, 1.12, 0), new THREE.Mesh(new THREE.SphereGeometry(0.105, 12, 10), matPiel).translateY(1.55));
-    const c = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), matCasco); c.position.y = 1.6; o.add(c);
+    o.add(caja(0.24, 0.6, 0.42, matChaleco, 0, 1.12, 0));
+    // Arnés anticaída (tirantes y cinturón) sobre el chaleco
+    for (const z of [-0.1, 0.1]) o.add(caja(0.25, 0.58, 0.035, matArnes, 0, 1.12, z));
+    o.add(caja(0.26, 0.06, 0.44, matArnes, 0, 0.86, 0));
+    const cabeza = new THREE.Group(); cabeza.position.y = 1.45; o.add(cabeza);
+    cabeza.add(new THREE.Mesh(new THREE.SphereGeometry(0.105, 12, 10), matPiel).translateY(0.1));
+    const c = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), matCasco); c.position.y = 0.15; cabeza.add(c);
     const hI = new THREE.Object3D(); hI.position.set(0.02, 1.38, -0.21); const hD = new THREE.Object3D(); hD.position.set(0.02, 1.38, 0.21);
     o.add(hI, hD);
     o.position.set(x, 0.05, z);
     plataforma.add(o);
     const seg = () => { const m = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.035, 1, 8), matRopa); m.castShadow = true; grupoBrazos.add(m); return m; };
-    return { o, hombros: [hI, hD], brazos: [[seg(), seg()], [seg(), seg()]] };
+    // Cabo del arnés hasta la barandilla
+    const cabo = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: '#d14a12' }));
+    cabo.frustumCulled = false; grupoBrazos.add(cabo);
+    return { o, cabeza, cabo, x0: x, hombros: [hI, hD], brazos: [[seg(), seg()], [seg(), seg()]] };
   }
   const grupoBrazos = new THREE.Group();
   const opA = operario(1.0, 0), opB = operario(-1.0, 0);
@@ -242,6 +258,12 @@ export function crearEnergia({ escena, Eje3D, W, Catenaria, matHilo }) {
     prepararParada(pk);
     sit.pk = sit.pkParada;
     recortarHilos(true);
+    // Sonido: diésel de la dresina, hidráulica del castillete y zumbido de la catenaria en tensión
+    sit.snd = {
+      diesel: audio.fuente('diesel', { ref: 5 }).set({ rpm: 850, carga: 0.25 }),
+      hidr: audio.fuente('hidraulica', { ref: 3 }).set({ nivel: 0 }),
+      zumbido: audio.fuente('zumbido', { ref: 3, caida: 1.4 }).set({ nivel: 1 }),
+    };
     grupo.visible = true;
     estado.activo = true;
     actualizar(0);
@@ -257,6 +279,7 @@ export function crearEnergia({ escena, Eje3D, W, Catenaria, matHilo }) {
     estado.vano++;
   }
   function desmontar() {
+    if (sit?.snd) for (const f of Object.values(sit.snd)) f.parar();
     recortarHilos(false);
     for (const c of [...grupo.children]) grupo.remove(c);
     sit = null; grupo.visible = false; estado.activo = false;
@@ -299,10 +322,13 @@ export function crearEnergia({ escena, Eje3D, W, Catenaria, matHilo }) {
       const falta = sit.pkParada - sit.pk;
       sit.v = Math.min(4.5, Math.max(0.3, Math.sqrt(Math.max(0, falta) * 1.2)), sit.v + dt * 1.2);
       sit.pk += Math.min(falta, sit.v * dt);
-      if (falta < 0.02) { sit.fase = 'parada'; sit.tFase = 0; sit.v = 0; }
+      if (falta < 0.02) { sit.fase = 'parada'; sit.tFase = 0; sit.v = 0; audio.golpe(raiz.getWorldPosition(_w), { tipo: 'clac', nivel: 0.5 }); }
     } else if (sit.tFase > DURACION[sit.fase]) {
+      const acaba = sit.fase;
       sit.fase = ORDEN[ORDEN.indexOf(sit.fase) + 1];
       sit.tFase = 0;
+      // Topes mecánicos: el castillete llega arriba o abajo, la pértiga se suelta
+      if (acaba === 'subida' || acaba === 'bajada' || acaba === 'retirada') audio.golpe(plataforma.getWorldPosition(_w), { tipo: 'clac', nivel: 0.7 });
       if (sit.fase === 'avance') prepararParada(sit.pkParada + 1);
     }
     const f = sit.fase, u = sit.tFase / (DURACION[f] || 1);
@@ -349,13 +375,22 @@ export function crearEnergia({ escena, Eje3D, W, Catenaria, matHilo }) {
     const dirP = punta.clone().sub(base).normalize();
     pertiga.position.copy(base).addScaledVector(dirP, 1.7);
     pertiga.quaternion.setFromUnitVectors(_up, dirP);
-    pertiga.visible = gancho.visible = ['subida', 'tierra', 'trabajo', 'retirada'].includes(f);
     gancho.position.copy(base).addScaledVector(dirP, 3.4);
     const polo = new THREE.Vector3(0, -1, 0);
-    brazoIK(opA.brazos[0], opA.hombros[0], base.clone().addScaledVector(dirP, 0.25), polo);
-    brazoIK(opA.brazos[1], opA.hombros[1], base.clone().addScaledVector(dirP, 0.75), polo);
+    // Punto de la barandilla (lado del poste) junto a cada operario
+    const enBarandilla = (op, dx) => { const p = plataforma.localToWorld(new THREE.Vector3(op.x0 + dx, 1.15, -s * 1.05)); return grupo.worldToLocal(p); };
+    const conPertiga = ['tierra', 'trabajo', 'retirada'].includes(f) || (f === 'subida' && u > 0.6);
+    if (conPertiga) {
+      brazoIK(opA.brazos[0], opA.hombros[0], base.clone().addScaledVector(dirP, 0.25), polo);
+      brazoIK(opA.brazos[1], opA.hombros[1], base.clone().addScaledVector(dirP, 0.75), polo);
+    } else {
+      // Mientras el castillete se mueve o la dresina avanza, se agarra a la barandilla con las dos manos
+      brazoIK(opA.brazos[0], opA.hombros[0], enBarandilla(opA, -0.25), polo);
+      brazoIK(opA.brazos[1], opA.hombros[1], enBarandilla(opA, 0.25), polo);
+    }
+    pertiga.visible = gancho.visible = conPertiga;
     // Chispa al tocar el hilo (descarga de la energía residual)
-    if (f === 'tierra' && u > 0.7 && !sit.chispa) { sit.chispa = 0.18; for (let i = 0; i < 4; i++) chispas.emitir(ganchoObj, 12, { tam: 0.03, crece: 0, vida: 0.4, alfa: 1, sube: 1.5, fuerza: 3 }); }
+    if (f === 'tierra' && u > 0.7 && !sit.chispa) { sit.chispa = 0.18; audio.golpe(grupo.localToWorld(ganchoObj.clone()), { tipo: 'chispa', nivel: 1 }); for (let i = 0; i < 4; i++) chispas.emitir(ganchoObj, 12, { tam: 0.03, crece: 0, vida: 0.4, alfa: 1, sube: 1.5, fuerza: 3 }); }
     if (f !== 'tierra') sit.chispa = f === 'trabajo' || f === 'retirada' ? -1 : 0;
     if (sit.chispa > 0) sit.chispa -= dt;
     luzChispa.position.copy(ganchoObj);
@@ -377,11 +412,34 @@ export function crearEnergia({ escena, Eje3D, W, Catenaria, matHilo }) {
     // Operario B: las dos manos a la péndola y al hilo, que se mueve unos milímetros con la llave
     const trabaja = f === 'trabajo';
     const osc = trabaja ? Math.sin(sit.t * 5) * 0.006 : 0;
-    const manoD = trabaja ? pHilo.clone().add(_v.set(0, 0.25, 0)) : null;
-    const manoI = trabaja ? pHilo.clone().add(_v.set(0, -0.02, 0)) : null;
+    // La llave gira en la grapa de la péndola (gestos alternos de las dos manos); la otra mano sujeta el hilo
+    const giro = sit.t * 2.2;
+    const manoD = trabaja ? pHilo.clone().add(new THREE.Vector3(Math.cos(giro) * 0.06, 0.25 + Math.sin(giro) * 0.04, Math.sin(giro) * 0.06)) : null;
+    const manoI = trabaja ? pHilo.clone().add(new THREE.Vector3(0, -0.02 + Math.max(0, Math.sin(giro * 0.5)) * 0.03, 0)) : null;
     const hB = opB.o.getWorldPosition(new THREE.Vector3()); grupo.worldToLocal(hB);
-    brazoIK(opB.brazos[1], opB.hombros[1], manoD || hB.clone().add(_v.set(0.25, 1.05, 0.1)), polo);
-    brazoIK(opB.brazos[0], opB.hombros[0], manoI || hB.clone().add(_v.set(0.25, 1.05, -0.1)), polo);
+    const preparado = f === 'tierra' || f === 'retirada';
+    brazoIK(opB.brazos[1], opB.hombros[1], manoD || (preparado ? hB.clone().add(new THREE.Vector3(0.25, 1.15, 0.12)) : enBarandilla(opB, 0.25)), polo);
+    brazoIK(opB.brazos[0], opB.hombros[0], manoI || (preparado ? hB.clone().add(new THREE.Vector3(0.25, 1.1, -0.12)) : enBarandilla(opB, -0.25)), polo);
+    // Cabezas: miran al hilo cuando trabajan; el cuerpo acompaña el vaivén de la plataforma
+    const mueve = f === 'subida' || f === 'bajada' || f === 'avance';
+    for (const [op, obj] of [[opA, conPertiga ? ganchoObj : null], [opB, trabaja || preparado ? pHilo : null]]) {
+      const cab = op.cabeza.getWorldPosition(new THREE.Vector3()); grupo.worldToLocal(cab);
+      const inc = obj ? Math.atan2(obj.y - cab.y, Math.hypot(obj.x - cab.x, obj.z - cab.z)) : 0;
+      op.cabeza.rotation.z += ((obj ? Math.min(0.9, inc) : 0) - op.cabeza.rotation.z) * Math.min(1, dt * 3);
+      op.o.rotation.x = mueve ? Math.sin(sit.t * 3.1 + op.x0) * 0.025 : 0;
+      op.o.position.y = 0.05 + (mueve ? Math.abs(Math.sin(sit.t * 3.1 + op.x0)) * 0.012 : 0);
+      // Cabo del arnés: de la espalda a la barandilla
+      const pa = op.o.localToWorld(new THREE.Vector3(-0.13, 1.1, 0)); grupo.worldToLocal(pa);
+      const pb = enBarandilla(op, 0);
+      const pm = pa.clone().lerp(pb, 0.5); pm.y -= 0.25;
+      op.cabo.geometry.setFromPoints([pa, pm, pb]);
+    }
+    // Sonidos
+    const pw = raiz.getWorldPosition(new THREE.Vector3());
+    sit.snd.diesel.colocar(pw).set({ rpm: f === 'avance' ? 1150 + sit.v * 120 : mueve ? 1050 : 820, carga: f === 'avance' ? 0.55 : mueve ? 0.45 : 0.22 });
+    sit.snd.hidr.colocar(plataforma.getWorldPosition(new THREE.Vector3())).set({ nivel: f === 'subida' || f === 'bajada' ? 0.85 : 0, tono: f === 'subida' ? 0.3 + 0.5 * u : 0.7 - 0.4 * u });
+    // La catenaria zumba en tensión; tras la puesta a tierra queda descargada y callada
+    sit.snd.zumbido.colocar(grupo.localToWorld(pHilo.clone())).set({ nivel: tierra > 0.9 ? 0 : 1 });
     llave.visible = trabaja;
     if (manoD) llave.position.copy(manoD);
     if (trabaja) empujes.push({ k: kTrab, d: new THREE.Vector3(0, 0.004 + osc, 0) });
