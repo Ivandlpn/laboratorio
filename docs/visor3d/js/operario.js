@@ -72,8 +72,10 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
   pelvisMalla.scale.set(0.82, 0.72, 1.25); pelvisMalla.castShadow = true;
   pelvis.add(pelvisMalla);
   cargarPiezaOp('op_pelvis.glb').then((g) => {
-    const m = g.scene.children[0]?.geometry;
-    if (m) pelvisMalla.geometry = m;
+    const cl = g.scene.clone(true);
+    cl.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.userData = ficha; } });
+    pelvis.remove(pelvisMalla);
+    pelvis.add(cl);
   }).catch(() => {});
 
   // Piernas
@@ -87,25 +89,40 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
     botaMalla.rotation.z = Math.PI / 2; botaMalla.position.set(0.06, -Y_TOBILLO + 0.045, 0); botaMalla.castShadow = true;
     tobillo.add(botaMalla);
     cargarPiezaOp('op_bota.glb').then((g) => {
-      const m = g.scene.children[0]?.geometry;
-      if (m) { botaMalla.geometry = m; botaMalla.rotation.z = 0; botaMalla.position.set(0, 0, 0); }
+      const cl = g.scene.clone(true);
+      cl.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.userData = ficha; } });
+      tobillo.remove(botaMalla);
+      tobillo.add(cl);
     }).catch(() => {});
     return { lado, cadera, rodilla, tobillo };
   });
   // Tronco orgánico con chaleco y bandas reflectantes curvas
   const tronco = new THREE.Group(); tronco.position.y = 0.06; pelvis.add(tronco);
+  const torsoProc = new THREE.Group();
   const torsoMalla = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.155, 0.50, 16), M.chaleco);
   torsoMalla.scale.set(0.72, 1.0, 1.12); torsoMalla.position.y = 0.28; torsoMalla.castShadow = true;
-  tronco.add(torsoMalla);
-  cargarPiezaOp('op_torso.glb').then((g) => {
-    const m = g.scene.children[0]?.geometry;
-    if (m) { torsoMalla.geometry = m; torsoMalla.scale.set(1, 1, 1); torsoMalla.position.y = 0; }
-  }).catch(() => {});
+  torsoProc.add(torsoMalla);
   for (const y of [0.16, 0.36]) {
     const banda = new THREE.Mesh(new THREE.CylinderGeometry(0.182, 0.178, 0.042, 16), M.reflectante);
     banda.scale.set(0.72, 1.0, 1.12); banda.position.y = y;
-    tronco.add(banda);
+    torsoProc.add(banda);
   }
+  tronco.add(torsoProc);
+  cargarPiezaOp('op_torso.glb').then((g) => {
+    const cl = g.scene.clone(true);
+    cl.traverse((n) => {
+      if (n.isMesh) {
+        n.castShadow = true;
+        n.userData = ficha;
+        if (chaleco && n.material?.name === 'Chaleco') {
+          n.material = n.material.clone();
+          n.material.color.set(chaleco);
+        }
+      }
+    });
+    tronco.remove(torsoProc);
+    tronco.add(cl);
+  }).catch(() => {});
   const cuello = new THREE.Group(); cuello.position.y = 0.56; tronco.add(cuello);
   cuello.add(capsula(0.052, 0.06, M.pieles[piel % 4], 0.04));
   const cabeza = new THREE.Group(); cabeza.position.y = 0.11; cuello.add(cabeza);
@@ -137,8 +154,10 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
     manoMalla.scale.set(0.85, 1.25, 0.60); manoMalla.position.y = -0.03; manoMalla.castShadow = true;
     mano.add(manoMalla);
     cargarPiezaOp('op_mano.glb').then((g) => {
-      const m = g.scene.children[0]?.geometry;
-      if (m) { manoMalla.geometry = m; manoMalla.scale.set(1, 1, 1); manoMalla.position.y = 0; }
+      const cl = g.scene.clone(true);
+      cl.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.userData = ficha; } });
+      mano.remove(manoMalla);
+      mano.add(cl);
     }).catch(() => {});
     return { lado, hombro, codo, mano };
   });
