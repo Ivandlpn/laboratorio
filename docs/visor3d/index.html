@@ -2172,33 +2172,40 @@ pintarTrenesReales();
 // aéreo orbitando). Cada plano mueve azimut, elevación, distancia y punto de mira con el tiempo y el paso de uno a otro
 // se suaviza. Arranca así al abrir la web; cualquier toque o rueda sobre la escena lo pasa a manual (botón 🎥 para volver).
 let dronCine = !params.get('vista');
+// Planos de cine: azimut (0 = por delante, π = por detrás), elevación, distancia, punto de mira a lo largo del tren
+// (foco, m por delante del centro) y focal (fov, grados: menos = más zoom). Dentro de cada plano el movimiento arranca
+// y frena con suavidad (curva en S) y el paso de uno a otro se funde como el de una grúa
 const TOMAS_CINE = [
-  { dur: 9, nombre: 'Persecución', az: (u) => Math.PI + (u - 0.5) * 0.6, el: () => 0.3, dist: (u) => 85 - 25 * u, foco: () => 15 },
-  { dur: 10, nombre: 'Barrido hacia el morro', az: (u) => Math.PI * 0.62 - u * 1.25, el: (u) => 0.16 + 0.06 * u, dist: (u) => 52 - 20 * u, foco: (u) => 20 + 40 * u },
-  { dur: 8, nombre: 'Frontal a ras', az: (u) => 0.32 - 0.64 * u, el: () => 0.06, dist: (u) => 75 - 30 * u, foco: () => 62 },
+  { dur: 14, nombre: 'Travelling longitudinal', az: () => Math.PI * 0.5, el: () => 0.1, dist: () => 34, foco: (u) => -70 + 140 * u, fov: () => 42 },
+  { dur: 13, nombre: 'Zoom lento al morro', az: () => 0.42, el: () => 0.11, dist: () => 140, foco: () => 60, fov: (u) => 30 - 21 * u },
+  { dur: 12, nombre: 'Persecución', az: (u) => Math.PI + (u - 0.5) * 0.35, el: () => 0.22, dist: (u) => 90 - 35 * u, foco: () => 15, fov: (u) => 48 - 8 * u },
+  { dur: 12, nombre: 'Barrido hacia el morro', az: (u) => Math.PI * 0.62 - u * 1.2, el: (u) => 0.14 + 0.06 * u, dist: (u) => 55 - 18 * u, foco: (u) => 20 + 40 * u, fov: () => 44 },
   { dur: 30, nombre: 'Dentro del tren', especial: 'interior' },
-  { dur: 10, nombre: 'Grúa que se aleja', az: (u) => -Math.PI * 0.45 - u * 0.9, el: (u) => 0.35 + 0.75 * u, dist: (u) => 38 + 170 * u, foco: () => 0 },
-  { dur: 8, nombre: 'Travelling lateral', az: (u) => Math.PI * 0.5 + 0.12 * Math.sin(u * 3.1), el: () => 0.1, dist: (u) => 26 + 4 * Math.sin(u * 2), foco: (u) => 40 - 30 * u },
-  { dur: 11, nombre: 'Aéreo orbitando', az: (u) => Math.PI * 1.2 + u * 1.1, el: () => 0.48, dist: (u) => 280 - 70 * u, foco: () => 0 },
+  { dur: 14, nombre: 'Travelling longitudinal alto', az: () => -Math.PI * 0.5, el: () => 0.32, dist: () => 70, foco: (u) => 80 - 160 * u, fov: (u) => 38 + 6 * u },
+  { dur: 13, nombre: 'Grúa que se aleja', az: (u) => -Math.PI * 0.45 - u * 0.7, el: (u) => 0.3 + 0.7 * u, dist: (u) => 40 + 160 * u, foco: () => 0, fov: (u) => 40 + 12 * u },
+  { dur: 13, nombre: 'Zoom desde lejos', az: () => -0.5, el: () => 0.05, dist: () => 320, foco: () => 30, fov: (u) => 9 + 9 * u },
+  { dur: 14, nombre: 'Aéreo orbitando', az: (u) => Math.PI * 1.2 + u * 0.8, el: () => 0.48, dist: (u) => 280 - 60 * u, foco: () => 0, fov: () => 46 },
 ];
-const cine = { toma: 0, t: 0, az: null, el: 0, dist: 0, foco: 0 };
+const cine = { toma: 0, t: 0, az: null, el: 0, dist: 0, foco: 0, fov: 45 };
 const _cF = new THREE.Vector3(), _cR = new THREE.Vector3(), _cUp = new THREE.Vector3(0, 1, 0);
+const curvaS = (u) => u * u * (3 - 2 * u);
 function actualizarDronCine(dt) {
   const tm = TOMAS_CINE[cine.toma];
   cine.t += dt;
   if (cine.t > tm.dur) { cine.t = 0; cine.toma = (cine.toma + 1) % TOMAS_CINE.length; }
   const rotulo = `DRON · ${TOMAS_CINE[cine.toma].nombre.toUpperCase()} · ${nombreTrenDron()}`;
   if (elCabModo.textContent !== rotulo) elCabModo.textContent = rotulo;
-  const T = TOMAS_CINE[cine.toma], u = Math.min(1, cine.t / T.dur);
-  if (T.especial === 'interior') { planoInterior(T, u, dt); return; }
+  const T = TOMAS_CINE[cine.toma], u = curvaS(Math.min(1, cine.t / T.dur));
+  if (T.especial === 'interior') { planoInterior(T, Math.min(1, cine.t / T.dur), dt); return; }
   cineInterior = false;
   actualizarFundidoSalida(dt);
-  const obj = { az: T.az(u), el: T.el(u), dist: T.dist(u), foco: T.foco(u) };
+  const obj = { az: T.az(u), el: T.el(u), dist: T.dist(u), foco: T.foco(u), fov: T.fov ? T.fov(u) : 45 };
   if (cine.az === null) Object.assign(cine, obj);
-  // Suavizado tipo grúa: se acerca al plano con una constante de tiempo de ~0,8 s (sin saltos entre planos)
-  const k = 1 - Math.exp(-dt * 1.25);
+  // Suavizado tipo grúa (constante de ~1,6 s): sin saltos entre planos, con arranques y frenadas suaves
+  const k = 1 - Math.exp(-dt * 0.62);
   const dAz = Math.atan2(Math.sin(obj.az - cine.az), Math.cos(obj.az - cine.az));
   cine.az += dAz * k; cine.el += (obj.el - cine.el) * k; cine.dist += (obj.dist - cine.dist) * k; cine.foco += (obj.foco - cine.foco) * k;
+  cine.fov += (obj.fov - cine.fov) * (1 - Math.exp(-dt * 0.9));
   aplicarPoseCine(2.6);
 }
 function aplicarPoseCine(altura) {
@@ -3303,8 +3310,8 @@ function fotograma(ahora) {
     if (int) int.grupo.visible = int.carroceria.getWorldPosition(_pEje).distanceTo(camara.position) < 45;
   }
   const nearObj = esPasajero(vistaActiva) || cineInterior || (vistaActiva === 'dron' && dronCine && TOMAS_CINE[cine.toma].especial) ? 0.03 : 0.2;
-  // Dentro del tren, campo de visión amplio (como el ojo del pasajero)
-  const fovObj = nearObj < 0.1 && (esPasajero(vistaActiva) || cineInterior) ? 72 : 50;
+  // Dentro del tren, campo de visión amplio (como el ojo del pasajero); en el dron de cine, la focal de cada plano (zoom)
+  const fovObj = nearObj < 0.1 && (esPasajero(vistaActiva) || cineInterior) ? 72 : vistaActiva === 'dron' && dronCine ? Math.round(cine.fov * 10) / 10 : 50;
   if (camara.near !== nearObj || camara.fov !== fovObj) { camara.near = nearObj; camara.fov = fovObj; camara.updateProjectionMatrix(); }
   trafico?.actualizar(dt, utmCam);
   laguna.actualizar(dt, utmCam);
