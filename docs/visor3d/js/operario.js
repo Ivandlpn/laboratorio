@@ -10,6 +10,16 @@
 // Ejes locales: X hacia donde mira, Y arriba, Z a su derecha; origen en el suelo entre los pies.
 
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const _gltfOperario = new GLTFLoader();
+const _cachePiezasOp = new Map();
+function cargarPiezaOp(nombre) {
+  if (!_cachePiezasOp.has(nombre)) {
+    _cachePiezasOp.set(nombre, new Promise((res, rej) => _gltfOperario.load(`./modelos/${nombre}`, res, undefined, rej)));
+  }
+  return _cachePiezasOp.get(nombre);
+}
 
 const PIEL = ['#c99a78', '#b07f5f', '#e0b48f', '#8d5f43'];
 const L_MUSLO = 0.44, L_ESPINILLA = 0.43, Y_TOBILLO = 0.08, Y_CADERA = L_MUSLO + L_ESPINILLA + Y_TOBILLO - 0.02;
@@ -58,36 +68,78 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
   const ex = new Set(extras);
   const raiz = new THREE.Group(); raiz.name = nombre;
   const pelvis = new THREE.Group(); pelvis.position.y = Y_CADERA; raiz.add(pelvis);
-  pelvis.add(caja(0.2, 0.16, 0.34, M.pantalon, 0, 0, 0));
+  const pelvisMalla = new THREE.Mesh(new THREE.SphereGeometry(0.145, 16, 12), M.pantalon);
+  pelvisMalla.scale.set(0.82, 0.72, 1.25); pelvisMalla.castShadow = true;
+  pelvis.add(pelvisMalla);
+  cargarPiezaOp('op_pelvis.glb').then((g) => {
+    const m = g.scene.children[0]?.geometry;
+    if (m) pelvisMalla.geometry = m;
+  }).catch(() => {});
+
   // Piernas
   const piernas = [-1, 1].map((lado) => {
     const cadera = new THREE.Group(); cadera.position.set(0, -0.04, lado * 0.1); pelvis.add(cadera);
-    cadera.add(capsula(0.075, L_MUSLO - 0.12, M.pantalon, -L_MUSLO / 2));
+    cadera.add(capsula(0.078, L_MUSLO - 0.12, M.pantalon, -L_MUSLO / 2));
     const rodilla = new THREE.Group(); rodilla.position.y = -L_MUSLO; cadera.add(rodilla);
-    rodilla.add(capsula(0.062, L_ESPINILLA - 0.1, M.pantalon, -L_ESPINILLA / 2));
+    rodilla.add(capsula(0.064, L_ESPINILLA - 0.1, M.pantalon, -L_ESPINILLA / 2));
     const tobillo = new THREE.Group(); tobillo.position.y = -L_ESPINILLA; rodilla.add(tobillo);
-    tobillo.add(caja(0.27, 0.09, 0.11, M.bota, 0.06, -Y_TOBILLO + 0.045, 0));
+    const botaMalla = new THREE.Mesh(new THREE.CapsuleGeometry(0.052, 0.16, 4, 10), M.bota);
+    botaMalla.rotation.z = Math.PI / 2; botaMalla.position.set(0.06, -Y_TOBILLO + 0.045, 0); botaMalla.castShadow = true;
+    tobillo.add(botaMalla);
+    cargarPiezaOp('op_bota.glb').then((g) => {
+      const m = g.scene.children[0]?.geometry;
+      if (m) { botaMalla.geometry = m; botaMalla.rotation.z = 0; botaMalla.position.set(0, 0, 0); }
+    }).catch(() => {});
     return { lado, cadera, rodilla, tobillo };
   });
-  // Tronco con chaleco y bandas reflectantes
+  // Tronco orgánico con chaleco y bandas reflectantes curvas
   const tronco = new THREE.Group(); tronco.position.y = 0.06; pelvis.add(tronco);
-  tronco.add(caja(0.24, 0.52, 0.4, M.chaleco, 0, 0.28, 0));
-  for (const y of [0.16, 0.36]) tronco.add(caja(0.245, 0.045, 0.405, M.reflectante, 0, y, 0));
-  tronco.add(caja(0.02, 0.4, 0.05, M.reflectante, 0.125, 0.27, 0.12), caja(0.02, 0.4, 0.05, M.reflectante, 0.125, 0.27, -0.12));
-  const cuello = new THREE.Group(); cuello.position.y = 0.58; tronco.add(cuello);
-  const cabeza = new THREE.Group(); cabeza.position.y = 0.1; cuello.add(cabeza);
-  const cara = new THREE.Mesh(new THREE.SphereGeometry(0.105, 14, 10), M.pieles[piel % 4]); cara.scale.set(1, 1.15, 0.95); cara.castShadow = true;
+  const torsoMalla = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.155, 0.50, 16), M.chaleco);
+  torsoMalla.scale.set(0.72, 1.0, 1.12); torsoMalla.position.y = 0.28; torsoMalla.castShadow = true;
+  tronco.add(torsoMalla);
+  cargarPiezaOp('op_torso.glb').then((g) => {
+    const m = g.scene.children[0]?.geometry;
+    if (m) { torsoMalla.geometry = m; torsoMalla.scale.set(1, 1, 1); torsoMalla.position.y = 0; }
+  }).catch(() => {});
+  for (const y of [0.16, 0.36]) {
+    const banda = new THREE.Mesh(new THREE.CylinderGeometry(0.182, 0.178, 0.042, 16), M.reflectante);
+    banda.scale.set(0.72, 1.0, 1.12); banda.position.y = y;
+    tronco.add(banda);
+  }
+  const cuello = new THREE.Group(); cuello.position.y = 0.56; tronco.add(cuello);
+  cuello.add(capsula(0.052, 0.06, M.pieles[piel % 4], 0.04));
+  const cabeza = new THREE.Group(); cabeza.position.y = 0.11; cuello.add(cabeza);
+  const cara = new THREE.Mesh(new THREE.SphereGeometry(0.105, 16, 12), M.pieles[piel % 4]); cara.scale.set(1, 1.15, 0.95); cara.castShadow = true;
   cabeza.add(cara);
-  const casco = new THREE.Mesh(new THREE.SphereGeometry(0.125, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), M.casco); casco.position.y = 0.035; casco.castShadow = true;
-  cabeza.add(casco, caja(0.3, 0.012, 0.26, M.casco, 0.04, 0.035, 0), caja(0.252, 0.02, 0.252, M.cinta, 0, 0.06, 0));
+  const cascoGrp = new THREE.Group();
+  const cascoMalla = new THREE.Mesh(new THREE.SphereGeometry(0.122, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), M.casco);
+  cascoMalla.position.y = 0.035; cascoMalla.castShadow = true;
+  const viseraMalla = new THREE.Mesh(new THREE.CylinderGeometry(0.125, 0.128, 0.014, 16, 1, false, -Math.PI * 0.35, Math.PI * 0.70), M.casco);
+  viseraMalla.rotation.y = Math.PI / 2; viseraMalla.position.set(0.04, 0.032, 0);
+  const cintaMalla = new THREE.Mesh(new THREE.CylinderGeometry(0.123, 0.123, 0.02, 16), M.cinta);
+  cintaMalla.position.y = 0.06;
+  cascoGrp.add(cascoMalla, viseraMalla, cintaMalla);
+  cabeza.add(cascoGrp);
+  cargarPiezaOp('op_casco.glb').then((g) => {
+    const cl = g.scene.clone(true);
+    cl.traverse((n) => { if (n.isMesh) { n.material = M.casco; n.castShadow = true; n.userData = ficha; } });
+    cascoGrp.clear();
+    cascoGrp.add(cl, cintaMalla);
+  }).catch(() => {});
   // Brazos
   const brazos = [-1, 1].map((lado) => {
     const hombro = new THREE.Group(); hombro.position.set(0, 0.5, lado * 0.23); tronco.add(hombro);
-    hombro.add(capsula(0.055, 0.2, M.chaleco, -0.15));
+    hombro.add(capsula(0.056, 0.2, M.chaleco, -0.15));
     const codo = new THREE.Group(); codo.position.y = -0.3; hombro.add(codo);
-    codo.add(capsula(0.047, 0.18, M.pantalon, -0.13));
+    codo.add(capsula(0.048, 0.18, M.pantalon, -0.13));
     const mano = new THREE.Group(); mano.position.y = -0.28; codo.add(mano);
-    mano.add(caja(0.08, 0.1, 0.05, M.guante, 0, -0.03, 0));
+    const manoMalla = new THREE.Mesh(new THREE.SphereGeometry(0.044, 10, 8), M.guante);
+    manoMalla.scale.set(0.85, 1.25, 0.60); manoMalla.position.y = -0.03; manoMalla.castShadow = true;
+    mano.add(manoMalla);
+    cargarPiezaOp('op_mano.glb').then((g) => {
+      const m = g.scene.children[0]?.geometry;
+      if (m) { manoMalla.geometry = m; manoMalla.scale.set(1, 1, 1); manoMalla.position.y = 0; }
+    }).catch(() => {});
     return { lado, hombro, codo, mano };
   });
   // Farol en la mano izquierda y emisora en el pecho
