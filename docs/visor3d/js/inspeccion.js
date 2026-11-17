@@ -17,6 +17,7 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { crearAudioObras } from './audio-obras.js';
 import { crearPolvo } from './pbr-maquinas.js';
 
@@ -282,7 +283,65 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     };
     const pI = pierna(-1), pD = pierna(1);
     raiz.traverse((o) => { if (o.isMesh) o.userData = infoAgente; });
-    return { def, raiz, caderas, tronco, cabeza, cuello, bI, bD, pI, pD, tablet, pant, luzTablet, lampara, matChaleco, matBanda };
+
+    let mixerHum = null, actIdle = null, actWalk = null, modeloHum = null, caminandoPrev = null;
+    if (!def.conductor) {
+      cargarGlbInsp('./modelos/humano_ineco.glb').then((gltf) => {
+        modeloHum = SkeletonUtils.clone(gltf.scene);
+        modeloHum.rotation.y = Math.PI / 2;
+        modeloHum.scale.set(1, 1, anch);
+        modeloHum.traverse((n) => {
+          if (n.isMesh) {
+            n.castShadow = true;
+            n.receiveShadow = true;
+            n.frustumCulled = false;
+            n.userData = infoAgente;
+            if (n.material?.name === 'Chaleco') {
+              n.material = n.material.clone();
+              n.material.emissive = matChaleco.emissive;
+            } else if (n.material?.name === 'Banda3M') {
+              n.material = n.material.clone();
+              n.material.emissive = matBanda.emissive;
+            }
+          }
+        });
+        const conservar = new Set([logo]);
+        for (const grp of [tablet, lampara]) {
+          if (grp) grp.traverse((x) => conservar.add(x));
+        }
+        caderas.traverse((n) => {
+          if (n.isMesh && !conservar.has(n)) n.visible = false;
+        });
+        raiz.add(modeloHum);
+
+        if (gltf.animations?.length) {
+          mixerHum = new THREE.AnimationMixer(modeloHum);
+          const clipIdle = gltf.animations.find((c) => c.name === 'Idle') || gltf.animations[0];
+          const clipWalk = gltf.animations.find((c) => c.name === 'Walk') || clipIdle;
+          actIdle = mixerHum.clipAction(clipIdle);
+          actWalk = mixerHum.clipAction(clipWalk);
+          actIdle.play();
+          caminandoPrev = false;
+        }
+      }).catch(() => {});
+    }
+    const actualizarHum = (dt, andando, agachaVal, velAct) => {
+      if (!mixerHum || !modeloHum) return;
+      if (andando !== caminandoPrev) {
+        caminandoPrev = andando;
+        if (andando) {
+          actIdle?.fadeOut(0.2);
+          actWalk?.reset().fadeIn(0.2).play();
+        } else {
+          actWalk?.fadeOut(0.2);
+          actIdle?.reset().fadeIn(0.2).play();
+        }
+      }
+      if (andando && actWalk) actWalk.timeScale = Math.max(0.65, velAct / 0.85);
+      mixerHum.update(dt);
+      modeloHum.position.y = -0.45 * agachaVal;
+    };
+    return { def, raiz, caderas, tronco, cabeza, cuello, bI, bD, pI, pD, tablet, pant, luzTablet, lampara, matChaleco, matBanda, actualizarHum };
   }
 
   // ---- Coche de apoyo (4x4 blanco esculpido en Blender) ----
@@ -532,6 +591,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       const bajando = ag.estado === 'Crouch_Inspect' && ag.juntos && ag.tEst > 0.7;
       ag.tAgacha = bajando ? Math.min(1, (ag.tAgacha || 0) + dt * 1.4) : Math.max(0, (ag.tAgacha || 0) - dt * 1.5);
       const agacha = suave(ag.tAgacha);
+      ag.actualizarHum?.(dt, ag.v > 0.05 && !quieto, agacha, ag.v);
       const fase = (t * ag.vel * 1.7 + ag.mirada);
       const hip = 0.9 - 0.5 * agacha + (ag.v > 0.05 ? Math.abs(Math.sin(fase * Math.PI)) * 0.025 : 0);
       ag.caderas.position.y = hip;

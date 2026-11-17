@@ -11,6 +11,7 @@
 
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 const _gltfOperario = new GLTFLoader();
 const _cachePiezasOp = new Map();
@@ -184,6 +185,48 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
   const ficha = { capa: 'Trabajos de mantenimiento', nombre, info: 'Operario del tajo con chaleco de alta visibilidad, casco, farol y emisora.' };
   raiz.traverse((n) => { if (n.isMesh) n.userData = ficha; });
 
+  // Cargar modelo humano completo de una sola pieza (SkinnedMesh + mocap Idle/Walk) y ocultar el maniquí de cápsulas
+  let mixerHum = null, actIdle = null, actWalk = null, modeloHum = null, caminandoPrev = null;
+  cargarPiezaOp('humano_operario.glb').then((gltf) => {
+    modeloHum = SkeletonUtils.clone(gltf.scene);
+    modeloHum.rotation.y = Math.PI / 2;
+    modeloHum.traverse((n) => {
+      if (n.isMesh) {
+        n.castShadow = true;
+        n.receiveShadow = true;
+        n.frustumCulled = false;
+        n.userData = ficha;
+        if (chaleco && n.material?.name === 'Chaleco') {
+          n.material = n.material.clone();
+          n.material.color.set(chaleco);
+        }
+        if (colorCasco && n.material?.name === 'CascoSeguridad') {
+          n.material = n.material.clone();
+          n.material.color.set(colorCasco);
+        }
+      }
+    });
+    // Ocultar todas las mallas del maniquí de cápsulas conservando visibles farol, tablet y frontal
+    const conservar = new Set();
+    for (const grp of [farolG, tablet, frontal, pantalla]) {
+      if (grp) grp.traverse((x) => conservar.add(x));
+    }
+    pelvis.traverse((n) => {
+      if (n.isMesh && !conservar.has(n)) n.visible = false;
+    });
+    raiz.add(modeloHum);
+
+    if (gltf.animations?.length) {
+      mixerHum = new THREE.AnimationMixer(modeloHum);
+      const clipIdle = gltf.animations.find((c) => c.name === 'Idle') || gltf.animations[0];
+      const clipWalk = gltf.animations.find((c) => c.name === 'Walk') || clipIdle;
+      actIdle = mixerHum.clipAction(clipIdle);
+      actWalk = mixerHum.clipAction(clipWalk);
+      actIdle.play();
+      caminandoPrev = false;
+    }
+  }).catch(() => {});
+
   // ---- Estado y animación ----
   const st = { estado: 'mirar', vel: 0, fase: Math.random() * 10, t: Math.random() * 10, agacha: 0, mirarYaw: 0, pasoPrev: 0 };
   /**
@@ -199,6 +242,21 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
     st.agacha += (objA - st.agacha) * Math.min(1, dt * 3);
     const a = st.agacha;
     const andando = vel > 0.05 && estado === 'andar';
+    if (mixerHum && modeloHum) {
+      if (andando !== caminandoPrev) {
+        caminandoPrev = andando;
+        if (andando) {
+          actIdle?.fadeOut(0.2);
+          actWalk?.reset().fadeIn(0.2).play();
+        } else {
+          actWalk?.fadeOut(0.2);
+          actIdle?.reset().fadeIn(0.2).play();
+        }
+      }
+      if (andando && actWalk) actWalk.timeScale = Math.max(0.65, vel / 1.25);
+      mixerHum.update(dt);
+      modeloHum.position.y = -0.42 * a;
+    }
     if (andando) st.fase += dt * vel / 0.68 * Math.PI;           // medio ciclo por paso de 0,68 m
     const fase = st.fase;
     // Pelvis: baja al agacharse (cuclillas) y oscila al andar
