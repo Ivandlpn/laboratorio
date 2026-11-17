@@ -47,16 +47,6 @@ const INC_ENTORNO = [
 ];
 // Hora de la simulación dentro de la banda nocturna de mantenimiento (empieza a la 01:10)
 const BANDA_INI = 1 * 3600 + 10 * 60, BANDA_FIN = 5 * 3600;
-// Logotipo de Ineco (texto) para la espalda del chaleco y el coche
-function texLogo(color = '#0b4ea2', fondo = null) {
-  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 96;
-  const g = cv.getContext('2d');
-  if (fondo) { g.fillStyle = fondo; g.fillRect(0, 0, 256, 96); }
-  g.fillStyle = color; g.font = 'bold 78px Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText('ineco', 128, 52);
-  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
-  return t;
-}
 const suave = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
 // Acerca un valor a su objetivo con amortiguación (transiciones de postura suaves)
 const acerca = (a, b, dt, rapidez = 5) => a + (b - a) * Math.min(1, dt * rapidez);
@@ -88,8 +78,11 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     for (let i = 0; i < 1600; i++) { const v = 90 + Math.random() * 90; g.fillStyle = `rgb(${v},${v * 0.95},${v * 0.86})`; g.fillRect(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 2.2, 1 + Math.random() * 2.2); }
     const t = new THREE.CanvasTexture(cv); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; return t;
   })();
-  const matLogoChaleco = new THREE.MeshStandardMaterial({ map: texLogo('#0b3f86'), transparent: true, roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2 });
-  const matLogoCoche = new THREE.MeshStandardMaterial({ map: texLogo('#0b4ea2'), transparent: true, roughness: 0.35, polygonOffset: true, polygonOffsetFactor: -2 });
+  // Logotipo oficial de Ineco (comun/texturas/ineco.png, fondo transparente, 4,55:1) en chalecos y coche
+  const texIneco = new THREE.TextureLoader().load('./comun/texturas/ineco.png');
+  texIneco.colorSpace = THREE.SRGBColorSpace; texIneco.anisotropy = 8;
+  const matLogoChaleco = new THREE.MeshStandardMaterial({ map: texIneco, transparent: true, alphaTest: 0.05, roughness: 0.6, polygonOffset: true, polygonOffsetFactor: -2 });
+  const matLogoCoche = new THREE.MeshStandardMaterial({ map: texIneco, transparent: true, alphaTest: 0.05, roughness: 0.35, polygonOffset: true, polygonOffsetFactor: -2 });
   const caja = (sx, sy, sz, m, x = 0, y = 0, z = 0) => { const me = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), m); me.position.set(x, y, z); me.castShadow = true; return me; };
   const cil = (r, h, m, x = 0, y = 0, z = 0, eje = 'y', seg = 12) => {
     const me = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, seg), m); me.position.set(x, y, z);
@@ -136,7 +129,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     // Emisora portátil en el pecho, con su antena
     tronco.add(caja(0.035, 0.11, 0.06, M.emisora, 0.135, 0.42, -0.1 * anch), caja(0.008, 0.07, 0.008, M.emisora, 0.135, 0.51, -0.115 * anch));
     // Logotipo de Ineco en la espalda del chaleco
-    const logo = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.11), matLogoChaleco);
+    const logo = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.07), matLogoChaleco);
     logo.position.set(-0.12, 0.46, 0); logo.rotation.y = -Math.PI / 2;
     tronco.add(logo);
     const cuello = new THREE.Group(); cuello.position.y = 0.55; tronco.add(cuello);
@@ -208,8 +201,8 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     }
     for (const z of [-0.65, 0.65]) { c.add(caja(0.04, 0.12, 0.3, M.faro, 2.36, 0.88, z)); c.add(caja(0.04, 0.16, 0.12, M.piloto, -2.36, 0.95, z * 1.2)); }
     // Logotipo de Ineco en las puertas y en el capó (sin rotativo en el techo)
-    for (const z of [-1, 1]) { const l = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.41), matLogoCoche); l.position.set(-0.15, 0.82, z * 0.935); l.rotation.y = z > 0 ? 0 : Math.PI; c.add(l); }
-    const lc = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.34), matLogoCoche); lc.position.set(1.75, 1.126, 0); lc.rotation.set(-Math.PI / 2, 0, Math.PI / 2); c.add(lc);
+    for (const z of [-1, 1]) { const l = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.25), matLogoCoche); l.position.set(-0.15, 0.82, z * 0.935); l.rotation.y = z > 0 ? 0 : Math.PI; c.add(l); }
+    const lc = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.2), matLogoCoche); lc.position.set(1.75, 1.126, 0); lc.rotation.set(-Math.PI / 2, 0, Math.PI / 2); c.add(lc);
     const faros = [];
     for (const z of [-0.65, 0.65]) {
       const f = new THREE.SpotLight('#fff4dc', 0, 48, 0.4, 0.4, 1.3);
