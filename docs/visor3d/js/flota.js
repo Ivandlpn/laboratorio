@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { crearInterior } from './interior.js';
 
 // Pantalla del portátil del pasajero: captura de visorlav.web.app (no se puede incrustar: su CSP lo impide)
@@ -644,7 +645,6 @@ export function crearFlota({ escena, Eje3D, Catenaria, W, mat, matFoco, matPilot
         }
       }
 
-      // Interior completo en el cuarto coche de los Avril (AVE y Avlo): vista del pasajero y vuelo del dron por dentro
       if (avril && i === 3) {
         const int = crearInterior({ texPantalla: pantallaVisorLav(), texMovil: pantallaMiPk() });
         int.grupo.visible = false;
@@ -668,6 +668,10 @@ export function crearFlota({ escena, Eje3D, Catenaria, W, mat, matFoco, matPilot
       c.userData.panto = pantoCoche;
       c.userData.offsetX = offsetsX[i];
       c.userData.distBogie = dBogie;
+      c.userData.esMotriz = esMotriz;
+      c.userData.esCola = i === nCoches - 1;
+      c.userData.tieneInterior = Boolean(avril && i === 3);
+      c.userData.tipoTren = tipo;
       tren.add(c);
       coches.push(c);
     }
@@ -690,6 +694,52 @@ export function crearFlota({ escena, Eje3D, Catenaria, W, mat, matFoco, matPilot
     { pk: 405000, sentido: 1, velBase: 83.3, velActual: 72.0, viaSigno: -1, paradaTimer: 0, ultimaParada: null, estadoTxt: 'En marcha', modelo: crearModeloTren(8, 'avlo') },
   ];
   for (const tr of flota) grupoFlota.add(tr.modelo.grupo);
+
+  // Cargar modelos suavizados de Blender (.glb) para todos los tipos de trenes
+  const gltfLoader = new GLTFLoader();
+  const cacheGlbTren = new Map();
+  function cargarGlbTren(ruta) {
+    if (!cacheGlbTren.has(ruta)) {
+      cacheGlbTren.set(ruta, new Promise((res, rej) => gltfLoader.load(ruta, res, undefined, rej)));
+    }
+    return cacheGlbTren.get(ruta);
+  }
+  for (const tr of flota) {
+    for (const c of tr.modelo.coches) {
+      if (c.userData.tieneInterior) continue;
+      const tipo = c.userData.tipoTren || 'ave';
+      const tipoGlb = tipo === 'avlo' ? 'ave' : tipo;
+      const ruta = `./modelos/tren_${tipoGlb}_${c.userData.esMotriz ? 'motriz' : 'coche'}.glb`;
+      cargarGlbTren(ruta).then((gltf) => {
+        const carr = c.userData.carroceria;
+        if (!carr) return;
+        const panto = c.userData.panto;
+        const mantener = [];
+        for (const h of carr.children) {
+          if (h === panto || (h.geometry && h.geometry.type === 'BoxGeometry' && h.position.x < -5)) {
+            mantener.push(h);
+          }
+        }
+        carr.clear();
+        for (const h of mantener) carr.add(h);
+        const modeloBl = gltf.scene.clone(true);
+        modeloBl.position.y = -0.78;
+        if (c.userData.esCola) modeloBl.rotation.y = Math.PI;
+        modeloBl.traverse((n) => {
+          if (n.isMesh) {
+            n.castShadow = true;
+            n.receiveShadow = true;
+            n.userData = c.userData;
+            if (tipo === 'avlo' && n.material) {
+              if (n.material.name === 'Cuerpo') { n.material = n.material.clone(); n.material.color.set('#8a2c86'); }
+              else if (n.material.name === 'Franja') { n.material = n.material.clone(); n.material.color.set('#2ec4e8'); }
+            }
+          }
+        });
+        carr.add(modeloBl);
+      }).catch(() => {});
+    }
+  }
 
   function actualizarFlota(dt, pkTerminal, trenSeguido = null) {
     const pkTope = Math.min(Eje3D.pkFin - 200, pkTerminal + 580);
