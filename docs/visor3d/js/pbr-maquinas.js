@@ -6,6 +6,15 @@
 // focos halógenos cuadrados, franjas de peligro y pegatinas.
 
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+let _promesaCabinaGlb = null;
+function cargarCabinaGlb() {
+  if (!_promesaCabinaGlb) {
+    _promesaCabinaGlb = new Promise((res, rej) => new GLTFLoader().load('./modelos/cabina_maquina.glb', res, undefined, rej));
+  }
+  return _promesaCabinaGlb;
+}
 
 const lienzo = (w, h, pintar) => {
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
@@ -270,22 +279,34 @@ export function pegatina(mat, x, y, z, rotY = 0, tam = 0.2) {
 /** Cabina con cristales tintados y rejilla. sentido: +1 si su frente mira a +X. */
 export function cabina(M, { largo = 2.6, alto = 2.3, ancho = 2.9, y0 = 1.35, sentido = 1, tinte = 'verde' } = {}) {
   const c = new THREE.Group();
+  const cuerpoGrp = new THREE.Group();
+  c.add(cuerpoGrp);
   const cr = tinte === 'marron' ? M.cristalMarron : M.cristal;
-  c.add(caja(largo, alto, ancho, M.amarillo, 0, y0 + alto / 2, 0));
-  c.add(caja(largo + 0.1, 0.1, ancho + 0.1, M.amarilloOsc, 0, y0 + alto + 0.05, 0));
+  cuerpoGrp.add(caja(largo, alto, ancho, M.amarillo, 0, y0 + alto / 2, 0));
+  cuerpoGrp.add(caja(largo + 0.1, 0.1, ancho + 0.1, M.amarilloOsc, 0, y0 + alto + 0.05, 0));
   // Frente y laterales acristalados con rejilla delante
   const frente = caja(0.05, alto * 0.42, ancho - 0.5, cr, sentido * (largo / 2 + 0.01), y0 + alto * 0.68, 0);
   const rej = new THREE.Mesh(new THREE.PlaneGeometry(ancho - 0.5, alto * 0.42), M.rejilla);
   rej.position.set(sentido * (largo / 2 + 0.05), y0 + alto * 0.68, 0); rej.rotation.y = sentido * Math.PI / 2;
-  c.add(frente, rej);
+  cuerpoGrp.add(frente, rej);
   for (const z of [-1, 1]) {
-    c.add(caja(largo * 0.55, alto * 0.38, 0.05, cr, -sentido * 0.15, y0 + alto * 0.68, z * (ancho / 2 + 0.01)));
-    c.add(caja(0.6, alto * 0.75, 0.04, M.amarilloOsc, sentido * (largo / 2 - 0.4), y0 + alto * 0.45, z * (ancho / 2 + 0.02)));   // puerta
+    cuerpoGrp.add(caja(largo * 0.55, alto * 0.38, 0.05, cr, -sentido * 0.15, y0 + alto * 0.68, z * (ancho / 2 + 0.01)));
+    cuerpoGrp.add(caja(0.6, alto * 0.75, 0.04, M.amarilloOsc, sentido * (largo / 2 - 0.4), y0 + alto * 0.45, z * (ancho / 2 + 0.02)));   // puerta
     // Faros y piloto
-    c.add(caja(0.05, 0.2, 0.3, M.faroBlanco, sentido * (largo / 2 + 0.02), y0 + 0.35, z * (ancho / 2 - 0.45)));
+    cuerpoGrp.add(caja(0.05, 0.2, 0.3, M.faroBlanco, sentido * (largo / 2 + 0.02), y0 + 0.35, z * (ancho / 2 - 0.45)));
   }
   // Franjas de peligro en las esquinas delanteras
-  for (const z of [-1, 1]) c.add(caja(0.16, alto + 0.8, 0.16, M.franjas, sentido * (largo / 2 + 0.06), y0 + alto / 2 - 0.4, z * (ancho / 2 + 0.02)));
+  for (const z of [-1, 1]) cuerpoGrp.add(caja(0.16, alto + 0.8, 0.16, M.franjas, sentido * (largo / 2 + 0.06), y0 + alto / 2 - 0.4, z * (ancho / 2 + 0.02)));
+
+  cargarCabinaGlb().then((gltf) => {
+    const mBl = gltf.scene.clone(true);
+    mBl.position.set(0, y0, 0);
+    mBl.scale.set(largo / 2.6, alto / 2.3, ancho / 2.9);
+    if (sentido < 0) mBl.rotation.y = Math.PI;
+    mBl.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+    cuerpoGrp.clear();
+    cuerpoGrp.add(mBl);
+  }).catch(() => {});
   // Bocinas y destellos
   c.add(bocina(M, 0, y0 + alto + 0.25, ancho * 0.3, sentido), bocina(M, 0, y0 + alto + 0.25, -ancho * 0.3, sentido));
   const dest = [];
