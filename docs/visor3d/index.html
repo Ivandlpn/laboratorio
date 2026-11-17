@@ -2075,7 +2075,7 @@ function pintarInsp() {
       <span class="tr-l1"><span class="tr-tipo">${escHtml(g.estado.replace('_', ' '))}</span><b>${escHtml(g.nombre)}</b><span class="tr-sent">${g.luz === 'frontal' ? 'frontal' : 'linterna'}</span></span>
       <span class="tr-l3">PK ${fmtPk(g.pk)} · ${escHtml(ESTADOS_INSP[g.estado])} · ${g.anotadas} anotadas</span></div>`).join('')}
     <div class="mant-dato insp-tit"><b>Incidencias registradas · ${inc.length}</b></div>
-    ${inc.slice(0, 8).map((x) => `<div class="tr-l3 insp-inc">${x.foto ? '📷' : '📝'} PK ${fmtPk(x.pk)} · ${escHtml(x.tipo)} · ${escHtml(x.quien)} ${x.hora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>`).join('') || '<p class="tr-vacio">Aún sin incidencias.</p>'}`;
+    ${inc.slice(0, matchMedia('(max-width: 760px)').matches ? 3 : 8).map((x) => `<div class="tr-l3 insp-inc">${x.foto ? '📷' : '📝'} PK ${fmtPk(x.pk)} · ${escHtml(x.tipo)} · ${escHtml(x.quien)} ${x.hora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>`).join('') || '<p class="tr-vacio">Aún sin incidencias.</p>'}`;
 }
 function activarInspeccion(on = !inspeccion.estado.activo) {
   if (on === inspeccion.estado.activo) { if (on) elPanelInsp.hidden = false; return; }
@@ -2087,6 +2087,7 @@ function activarInspeccion(on = !inspeccion.estado.activo) {
     irAPk(SITIO_INSP.pk, 'aerea');
     camInsp = 'cine';
     if (!matchMedia('(max-width: 760px)').matches) elPanelInsp.hidden = false;
+    else elPanelInsp.classList.add('plegado');   // en el móvil, plegado (solo la cabecera)
   } else {
     camInsp = null;
     inspeccion.desmontar();
@@ -2121,6 +2122,7 @@ function activarEnergia(on = !energia.estado.activo) {
     irAPk(SITIO_ENER.pk, 'aerea');
     camEner = 'general';
     if (!matchMedia('(max-width: 760px)').matches) elPanelEner.hidden = false;
+    else elPanelEner.classList.add('plegado');
   } else {
     camEner = null;
     energia.desmontar();
@@ -2149,6 +2151,8 @@ document.getElementById('btnInspTerminar').addEventListener('click', () => activ
 document.getElementById('btnEnerTerminar').addEventListener('click', () => activarEnergia(false));
 document.getElementById('btnInspCerrar').addEventListener('click', () => { if (document.body.classList.contains('m-insp')) hojaMovil('insp')?.click(); else elPanelInsp.hidden = true; });
 document.getElementById('btnEnerCerrar').addEventListener('click', () => { if (document.body.classList.contains('m-ener')) hojaMovil('ener')?.click(); else elPanelEner.hidden = true; });
+// Tocar la cabecera pliega o despliega el panel (en el móvil arranca plegado)
+for (const el of [elPanelInsp, elPanelEner]) el.querySelector('.tr-cab').addEventListener('click', (e) => { if (!e.target.closest('button')) el.classList.toggle('plegado'); });
 elCuerpoInsp.addEventListener('click', (ev) => { const b = ev.target.closest('button[data-cam-insp]'); if (b) { camInsp = b.dataset.camInsp || null; pintarInsp(); } });
 elCuerpoEner.addEventListener('click', (ev) => { const b = ev.target.closest('button[data-cam-ener]'); if (b) { camEner = b.dataset.camEner || null; pintarEner(); } });
 
@@ -3190,9 +3194,9 @@ ajustarDisposicion();
     // En el móvil la hoja se abre plegada (solo la cabecera); se despliega al tocarla
     if (abierta === 'mant') { document.getElementById('panelMant').classList.add('plegado'); pintarMant(); }
     if (abierta === 'insp' && !inspeccion.estado.activo) activarInspeccion(true);
-    if (abierta === 'insp') pintarInsp();
+    if (abierta === 'insp') { document.getElementById('panelInsp').classList.add('plegado'); pintarInsp(); }
     if (abierta === 'ener' && !energia.estado.activo) activarEnergia(true);
-    if (abierta === 'ener') pintarEner();
+    if (abierta === 'ener') { document.getElementById('panelEner').classList.add('plegado'); pintarEner(); }
     if (abierta === 'sold' && !soldadura.estado.activo) activarSoldadura(true);
     if (abierta === 'sold') { document.getElementById('panelSold').classList.add('plegado'); pintarSold(); }
   }

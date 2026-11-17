@@ -1041,6 +1041,13 @@
     }
     body.m-sold #panelSold.plegado > :not(.tr-cab) { display: none !important; }
     body.m-sold #panelSold .tr-cab { cursor: pointer; }
+    body.m-insp #panelInsp.plegado > :not(.tr-cab), body.m-ener #panelEner.plegado > :not(.tr-cab) { display: none !important; }
+    body.m-insp #panelInsp.plegado .tr-cab::after, body.m-ener #panelEner.plegado .tr-cab::after { content: '▴'; color: var(--muted); }
+    body.m-insp #panelInsp .tr-cab, body.m-ener #panelEner .tr-cab { cursor: pointer; }
+    /* Móvil: inspección y energía lo más compactas posible */
+    body.m-insp #panelInsp, body.m-ener #panelEner { max-height: 42vh !important; font-size: 11px; }
+    body.m-insp #panelInsp .tr-item { padding: 4px 6px; }
+    body.m-insp #panelInsp .mant-pie .tr-pie, body.m-ener #panelEner .mant-pie .tr-pie, body.m-ener #panelEner .insp-inc { display: none; }
     body.m-mant #panelMant.plegado > :not(.tr-cab) { display: none !important; }
     body.m-mant #panelMant.plegado .tr-cab::after { content: '▴'; color: var(--muted); }
     body.m-mant #panelMant .tr-cab { cursor: pointer; }

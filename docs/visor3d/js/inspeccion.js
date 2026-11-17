@@ -24,18 +24,29 @@ const Z_TRAV = -0.16;            // cara superior de la traviesa respecto a la c
 const MUSLO = 0.45, TIBIA = 0.44, TOBILLO = 0.07;
 export const ESTADOS_INSP = {
   Walk_Track: 'Caminando por la vía', NoteTaking: 'Anotando en la tablet', Crouch_Inspect: 'Agachado inspeccionando', Photograph: 'Fotografiando',
+  Drive: 'Conduciendo el vehículo de apoyo',
 };
 const INCIDENCIAS = [
   'Clip de sujeción desplazado', 'Falta de balasto en el cajón', 'Soldadura aluminotérmica con rebaba', 'Traviesa con fisura en la cabeza',
   'Placa de asiento deteriorada', 'Desgaste ondulatorio en la cabeza del carril', 'Tirafondo flojo', 'Junta aislante con suciedad',
 ];
-// Tres parejas separadas entre sí; una tablet por pareja (la lleva el primero de cada una)
+// Seis agentes: cuatro inspeccionan cada uno un hilo (carril) de las dos vías, escalonados a lo largo y con su propio
+// ritmo; uno revisa por fuera de la vía el desbroce de cunetas y taludes y las soldaduras; y uno conduce el coche.
+// Solo hay tres tablets. via: +1 vía 1 (izquierda), −1 vía 2; lat: lado del hilo respecto al eje de esa vía.
 const EQUIPO = [
-  { nombre: 'Ana', mujer: true, luz: 'frontal', pareja: 0, tablet: true }, { nombre: 'Edu', mujer: false, luz: 'linterna', pareja: 0 },
-  { nombre: 'Iván', mujer: false, luz: 'linterna', pareja: 1, tablet: true }, { nombre: 'Pepe', mujer: false, luz: 'frontal', pareja: 1 },
-  { nombre: 'Manuel', mujer: false, luz: 'frontal', pareja: 2, tablet: true }, { nombre: 'Raúl', mujer: false, luz: 'linterna', pareja: 2 },
+  { nombre: 'Ana', mujer: true, luz: 'frontal', tablet: true, via: 1, lat: 0.95, desfase: 0, rol: 'vía 1 · hilo izquierdo' },
+  { nombre: 'Edu', mujer: false, luz: 'linterna', via: 1, lat: -0.95, desfase: -23, rol: 'vía 1 · hilo derecho' },
+  { nombre: 'Iván', mujer: false, luz: 'linterna', tablet: true, via: -1, lat: 0.95, desfase: -9, rol: 'vía 2 · hilo izquierdo' },
+  { nombre: 'Pepe', mujer: false, luz: 'frontal', via: -1, lat: -0.95, desfase: -34, rol: 'vía 2 · hilo derecho' },
+  { nombre: 'Manuel', mujer: false, luz: 'frontal', tablet: true, via: 1, lat: 4.3, desfase: -15, suelo: true, rol: 'desbroce y soldaduras' },
+  { nombre: 'Raúl', mujer: false, luz: 'frontal', conductor: true, rol: 'conductor del vehículo de apoyo' },
 ];
-const SEPARACION_PAREJAS = 26;   // m entre parejas
+const INC_ENTORNO = [
+  'Vegetación invadiendo la cuneta', 'Desbroce pendiente en el talud', 'Cuneta obstruida por arrastres', 'Soldadura aluminotérmica con rebaba',
+  'Soldadura con fisura en el patín', 'Malla del vallado rota', 'Arqueta de drenaje colmatada',
+];
+// Hora de la simulación dentro de la banda nocturna de mantenimiento (empieza a la 01:10)
+const BANDA_INI = 1 * 3600 + 10 * 60, BANDA_FIN = 5 * 3600;
 // Logotipo de Ineco (texto) para la espalda del chaleco y el coche
 function texLogo(color = '#0b4ea2', fondo = null) {
   const cv = document.createElement('canvas'); cv.width = 256; cv.height = 96;
@@ -47,6 +58,8 @@ function texLogo(color = '#0b4ea2', fondo = null) {
   return t;
 }
 const suave = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
+// Acerca un valor a su objetivo con amortiguación (transiciones de postura suaves)
+const acerca = (a, b, dt, rapidez = 5) => a + (b - a) * Math.min(1, dt * rapidez);
 
 export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
   const audio = crearAudioObras();
@@ -64,7 +77,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     tablet: std('#101214', 0.4, 0.4), linterna: std('#2b2f33', 0.4, 0.6), guante: std('#2b2b2b', 0.85), emisora: std('#16181b', 0.5, 0.2),
     pantalla: new THREE.MeshBasicMaterial({ color: '#7fd6c8' }),
     lente: new THREE.MeshBasicMaterial({ color: '#eaf2ff' }),
-    blanco: std('#f2f3f1', 0.35, 0.2), cristal: std('#0e1418', 0.1, 0.6), llanta: std('#2a2d30', 0.6, 0.5), neumatico: std('#121314', 0.9),
+    blanco: std('#f2f3f1', 0.35, 0.2), cristal: std('#0e1418', 0.1, 0.6), vidrioCoche: std('#1b2a33', 0.05, 0.4, { transparent: true, opacity: 0.38, depthWrite: false }), asiento: std('#26292d', 0.9), llanta: std('#2a2d30', 0.6, 0.5), neumatico: std('#121314', 0.9),
     faro: new THREE.MeshBasicMaterial({ color: '#fffbe8' }), piloto: new THREE.MeshBasicMaterial({ color: '#ff1e1e' }),
     grava: std('#867e70', 1.0),
   };
@@ -181,9 +194,12 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
   function crearCoche() {
     const c = new THREE.Group();
     c.add(caja(4.7, 0.75, 1.86, M.blanco, 0, 0.75, 0));
-    c.add(caja(2.5, 0.72, 1.76, M.blanco, -0.2, 1.48, 0));
-    c.add(caja(2.3, 0.56, 1.78, M.cristal, -0.2, 1.5, 0));
-    c.add(caja(0.08, 0.45, 1.5, M.cristal, 1.06, 1.5, 0));
+    // Habitáculo: techo, montantes y cristales tintados (se ve al conductor por la ventanilla)
+    c.add(caja(2.5, 0.09, 1.76, M.blanco, -0.2, 1.8, 0), caja(2.5, 0.08, 1.8, M.blanco, -0.2, 1.16, 0));
+    for (const x of [1.0, -0.2, -1.4]) for (const z of [-0.85, 0.85]) c.add(caja(0.09, 0.6, 0.07, M.blanco, x, 1.48, z));
+    const vid = new THREE.Mesh(new THREE.BoxGeometry(2.38, 0.56, 1.72), M.vidrioCoche); vid.position.set(-0.2, 1.48, 0); vid.renderOrder = 2; c.add(vid);
+    for (const z of [-0.42, 0.42]) c.add(caja(0.5, 0.2, 0.48, M.asiento, -0.35, 0.68, z), caja(0.1, 0.75, 0.46, M.asiento, -0.62, 1.1, z));
+    c.add(cil(0.17, 0.03, M.llanta, 0.45, 1.12, -0.42, 'x', 16));   // volante
     c.add(caja(1.4, 0.05, 1.7, M.llanta, -0.2, 1.86, 0));
     const ruedas = [];
     for (const x of [1.45, -1.45]) for (const z of [-0.82, 0.82]) {
@@ -217,17 +233,17 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
   function montar({ pk, s = 1 }) {
     desmontar();
     const m0 = Eje3D.enPk(pk);
-    sit = { pk0: pk, s, ancla: { E: m0.E, N: m0.N, Z: m0.Z }, agentes: [], incidencias: [], t: 0, tPlano: 0, flash: null };
+    sit = { pk0: pk, s, ancla: { E: m0.E, N: m0.N, Z: m0.Z }, agentes: [], incidencias: [], t: 0, tPlano: 0, flash: null, reloj: BANDA_INI };
     grupo.position.copy(W(sit.ancla.E, sit.ancla.N, sit.ancla.Z));
-    // Tres parejas separadas entre sí; en cada pareja uno por el eje y otro por fuera del carril, a un par de metros
+    // Cada inspector por su hilo, escalonados a lo largo (nunca dos juntos en la misma vía) y cada uno con su ritmo
     EQUIPO.forEach((def, i) => {
       const ag = crearAgente(def, i);
-      const lat = [0, 1.0, -1.0, 0, 1.0, -1.0][i];
-      const desfase = -def.pareja * SEPARACION_PAREJAS - (i % 2) * 2.4;
-      ag.desfase = desfase;
+      const lat = def.lat ?? 0;
+      const desfase = def.desfase ?? 0;
+      Object.assign(ag, { desfase, via: def.via ?? s, suelo: Boolean(def.suelo), paso: def.suelo ? 0.7 : ESP });
       const iT = Math.round((pk + desfase) / ESP);
       Object.assign(ag, {
-        lat, pk: iT * ESP + ESP * 0.5, vel: 0.42 + Math.random() * 0.2, estado: 'Walk_Track', tEst: 3 + Math.random() * 6,
+        lat, pk: iT * ESP + ESP * 0.5, vel: 0.33 + Math.random() * 0.3, estado: 'Walk_Track', tEst: 2 + Math.random() * 9,
         pies: [{ pk: iT * ESP, desde: 0, hasta: 0, t: 1 }, { pk: (iT + 1) * ESP, desde: 0, hasta: 0, t: 1 }], vuelo: -1,
         mirada: Math.random() * 10, objetivo: null, anotadas: 0,
       });
@@ -259,6 +275,19 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     sit.coche = crearCoche();
     sit.coche.pk = pk - 8; sit.coche.vel = 0;
     grupo.add(sit.coche.obj);
+    // El conductor, sentado al volante (se le ve por la ventanilla)
+    const cond = sit.agentes.find((g) => g.def.conductor);
+    if (cond) {
+      grupo.remove(cond.raiz);
+      sit.coche.obj.add(cond.raiz);
+      cond.raiz.position.set(-0.3, 0.55, -0.42); cond.raiz.rotation.set(0, 0, 0);
+      cond.caderas.position.set(0, 0.22, 0);
+      for (const pi of [cond.pI, cond.pD]) { pi.cad.rotation.z = Math.PI / 2; pi.rod.rotation.z = -Math.PI / 2; pi.tob.rotation.z = 0; }
+      cond.tronco.rotation.z = 0.12;
+      for (const b of [cond.bI, cond.bD]) { b.hombro.rotation.z = 1.05; b.codo.rotation.z = 0.55; }
+      cond.lampara.visible = false; cond.lampara.userData.luz.intensity = 0;
+      cond.estado = 'Drive';
+    }
     // Flash de la foto (una sola luz que se mueve al agente que dispara)
     sit.flash = new THREE.PointLight('#ffffff', 0, 9, 1.6);
     grupo.add(sit.flash);
@@ -294,9 +323,9 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
   function cambiarEstado(ag) {
     const r = Math.random();
     const prev = ag.estado;
-    if (prev !== 'Walk_Track') { ag.estado = 'Walk_Track'; ag.tEst = 5 + Math.random() * 7; ag.lat = [0, 1.0, -1.0][Math.floor(Math.random() * 3)] * (Math.random() < 0.7 ? 1 : 1); return; }
+    if (prev !== 'Walk_Track') { ag.estado = 'Walk_Track'; ag.tEst = 4 + Math.random() * 10; return; }
     if (!ag.def.tablet) {
-      // Sin tablet: inspecciona agachado y su compañero anota
+      // Sin tablet: inspecciona agachado y comunica la incidencia por la emisora
       if (r < 0.55) { ag.estado = 'Crouch_Inspect'; ag.tEst = 5 + Math.random() * 4; ag.objetivo = { pk: Math.round(ag.pk / ESP + 1) * ESP, rail: Math.sign(ag.lat || (Math.random() - 0.5)) || 1 }; }
       else { ag.estado = 'Walk_Track'; ag.tEst = 4 + Math.random() * 5; }
       return;
@@ -305,9 +334,17 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     else if (r < 0.72) { ag.estado = 'Crouch_Inspect'; ag.tEst = 5 + Math.random() * 4; ag.objetivo = { pk: Math.round(ag.pk / ESP + 1) * ESP, rail: Math.sign(ag.lat || (Math.random() - 0.5)) || 1 }; }
     else { ag.estado = 'Photograph'; ag.tEst = 2.2; ag.flashT = 0.9; }
   }
+  // Hora nocturna de la simulación (01:10 + tiempo transcurrido, sin salir de la banda de 00:00 a 05:00)
+  function horaNocturna() {
+    const seg = Math.min(BANDA_FIN - 60, sit.reloj);
+    const d = new Date(2026, 10, 17, 0, 0, 0);
+    d.setSeconds(Math.floor(seg));
+    return d;
+  }
   function registrar(ag, tipo) {
-    const anota = ag.def.tablet ? null : sit.agentes.find((g) => g.def.pareja === ag.def.pareja && g.def.tablet);
-    sit.incidencias.unshift({ pk: ag.pk, quien: anota ? `${ag.def.nombre} (anota ${anota.def.nombre})` : ag.def.nombre, tipo: INCIDENCIAS[Math.floor(Math.random() * INCIDENCIAS.length)], hora: new Date(), foto: tipo === 'foto' });
+    const lista = ag.suelo ? INC_ENTORNO : INCIDENCIAS;
+    const quien = ag.def.tablet ? ag.def.nombre : `${ag.def.nombre} (por emisora)`;
+    sit.incidencias.unshift({ pk: ag.pk, quien, tipo: `${lista[Math.floor(Math.random() * lista.length)]} · ${ag.suelo ? 'entorno' : ag.def.rol}`, hora: horaNocturna(), foto: tipo === 'foto' });
     sit.incidencias.length = Math.min(sit.incidencias.length, 30);
     ag.anotadas++;
   }
@@ -316,12 +353,15 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     if (!sit) return;
     dt = Math.min(dt, 0.1);
     sit.t += dt;
+    sit.reloj += dt;
     grupo.position.copy(W(sit.ancla.E, sit.ancla.N, sit.ancla.Z));
-    const s = sit.s, t = sit.t;
-    const pkMedio = sit.agentes.reduce((a, g) => a + g.pk, 0) / sit.agentes.length;
-    const desfaseMedio = sit.agentes.reduce((a, g) => a + g.desfase, 0) / sit.agentes.length;
+    const t = sit.t;
+    const andan = sit.agentes.filter((g) => !g.def.conductor);
+    const pkMedio = andan.reduce((a, g) => a + g.pk, 0) / andan.length;
+    const desfaseMedio = andan.reduce((a, g) => a + g.desfase, 0) / andan.length;
     let flashOn = 0;
-    for (const ag of sit.agentes) {
+    for (const ag of andan) {
+      const s = ag.via;
       // ---- Máquina de estados ----
       ag.tEst -= dt;
       if (ag.tEst <= 0) {
@@ -334,22 +374,31 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
         if (ag.flashT <= 0 && ag.flashT > -dt * 1.01) { registrar(ag, 'foto'); }
         if (ag.flashT <= 0 && ag.flashT > -0.12) { flashOn = 1 - (-ag.flashT / 0.12); sit.flash.position.copy(ag.raiz.position).add(_v.set(0, 1.35, 0)); }
       }
-      // Velocidad: andar, andar despacio tecleando, o parado; los rezagados aprietan el paso para no separarse
-      const cohes = Math.max(-0.15, Math.min(0.15, (pkMedio + ag.desfase - desfaseMedio - ag.pk) * 0.03));
-      const vObj = ag.estado === 'Walk_Track' ? ag.vel + cohes : ag.estado === 'NoteTaking' ? ag.vel * 0.55 + cohes : 0;
-      ag.v = (ag.v ?? 0) + (Math.max(0, vObj) - (ag.v ?? 0)) * Math.min(1, dt * 3);
+      // Velocidad: cada uno a su ritmo. Solo si se descuelga mucho del equipo aprieta o afloja el paso, y en la misma vía
+      // nunca alcanza a quien va delante (se mantiene a más de 12 m)
+      const dif = pkMedio + ag.desfase - desfaseMedio - ag.pk;
+      const cohes = Math.abs(dif) > 15 ? Math.max(-0.12, Math.min(0.12, (dif - Math.sign(dif) * 15) * 0.02)) : 0;
+      const delante = andan.filter((g) => g !== ag && g.via === ag.via && !g.suelo && !ag.suelo && g.pk > ag.pk).reduce((m, g) => Math.min(m, g.pk - ag.pk), Infinity);
+      const freno = delante < 12 ? Math.max(0, (delante - 8) / 4) : 1;
+      const vObj = (ag.estado === 'Walk_Track' ? ag.vel + cohes : ag.estado === 'NoteTaking' ? ag.vel * 0.55 + cohes : 0) * freno;
+      const deteniendose = ag.estado === 'Crouch_Inspect' || ag.estado === 'Photograph';
+      const levantandose = !deteniendose && (ag.tAgacha || 0) > 0.15;   // no echa a andar hasta estar de pie
+      const vMeta = deteniendose || levantandose ? 0 : Math.max(0, vObj);
+      ag.v = (ag.v ?? 0) + (vMeta - (ag.v ?? 0)) * Math.min(1, dt * (vMeta < (ag.v ?? 0) ? 5 : 2));
       ag.pk += ag.v * dt;
+      // Parado, la cadera se coloca sobre el punto medio de los pies (sin quedarse por delante de ellos)
+      if (deteniendose && ag.vuelo < 0) ag.pk = acerca(ag.pk, (ag.pies[0].pk + ag.pies[1].pk) / 2 + 0.04, dt, 3);
       ag.latAct = (ag.latAct ?? ag.lat) + (ag.lat - (ag.latAct ?? ag.lat)) * Math.min(1, dt * 0.8);
 
       // ---- Pisadas: el pie de atrás vuela a la traviesa siguiente a la del pie de delante ----
       const pies = ag.pies;
-      const tPaso = ESP / Math.max(0.25, ag.v);
+      const tPaso = ag.paso / Math.max(0.25, ag.v);
       const quieto = ag.estado === 'Crouch_Inspect' || ag.estado === 'Photograph';
       if (ag.vuelo < 0 && ag.v > 0.05 && !quieto) {
         const atras = pies[0].pk <= pies[1].pk ? 0 : 1, del = 1 - atras;
-        if (ag.pk - pies[atras].pk > ESP * 0.75) {
+        if (ag.pk - pies[atras].pk > ag.paso * 0.75) {
           ag.vuelo = atras;
-          pies[atras].desde = pies[atras].pk; pies[atras].hasta = pies[del].pk + ESP; pies[atras].t = 0;
+          pies[atras].desde = pies[atras].pk; pies[atras].hasta = pies[del].pk + ag.paso; pies[atras].t = 0;
         }
       }
       // Para agacharse (o fotografiar) junta los pies en la misma traviesa: así baja con las dos piernas
@@ -372,17 +421,19 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       ag.juntos = ag.vuelo < 0 && pies[0].pk === pies[1].pk;
       // ---- Postura del cuerpo ----
       // Sentadilla con las dos piernas: empieza cuando los pies están juntos en la traviesa
-      ag.tAgacha = ag.estado === 'Crouch_Inspect' && ag.juntos ? Math.min(1, (ag.tAgacha || 0) + dt * 1.4) : Math.max(0, (ag.tAgacha || 0) - dt * 1.6);
-      const agacha = suave(ag.tAgacha) * (ag.estado === 'Crouch_Inspect' ? suave(Math.min(1, ag.tEst * 1.5)) : 1);
+      // Baja con los pies juntos y empieza a levantarse 0,7 s antes de terminar la inspección: una sola variable continua
+      const bajando = ag.estado === 'Crouch_Inspect' && ag.juntos && ag.tEst > 0.7;
+      ag.tAgacha = bajando ? Math.min(1, (ag.tAgacha || 0) + dt * 1.4) : Math.max(0, (ag.tAgacha || 0) - dt * 1.5);
+      const agacha = suave(ag.tAgacha);
       const fase = (t * ag.vel * 1.7 + ag.mirada);
       const hip = 0.9 - 0.5 * agacha + (ag.v > 0.05 ? Math.abs(Math.sin(fase * Math.PI)) * 0.025 : 0);
       ag.caderas.position.y = hip;
       ag.caderas.position.x = -0.2 * agacha;
-      ag.tronco.rotation.z = -0.12 - 0.75 * agacha - (ag.estado === 'NoteTaking' ? 0.1 : 0);
+      ag.tronco.rotation.z = acerca(ag.tronco.rotation.z, -0.12 - 0.75 * agacha - (ag.estado === 'NoteTaking' ? 0.1 : 0) - ag.v * 0.08, dt, 6);
       // Cabeza: mirando abajo y a los lados al andar; hacia la sujeción al agacharse; a la tablet al anotar
       const mirarLado = Math.sin(t * 0.6 + ag.mirada * 3) * 0.55 + Math.sin(t * 1.7 + ag.mirada) * 0.15;
-      ag.cuello.rotation.y = ag.estado === 'Walk_Track' ? mirarLado : ag.estado === 'Crouch_Inspect' ? ag.objetivo.rail * s * -0.4 : 0;
-      ag.cuello.rotation.z = ag.estado === 'Walk_Track' ? -0.45 + Math.sin(t * 0.9 + ag.mirada) * 0.15 : ag.estado === 'NoteTaking' ? -0.7 : ag.estado === 'Crouch_Inspect' ? -0.55 : -0.25;
+      ag.cuello.rotation.y = acerca(ag.cuello.rotation.y, ag.estado === 'Walk_Track' ? mirarLado : ag.estado === 'Crouch_Inspect' ? ag.objetivo.rail * s * -0.4 : 0, dt, 3);
+      ag.cuello.rotation.z = acerca(ag.cuello.rotation.z, ag.estado === 'Walk_Track' ? -0.45 + Math.sin(t * 0.9 + ag.mirada) * 0.15 : ag.estado === 'NoteTaking' ? -0.7 : ag.estado === 'Crouch_Inspect' ? -0.55 : -0.25, dt, 3);
       // Brazos según el estado (rotación z: adelante/atrás; x: separación)
       const bal = Math.sin(fase * Math.PI) * 0.25 * (ag.v > 0.05 ? 1 : 0);
       const ruidoBrazo = Math.sin(t * 2.3 + ag.mirada) * 0.08 + Math.sin(t * 5.1 + ag.mirada * 2) * 0.04;
@@ -392,18 +443,21 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
         Crouch_Inspect: ag.def.luz === 'linterna' ? { iH: 0.55, iC: 0.45, dH: 1.1 + ruidoBrazo * 0.4, dC: 0.25 } : { iH: 0.55, iC: 0.45, dH: 0.6, dC: 0.5 },
         Photograph: { iH: 1.3, iC: 0.55, dH: 1.3, dC: 0.55 },
       }[ag.estado];
-      ag.bI.hombro.rotation.z = pose.iH; ag.bI.codo.rotation.z = pose.iC;
-      ag.bD.hombro.rotation.z = pose.dH; ag.bD.codo.rotation.z = pose.dC;
-      ag.bI.hombro.rotation.x = ag.estado === 'Photograph' ? 0.35 : 0.08;
-      ag.bD.hombro.rotation.x = ag.estado === 'Photograph' ? -0.35 : -0.08;
+      // Los brazos pasan de una postura a otra con suavidad (el balanceo al andar ya va en la propia postura)
+      ag.bI.hombro.rotation.z = acerca(ag.bI.hombro.rotation.z, pose.iH, dt, 7); ag.bI.codo.rotation.z = acerca(ag.bI.codo.rotation.z, pose.iC, dt, 7);
+      ag.bD.hombro.rotation.z = acerca(ag.bD.hombro.rotation.z, pose.dH, dt, 7); ag.bD.codo.rotation.z = acerca(ag.bD.codo.rotation.z, pose.dC, dt, 7);
+      ag.bI.hombro.rotation.x = acerca(ag.bI.hombro.rotation.x, ag.estado === 'Photograph' ? 0.35 : 0.08, dt, 5);
+      ag.bD.hombro.rotation.x = acerca(ag.bD.hombro.rotation.x, ag.estado === 'Photograph' ? -0.35 : -0.08, dt, 5);
       // Tablet: mirando a la cara al anotar, hacia la vía al fotografiar
-      ag.tablet.rotation.z = ag.estado === 'Photograph' ? -1.2 : ag.estado === 'NoteTaking' ? 1.1 : 0.2;
+      ag.tablet.rotation.z = acerca(ag.tablet.rotation.z, ag.estado === 'Photograph' ? -1.2 : ag.estado === 'NoteTaking' ? 1.1 : 0.2, dt, 5);
       ag.pant.material = M.pantalla;
       ag.luzTablet.intensity = ag.estado === 'NoteTaking' || ag.estado === 'Photograph' ? 0.5 : 0.15;
 
       // ---- Raíz sobre la traviesa (cara superior) y orientación según la vía ----
+      // Sobre la traviesa o, el que revisa el entorno, sobre el terreno del paseo
+      const cota = (p) => { if (!ag.suelo) return cotaTrav(p); const q = enVia(p, s, ag.latAct); return cotaTerrenoUTM(q.E, q.N); };
       const pR = enVia(ag.pk, s, ag.latAct);
-      pR.Z = cotaTrav(ag.pk);
+      pR.Z = cota(ag.pk);
       ag.raiz.position.copy(aLocal(pR));
       ag.raiz.rotation.y = Math.atan2(pR.m.ty, pR.m.tx);
       // ---- IK de las piernas: el tobillo a la cara de la traviesa (con arco en el vuelo) ----
@@ -412,7 +466,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
         if (pie.t < 1 && ag.vuelo >= 0 && pies[ag.vuelo] === pie) { const u = suave(pie.t); pkF = pie.desde + (pie.hasta - pie.desde) * u; alto = Math.sin(Math.PI * pie.t) * 0.11; }
         // Al agacharse las caderas retroceden; los pies siguen plantados en su traviesa
         const dx = pkF - ag.pk - ag.caderas.position.x;
-        const dy = (cotaTrav(pkF) - cotaTrav(ag.pk)) + TOBILLO + alto - hip;
+        const dy = (cota(pkF) - cota(ag.pk)) + TOBILLO + alto - hip;
         const [aC, aR] = ik2(dx, dy);
         pi.cad.rotation.z = aC; pi.rod.rotation.z = aR;
         pi.tob.rotation.z = -(aC + aR);   // pie plano sobre la traviesa
@@ -420,7 +474,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       // ---- Luz: hacia delante y abajo; al agacharse, a la sujeción ----
       const lp = ag.lampara;
       // Linterna: el haz sigue al antebrazo (−90°) algo hacia abajo, con el balanceo del brazo al andar
-      if (ag.def.luz === 'linterna') lp.rotation.z = -Math.PI / 2 + (ag.estado === 'Crouch_Inspect' ? -0.9 : -0.35 + ruidoBrazo * 2);
+      if (ag.def.luz === 'linterna') lp.rotation.z = acerca(lp.rotation.z, -Math.PI / 2 + (ag.estado === 'Crouch_Inspect' ? -0.9 : -0.35 + ruidoBrazo * 2), dt, 4);
       lp.rotation.y = ag.def.luz === 'linterna' ? Math.sin(t * 1.3 + ag.mirada) * 0.25 : 0;
       lp.userData.luz.intensity = noche ? (ag.def.luz === 'frontal' ? 26 : 34) : 0;
       lp.userData.haz.visible = noche;
@@ -428,7 +482,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     }
     sit.flash.intensity = noche ? flashOn * 260 : flashOn * 60;
     // Vaho al respirar (cada 3-4 s) y viento con ráfagas
-    for (const ag of sit.agentes) {
+    for (const ag of andan) {
       ag.tVaho = (ag.tVaho ?? Math.random() * 3) - dt;
       if (ag.tVaho <= 0 && noche) {
         ag.tVaho = 3 + Math.random() * 1.5;
@@ -444,7 +498,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     const fuentes = [];
     for (const ag of sit.agentes) {
       const L = ag.lampara.userData;
-      if (!noche) continue;
+      if (!noche || ag.def.conductor) continue;
       L.luz.getWorldPosition(_v); L.objetivo.getWorldPosition(_w);
       fuentes.push({ p: _v.clone(), dir: _w.clone().sub(_v).normalize(), cos: Math.cos(L.angulo * 1.15), alcance: L.alcance * 0.8, k: 1, de: ag });
     }
@@ -495,8 +549,8 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       }
     }
     const u = sit.tPlano / DUR[estado.plano], s = sit.s;
-    // El dron sigue a la pareja de cabeza (las tres van separadas)
-    const pkMedio = (sit.agentes[0].pk + sit.agentes[1].pk) / 2;
+    // El dron sigue a la cabeza del equipo (Ana, vía 1)
+    const pkMedio = sit.agentes[0].pk;
     const centro = aLocal({ ...enVia(pkMedio, s), Z: cotaTrav(pkMedio) + 0.9 });
     let pos, obj;
     if (estado.plano === 'A') {
@@ -519,7 +573,7 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     return { pos: pos.add(grupo.position), obj: obj.clone().add(grupo.position) };
   }
 
-  const lista = () => (sit ? sit.agentes.map((g) => ({ nombre: g.def.nombre, luz: g.def.luz, estado: g.estado, pk: g.pk, anotadas: g.anotadas })) : []);
+  const lista = () => (sit ? sit.agentes.map((g) => ({ nombre: `${g.def.nombre} · ${g.def.rol}`, luz: g.def.conductor ? 'coche' : g.def.luz, estado: g.estado, pk: g.def.conductor ? sit.coche.pk : g.pk, anotadas: g.anotadas })) : []);
   return {
     grupo, estado, montar, desmontar, actualizar, poseDron, lista,
     get incidencias() { return sit?.incidencias || []; }, get sitio() { return sit; },
