@@ -230,5 +230,11 @@ export function crearAudioObras() {
     /** Fuerza del viento de ambiente (0 = sin viento, 1 = fuerte). */
     viento(f) { fuerzaViento = f; },
   };
+  document.addEventListener('visibilitychange', () => {
+    if (!ctx) return;
+    if (document.hidden && ctx.state === 'running') ctx.suspend();
+    else if (!document.hidden && activo && !silencio && ctx.state === 'suspended') ctx.resume();
+  });
+
   return instancia;
 }

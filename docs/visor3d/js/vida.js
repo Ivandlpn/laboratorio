@@ -393,13 +393,27 @@ export function crearVidaEscena({ escena, Eje3D, W, cotaTerrenoUTM, caminosPorKm
   grupo.add(grupoCoches);
 
   gltfLoader.load('./modelos/vehiculo_servicio.glb', (gltf) => {
+    const udVeh = {
+      capa: 'Mantenimiento ferroviario',
+      nombre: 'Vehículo de servicio Adif',
+      info: 'Vehículo todo terreno de mantenimiento e inspección circulando por los caminos de servicio paralelos a la plataforma.',
+    };
     for (const c of coches) {
       const modeloBl = gltf.scene.clone(true);
-      modeloBl.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+      modeloBl.traverse((n) => {
+        if (n.isMesh) {
+          n.castShadow = true;
+          n.receiveShadow = true;
+          n.userData = udVeh;
+        }
+      });
+      const balizaGlb = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.09, 0.84), matBalizaAmbar);
+      balizaGlb.position.set(-0.22, 1.86, 0);
+      balizaGlb.userData = udVeh;
       c.mesh.clear();
-      c.mesh.add(modeloBl);
+      c.mesh.add(modeloBl, balizaGlb);
       c.mesh.userData.ruedas = null;
-      c.mesh.userData.baliza = null;
+      c.mesh.userData.baliza = balizaGlb;
     }
   }, undefined, () => {});
 

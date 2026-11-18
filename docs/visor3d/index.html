@@ -41,6 +41,7 @@
 </head>
 <body class="cargando-visor">
 <div id="lienzo"></div>
+<div id="anunciosSr" class="sr-only" aria-live="polite"></div>
 <!-- Pantalla de carga: viaje por un túnel que acelera con la carga real y sale a la luz al terminar.
      Solo transformaciones 2D de escala desde el punto de fuga (perspectiva 1/z en los fotogramas clave): las mueve la
      gráfica aunque el hilo principal esté ocupado y no crea capas 3D gigantes, que en móvil parpadeaban. -->
@@ -837,13 +838,17 @@ function aplicarTema() {
   const btnISol = document.getElementById('btnIslaSol');
   if (btnISol) {
     const ico = { amanecer: '🌅 Amanecer', dia: '☀️ Día', atardecer: '🌇 Tarde', noche: '🌙 Noche' };
-    btnISol.textContent = ico[horaSol] || '☀️ Día';
+    const tSol = ico[horaSol] || '☀️ Día';
+    btnISol.textContent = tSol;
+    btnISol.setAttribute('aria-label', `Iluminación solar: ${tSol.replace(/^\S+\s*/, '')}`);
   }
   const btnIClima = document.getElementById('btnIslaClima');
   if (btnIClima) {
     const icoC = { despejado: '🌤 Despejado', bruma: '🌫 Calima', nublado: '☁️ Nublado', lluvia: '🌧 Lluvia', nieve: '❄️ Nieve', tormenta: '⛈️ Tormenta' };
     const tTxt = (modoVivo && meteoViva?.temp != null) ? ` ${Math.round(meteoViva.temp)}°C` : '';
-    btnIClima.textContent = (icoC[climaActual] || '🌤 Despejado') + tTxt;
+    const tCl = (icoC[climaActual] || '🌤 Despejado') + tTxt;
+    btnIClima.textContent = tCl;
+    btnIClima.setAttribute('aria-label', `Atmósfera: ${tCl.replace(/^\S+\s*/, '')}`);
   }
   const elLimpia = document.getElementById('limpiaCabina');
   if (elLimpia) elLimpia.classList.toggle('activo', climaActual === 'lluvia' || climaActual === 'nieve' || climaActual === 'tormenta');
@@ -1299,7 +1304,7 @@ let lastJuntaIdx = -1;
 function actualizarVisibilidadMarcoCab() {
   elMarcoCab.hidden = !(vistaActiva === 'cabina' && marcoCabActivo && !document.body.classList.contains('limpio'));
   if (elDmiVel && typeof velCabinaKmh === 'number') {
-    elDmiVel.textContent = String(Math.round(velCabinaKmh * multVel));
+    elDmiVel.textContent = String(Math.round(velCabinaKmh));
   }
 }
 
@@ -1390,7 +1395,17 @@ function setModoVista(id) {
   if (bCine) bCine.hidden = id !== 'dron';
   const bRe = document.getElementById('btnReanudarCine');
   if (bRe) bRe.hidden = id !== 'dron' || dronCine;
+  for (const idCabOnly of ['btnFaros', 'btnBocina', 'btnMarcoCab']) {
+    const b = document.getElementById(idCabOnly);
+    if (b) b.hidden = id !== 'cabina';
+  }
   controles.enabled = !esPasajero(id);
+  render.domElement.style.cursor = esPasajero(id) ? 'grab' : (controles.enabled ? 'grab' : '');
+  const sr = document.getElementById('anunciosSr');
+  if (sr) {
+    const vNom = VISTAS.find((v) => v.id === id)?.nombre || id;
+    sr.textContent = `Vista cambiada a ${vNom}`;
+  }
   if (!enRecorrido) {
     faroCabina.intensity = 0;
     efectoCabina.reiniciar(camara);
@@ -2303,8 +2318,12 @@ function camaraPasajero(yaw = mirarPasajero.yaw, pitch = mirarPasajero.pitch, la
   camara.lookAt(controles.target);
   return true;
 }
-render.domElement.addEventListener('pointerdown', (e) => { if (esPasajero(vistaActiva)) mirarPasajero.arrastre = [e.clientX, e.clientY]; });
-addEventListener('pointerup', () => { mirarPasajero.arrastre = null; });
+  render.domElement.addEventListener('pointerdown', (e) => { if (esPasajero(vistaActiva)) { mirarPasajero.arrastre = [e.clientX, e.clientY]; render.domElement.style.cursor = 'grabbing'; } });
+  addEventListener('pointerup', () => { mirarPasajero.arrastre = null; if (esPasajero(vistaActiva)) render.domElement.style.cursor = 'grab'; });
+  render.domElement.addEventListener('wheel', (e) => {
+    if (!esPasajero(vistaActiva)) return;
+    fovPasajero = Math.max(40, Math.min(76, fovPasajero + (e.deltaY > 0 ? 2 : -2)));
+  }, { passive: true });
 render.domElement.addEventListener('pointermove', (e) => {
   if (!esPasajero(vistaActiva) || !mirarPasajero.arrastre) return;
   const [x0, y0] = mirarPasajero.arrastre;
@@ -2479,7 +2498,7 @@ function setMultVel(v) {
   for (const x of document.querySelectorAll('#cab button[data-vel]')) {
     x.setAttribute('aria-pressed', String(Number(x.dataset.vel) === multVel));
   }
-  if (elCabVelMult) elCabVelMult.textContent = `${multVel}× · ${Math.round(velCabinaKmh * multVel)} km/h`;
+  if (elCabVelMult) elCabVelMult.textContent = `${multVel}× · ${Math.round(velCabinaKmh)} km/h`;
   actualizarVisibilidadMarcoCab();
 }
 document.getElementById('btnVelMenos')?.addEventListener('click', () => {
@@ -2657,6 +2676,7 @@ document.getElementById('btnBrujula')?.addEventListener('click', () => {
   });
 });
   let fovBaseUsuario = 50;
+  let fovPasajero = 68;
   for (const b of document.querySelectorAll('#ctrlFov button')) {
     b.addEventListener('click', () => {
       fovBaseUsuario = Number(b.dataset.fov) || 50;
@@ -2731,9 +2751,19 @@ btnMinimapa?.addEventListener('click', () => alternarMinimapa());
 
 function actualizarDmiEtcs(velKmh, vLimKmh, distNextObj) {
   const vClamp = Math.max(0, Math.min(400, velKmh));
+  const vLimClamp = Math.max(20, Math.min(400, vLimKmh));
   const rotDeg = -135 + (vClamp / 400) * 270;
+  const rotLimDeg = -135 + (vLimClamp / 400) * 270;
   if (elDmiAguja) {
     elDmiAguja.setAttribute('transform', `rotate(${rotDeg.toFixed(1)}, 70, 70)`);
+  }
+  const elArcoVmax = document.getElementById('dmiArcoVmax');
+  if (elArcoVmax) {
+    const radL = rotLimDeg * (Math.PI / 180);
+    const xL = (70 + 58 * Math.sin(radL)).toFixed(1);
+    const yL = (70 - 58 * Math.cos(radL)).toFixed(1);
+    const largeL = (vLimClamp / 400) * 270 > 180 ? 1 : 0;
+    elArcoVmax.setAttribute('d', `M 29.0 111.0 A 58 58 0 ${largeL} 1 ${xL} ${yL}`);
   }
   if (elDmiArcoVel) {
     if (vClamp <= 2) {
@@ -2743,7 +2773,8 @@ function actualizarDmiEtcs(velKmh, vLimKmh, distNextObj) {
       const x = (70 + 58 * Math.sin(rad)).toFixed(1);
       const y = (70 - 58 * Math.cos(rad)).toFixed(1);
       const largeArc = (vClamp / 400) * 270 > 180 ? 1 : 0;
-      elDmiArcoVel.setAttribute('d', `M 28.9 111.0 A 58 58 0 ${largeArc} 1 ${x} ${y}`);
+      elDmiArcoVel.setAttribute('d', `M 29.0 111.0 A 58 58 0 ${largeArc} 1 ${x} ${y}`);
+      elDmiArcoVel.style.stroke = velKmh > vLimKmh + 8 ? '#ef4444' : (velKmh > vLimKmh + 2 ? '#f59e0b' : '#facc15');
     }
   }
   if (elDmiVolt) {
@@ -2869,6 +2900,14 @@ function actualizarMinimapaOrbital(pkCentro, pendActual) {
   ctxMinimapa.closePath();
   ctxMinimapa.fill();
 
+  const nx = cx + Math.sin(-ang) * 76;
+  const ny = cy - Math.cos(-ang) * 76;
+  ctxMinimapa.fillStyle = '#ef4444';
+  ctxMinimapa.font = 'bold 10px monospace';
+  ctxMinimapa.textAlign = 'center';
+  ctxMinimapa.textBaseline = 'middle';
+  ctxMinimapa.fillText('N', nx, ny);
+
   if (elMinimapaPendTxt) {
     elMinimapaPendTxt.textContent = (pendActual >= 0 ? '+' : '') + pendActual.toFixed(1) + ' ‰';
   }
@@ -2978,7 +3017,16 @@ function mostrarFicha(capa, nombre, info, filas = [], coord = null) {
     document.getElementById('lnkMapa').href = `https://www.google.com/maps?q=${coord.lat.toFixed(6)},${coord.lon.toFixed(6)}`;
     document.getElementById('lnkGeoLibre').href = urlGeoLibre({ pk: coord.pk, lat: coord.lat, lon: coord.lon, pkIni: Eje3D.pkIni, pkFin: Eje3D.pkFin });
   }
-  document.getElementById('ficha').hidden = false;
+  const fichaEl = document.getElementById('ficha');
+  fichaEl.hidden = false;
+  if (panel.classList.contains('cerrado')) {
+    panel.classList.remove('cerrado');
+    btnAbrir?.setAttribute('aria-expanded', 'true');
+  }
+  if (panel.classList.contains('ventana-plegada')) {
+    panel.classList.remove('ventana-plegada');
+  }
+  fichaEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 document.getElementById('btnCopiarCoord').addEventListener('click', async (ev) => {
   if (!coordFicha) return;
@@ -3008,7 +3056,7 @@ const audioObras = crearAudioObras();
   btnDock?.addEventListener('click', (e) => { e.stopPropagation(); abrirMenu(menu.hidden, btnDock); });
   // En el móvil cada modo abre su hoja inferior (que lo arranca); en el escritorio actúa el propio botón
   const chkSonido = document.getElementById('chkSonidoObras');
-  chkSonido.addEventListener('change', () => { audioObras.alternarSilencio(!chkSonido.checked); if (chkSonido.checked) audioObras.activar(items.some((b) => b.getAttribute('aria-pressed') === 'true')); });
+  chkSonido.addEventListener('change', () => { audioObras.alternarSilencio(!chkSonido.checked); if (chkSonido.checked) audioObras.activar(items.some((b) => b.getAttribute('aria-checked') === 'true')); });
   menu.addEventListener('click', (e) => {
     const it = e.target.closest('button');
     if (!it) return;
@@ -3445,7 +3493,7 @@ function fotograma(ahora) {
   }
   const nearObj = esPasajero(vistaActiva) || cineInterior || (vistaActiva === 'dron' && dronCine && TOMAS_CINE[cine.toma].especial) ? 0.03 : 0.2;
   // Dentro del tren, campo de visión amplio (como el ojo del pasajero); en el dron de cine, la focal de cada plano (zoom)
-  const fovObj = nearObj < 0.1 && (esPasajero(vistaActiva) || cineInterior) ? 72 : vistaActiva === 'dron' && dronCine ? Math.round(cine.fov * 10) / 10 : fovBaseUsuario;
+  const fovObj = nearObj < 0.1 && cineInterior ? 72 : esPasajero(vistaActiva) ? fovPasajero : vistaActiva === 'dron' && dronCine ? Math.round(cine.fov * 10) / 10 : fovBaseUsuario;
   if (camara.near !== nearObj || camara.fov !== fovObj) { camara.near = nearObj; camara.fov = fovObj; camara.updateProjectionMatrix(); }
   trafico?.actualizar(dt, utmCam);
   laguna.actualizar(dt, utmCam);
@@ -3453,36 +3501,42 @@ function fotograma(ahora) {
 
   let pkObservado = pkRecorrido;
   if (enRuta(vistaActiva)) {
+    const trRealSeguido = (vistaActiva === 'dron' || esPasajero(vistaActiva)) && flota[idxTrenDron]?.real ? flota[idxTrenDron] : null;
     const vLimKmh = Eje3D.velocidadLimite(pkRecorrido);
     const pPend = Eje3D.enPk(pkRecorrido).pend * sentidoRecorrido;
-    const vObjKmh = Math.max(30, Math.min(300, vLimKmh - Math.max(0, pPend) * 0.35));
-    velCabinaKmh += (vObjKmh - velCabinaKmh) * Math.min(1, dt * 1.4);
+    const pkFinRec = Math.min(Eje3D.pkFin - 80, PK_TERMINAL + 620);
+    const pkIniRec = Eje3D.pkIni + 80;
+    const dTope = sentidoRecorrido > 0 ? Math.max(0, pkFinRec - pkRecorrido) : Math.max(0, pkRecorrido - pkIniRec);
+    const vCurvaTopeKmh = dTope < 1800 ? Math.max(25, Math.sqrt(2 * 0.55 * dTope) * 3.6) : 300;
+    const vObjKmh = Math.max(25, Math.min(300, vLimKmh - Math.max(0, pPend) * 0.35, vCurvaTopeKmh));
+    if (trRealSeguido) {
+      velCabinaKmh = trRealSeguido.velActual * 3.6;
+    } else {
+      velCabinaKmh += (vObjKmh - velCabinaKmh) * Math.min(1, dt * 1.4);
+    }
     const velBase = velCabinaKmh / 3.6;
     if (elDmiVmax) elDmiVmax.textContent = String(vLimKmh);
-    const vEfectiva = Math.round(velCabinaKmh * multVel);
-    if (elDmiVel && vistaActiva === 'cabina') elDmiVel.textContent = String(vEfectiva);
-    if (elCabVelMult) elCabVelMult.textContent = `${multVel}× · ${vEfectiva} km/h`;
+    const vFisica = Math.round(velCabinaKmh);
+    if (elDmiVel && vistaActiva === 'cabina') elDmiVel.textContent = String(vFisica);
+    if (elCabVelMult) elCabVelMult.textContent = trRealSeguido ? `En directo · ${vFisica} km/h` : `${multVel}× · ${vFisica} km/h`;
     if (elVignetteVel) {
       const enCab = vistaActiva === 'cabina' && !recorridoPausado;
-      const opac = enCab && vEfectiva > 210 ? Math.min(0.85, (vEfectiva - 210) / 140) : 0;
+      const opac = enCab && vFisica > 210 ? Math.min(0.85, (vFisica - 210) / 140) : 0;
       elVignetteVel.style.opacity = opac.toFixed(2);
     }
     if (vistaActiva === 'cabina') {
       const proxObj = Eje3D.proximoHito(pkRecorrido, sentidoRecorrido);
-      actualizarDmiEtcs(vEfectiva, vLimKmh, proxObj?.d);
+      actualizarDmiEtcs(vFisica, vLimKmh, proxObj?.d);
     }
-    const trRealSeguido = (vistaActiva === 'dron' || esPasajero(vistaActiva)) && flota[idxTrenDron]?.real ? flota[idxTrenDron] : null;
     if (trRealSeguido) {
       // Tren real de Renfe: el recorrido va donde está el tren (su posición la estima tiempo-real.js)
       pkRecorrido = trRealSeguido.pk;
       if (sentidoRecorrido !== trRealSeguido.sentido) { sentidoRecorrido = trRealSeguido.sentido; refrescarTextoSentido(); }
-      if (elCabVelMult) elCabVelMult.textContent = `En directo · ${Math.round(trRealSeguido.velActual * 3.6)} km/h`;
     } else if (!params.has('quieto') && !recorridoPausado) {
       pkRecorrido += sentidoRecorrido * velBase * multVel * dt;
       // La cabina y el dron llegan hasta los andenes (topes de las vías de alta velocidad en PK 485+977)
-      const pkFinRec = Math.min(Eje3D.pkFin - 80, PK_TERMINAL + 620);
-      if (pkRecorrido > pkFinRec) { pkRecorrido = pkFinRec; sentidoRecorrido = -1; refrescarTextoSentido(); }
-      if (pkRecorrido < Eje3D.pkIni + 80) { pkRecorrido = Eje3D.pkIni + 80; sentidoRecorrido = 1; refrescarTextoSentido(); }
+      if (pkRecorrido > pkFinRec) { pkRecorrido = pkFinRec; sentidoRecorrido = -1; velCabinaKmh = 20; refrescarTextoSentido(); }
+      if (pkRecorrido < pkIniRec) { pkRecorrido = pkIniRec; sentidoRecorrido = 1; velCabinaKmh = 20; refrescarTextoSentido(); }
     }
     if ((vistaActiva === 'dron' || esPasajero(vistaActiva)) && flota[idxTrenDron] && !flota[idxTrenDron].real) {
       const trenDron = flota[idxTrenDron];
@@ -3642,7 +3696,7 @@ function fotograma(ahora) {
       audioAmbiental.actualizar({
         alturaSobreSuelo: Number.isFinite(zSueloCam) ? Math.max(0, camU.Z - zSueloCam) : 30,
         distEje: qCam.d,
-        velocidadKmh: (enRuta(vistaActiva)) ? Math.round(velCabinaKmh * multVel) : 0,
+        velocidadKmh: (enRuta(vistaActiva) && !recorridoPausado) ? Math.round(velCabinaKmh) : 0,
         enCabina: vistaActiva === 'cabina' && !recorridoPausado,
         enTunel: Boolean(pObs.enTunel),
       });

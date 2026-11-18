@@ -119,9 +119,9 @@ export function crearAudioAmbiental() {
     windGain.gain.setTargetAtTime(windG, t, 0.22);
     windFilter.frequency.setTargetAtTime(windF, t, 0.22);
 
-    // Rodadura: audible en cabina o cuando la cámara se acerca a menos de 65 m de la vía
+    // Rodadura: audible en cabina o cuando la cámara se acerca a menos de 65 m de la vía (silenciada si el tren está detenido)
     const proxVia = Math.max(0, 1 - distEje / 65);
-    const railG = enCabina ? (0.09 + kVel * 0.38) : proxVia * 0.24;
+    const railG = velocidadKmh < 2 ? 0 : (enCabina ? (0.09 + kVel * 0.38) : proxVia * 0.24);
     const railF = enTunel ? 150 : (enCabina ? 250 + kVel * 210 : 190);
     railGain.gain.setTargetAtTime(railG, t, 0.18);
     railFilter.frequency.setTargetAtTime(railF, t, 0.18);
@@ -182,24 +182,38 @@ export function crearAudioAmbiental() {
     src.stop(t0 + dur);
   }
 
-  // Bocina reglamentaria de dos tonos Adif (370 Hz / 440 Hz)
+  // Bocina reglamentaria de dos tonos Adif (370 Hz / 440 Hz) con filtro neumático y salida por master
   function reproducirBocina() {
-    if (!asegurarContexto()) return;
+    if (!asegurarContexto() || !master) return;
     const t0 = ctx.currentTime;
-    const dur = 0.75;
+    const dur = 0.85;
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 1150;
+    lp.Q.value = 1.4;
+    lp.connect(master);
+    if (tunnelGain) lp.connect(tunnelDelay);
     for (const f of [370, 440]) {
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
       osc.type = 'sawtooth';
       osc.frequency.value = f;
-      g.gain.setValueAtTime(0.24, t0);
+      g.gain.setValueAtTime(0.001, t0);
+      g.gain.linearRampToValueAtTime(0.28, t0 + 0.025);
+      g.gain.setValueAtTime(0.26, t0 + dur - 0.22);
       g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
       osc.connect(g);
-      g.connect(ctx.destination);
+      g.connect(lp);
       osc.start(t0);
-      osc.stop(t0 + dur);
+      osc.stop(t0 + dur + 0.02);
     }
   }
+
+  document.addEventListener('visibilitychange', () => {
+    if (!ctx) return;
+    if (document.hidden && ctx.state === 'running') ctx.suspend();
+    else if (!document.hidden && activo && ctx.state === 'suspended') ctx.resume();
+  });
 
   return {
     alternar,

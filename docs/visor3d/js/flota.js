@@ -704,6 +704,16 @@ export function crearFlota({ escena, Eje3D, Catenaria, W, mat, matFoco, matPilot
     }
     return cacheGlbTren.get(ruta);
   }
+  const cacheAvloMat = new Map();
+  const matAvlo = (matOrig, colorHex) => {
+    const k = `${matOrig.uuid}:${colorHex}`;
+    if (!cacheAvloMat.has(k)) {
+      const m = matOrig.clone();
+      m.color.set(colorHex);
+      cacheAvloMat.set(k, m);
+    }
+    return cacheAvloMat.get(k);
+  };
   for (const tr of flota) {
     for (const c of tr.modelo.coches) {
       if (c.userData.tieneInterior) continue;
@@ -731,8 +741,8 @@ export function crearFlota({ escena, Eje3D, Catenaria, W, mat, matFoco, matPilot
             n.receiveShadow = true;
             n.userData = c.userData;
             if (tipo === 'avlo' && n.material) {
-              if (n.material.name === 'Cuerpo') { n.material = n.material.clone(); n.material.color.set('#8a2c86'); }
-              else if (n.material.name === 'Franja') { n.material = n.material.clone(); n.material.color.set('#2ec4e8'); }
+              if (n.material.name === 'Cuerpo') n.material = matAvlo(n.material, '#8a2c86');
+              else if (n.material.name === 'Franja') n.material = matAvlo(n.material, '#2ec4e8');
             }
           }
         });
@@ -755,6 +765,17 @@ export function crearFlota({ escena, Eje3D, Catenaria, W, mat, matFoco, matPilot
       const vLimMs = (Eje3D.velocidadLimite ? Eje3D.velocidadLimite(tr.pk) : 300) / 3.6;
       let vObj = Math.min(tr.velBase, vLimMs);
       let proxParada = null;
+
+      // Cantonamiento ERTMS: mantener distancia de seguridad respecto al tren precedente en la misma vía
+      let minDist = Infinity;
+      for (const otro of flota) {
+        if (otro === tr || otro.viaSigno !== tr.viaSigno || otro.sentido !== tr.sentido) continue;
+        const dOtro = (otro.pk - tr.pk) * tr.sentido;
+        if (dOtro > 0 && dOtro < minDist) minDist = dOtro;
+      }
+      if (minDist < 2200) {
+        vObj = Math.min(vObj, Math.sqrt(2 * 0.45 * Math.max(0, minDist - 340)));
+      }
 
       for (const par of PARADAS_CORREDOR) {
         const d = (par.pk - tr.pk) * tr.sentido;

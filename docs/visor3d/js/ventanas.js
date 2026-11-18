@@ -75,4 +75,12 @@ export function activarVentanaFlotante(el, { asa = null, botonPlegar = true, cla
   };
   handle.addEventListener('pointerup', soltar);
   handle.addEventListener('pointercancel', soltar);
+  handle.addEventListener('dblclick', (e) => {
+    if (e.target.closest('button, input, select, textarea, a, canvas, label')) return;
+    el.style.left = '';
+    el.style.top = '';
+    el.style.right = '';
+    el.style.bottom = '';
+    el.style.transform = '';
+  });
 }

@@ -260,7 +260,13 @@
   #marcoCabina {
     position: fixed; inset: 0; z-index: 3; pointer-events: none;
   }
-  #marcoCabina svg { width: 100%; height: 100%; display: block; }
+  #marcoCabina svg { width: 100%; height: 100%; display: block; pointer-events: none; }
+  #pupitreDmi { pointer-events: auto; }
+  #ctrlCalidad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
 
   /* Viñeteado dinámico de velocidad (motion blur periférico a alta velocidad) */
   #vignetteVelocidad {
@@ -622,7 +628,6 @@
   #panel.ventana-plegada { max-height: none; overflow: hidden; padding-bottom: 10px; gap: 0; }
   #panel.ventana-plegada > :not(header) { display: none !important; }
   #panel.ventana-plegada header { border-bottom: none; padding-bottom: 0; }
-  #inspector3D.ventana-plegada > :not(.insp-cab) { display: none !important; }
   #barraPerfil.ventana-plegada #cvPerfil,
   #barraPerfil.ventana-plegada #perfilTooltip,
   #barraPerfil.ventana-plegada .leyenda-p { display: none !important; }
@@ -910,7 +915,7 @@
   .tr-pie { margin: 0; padding: 6px 10px 8px; border-top: 1px solid var(--line); color: var(--muted); font-size: 10px; }
   body.modo-cine #panelTrenesReales, body.limpio #panelTrenesReales { display: none !important; }
   /* ---- Trabajos de mantenimiento: botón de la isla y panel con las máquinas del tajo ---- */
-  #btnMantenimiento.activo, #btnMantenimiento[aria-pressed="true"] { background: #f2b705; color: #111; border-color: #f2b705; }
+  #btnMantenimiento.activo, #btnMantenimiento[aria-checked="true"] { background: #f2b705; color: #111; border-color: #f2b705; }
   #panelMant {
     position: fixed; z-index: 8; top: calc(100px + env(safe-area-inset-top, 0px));
     right: 12px; width: min(340px, calc(100vw - 24px));
@@ -938,7 +943,7 @@
   .sold-fases span.on { background: #ff6a1a !important; color: #111 !important; }
   .sold-real { color: var(--muted); font-size: 11px; }
   #btnSoldTerminar { border: 1px solid #ff6a1a; background: transparent; color: var(--fg); border-radius: 999px; padding: 7px 16px; font: 600 12px var(--sans); cursor: pointer; }
-  #btnSoldadura.activo, #btnSoldadura[aria-pressed="true"] { background: #ff6a1a; color: #111; }
+  #btnSoldadura.activo, #btnSoldadura[aria-checked="true"] { background: #ff6a1a; color: #111; }
   body.modo-cine #panelSold, body.limpio #panelSold { display: none !important; }
   #panelMant .tr-cab { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); }
   #panelMant .tr-tit { font-weight: 700; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -978,7 +983,7 @@
   #panelEner .tr-cab small { color: var(--muted); font: 10px var(--mono); white-space: nowrap; }
   #panelEner .tr-cab button { border: 0; background: transparent; color: var(--muted); font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 6px; }
   body.modo-cine #panelInsp, body.limpio #panelInsp, body.modo-cine #panelEner, body.limpio #panelEner { display: none !important; }
-  #btnInspeccion.activo, #btnInspeccion[aria-pressed="true"] { background: #7fb3ff; color: #0b1222; border-color: #7fb3ff; }
+  #btnInspeccion.activo, #btnInspeccion[aria-checked="true"] { background: #7fb3ff; color: #0b1222; border-color: #7fb3ff; }
   /* Menú de Trabajos Mantenimiento */
   #btnTrabajos.activo, #dockTrabajos.activo { background: #f2b705; color: #111; border-color: #f2b705; }
   #menuTrabajos {
@@ -990,12 +995,12 @@
   #menuTrabajos button { display: grid; gap: 2px; text-align: left; width: 100%; padding: 8px 10px; border: 1px solid transparent; border-radius: 9px; background: transparent; color: var(--fg); font: 600 12.5px var(--sans); cursor: pointer; }
   #menuTrabajos button small { font: 400 11px var(--sans); color: var(--muted); }
   #menuTrabajos button:hover { background: rgba(242, 183, 5, .14); }
-  #menuTrabajos button[aria-pressed="true"] small { color: inherit; opacity: .8; }
+  #menuTrabajos button[aria-checked="true"] small { color: inherit; opacity: .8; }
   #menuTrabajos .menu-sonido { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 8px; padding: 8px 10px 4px; border-top: 1px solid var(--line); margin-top: 2px; font: 600 12px var(--sans); cursor: pointer; }
   #menuTrabajos .menu-sonido small { grid-column: 2; font: 400 11px var(--sans); color: var(--muted); }
   body.modo-cine #menuTrabajos, body.limpio #menuTrabajos { display: none !important; }
   #dockMovil button[hidden] { display: none !important; }
-  #btnEnergia.activo, #btnEnergia[aria-pressed="true"] { background: #f2b705; color: #111; border-color: #f2b705; }
+  #btnEnergia.activo, #btnEnergia[aria-checked="true"] { background: #f2b705; color: #111; border-color: #f2b705; }
   #panelInsp { border-top-color: #7fb3ff; }
   .insp-tit { padding: 8px 8px 2px; }
   .insp-inc { padding: 2px 8px; }

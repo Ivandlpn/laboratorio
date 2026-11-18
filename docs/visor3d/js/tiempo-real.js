@@ -215,7 +215,8 @@ export function crearTrenesReales({ Eje3D, flota, crearTrenReal, quitarTren, pos
       }
       estado.ok = true; estado.error = null; estado.actualizado = new Date();
     } catch (err) {
-      estado.error = err?.message || String(err);
+      const msg = err?.name === 'AbortError' ? 'Tiempo de espera agotado al consultar Renfe' : 'Servicio GTFS-RT de Renfe no disponible temporalmente';
+      estado.error = msg;
     }
     estado.cargando = false;
     for (const t of estado.trenes.values()) actualizarFicha(t);
