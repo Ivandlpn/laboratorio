@@ -57,9 +57,9 @@
       });
       for (const ev of ['pointerdown', 'wheel']) dom.addEventListener(ev, () => { tween = null; }, { passive: true });
 
-      // Teclado: Q/E giran y + / − acercan o alejan mientras se mantienen pulsadas
+      // Teclado: Q/E giran mientras se mantienen pulsadas (+/− lo gestiona cada visor según el modo activo)
       const teclas = new Set();
-      addEventListener('keydown', (e) => { if (e.ctrlKey || e.metaKey || e.altKey || (e.target && e.target.closest && e.target.closest('input,textarea,select'))) return; const k = e.key.toLowerCase(); if (['q', 'e', '+', '=', '-', '_'].includes(k)) teclas.add(k); });
+      addEventListener('keydown', (e) => { if (e.ctrlKey || e.metaKey || e.altKey || (e.target && e.target.closest && e.target.closest('input,textarea,select'))) return; const k = e.key.toLowerCase(); if (k === 'q' || k === 'e') teclas.add(k); });
       addEventListener('keyup', (e) => teclas.delete(e.key.toLowerCase()));
       addEventListener('blur', () => teclas.clear());
       let previo = performance.now();
@@ -69,8 +69,6 @@
           const off = camara.position.clone().sub(orbita.target);
           const giro = ((teclas.has('q') ? 1 : 0) - (teclas.has('e') ? 1 : 0)) * 1.1 * dt;
           if (giro) off.applyAxisAngle(new THREE.Vector3(0, 1, 0), giro);
-          const zoom = ((teclas.has('+') || teclas.has('=') ? 1 : 0) - (teclas.has('-') || teclas.has('_') ? 1 : 0)) * 1.3 * dt;
-          if (zoom) off.setLength(Math.max(orbita.minDistance, Math.min(orbita.maxDistance, off.length() * Math.exp(-zoom))));
           camara.position.copy(orbita.target).add(off);
         }
         requestAnimationFrame(bucle);

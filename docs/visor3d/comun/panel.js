@@ -3,8 +3,8 @@
    Los visores solo llaman a window.Leyenda3D.mostrar(titulo, [{ color, texto, detalle?, punto? }]) y .ocultar(). */
 (function () {
   const clave = (t) => 'visor3d.' + location.pathname + '.' + t;
-  const leer = (k) => { try { return sessionStorage.getItem(clave(k)); } catch (e) { return null; } };
-  const guardar = (k, v) => { try { sessionStorage.setItem(clave(k), v); } catch (e) { /* sin almacenamiento */ } };
+  const leer = (k) => { try { return sessionStorage.getItem(clave(k)); } catch { return null; } };
+  const guardar = (k, v) => { try { sessionStorage.setItem(clave(k), v); } catch { /* sin almacenamiento */ } };
 
   function activarSecciones() {
     document.querySelectorAll('#panel section').forEach((sec) => {

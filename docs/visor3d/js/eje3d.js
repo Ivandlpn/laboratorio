@@ -170,9 +170,18 @@ export function crearEje3D(ejeDatos, ramalesReales) {
       const r = 1 / maxCurv;
       vMax = Math.min(vMax, Math.sqrt(r * 1.35) * 3.6);
     }
+    // Aproximación a Albacete-Los Llanos
+    if (pk <= 322200) vMax = Math.min(vMax, 30);
+    else if (pk <= 322600) vMax = Math.min(vMax, 80);
+    else if (pk <= 323400) vMax = Math.min(vMax, 160);
+    // Villena AV (PAET) y Bifurcación Monforte del Cid
     if (pk >= 435100 && pk <= 436300) vMax = Math.min(vMax, 220);
-    if (pk >= 484200) vMax = Math.min(vMax, pk >= 485400 ? 80 : 140);
-    return Math.max(60, Math.round(vMax / 5) * 5);
+    if (pk >= 462000 && pk <= 464500) vMax = Math.min(vMax, 220);
+    // Túnel de acceso y playa de vías de Alicante-Terminal
+    if (pk >= 485820) vMax = Math.min(vMax, 30);
+    else if (pk >= 485400) vMax = Math.min(vMax, 80);
+    else if (pk >= 484200) vMax = Math.min(vMax, 140);
+    return Math.max(30, Math.round(vMax / 5) * 5);
   }
 
   // Marco de la terminal de Alicante: el eje anterior a llevarlo sobre las vías de alta velocidad (eje-3d.json,

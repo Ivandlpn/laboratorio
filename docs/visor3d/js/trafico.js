@@ -23,6 +23,7 @@ const GEO = {
   tronco: new THREE.CylinderGeometry(0.17, 0.15, 0.62, 8),
   pierna: new THREE.CylinderGeometry(0.065, 0.06, 0.82, 6),
 };
+for (const g of Object.values(GEO)) g.userData.compartida = true;
 const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, metalness: 0.15, ...o });
 const MAT = {
   rueda: M('#1b1d21', { roughness: 0.9 }),
@@ -172,7 +173,12 @@ export function crearTrafico({ escena, W, cotaTerrenoUTM, PASOS_SUP, PASOS_INF }
     }
   }
   function desactivar(r) {
-    for (const a of r.agentes) grupo.remove(a.obj);
+    for (const a of r.agentes) {
+      a.obj.traverse((n) => {
+        if (n.isMesh && n.geometry && !n.geometry.userData?.compartida) n.geometry.dispose();
+      });
+      grupo.remove(a.obj);
+    }
     r.agentes = null;
   }
 

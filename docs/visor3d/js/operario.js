@@ -25,6 +25,17 @@ function cargarPiezaOp(nombre) {
 const PIEL = ['#c99a78', '#b07f5f', '#e0b48f', '#8d5f43'];
 const L_MUSLO = 0.44, L_ESPINILLA = 0.43, Y_TOBILLO = 0.08, Y_CADERA = L_MUSLO + L_ESPINILLA + Y_TOBILLO - 0.02;
 
+const _cacheChalecoGlb = new Map();
+function matChalecoGlb(matOrig, color) {
+  const k = `${matOrig.uuid}:${color}`;
+  if (!_cacheChalecoGlb.has(k)) {
+    const m = matOrig.clone();
+    m.color.set(color);
+    _cacheChalecoGlb.set(k, m);
+  }
+  return _cacheChalecoGlb.get(k);
+}
+
 const materiales = (() => {
   let M = null;
   return () => {
@@ -116,8 +127,7 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
         n.castShadow = true;
         n.userData = ficha;
         if (chaleco && n.material?.name === 'Chaleco') {
-          n.material = n.material.clone();
-          n.material.color.set(chaleco);
+          n.material = matChalecoGlb(n.material, chaleco);
         }
       }
     });
@@ -197,8 +207,7 @@ export function crearOperario({ piel = Math.floor(Math.random() * 4), farol = 'b
         n.frustumCulled = false;
         n.userData = ficha;
         if (chaleco && n.material?.name === 'Chaleco') {
-          n.material = n.material.clone();
-          n.material.color.set(chaleco);
+          n.material = matChalecoGlb(n.material, chaleco);
         }
         if (colorCasco && n.material?.name === 'CascoSeguridad') {
           n.material = n.material.clone();

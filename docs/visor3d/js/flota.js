@@ -866,6 +866,19 @@ export function crearFlota({ escena, Eje3D, Catenaria, W, mat, matFoco, matPilot
     const i = flota.indexOf(tr);
     if (i >= 0) flota.splice(i, 1);
     grupoFlota.remove(tr.modelo.grupo);
+    const matsCompartidos = new Set([matFoco, matPilotoRojo]);
+    tr.modelo.grupo.traverse((n) => {
+      if (n.isMesh) {
+        if (n.geometry && !n.geometry.userData?.compartida) n.geometry.dispose();
+        const mats = Array.isArray(n.material) ? n.material : [n.material];
+        for (const m of mats) {
+          if (m && !matsCompartidos.has(m) && !m.userData?.compartida) {
+            m.map?.dispose();
+            m.dispose();
+          }
+        }
+      }
+    });
   }
 
   return { grupoFlota, flota, faroCabina, posicionarTren, actualizarFlota, crearTrenReal, quitarTren };

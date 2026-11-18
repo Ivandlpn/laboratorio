@@ -285,10 +285,10 @@
   #pupitreDmi:active { cursor: grabbing; }
   .dmi-marco { display: flex; align-items: center; gap: 14px; }
   .dmi-reloj { position: relative; width: 78px; height: 78px; flex-shrink: 0; }
-  .dmi-dial-svg { width: 100%; height: 100%; transform: rotate(135deg); }
+  .dmi-dial-svg { width: 100%; height: 100%; }
   .dmi-dial-bg { fill: rgba(15, 23, 42, 0.85); stroke: rgba(148, 163, 184, 0.25); stroke-width: 4; }
-  .dmi-arc-perm { fill: none; stroke: #38bdf8; stroke-width: 6; stroke-dasharray: 245; stroke-dashoffset: 45; stroke-linecap: round; }
-  .dmi-arc-actual { fill: none; stroke: #facc15; stroke-width: 6; stroke-dasharray: 245; stroke-dashoffset: 80; stroke-linecap: round; transition: stroke-dashoffset 0.15s; }
+  .dmi-arc-perm { fill: none; stroke: #38bdf8; stroke-width: 6; stroke-linecap: round; }
+  .dmi-arc-actual { fill: none; stroke: #facc15; stroke-width: 6; stroke-linecap: round; }
   .dmi-needle { stroke: #f8fafc; stroke-width: 2.5; stroke-linecap: round; transform-origin: 70px 70px; transition: transform 0.15s ease-out; }
   .dmi-needle-hub { fill: #facc15; stroke: #0f172a; stroke-width: 1.5; }
   .dmi-dial-center {
@@ -437,17 +437,6 @@
   }
   .insp-acc button:hover { background: rgba(56, 189, 248, 0.25); border-color: rgba(56, 189, 248, 0.5); }
   .insp-acc button.primario { background: #0284c7; border-color: transparent; }
-
-  #cruceta {
-    position: fixed; z-index: 6; left: 50%; transform: translateX(-50%);
-    bottom: calc(96px + env(safe-area-inset-bottom, 0px));
-    display: grid; grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(2, 42px); gap: 4px;
-  }
-  #cruceta button { background: var(--panel); font-size: 17px; padding: 0; touch-action: none; }
-  #cruceta .arriba { grid-column: 2; }
-  #cruceta .izq { grid-column: 1; grid-row: 2; }
-  #cruceta .abajo { grid-column: 2; grid-row: 2; }
-  #cruceta .der { grid-column: 3; grid-row: 2; }
 
   /* ---- Pantalla de carga: túnel a alta velocidad (siempre oscura, como el interior de un túnel) ---- */
   /* Mientras carga, el visor y sus paneles no se pintan: pantalla limpia aunque la gráfica vaya justa */
@@ -714,8 +703,8 @@
   @media (min-width: 761px) { #dockMovil { display: none; } }
 
   /* ---- Paneles: un solo estilo para todos (fondo, borde, radio y sombra del tema) ---- */
-  :root { --hud-radio: 12px; --hud-sombra: 0 10px 28px rgba(0, 0, 0, 0.24); --reserva-inf: 152px; --izq-libre: 12px; --der-top: 12px; --der-cab: 12px; --top-radar: 78px; }
-  #panel, #abrir, #islaRapida, #badgePkLinea, #panelEmplazamientos, #cab, #barraPerfil, #brujula, #inspector3D, #dockMovil {
+  :root { --hud-radio: 12px; --hud-sombra: 0 10px 28px rgba(0, 0, 0, 0.24); --reserva-inf: 152px; --izq-libre: 12px; --der-top: 12px; --der-cab: 12px; --top-radar: 78px; --top-chips: 64px; }
+  #panel, #abrir, #islaRapida, #panelEmplazamientos, #cab, #barraPerfil, #brujula, #dockMovil {
     background: var(--panel) !important; color: var(--fg) !important;
     border: 1px solid var(--line) !important; border-radius: var(--hud-radio) !important;
     box-shadow: var(--hud-sombra) !important;
@@ -735,9 +724,6 @@
   #cab .controles-cab button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
   #cabProx, #lblTrenDron { color: var(--muted); }
   #selTrenDron { background: var(--panel); color: var(--fg); border: 1px solid var(--line); }
-  /* Cartel de PK con el mismo estilo: línea en gris y PK en el color de acento */
-  #badgePkLinea .linea { color: var(--muted); }
-  #badgePkLinea .pk { color: var(--fg); }
 
   /* ---- Escritorio: cada panel en su hueco, sin solaparse (las medidas las pone ajustarDisposicion()) ----
      Columna izquierda: panel lateral · arriba al centro: isla rápida · columna derecha: cartel de PK y radar ·
@@ -749,16 +735,20 @@
       margin-inline: auto; width: max-content; max-width: calc(100vw - var(--izq-libre) - var(--der-top));
     }
     #panelEmplazamientos {
-      top: var(--top-radar) !important;
+      top: var(--top-radar);
       max-height: calc(100vh - var(--top-radar) - var(--reserva-inf)); display: flex; flex-direction: column;
     }
     #panelEmplazamientos #empLista { max-height: none; flex: 1 1 auto; min-height: 0; }
     #cab {
-      bottom: var(--reserva-inf) !important; left: var(--izq-libre) !important; right: var(--der-cab) !important;
-      transform: none !important; margin-inline: auto; width: max-content;
+      bottom: var(--reserva-inf); left: var(--izq-libre); right: var(--der-cab);
+      transform: none; margin-inline: auto; width: max-content;
       max-width: calc(100vw - var(--izq-libre) - var(--der-cab));
     }
     #cineHint { bottom: var(--reserva-inf); }
+  }
+  @media (min-width: 761px) and (max-width: 1200px) {
+    #islaRapida { gap: 4px; padding: 5px 8px; }
+    #islaRapida button, #islaRapida .btn-isla { font-size: 11px; padding: 4px 6px; }
   }
 
   /* Radar de hitos: flecha del sentido de marcha (los hitos que vienen están arriba) y vía que recorre la lista */
@@ -780,7 +770,7 @@
   /* Botón para entrar en el túnel desde el dron cinematográfico: centrado, encima de los mandos */
   #btnEntrarTunel {
     position: fixed; z-index: 8; left: 50%; transform: translateX(-50%);
-    top: calc(64px + env(safe-area-inset-top, 0px));
+    top: var(--top-chips, calc(64px + env(safe-area-inset-top, 0px)));
     padding: 10px 18px; min-height: 42px; border-radius: 999px; border: 1px solid var(--accent);
     background: var(--accent); color: #fff; font: 700 13px/1 var(--sans); letter-spacing: .02em;
     box-shadow: 0 10px 28px rgba(0, 0, 0, .35); cursor: pointer;
@@ -856,7 +846,7 @@
   /* Botón mínimo para reanudar el seguimiento de cine del dron */
   #btnReanudarCine {
     position: fixed; z-index: 8; left: 50%; transform: translateX(-50%);
-    top: calc(64px + env(safe-area-inset-top, 0px));
+    top: var(--top-chips, calc(64px + env(safe-area-inset-top, 0px)));
     min-height: 32px; padding: 6px 14px; border-radius: 999px;
     background: var(--panel); color: var(--fg); border: 1px solid var(--line);
     font: 600 12px/1 var(--sans); box-shadow: var(--hud-sombra); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);

@@ -711,8 +711,11 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       sit.tPlano = 0;
       estado.plano = estado.plano === 'A' ? 'B' : estado.plano === 'B' ? 'C' : 'A';
       if (estado.plano === 'B' && !sit.agentes.some((g) => g.estado === 'Crouch_Inspect')) {
-        const g = sit.agentes[Math.floor(Math.random() * sit.agentes.length)];
-        g.estado = 'Crouch_Inspect'; g.tEst = DUR.B + 1; g.objetivo = { pk: Math.round(g.pk / ESP + 1) * ESP, rail: Math.sign(g.lat || 1) };
+        const candidatos = sit.agentes.filter((a) => !a.def.conductor);
+        const g = candidatos.length ? candidatos[Math.floor(Math.random() * candidatos.length)] : null;
+        if (g) {
+          g.estado = 'Crouch_Inspect'; g.tEst = DUR.B + 1; g.objetivo = { pk: Math.round(g.pk / ESP + 1) * ESP, rail: Math.sign(g.lat || 1) };
+        }
       }
     }
     const u = sit.tPlano / DUR[estado.plano], s = sit.s;

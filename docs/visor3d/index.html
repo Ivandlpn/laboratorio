@@ -128,19 +128,30 @@
     <div class="lista">
       <label><input type="checkbox" id="chkNombresEdif" checked> Edificios y emplazamientos</label>
       <label><input type="checkbox" id="chkEtiquetas" checked> Etiquetas de PK</label>
+      <label><input type="checkbox" id="chkConosCamara"> Conos de visión CCTV</label>
     </div>
   </section>
 
   <section>
-    <h2>Escena</h2>
+    <h2>Escena y calidad</h2>
     <div class="lista">
       <label><input type="checkbox" id="chkTrenes" checked> Trenes en circulación</label>
       <label><input type="checkbox" id="chkSubsuelo"> Monte en rayos X (túneles)</label>
       <label><input type="checkbox" id="chkPerfil" checked> Perfil longitudinal (164 km)</label>
+      <label><input type="checkbox" id="chkBtsModelos" checked> Modelos 3D torres y casetas BTS</label>
+    </div>
+    <div id="ctrlCalidad" class="acciones" style="margin-top:8px" role="group" aria-label="Calidad gráfica">
+      <button type="button" data-cal="alta" class="activo" aria-pressed="true">Calidad alta</button>
+      <button type="button" data-cal="media" aria-pressed="false">Media</button>
+      <button type="button" data-cal="baja" aria-pressed="false">Baja</button>
+    </div>
+    <div class="acciones" style="margin-top:8px">
+      <button type="button" id="btnCaptura" title="Guardar captura PNG de la vista actual (P)">📷 Captura PNG (P)</button>
+      <button type="button" id="btnCopiarEnlace" title="Copiar enlace directo a este PK y modo de vista">🔗 Copiar enlace</button>
     </div>
   </section>
 
-  <div id="ficha" hidden>
+  <div id="ficha" hidden role="dialog" aria-labelledby="fichaNombre">
     <span class="capa" id="fichaCapa"></span>
     <strong id="fichaNombre"></strong>
     <p id="fichaInfo"></p>
@@ -170,6 +181,7 @@
     <button type="button" data-vel="3">3×</button>
     <button type="button" data-vel="8">8×</button>
     <button type="button" id="btnFaros" aria-pressed="true" title="Faros del tren: Cortas / Largas / Off (L)">💡 Cortas</button>
+    <button type="button" id="btnBocina" title="Tocar bocina bitono AVE (B)">🔊</button>
     <button type="button" id="btnModoNoche" title="Alternar modo noche y día (N)">🌙 Noche</button>
     <button type="button" id="btnMarcoCab" aria-pressed="true" title="Mostrar u ocultar pupitre DMI">DMI</button>
     <button type="button" id="btnMinimapa" aria-pressed="false" title="Mostrar u ocultar minimapa orbital (M)">🗺️ Radar</button>
@@ -208,8 +220,8 @@
       <div class="dmi-reloj">
         <svg class="dmi-dial-svg" viewBox="0 0 140 140">
           <circle cx="70" cy="70" r="58" class="dmi-dial-bg" />
-          <path id="dmiArcoVmax" d="M 28 112 A 58 58 0 1 1 112 112" class="dmi-arc-perm" />
-          <path id="dmiArcoVel" d="M 28 112 A 58 58 0 0 1 70 12" class="dmi-arc-actual" />
+          <path id="dmiArcoVmax" d="M 29.0 111.0 A 58 58 0 1 1 111.0 111.0" class="dmi-arc-perm" />
+          <path id="dmiArcoVel" d="" class="dmi-arc-actual" />
           <line id="dmiAguja" x1="70" y1="70" x2="70" y2="20" class="dmi-needle" />
           <circle cx="70" cy="70" r="6" class="dmi-needle-hub" />
         </svg>
@@ -274,7 +286,7 @@
       <span><i style="background:#f59e0b"></i>5 subestaciones</span>
     </span>
   </div>
-  <canvas id="cvPerfil" width="900" height="52" aria-label="Perfil longitudinal interactivo de Albacete (PK 322) a Alicante (PK 486)"></canvas>
+  <canvas id="cvPerfil" width="900" height="52" tabindex="0" role="slider" aria-label="Perfil longitudinal interactivo de Albacete (PK 322) a Alicante (PK 486)" aria-valuemin="322" aria-valuemax="486" aria-valuenow="437"></canvas>
 </div>
 
 <div id="islaRapida" role="toolbar" aria-label="Controles rápidos de realismo">
@@ -302,10 +314,10 @@
 </div>
 <!-- Menú de «Trabajos Mantenimiento»: los tres modos nocturnos (fuera de la isla, que se desplaza en horizontal y lo recortaría) -->
 <div id="menuTrabajos" hidden role="menu" aria-label="Trabajos de mantenimiento">
-  <button type="button" id="btnMantenimiento" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="mant" title="Bateadora, perfiladora y estabilizador en un tajo con la vía cortada">🚧 Tren de trabajo<small>Bateadora, perfiladora y estabilizador</small></button>
-  <button type="button" id="btnInspeccion" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="insp" title="Inspección de superestructura a pie de noche, con coche de apoyo y dron en modo cine">🔦 Inspección de superestructura<small>Patrulla a pie con coche de apoyo</small></button>
-  <button type="button" id="btnEnergia" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="ener" title="Mantenimiento de energía: dresina de catenaria con castillete elevador y puesta a tierra">⚡ Mantenimiento de energía<small>Dresina de catenaria</small></button>
-  <button type="button" id="btnSoldadura" role="menuitemcheckbox" aria-pressed="false" data-hoja-movil="sold" title="Soldadura aluminotérmica de un carril UIC 60: corte, moldes, precalentamiento, colada, rebarbado y esmerilado">🔥 Soldadura aluminotérmica<small>Unión de carril UIC 60 in situ</small></button>
+  <button type="button" id="btnMantenimiento" role="menuitemcheckbox" aria-checked="false" data-hoja-movil="mant" title="Bateadora, perfiladora y estabilizador en un tajo con la vía cortada">🚧 Tren de trabajo<small>Bateadora, perfiladora y estabilizador</small></button>
+  <button type="button" id="btnInspeccion" role="menuitemcheckbox" aria-checked="false" data-hoja-movil="insp" title="Inspección de superestructura a pie de noche, con coche de apoyo y dron en modo cine">🔦 Inspección de superestructura<small>Patrulla a pie con coche de apoyo</small></button>
+  <button type="button" id="btnEnergia" role="menuitemcheckbox" aria-checked="false" data-hoja-movil="ener" title="Mantenimiento de energía: dresina de catenaria con castillete elevador y puesta a tierra">⚡ Mantenimiento de energía<small>Dresina de catenaria</small></button>
+  <button type="button" id="btnSoldadura" role="menuitemcheckbox" aria-checked="false" data-hoja-movil="sold" title="Soldadura aluminotérmica de un carril UIC 60: corte, moldes, precalentamiento, colada, rebarbado y esmerilado">🔥 Soldadura aluminotérmica<small>Unión de carril UIC 60 in situ</small></button>
   <label class="menu-sonido"><input type="checkbox" id="chkSonidoObras" checked> 🔊 Sonido de las obras<small>Máquinas, generadores, viento y pasos</small></label>
 </div>
 <div id="panelSold" hidden role="dialog" aria-label="Soldadura aluminotérmica">
@@ -385,13 +397,6 @@
     <span id="camAlt">— m</span>
     <div id="escalaGrafica"><div id="escalaBarra"></div><span id="escalaTxt">100 m</span></div>
   </div>
-</div>
-
-<div id="cruceta" hidden>
-  <button type="button" class="arriba" data-mov="w" aria-label="Avanzar">▲</button>
-  <button type="button" class="izq" data-mov="a" aria-label="Izquierda">◀</button>
-  <button type="button" class="abajo" data-mov="s" aria-label="Retroceder">▼</button>
-  <button type="button" class="der" data-mov="d" aria-label="Derecha">▶</button>
 </div>
 
 <script type="importmap">
@@ -627,8 +632,20 @@ escena.add(luzHemi);
 const sol = new THREE.DirectionalLight(0xfff3de, 2.38);
 const SOL_DESVIO = new THREE.Vector3(-95, 175, 105);
 const solUltimoTarget = new THREE.Vector3(Infinity, 0, 0);
-let horaSol = 'dia';
-let climaActual = 'despejado';
+let prefsVisor = {};
+try { prefsVisor = JSON.parse(localStorage.getItem('visor3d.prefs') || '{}') || {}; } catch { prefsVisor = {}; }
+function guardarPrefsVisor() {
+  try {
+    localStorage.setItem('visor3d.prefs', JSON.stringify({
+      horaSol,
+      climaActual,
+      calidadGrafica,
+      perfil: document.getElementById('chkPerfil')?.checked ?? true,
+    }));
+  } catch { /* sin almacenamiento */ }
+}
+let horaSol = params.get('sol') || prefsVisor.horaSol || 'dia';
+let climaActual = params.get('clima') || prefsVisor.climaActual || 'despejado';
 let modoVivo = false;
 let solVivoDesvio = null;
 let meteoViva = null;
@@ -637,7 +654,7 @@ let expBaseSol = 1.07;
 let _matCarrilCabezaRef = null;
 let conosCamaraActivos = false;
 let fpsSuave = 60;
-let calidadGrafica = 'alta';
+let calidadGrafica = prefsVisor.calidadGrafica || 'alta';
 let controlesListos = false;
 sol.castShadow = true;
 Object.assign(sol.shadow.camera, { left: -175, right: 175, top: 175, bottom: -175, near: 8, far: 620 });
@@ -716,18 +733,6 @@ function aplicarTema() {
   modoNoche = horaSol === 'noche';
   if (modoNoche) document.documentElement.setAttribute('data-noche', '1');
   else document.documentElement.removeAttribute('data-noche');
-  const chkN = document.getElementById('chkNoche');
-  if (chkN) chkN.checked = modoNoche;
-  for (const b of document.querySelectorAll('#ctrlHoraSol button')) {
-    const activo = b.dataset.hora === horaSol;
-    b.classList.toggle('activo', activo);
-    b.setAttribute('aria-pressed', String(activo));
-  }
-  for (const b of document.querySelectorAll('#ctrlClima button')) {
-    const activo = b.dataset.clima === climaActual;
-    b.classList.toggle('activo', activo);
-    b.setAttribute('aria-pressed', String(activo));
-  }
   const tm = TEMAS_SOL[horaSol] || TEMAS_SOL.dia;
   const cl = CLIMAS[climaActual] || CLIMAS.despejado;
   if (modoVivo && solVivoDesvio) {
@@ -1182,7 +1187,7 @@ const RAMALES = (() => {
 const { MODELOS, pModelos } = cargarCatalogoModelos(params.has('sinModelos'));
 
 // ---- Streaming progresivo de teselas kilométricas con superestructura e ingeniería de detalle ----
-const { teselasCargadas, caminosPorKm, grupoTeselas, cargarTeselaKm, recortarCacheTeselas, gestionarStreaming } = crearGestorTeselas({
+const { teselasCargadas, caminosPorKm, grupoTeselas, cargarTeselaKm, gestionarStreaming } = crearGestorTeselas({
   RUTA, meta, capasMeta, gruposVisibles, entornoKms,
   escena, Eje3D, Catenaria, MdtCorredor, HashCotas, W,
   cotaTerrenoUTM, actualizarVentanaTerreno, invalidarTerrenoEnCaja,
@@ -1247,10 +1252,18 @@ function recentrarOrigen(nuevoE, nuevoN, nuevoZ) {
   origen.E = nuevoE; origen.N = nuevoN; origen.Z = nuevoZ;
   camara.position.x -= dX; camara.position.y -= dY; camara.position.z -= dZ;
   controles.target.x -= dX; controles.target.y -= dY; controles.target.z -= dZ;
+  sol.position.x -= dX; sol.position.y -= dY; sol.position.z -= dZ;
+  sol.target.position.x -= dX; sol.target.position.y -= dY; sol.target.position.z -= dZ;
+  solUltimoTarget.set(Infinity, 0, 0);
   for (const t of teselasCargadas.values()) t.raiz.position.copy(W(t.anclaE, t.anclaN, t.anclaZ));
   reubicarTerreno();
   Nubes.reubicar();
   for (const tr of flota) posicionarTren(tr);
+  arquetasRed.actualizar();
+  if (typeof colocarMarcasEmplazamientos === 'function') {
+    const pRef = Eje3D.enPk(pkActualUI);
+    colocarMarcasEmplazamientos(Boolean(pRef?.enTunel));
+  }
 }
 
 // Vistas que viajan con el tren: cabina, dron y asiento del pasajero
@@ -1285,7 +1298,9 @@ let lastJuntaIdx = -1;
 
 function actualizarVisibilidadMarcoCab() {
   elMarcoCab.hidden = !(vistaActiva === 'cabina' && marcoCabActivo && !document.body.classList.contains('limpio'));
-  if (elDmiVel) elDmiVel.textContent = String(Math.round(250 * multVel));
+  if (elDmiVel && typeof velCabinaKmh === 'number') {
+    elDmiVel.textContent = String(Math.round(velCabinaKmh * multVel));
+  }
 }
 
 function aplicarRayosX(activo) {
@@ -1323,27 +1338,27 @@ function irACctv(baculo) {
   });
 }
 
-function irAPk(pkDestino, modoVista = vistaActiva) {
+function irAPk(pkDestino, modoVista = vistaActiva, opciones = {}) {
   const pk = Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, pkDestino));
   pkRecorrido = pk;
-  gestorVuelo.cancelar();
 
-  const p = Eje3D.enPk(pk);
-  if (p.enTunel && !rayosXActivo) aplicarRayosX(true);
-
-  recentrarOrigen(p.E, p.N, p.Z);
-  gestionarStreaming(pk);
-
-  if (modoVista === 'cabina' || modoVista === 'dron') {
+  if (enRuta(modoVista)) {
+    gestorVuelo.cancelar();
+    const p = Eje3D.enPk(pk);
+    if (p.enTunel && !rayosXActivo) aplicarRayosX(true);
+    recentrarOrigen(p.E, p.N, p.Z);
+    gestionarStreaming(pk);
     centrarCamaraRecorrido(modoVista);
-  } else {
-    const pose = gestorVuelo.poseParaPk(pk, modoVista);
-    camara.position.copy(W(pose.posE, pose.posN, pose.posZ));
-    controles.target.copy(W(pose.objE, pose.objN, pose.objZ));
-    camara.lookAt(controles.target);
-    controles.update();
+    actualizarUI(pk);
+    return;
   }
-  actualizarUI(pk);
+
+  const pose = gestorVuelo.poseParaPk(pk, modoVista);
+  gestorVuelo.volarAPose({
+    ...pose,
+    pk,
+    inmediato: Boolean(opciones.inmediato),
+  });
 }
 
 const VISTAS = [
@@ -1366,7 +1381,7 @@ function setModoVista(id) {
   const elPanelEmp = document.getElementById('panelEmplazamientos');
   if (elPanelEmp) elPanelEmp.hidden = !enRecorrido || document.body.classList.contains('limpio');
   actualizarVisibilidadMarcoCab();
-  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-106' : esPasajero(id) ? `VENTANILLA ${id === 'pasajeroIzq' ? 'IZQUIERDA · PORTÁTIL' : 'DERECHA · MÓVIL'} · COCHE 4` : `DRON · SOBRE ${nombreTrenDron()}`;
+  elCabModo.textContent = id === 'cabina' ? 'EN CABINA S-112 / AVE' : esPasajero(id) ? `VENTANILLA ${id === 'pasajeroIzq' ? 'IZQUIERDA · PORTÁTIL' : 'DERECHA · MÓVIL'} · COCHE 4` : `DRON · SOBRE ${nombreTrenDron()}`;
   if (esPasajero(id) && !flota[idxTrenDron]?.modelo.interior) idxTrenDron = Math.max(0, flota.findIndex((tr) => tr.modelo.interior));
   if (esPasajero(id)) { mirarPasajero.yaw = 0; mirarPasajero.pitch = 0; }
   const lblTren = document.getElementById('lblTrenDron');
@@ -1421,6 +1436,7 @@ const botonesSalto = [];
 for (const s of HITOS_PRINCIPALES) {
   const b = document.createElement('button');
   b.type = 'button';
+  b.dataset.pk = String(s.pk);
   b.innerHTML = `<span>${s.nombre}</span><small>PK ${fmtPk(s.pk)}</small>`;
   b.addEventListener('click', () => {
     for (const x of botonesSalto) x.setAttribute('aria-pressed', 'false');
@@ -1583,14 +1599,18 @@ function colocarMarcasEmplazamientos(enTun) {
 }
 function normalizarTexto(t) { return String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
 let sugeridos = [], selSug = -1;
-function cerrarSugerencias() { listaSug.hidden = true; inpPk.setAttribute('aria-expanded', 'false'); selSug = -1; }
+function cerrarSugerencias() {
+  listaSug.hidden = true;
+  inpPk.setAttribute('aria-expanded', 'false');
+  inpPk.setAttribute('aria-activedescendant', '');
+  selSug = -1;
+}
 function irAEmplazamiento(e) {
   inpPk.value = e.nombre;
   cerrarSugerencias();
   // Un emplazamiento con PK fin (viaducto, tunel, estacion) se mira desde su centro
   const pk = Math.min(Math.max((e.pk + (e.pkFin ?? e.pk)) / 2, Eje3D.pkIni), Eje3D.pkFin);
-  if (enRuta(vistaActiva)) setModoVista('viaducto');
-  irAPk(pk, enRuta(vistaActiva) ? 'viaducto' : vistaActiva);
+  irAPk(pk, vistaActiva);
 }
 function pintarSugerencias() {
   const q = normalizarTexto(inpPk.value.trim());
@@ -1605,7 +1625,7 @@ function pintarSugerencias() {
     b.children[0].textContent = e.nombre;
     b.children[1].textContent = 'PK ' + e.pkTexto;
     b.children[2].textContent = e.tipo + (e.base ? ' · Base ' + e.base : '');
-    b.addEventListener('mousedown', (ev) => ev.preventDefault());
+    b.addEventListener('pointerdown', (ev) => ev.preventDefault());
     b.addEventListener('click', () => irAEmplazamiento(e));
     li.appendChild(b);
     return li;
@@ -1639,15 +1659,18 @@ inpPk.addEventListener('keydown', (ev) => {
 
 document.getElementById('formPk').addEventListener('submit', (e) => {
   e.preventDefault();
-  if (!listaSug.hidden && sugeridos.length) { irAEmplazamiento(sugeridos[Math.max(selSug, 0)]); return; }
+  if (!listaSug.hidden && sugeridos.length && selSug >= 0) {
+    irAEmplazamiento(sugeridos[selSug]);
+    return;
+  }
   const v = parsearPk(inpPk.value, Eje3D.pkIni, Eje3D.pkFin);
-  if (v === null) return;
-  // Primero se sale de cabina/dron (setModoVista vuela al PK de controles.target) y después se vuela al PK pedido
-  if (enRuta(vistaActiva)) {
-    setModoVista('viaducto');
-    irAPk(v, 'viaducto');
-  } else {
+  if (v !== null) {
+    cerrarSugerencias();
     irAPk(v, vistaActiva);
+    return;
+  }
+  if (!listaSug.hidden && sugeridos.length) {
+    irAEmplazamiento(sugeridos[0]);
   }
 });
 
@@ -1951,7 +1974,7 @@ function activarMantenimiento(on = !mantenimiento.estado.activo) {
     abrirPanelMant(false);
     if (document.body.classList.contains('m-mant')) document.querySelector('#dockMovil [data-hoja="mant"]')?.click();
   }
-  elBtnMant.setAttribute('aria-pressed', String(on));
+  elBtnMant.setAttribute('aria-checked', String(on));
   elBtnMant.classList.toggle('activo', on);
 }
 elBtnMant.addEventListener('click', () => activarMantenimiento());
@@ -2017,7 +2040,7 @@ function activarSoldadura(on = !soldadura.estado.activo) {
     elPanelSold.hidden = true;
     if (document.body.classList.contains('m-sold')) document.querySelector('#dockMovil [data-hoja="sold"]')?.click();
   }
-  elBtnSold.setAttribute('aria-pressed', String(on));
+  elBtnSold.setAttribute('aria-checked', String(on));
   elBtnSold.classList.toggle('activo', on);
   pintarSold();
 }
@@ -2095,7 +2118,7 @@ function activarInspeccion(on = !inspeccion.estado.activo) {
     elPanelInsp.hidden = true;
     if (document.body.classList.contains('m-insp')) hojaMovil('insp')?.click();
   }
-  elBtnInsp.setAttribute('aria-pressed', String(on));
+  elBtnInsp.setAttribute('aria-checked', String(on));
   elBtnInsp.classList.toggle('activo', on);
   pintarInsp();
 }
@@ -2130,7 +2153,7 @@ function activarEnergia(on = !energia.estado.activo) {
     elPanelEner.hidden = true;
     if (document.body.classList.contains('m-ener')) hojaMovil('ener')?.click();
   }
-  elBtnEner.setAttribute('aria-pressed', String(on));
+  elBtnEner.setAttribute('aria-checked', String(on));
   elBtnEner.classList.toggle('activo', on);
   pintarEner();
 }
@@ -2385,16 +2408,30 @@ function alternarPausaRecorrido(forzar) {
 }
 btnPausaRec.addEventListener('click', () => alternarPausaRecorrido());
 btnCentrarRec.addEventListener('click', () => centrarCamaraRecorrido());
+function tocarBocinaTren() {
+  audioAmbiental.activar?.();
+  audioAmbiental.reproducirBocina?.();
+  const btn = document.getElementById('btnBocina');
+  if (btn) {
+    btn.classList.add('bocina-activa');
+    clearTimeout(btn._tBocina);
+    btn._tBocina = setTimeout(() => btn.classList.remove('bocina-activa'), 650);
+  }
+}
+document.getElementById('btnBocina')?.addEventListener('click', tocarBocinaTren);
+
 addEventListener('keydown', (ev) => {
   if (ev.target instanceof HTMLElement && ev.target.closest('input, textarea, select')) return;
   if (ev.key === '+' || ev.key === '=' || ev.code === 'NumpadAdd') {
     ev.preventDefault();
-    aplicarZoomTeclado(0.84);
+    if (enRuta(vistaActiva)) document.getElementById('btnVelMas')?.click();
+    else aplicarZoomTeclado(0.84);
     return;
   }
   if (ev.key === '-' || ev.key === '_' || ev.code === 'NumpadSubtract') {
     ev.preventDefault();
-    aplicarZoomTeclado(1.19);
+    if (enRuta(vistaActiva)) document.getElementById('btnVelMenos')?.click();
+    else aplicarZoomTeclado(1.19);
     return;
   }
   if (ev.code === 'KeyR' && (enRuta(vistaActiva))) {
@@ -2402,14 +2439,9 @@ addEventListener('keydown', (ev) => {
     centrarCamaraRecorrido();
     return;
   }
-  if ((ev.key === '+' || ev.key === '=' || ev.code === 'NumpadAdd') && (enRuta(vistaActiva))) {
+  if (ev.code === 'KeyB' && enRuta(vistaActiva)) {
     ev.preventDefault();
-    document.getElementById('btnVelMas')?.click();
-    return;
-  }
-  if ((ev.key === '-' || ev.key === '_' || ev.code === 'NumpadSubtract') && (enRuta(vistaActiva))) {
-    ev.preventDefault();
-    document.getElementById('btnVelMenos')?.click();
+    tocarBocinaTren();
     return;
   }
   if (ev.code === 'KeyM') {
@@ -2532,31 +2564,21 @@ function salirModoVivo() {
   solVivoDesvio = null;
   document.getElementById('btnIslaVivo')?.setAttribute('aria-pressed', 'false');
 }
-document.getElementById('chkNoche')?.addEventListener('change', (e) => {
-  salirModoVivo();
-  horaSol = e.target.checked ? 'noche' : 'dia';
-  aplicarTema();
-});
 document.getElementById('chkConosCamara')?.addEventListener('change', (e) => {
   conosCamaraActivos = e.target.checked;
   for (const t of teselasCargadas.values()) {
     if (t.meshConosCamara) t.meshConosCamara.visible = conosCamaraActivos;
   }
 });
-for (const b of document.querySelectorAll('#ctrlHoraSol button')) {
-  b.addEventListener('click', () => {
-    salirModoVivo();
-    horaSol = b.dataset.hora || 'dia';
-    aplicarTema();
-  });
-}
-for (const b of document.querySelectorAll('#ctrlClima button')) {
-  b.addEventListener('click', () => {
-    salirModoVivo();
-    climaActual = b.dataset.clima || 'despejado';
-    aplicarTema();
-  });
-}
+document.getElementById('chkBtsModelos')?.addEventListener('change', () => {
+  const kmC = Math.floor(pkActualUI / 1000);
+  for (const km of [...teselasCargadas.keys()]) {
+    if (Math.abs(km - kmC) <= 2) {
+      const t = teselasCargadas.get(km);
+      if (t) { grupoTeselas.remove(t.raiz); teselasCargadas.delete(km); cargarTeselaKm(km); }
+    }
+  }
+});
 
 // UI 4 + UX 5: Isla flotante de controles rápidos y Modo Cine (tecla H)
 const ORDEN_SOL = ['amanecer', 'dia', 'atardecer', 'noche'];
@@ -2614,7 +2636,12 @@ document.getElementById('btnIslaCine')?.addEventListener('click', () => alternar
 addEventListener('keydown', (e) => {
   if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) return;
   if (e.code === 'KeyH') { e.preventDefault(); alternarModoCine(); }
-  else if (e.code === 'Escape' && document.body.classList.contains('modo-cine')) { alternarModoCine(false); }
+  else if (e.code === 'Escape') {
+    const fichaEl = document.getElementById('ficha');
+    if (fichaEl && !fichaEl.hidden) { fichaEl.hidden = true; return; }
+    if (!elPanelTR.hidden) { abrirPanelTR(false); return; }
+    if (document.body.classList.contains('modo-cine')) { alternarModoCine(false); }
+  }
 });
 
 // UI 5: Pulsar brújula orienta al Norte real (-Z)
@@ -2629,17 +2656,18 @@ document.getElementById('btnBrujula')?.addEventListener('click', () => {
     duracion: 520,
   });
 });
-for (const b of document.querySelectorAll('#ctrlFov button')) {
-  b.addEventListener('click', () => {
-    const fov = Number(b.dataset.fov) || 52;
-    camara.fov = fov;
-    camara.updateProjectionMatrix();
-    for (const x of document.querySelectorAll('#ctrlFov button')) {
-      x.classList.toggle('activo', x === b);
-      x.setAttribute('aria-pressed', String(x === b));
-    }
-  });
-}
+  let fovBaseUsuario = 50;
+  for (const b of document.querySelectorAll('#ctrlFov button')) {
+    b.addEventListener('click', () => {
+      fovBaseUsuario = Number(b.dataset.fov) || 50;
+      camara.fov = fovBaseUsuario;
+      camara.updateProjectionMatrix();
+      for (const x of document.querySelectorAll('#ctrlFov button')) {
+        x.classList.toggle('activo', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      }
+    });
+  }
 for (const b of document.querySelectorAll('#ctrlCalidad button')) {
   b.addEventListener('click', () => {
     calidadGrafica = b.dataset.cal || 'alta';
@@ -2753,7 +2781,15 @@ function dibujarTrazoMinimapa(ctx, pts, tipo) {
 
 function actualizarMinimapaOrbital(pkCentro, pendActual) {
   if (!minimapaActivo || !ctxMinimapa || !cvMinimapa) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   const w = 172, h = 172, cx = 86, cy = 86;
+  if (cvMinimapa.width !== w * dpr || cvMinimapa.height !== h * dpr) {
+    cvMinimapa.width = w * dpr;
+    cvMinimapa.height = h * dpr;
+    cvMinimapa.style.width = `${w}px`;
+    cvMinimapa.style.height = `${h}px`;
+  }
+  ctxMinimapa.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctxMinimapa.clearRect(0, 0, w, h);
 
   ctxMinimapa.fillStyle = 'rgba(11, 18, 28, 0.92)';
@@ -2773,7 +2809,7 @@ function actualizarMinimapaOrbital(pkCentro, pendActual) {
   ctxMinimapa.stroke();
 
   const pCentro = Eje3D.enPk(pkCentro);
-  const tang = pCentro.tang || { E: 0, N: 1 };
+  const tang = Number.isFinite(pCentro.tx) && Number.isFinite(pCentro.ty) ? { E: pCentro.tx, N: pCentro.ty } : { E: 0, N: 1 };
   const ang = Math.atan2(tang.E * sentidoRecorrido, tang.N * sentidoRecorrido);
   const cosA = Math.cos(-ang);
   const sinA = Math.sin(-ang);
@@ -2852,6 +2888,11 @@ activarVentanaFlotante(document.getElementById('panelEmplazamientos'), { asa: do
 activarVentanaFlotante(document.getElementById('panelMinimapa'), { asa: document.querySelector('.minimapa-cab'), clave: 'minimapa' });
 activarVentanaFlotante(document.getElementById('pupitreDmi'), { clave: 'dmi' });
 activarVentanaFlotante(document.getElementById('brujula'), { botonPlegar: false });
+activarVentanaFlotante(document.getElementById('panelTrenesReales'), { clave: 'trenesReales' });
+activarVentanaFlotante(document.getElementById('panelMant'), { clave: 'mant' });
+activarVentanaFlotante(document.getElementById('panelInsp'), { clave: 'insp' });
+activarVentanaFlotante(document.getElementById('panelEner'), { clave: 'ener' });
+activarVentanaFlotante(document.getElementById('panelSold'), { clave: 'sold' });
 
 if (window.Camara3D?.configurar) {
   window.Camara3D.configurar(THREE, controles, { camara, escena, dom: render.domElement, limite: 3600 });
@@ -2872,6 +2913,26 @@ const { dibujarPerfil } = crearPerfil({
       irAPk(pk, vistaActiva);
     }
   },
+});
+
+cvPerfil?.addEventListener('keydown', (ev) => {
+  const paso = ev.key === 'ArrowRight' ? 500 : ev.key === 'ArrowLeft' ? -500 : ev.key === 'PageUp' ? 5000 : ev.key === 'PageDown' ? -5000 : 0;
+  let dest = null;
+  if (paso) dest = pkActualUI + paso;
+  else if (ev.key === 'Home') dest = Eje3D.pkIni;
+  else if (ev.key === 'End') dest = Eje3D.pkFin;
+  if (dest === null) return;
+  ev.preventDefault();
+  const pkDest = Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin, dest));
+  if (enRuta(vistaActiva)) {
+    pkRecorrido = pkDest;
+    const p = Eje3D.enPk(pkDest);
+    if (Math.hypot(p.E - origen.E, p.N - origen.N) > 2500) recentrarOrigen(p.E, p.N, p.Z);
+    gestionarStreaming(pkDest);
+    actualizarUI(pkDest);
+  } else {
+    irAPk(pkDest, vistaActiva);
+  }
 });
 
 // ---- Ficha: datos tabulados y coordenadas del punto (PK, distancia al eje, UTM 30N ETRS89, geográficas, cota) ----
@@ -2897,12 +2958,20 @@ function mostrarFicha(capa, nombre, info, filas = [], coord = null) {
   document.getElementById('fichaNombre').textContent = nombre;
   document.getElementById('fichaInfo').textContent = info || '';
   document.getElementById('fichaInfo').hidden = !info;
-  elFichaDatos.replaceChildren(...filas.flatMap(([k, v]) => {
+  const filasFinal = [...filas];
+  if (!filasFinal.some(([k]) => /origen|fuente/i.test(k))) {
+    const txt = `${capa} ${info || ''}`.toLowerCase();
+    const origenDato = txt.includes('supuesto') || txt.includes('tipo') ? 'Geometría tipo / supuesto'
+      : txt.includes('lidar') || txt.includes('mdt') ? 'LiDAR / MDT IGN'
+      : 'Cartografía 3D Adif L042';
+    filasFinal.push(['Origen del dato', origenDato]);
+  }
+  elFichaDatos.replaceChildren(...filasFinal.flatMap(([k, v]) => {
     const dt = document.createElement('dt'); dt.textContent = k;
     const dd = document.createElement('dd'); dd.textContent = v;
     return [dt, dd];
   }));
-  elFichaDatos.hidden = !filas.length;
+  elFichaDatos.hidden = !filasFinal.length;
   coordFicha = coord;
   elFichaAcc.hidden = !coord;
   if (coord) {
@@ -2944,7 +3013,6 @@ const audioObras = crearAudioObras();
     const it = e.target.closest('button');
     if (!it) return;
     abrirMenu(false);
-    audioObras.activar(true);
     if (esMovil()) {
       e.stopPropagation();
       document.querySelector(`#dockMovil [data-hoja="${it.dataset.hojaMovil}"]`)?.click();
@@ -2954,12 +3022,27 @@ const audioObras = crearAudioObras();
   addEventListener('keydown', (e) => { if (e.key === 'Escape') abrirMenu(false); });
   // El botón del menú se marca cuando hay algún modo en marcha
   const marcar = () => {
-    const on = items.some((b) => b.getAttribute('aria-pressed') === 'true');
+    const on = items.some((b) => b.getAttribute('aria-checked') === 'true');
     btn.classList.toggle('activo', on);
     btnDock?.classList.toggle('activo', on);
-    if (!on && audioObras.activo) audioObras.activar(false);
+    if (on && chkSonido.checked) {
+      if (!audioObras.activo) audioObras.activar(true);
+      audioAmbiental.alternarSilencio?.(true);
+    } else if (!on) {
+      if (audioObras.activo) audioObras.activar(false);
+      if (document.getElementById('btnIslaAudio')?.getAttribute('aria-pressed') === 'true') {
+        audioAmbiental.alternarSilencio?.(false);
+      }
+    }
   };
-  new MutationObserver(marcar).observe(menu, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
+  new MutationObserver(marcar).observe(menu, { subtree: true, attributes: true, attributeFilter: ['aria-checked'] });
+  menu.addEventListener('keydown', (e) => {
+    const idx = items.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); items[(idx + 1) % items.length]?.focus(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); items[(idx - 1 + items.length) % items.length]?.focus(); }
+    else if (e.key === 'Home') { e.preventDefault(); items[0]?.focus(); }
+    else if (e.key === 'End') { e.preventDefault(); items[items.length - 1]?.focus(); }
+  });
 }
 
 // ---- Captura HD ----
@@ -2971,6 +3054,31 @@ function capturarPNG() {
   a.click();
 }
 document.getElementById('btnCaptura')?.addEventListener('click', capturarPNG);
+document.getElementById('btnCopiarEnlace')?.addEventListener('click', async (ev) => {
+  const url = new URL(location.href);
+  url.searchParams.set('pk', (pkActualUI / 1000).toFixed(3));
+  url.searchParams.set('vista', vistaActiva);
+  const btn = ev.currentTarget;
+  try {
+    await navigator.clipboard.writeText(url.toString());
+    btn.textContent = '✓ Enlace copiado';
+  } catch {
+    btn.textContent = 'No se pudo copiar';
+  }
+  setTimeout(() => { btn.textContent = '🔗 Copiar enlace'; }, 1600);
+});
+if (typeof prefsVisor.perfil === 'boolean') {
+  const chkP = document.getElementById('chkPerfil');
+  if (chkP) { chkP.checked = prefsVisor.perfil; document.getElementById('barraPerfil').hidden = !prefsVisor.perfil; }
+}
+document.getElementById('chkPerfil')?.addEventListener('change', guardarPrefsVisor);
+for (const idCtrl of ['btnIslaSol', 'btnIslaClima', 'btnModoNoche']) {
+  document.getElementById(idCtrl)?.addEventListener('click', guardarPrefsVisor);
+}
+for (const b of document.querySelectorAll('#ctrlCalidad button')) {
+  if (b.dataset.cal === calidadGrafica && calidadGrafica !== 'alta') b.click();
+  b.addEventListener('click', guardarPrefsVisor);
+}
 addEventListener('keydown', (e) => {
   if (e.code === 'KeyP' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) {
     capturarPNG();
@@ -3098,6 +3206,14 @@ elEmpLista?.addEventListener('click', (ev) => {
 
 function actualizarUI(pk) {
   pkActualUI = pk;
+  if (cvPerfil) {
+    cvPerfil.setAttribute('aria-valuenow', (pk / 1000).toFixed(1));
+    cvPerfil.setAttribute('aria-valuetext', `PK ${fmtPk(pk)}`);
+  }
+  for (const b of botonesSalto) {
+    const pkS = Number(b.dataset.pk);
+    b.setAttribute('aria-pressed', String(Number.isFinite(pkS) && Math.abs(pkS - pk) <= 600));
+  }
   actualizarRadarEmplazamientos(pk);
   const p = Eje3D.enPk(pk);
   const enTun = Boolean(p.enTunel);
@@ -3179,9 +3295,23 @@ function ajustarDisposicion() {
   const radar = document.getElementById('panelEmplazamientos');
   const rR = visible(radar) ? radar.getBoundingClientRect() : null;
   st.setProperty('--der-cab', `${rR && rR.right > innerWidth * 2 / 3 ? Math.round(innerWidth - rR.left + 12) : 12}px`);
+  const isla = document.getElementById('islaRapida');
+  const rIsla = visible(isla) ? isla.getBoundingClientRect() : null;
+  st.setProperty('--top-chips', `${rIsla ? Math.round(rIsla.bottom + 10) : 64}px`);
 }
 addEventListener('resize', ajustarDisposicion);
-setInterval(ajustarDisposicion, 400);
+if (typeof ResizeObserver !== 'undefined') {
+  const roDisp = new ResizeObserver(ajustarDisposicion);
+  for (const id of ['barraPerfil', 'panel', 'abrir', 'badgePkLinea', 'panelEmplazamientos']) {
+    const el = document.getElementById(id);
+    if (el) roDisp.observe(el);
+  }
+}
+const moDisp = new MutationObserver(ajustarDisposicion);
+for (const id of ['barraPerfil', 'panel', 'abrir', 'badgePkLinea', 'panelEmplazamientos']) {
+  const el = document.getElementById(id);
+  if (el) moDisp.observe(el, { attributes: true, attributeFilter: ['hidden', 'class', 'style'] });
+}
 ajustarDisposicion();
 
 // ---- Móvil: barra inferior que abre los paneles plegados de uno en uno (el CSS los oculta sin su clase m-*) ----
@@ -3226,7 +3356,11 @@ ajustarDisposicion();
   }
   // Al abrir el panel lateral se cierran las hojas, para no amontonar
   document.getElementById('abrir')?.addEventListener('click', () => { if (abierta) abrirHoja(abierta); });
-  setInterval(pintarDock, 800);
+  const moDock = new MutationObserver(pintarDock);
+  for (const id of ['cab', 'barraPerfil', 'panelEmplazamientos']) {
+    const el = document.getElementById(id);
+    if (el) moDock.observe(el, { attributes: true, attributeFilter: ['hidden'] });
+  }
   pintarDock();
 }
 
@@ -3241,7 +3375,7 @@ addEventListener('resize', () => {
 
 // ---- Bucle principal en tiempo real ----
 let tPrev = performance.now(), acumUi = 0;
-const pausaTrenes = params.has('quieto') || reducido;
+const pausaTrenes = params.has('quieto');
 const avanceInicial = Number(params.get('avanza') || 0);
 if (avanceInicial > 0) {
   for (const tr of flota) {
@@ -3311,7 +3445,7 @@ function fotograma(ahora) {
   }
   const nearObj = esPasajero(vistaActiva) || cineInterior || (vistaActiva === 'dron' && dronCine && TOMAS_CINE[cine.toma].especial) ? 0.03 : 0.2;
   // Dentro del tren, campo de visión amplio (como el ojo del pasajero); en el dron de cine, la focal de cada plano (zoom)
-  const fovObj = nearObj < 0.1 && (esPasajero(vistaActiva) || cineInterior) ? 72 : vistaActiva === 'dron' && dronCine ? Math.round(cine.fov * 10) / 10 : 50;
+  const fovObj = nearObj < 0.1 && (esPasajero(vistaActiva) || cineInterior) ? 72 : vistaActiva === 'dron' && dronCine ? Math.round(cine.fov * 10) / 10 : fovBaseUsuario;
   if (camara.near !== nearObj || camara.fov !== fovObj) { camara.near = nearObj; camara.fov = fovObj; camara.updateProjectionMatrix(); }
   trafico?.actualizar(dt, utmCam);
   laguna.actualizar(dt, utmCam);
@@ -3321,7 +3455,7 @@ function fotograma(ahora) {
   if (enRuta(vistaActiva)) {
     const vLimKmh = Eje3D.velocidadLimite(pkRecorrido);
     const pPend = Eje3D.enPk(pkRecorrido).pend * sentidoRecorrido;
-    const vObjKmh = Math.max(60, Math.min(300, vLimKmh - Math.max(0, pPend) * 0.35));
+    const vObjKmh = Math.max(30, Math.min(300, vLimKmh - Math.max(0, pPend) * 0.35));
     velCabinaKmh += (vObjKmh - velCabinaKmh) * Math.min(1, dt * 1.4);
     const velBase = velCabinaKmh / 3.6;
     if (elDmiVmax) elDmiVmax.textContent = String(vLimKmh);

@@ -31,17 +31,17 @@
       // Palabra en minúsculas, gruesa y con los remates inclinados del logotipo de Renfe
       x.translate(cx, cy); x.transform(1, 0, -0.2, 1, 0, 0);
       x.fillStyle = blanco ? '#ffffff' : COLOR.renfe; x.font = `800 ${h}px "Segoe UI", "Trebuchet MS", Arial, sans-serif`;
-      try { x.letterSpacing = `${-h * 0.03}px`; } catch (e) { /* sin letterSpacing */ }
+      try { x.letterSpacing = `${-h * 0.03}px`; } catch { /* sin letterSpacing */ }
       x.fillText('renfe', 0, h * 0.04);
     } else if (marca === 'ouigo') {
       // Círculo magenta con OUIGO en blanco
       x.fillStyle = COLOR.ouigo; x.beginPath(); x.arc(cx, cy, h * 0.58, 0, 7); x.fill();
       x.fillStyle = '#ffffff'; x.font = `800 ${h * 0.34}px "Arial Rounded MT Bold", "Segoe UI", Arial, sans-serif`;
-      try { x.letterSpacing = `${-h * 0.01}px`; } catch (e) { /* */ }
+      try { x.letterSpacing = `${-h * 0.01}px`; } catch { /* */ }
       x.fillText('OUIGO', cx, cy + h * 0.02);
     } else if (marca === 'iryo') {
       x.fillStyle = blanco ? '#ffffff' : COLOR.iryo; x.font = `900 ${h}px "Segoe UI Black", "Arial Black", "Segoe UI", Arial, sans-serif`;
-      try { x.letterSpacing = `${-h * 0.06}px`; } catch (e) { /* */ }
+      try { x.letterSpacing = `${-h * 0.06}px`; } catch { /* */ }
       x.fillText('iryo', cx, cy);
     }
     x.restore();

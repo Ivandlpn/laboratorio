@@ -258,7 +258,9 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
     const p = Eje3D.enPk(pk);
     const hito = hitoCercano(pk);
     const pend = `${p.pend >= 0 ? '+' : ''}${p.pend.toFixed(1)} ‰`;
-    tip.textContent = `PK ${fmtPkCorto(pk)} · ${p.Z.toFixed(0)} m · ${pend}${hito ? ' · ' + hito : ''}`;
+    const radio = Math.abs(p.curv) > 1e-4 ? `R ${Math.round(1 / Math.abs(p.curv))} m` : 'Recta';
+    const vmax = Eje3D.velocidadLimite ? ` · ${Eje3D.velocidadLimite(pk)} km/h` : '';
+    tip.textContent = `PK ${fmtPkCorto(pk)} · ${p.Z.toFixed(0)} m · ${pend} · ${radio}${vmax}${hito ? ' · ' + hito : ''}`;
     tip.style.left = `${Math.max(8, Math.min(92, u * 100)).toFixed(1)}%`;
     tip.hidden = false;
     dibujarPerfil(ultimoPkActual);
