@@ -63,17 +63,17 @@
   {
    "id": "ic",
    "nombre": "Control de tráfico (IC)",
-   "descripcion": "Esquema de instalaciones de control de tráfico: vector sin texto extraíble (letras trazadas como curvas), pendiente de OCR.",
+   "descripcion": "Esquema de instalaciones de control de tráfico: señales, circuitos de vía, balizas ETCS y ASFA, casetas y puestos. Texto leído con OCR.",
    "fichero": "Tira IC ALBALI.pdf",
    "hojas": 25,
-   "pkMin": null,
-   "pkMax": null,
-   "pkFiabilidad": "ninguna",
-   "conTexto": false,
-   "elementos": 0,
+   "pkMin": 316387,
+   "pkMax": 485975,
+   "pkFiabilidad": "aproximada",
+   "conTexto": true,
+   "elementos": 4066,
    "color": "#6b96cf",
    "icono": "activity",
-   "generado": "2026-11-13"
+   "generado": "2026-11-18"
   }
  ]
 }

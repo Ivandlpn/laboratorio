@@ -1,25 +1,30 @@
 // Service Worker para VISOR MDC (Monforte del Cid) (PWA & Modo Campo Offline)
-const CACHE_NAME = 'visor-mdc-pwa-v1';
+const CACHE_NAME = 'visor-mdc-pwa-v2';
 const CACHE_CLIMA = 'visor-mdc-clima-cache';
 
 const PRECACHE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/favicon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/og-image.png',
-  '/version.json',
-  '/data/provincias.geojson',
-  '/data/nacional.geojson'
+  './',
+  './index.html',
+  './manifest.json',
+  './favicon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './version.json',
+  './data/provincias.geojson',
+  './data/sensors.json',
 ];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
+      return Promise.allSettled(
+        PRECACHE_ASSETS.map((asset) =>
+          fetch(asset, { cache: 'reload' }).then((res) => {
+            if (res.ok) return cache.put(asset, res);
+          })
+        )
+      ).catch((err) => {
         console.warn('Fallo parcial en precache inicial PWA:', err);
       });
     })
@@ -96,7 +101,7 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => caches.match('/index.html') || caches.match(event.request))
+        .catch(async () => (await caches.match('./index.html')) || (await caches.match(event.request)))
     );
     return;
   }
