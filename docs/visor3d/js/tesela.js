@@ -1203,24 +1203,34 @@ export function crearGestorTeselas(ctx) {
         };
         if (usarPostesCarto) {
           postesCarto.forEach((f, iP) => {
-            const c = f.geometry.coordinates, [E, N] = lonlatAUTM(c[0], c[1]);
-            const q = Eje3D.proyUTM(E, N);
+            const c = f.geometry.coordinates, [E0, N0] = lonlatAUTM(c[0], c[1]);
+            const q = Eje3D.proyUTM(E0, N0);
             if (q.enTunel || q.d < 3.2) return;
             if (PASOS_SUP.some((ps) => Math.abs(ps.pk - q.pk) < 16 && q.d < 5.8)) return;
             if (Eje3D.tuneles.some((t) => Math.min(Math.abs(q.pk - t.pkIni), Math.abs(q.pk - t.pkFin)) < 14 && q.d < 6.5)) return;
             const m = Eje3D.enPk(q.pk), yaw = Math.atan2(m.ty, m.tx), nx = -m.ty, ny = m.tx;
-            const s = Math.sign((E - m.E) * nx + (N - m.N) * ny) || 1;   // lado de la vía (+ izquierda)
-            const zBase = Number.isFinite(f.properties.z) && f.properties.z > 5 ? f.properties.z : m.Z - 0.35;
+            const s = Math.sign((E0 - m.E) * nx + (N0 - m.N) * ny) || 1;   // lado de la vía (+ izquierda)
+            // La peana cilíndrica (r = 0,43 m) va siempre al interior de la canaleta (offCan - 0,26 m) y adosada a ella, nunca encima
+            const offCan = m.sep * 0.5 + 3.57;
+            const maxDInterior = offCan - 0.69;
+            let E = E0, N = N0, dPoste = q.d;
+            if (!m.enViaducto && q.pk <= PK_TERMINAL && q.d > maxDInterior && q.d < offCan + 0.70) {
+              dPoste = maxDInterior;
+              E = m.E + nx * s * dPoste;
+              N = m.N + ny * s * dPoste;
+            }
+            let zBase = Number.isFinite(f.properties.z) && f.properties.z > 5 ? f.properties.z : m.Z - 0.14;
+            if (!m.enViaducto && q.pk <= PK_TERMINAL && dPoste <= 8.5) zBase = Math.max(zBase, m.Z - 0.14);
             const mtP = matInst(L(E, N, zBase), yaw);
             inst.poste.push(mtP);
             inst.cimientoPoste.push(mtP);
             inst.placaPoste.push(mtP);
-            if (q.d <= 12) agregarPlacaPkPoste(E, N, zBase, m.tx, m.ty, yaw, q.pk, s);
+            if (dPoste <= 12) agregarPlacaPkPoste(E, N, zBase, m.tx, m.ty, yaw, q.pk, s);
             if (q.pk > PK_TERMINAL) { mensulaTerminal(E, N, f.properties.g); return; }
-            if (q.d > 12) return; // poste de otra línea o de un ramal: sin ménsula hacia esta vía
+            if (dPoste > 12) return; // poste de otra línea o de un ramal: sin ménsula hacia esta vía
             if (iP % 20 === 0) inst.contrapeso.push(mtP);
             // Ménsula desde el poste hasta el eje de la vía más cercana (a sep/2 del eje de la línea)
-            const alcance = Math.max(1.2, q.d - m.sep * 0.5 - s * Catenaria.descentramiento(q.pk, s));
+            const alcance = Math.max(1.2, dPoste - m.sep * 0.5 - s * Catenaria.descentramiento(q.pk, s));
             const zHilo = m.Z;
             const pMen = L(E - nx * s * alcance * 0.5, N - ny * s * alcance * 0.5, zHilo + 5.55);
             inst.mensula.push(matInst(pMen, yaw + (s > 0 ? Math.PI * 0.5 : -Math.PI * 0.5), alcance, 1, 1));
@@ -1260,13 +1270,13 @@ export function crearGestorTeselas(ctx) {
             // Postes HEB y equipos de compensación cada 20 vanos, solo donde la cartografía no trae postes
             if (!usarPostesCarto && a >= pk0 && a < pk1 && !mA.enTunel) {
               const yaw = Math.atan2(mA.ty, mA.tx), nx = -mA.ty, ny = mA.tx;
-              const offPoste = s * (mA.sep * 0.5 + 2.9);
-              const alcance = 2.9 - s * desc(a, s);
-              const mtP = matInst(L(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.35), yaw);
+              const offPoste = s * (mA.sep * 0.5 + 2.88);
+              const alcance = 2.88 - s * desc(a, s);
+              const mtP = matInst(L(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.14), yaw);
               inst.poste.push(mtP);
               inst.cimientoPoste.push(mtP);
               inst.placaPoste.push(mtP);
-              agregarPlacaPkPoste(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.35, mA.tx, mA.ty, yaw, a, s);
+              agregarPlacaPkPoste(mA.E + nx * offPoste, mA.N + ny * offPoste, mA.Z - 0.14, mA.tx, mA.ty, yaw, a, s);
               if (Math.round(a / 55) % 20 === 0) inst.contrapeso.push(mtP);
               const oM = offPoste - s * alcance * 0.5;
               inst.mensula.push(matInst(L(mA.E + nx * oM, mA.N + ny * oM, mA.Z + 5.55), yaw + (s > 0 ? Math.PI * 0.5 : -Math.PI * 0.5), alcance, 1, 1));

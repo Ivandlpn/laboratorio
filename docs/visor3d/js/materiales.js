@@ -425,7 +425,7 @@ export function crearMateriales({ conHuecos }) {
       g.userData.compartida = true;
       return g;
     })(),
-    cimientoPoste: (() => { const g = new THREE.BoxGeometry(0.76, 0.68, 0.76).translate(0, 0.12, 0); g.userData.compartida = true; return g; })(),
+    cimientoPoste: (() => { const g = new THREE.CylinderGeometry(0.43, 0.43, 0.48, 20).translate(0, -0.24, 0); g.userData.compartida = true; return g; })(),
     placaPoste: (() => { const g = new THREE.BoxGeometry(0.34, 0.44, 0.34).translate(0, 3.6, 0); g.userData.compartida = true; return g; })(),
     // Equipo de compensación mecánica por contrapesos y polea en seccionamientos de catenaria EAC-350
     contrapeso: (() => {
