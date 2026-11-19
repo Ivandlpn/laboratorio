@@ -2178,6 +2178,8 @@ export function crearGestorTeselas(ctx) {
           }
         }
         for (const t of torresUnicas) {
+          // En ATI, ATF y subestaciones no existen torres de celosía de línea eléctrica: solo los pórticos hacia la vía
+          if ((CENTROS_TRACCION_CORREDOR || []).some((ct) => Math.abs(ct.pk - km * 1000 - 500) < 1500 && dentroMarco(t.E, t.N, ct.recinto, 4))) continue;
           let yaw = Number.isFinite(t.giro) ? (t.giro * Math.PI) / 180 : null;
           if (yaw == null) {
             let bestD = 30;
