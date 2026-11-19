@@ -2,13 +2,16 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0284c7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
   <title>Arenales Clima · Estación Meteorológica & Webcam Arenales del Sol</title>
   <meta name="description" content="Visualización meteorológica y marítima profesional e interactiva de Arenales del Sol (Elche). Observación en tiempo real, webcam costera, radar de tormentas, oleaje y alertas AEMET.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
 </head>
 <body>
   <!-- Ambient background lighting -->
@@ -49,7 +52,7 @@
 
       <div class="header-actions">
         <!-- Ambient Sound button -->
-        <button id="btnAmbientSound" class="btn-action btn-sound" title="Sonido ambiente de brisa y olas relajantes" aria-label="Sonido ambiente">
+        <button type="button" id="btnAmbientSound" class="btn-action btn-sound" title="Sonido ambiente de brisa y olas relajantes" aria-label="Sonido ambiente">
           <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" class="icon-sound">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
             <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
@@ -58,7 +61,7 @@
         </button>
 
         <!-- Share button -->
-        <button id="btnShare" class="btn-action btn-icon" title="Compartir parte meteorológico" aria-label="Compartir">
+        <button type="button" id="btnShare" class="btn-action btn-icon" title="Compartir parte meteorológico" aria-label="Compartir">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         </button>
 
@@ -67,11 +70,11 @@
           <span class="live-text" id="liveText">En directo</span>
         </div>
 
-        <button id="btnUnitToggle" class="btn-action" title="Cambiar unidades (°C / °F)" aria-label="Cambiar unidades">
+        <button type="button" id="btnUnitToggle" class="btn-action" title="Cambiar unidades (°C / °F)" aria-label="Cambiar unidades">
           <span id="unitText">°C · km/h</span>
         </button>
 
-        <button id="btnRefresh" class="btn-action btn-icon" title="Actualizar datos" aria-label="Actualizar datos">
+        <button type="button" id="btnRefresh" class="btn-action btn-icon" title="Actualizar datos" aria-label="Actualizar datos">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
           </svg>
@@ -88,37 +91,37 @@
           <p class="alert-desc" id="alertDesc">Condiciones especiales en el litoral de Elche.</p>
         </div>
       </div>
-      <button class="alert-btn" id="btnAlertDetails">Ver aviso completo</button>
+      <button type="button" class="alert-btn" id="btnAlertDetails">Ver aviso completo</button>
     </aside>
 
     <!-- Navigation Tabs (PC & Tablet Header) -->
     <nav class="nav-tabs" aria-label="Secciones">
-      <button class="tab-btn active" data-tab="tab-overview">
+      <button type="button" role="tab" aria-selected="true" class="tab-btn active" data-tab="tab-overview">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span>Observación</span>
       </button>
-      <button class="tab-btn" data-tab="tab-webcam">
+      <button type="button" role="tab" aria-selected="false" class="tab-btn" data-tab="tab-webcam">
         <span class="webcam-live-indicator"></span>
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
         <span>Webcam Litoral</span>
       </button>
-      <button class="tab-btn" data-tab="tab-hourly">
+      <button type="button" role="tab" aria-selected="false" class="tab-btn" data-tab="tab-hourly">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>Por Horas (48h)</span>
       </button>
-      <button class="tab-btn" data-tab="tab-daily">
+      <button type="button" role="tab" aria-selected="false" class="tab-btn" data-tab="tab-daily">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         <span>7 Días</span>
       </button>
-      <button class="tab-btn" data-tab="tab-radar">
+      <button type="button" role="tab" aria-selected="false" class="tab-btn" data-tab="tab-radar">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6a6 6 0 1 0 6 6 6 6 0 0 0-6-6zm0 10a4 4 0 1 1 4-4 4 4 0 0 1-4 4z"/><line x1="12" y1="12" x2="19" y2="5"/></svg>
         <span>Radar de Tormentas</span>
       </button>
-      <button class="tab-btn" data-tab="tab-beach">
+      <button type="button" role="tab" aria-selected="false" class="tab-btn" data-tab="tab-beach">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M2 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><circle cx="12" cy="7" r="4"/></svg>
         <span>Playa & Mar</span>
       </button>
-      <button class="tab-btn" data-tab="tab-alerts">
+      <button type="button" role="tab" aria-selected="false" class="tab-btn" data-tab="tab-alerts">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <span>Alertas</span>
       </button>
@@ -434,9 +437,9 @@
                   <circle r="10" fill="#f59e0b" stroke="#ffffff" stroke-width="2"/>
                   <circle r="18" fill="none" stroke="rgba(245, 158, 11, 0.4)" stroke-width="2" class="pulsing-halo"/>
                 </g>
-                <text x="20" y="128" fill="#64748b" font-size="10" font-weight="600">07:35 Orto</text>
-                <text x="160" y="128" text-anchor="middle" fill="#0284c7" font-size="10" font-weight="700">Mediodía: 12:47</text>
-                <text x="300" y="128" text-anchor="end" fill="#64748b" font-size="10" font-weight="600">17:58 Ocaso</text>
+                <text id="svgSunriseLabel" x="20" y="128" fill="#64748b" font-size="10" font-weight="600">--:-- Orto</text>
+                <text id="svgNoonLabel" x="160" y="128" text-anchor="middle" fill="#0284c7" font-size="10" font-weight="700">Mediodía: --:--</text>
+                <text id="svgSunsetLabel" x="300" y="128" text-anchor="end" fill="#64748b" font-size="10" font-weight="600">--:-- Ocaso</text>
               </svg>
               
               <div class="golden-hour-badge" id="goldenHourBadge">
@@ -533,14 +536,14 @@
             </div>
             <div class="webcam-actions">
               <span class="cam-timestamp" id="camTimestamp">Emisión en tiempo real</span>
-              <a href="https://www.algarapictures.com/webcam?fbclid=IwAR17zQDWZWe9yalqzfuT9CiXiQFWN-ItRuv_rj3hWBx_Z9wUthAHrMBByi0" target="_blank" rel="noopener noreferrer" class="btn-action btn-algara-link" title="Abrir en Algara Pictures">
+              <a href="https://www.algarapictures.com/webcam" target="_blank" rel="noopener noreferrer" class="btn-action btn-algara-link" title="Abrir en Algara Pictures">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                 <span>Ver en Algara Pictures</span>
               </a>
-              <button id="btnCamRefresh" class="btn-action btn-icon" title="Refrescar transmisión en vivo" aria-label="Refrescar cámara">
+              <button type="button" id="btnCamRefresh" class="btn-action btn-icon" title="Refrescar transmisión en vivo" aria-label="Refrescar cámara">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
               </button>
-              <button id="btnCamFullscreen" class="btn-action btn-icon" title="Pantalla completa" aria-label="Pantalla completa">
+              <button type="button" id="btnCamFullscreen" class="btn-action btn-icon" title="Pantalla completa" aria-label="Pantalla completa">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
               </button>
             </div>
@@ -549,7 +552,7 @@
           <!-- Video / Stream Viewport con elemento Video HTML5 exacto y reproductor oficial -->
           <div class="webcam-viewport" id="webcamViewport">
             <!-- Video HTML5 exacto de la emisión Skyline / Algara Pictures -->
-            <video data-html5-video="" poster="//cdn.skylinewebcams.com/_6147.jpg" preload="metadata" playsinline="playsinline" style="object-fit: fill;" src="blob:https://www.skylinewebcams.com/28449664-c47d-41b5-9456-bfcecb4887f3"><style class="clappr-style">[data-html5-video]{position:absolute;height:100%;width:100%;display:block}</style></video>
+            <video data-html5-video="" poster="https://cdn.skylinewebcams.com/_6147.jpg" preload="metadata" playsinline="playsinline" muted style="object-fit: cover;"><style class="clappr-style">[data-html5-video]{position:absolute;height:100%;width:100%;display:block}</style></video>
 
             <!-- Iframe oficial Skyline / Algara Pictures para streaming en vivo activo -->
             <iframe 
@@ -596,7 +599,7 @@
               <span>Webcam exclusiva del litoral de Arenales del Sol, Elche · Retransmisión oficial de <strong>Algara Pictures</strong>.</span>
             </div>
             <div class="cam-external-link">
-              <a href="https://www.algarapictures.com/webcam?fbclid=IwAR17zQDWZWe9yalqzfuT9CiXiQFWN-ItRuv_rj3hWBx_Z9wUthAHrMBByi0" target="_blank" rel="noopener noreferrer" class="link-external-cam">
+              <a href="https://www.algarapictures.com/webcam" target="_blank" rel="noopener noreferrer" class="link-external-cam">
                 <span>Abrir en www.algarapictures.com</span>
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
               </a>
@@ -1003,28 +1006,28 @@
 
     <!-- Mobile Bottom Navigation Bar (Thumb Zone UX) -->
     <nav class="mobile-bottom-nav" aria-label="Navegación móvil">
-      <button class="mb-nav-btn active" data-tab="tab-overview">
+      <button type="button" class="mb-nav-btn active" data-tab="tab-overview">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         <span>Hoy</span>
       </button>
-      <button class="mb-nav-btn" data-tab="tab-webcam">
+      <button type="button" class="mb-nav-btn" data-tab="tab-webcam">
         <span class="mb-cam-dot"></span>
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
         <span>Webcam</span>
       </button>
-      <button class="mb-nav-btn" data-tab="tab-hourly">
+      <button type="button" class="mb-nav-btn" data-tab="tab-hourly">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <span>Horas</span>
       </button>
-      <button class="mb-nav-btn" data-tab="tab-radar">
+      <button type="button" class="mb-nav-btn" data-tab="tab-radar">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><line x1="12" y1="12" x2="19" y2="5"/></svg>
         <span>Radar</span>
       </button>
-      <button class="mb-nav-btn" data-tab="tab-beach">
+      <button type="button" class="mb-nav-btn" data-tab="tab-beach">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 18c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><circle cx="12" cy="7" r="4"/></svg>
         <span>Playa</span>
       </button>
-      <button class="mb-nav-btn" data-tab="tab-alerts">
+      <button type="button" class="mb-nav-btn" data-tab="tab-alerts">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
         <span>Alertas</span>
       </button>

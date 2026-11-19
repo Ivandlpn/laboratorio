@@ -51,6 +51,9 @@
     unit: 'C',
     weatherData: null,
     marineData: null,
+    aqiData: null,
+    multiModelData: null,
+    atmoRunning: false,
     activeTab: 'tab-overview',
     radarPlaying: false,
     radarInterval: null,
@@ -228,14 +231,18 @@
     const liveText = document.getElementById('liveText');
     const spot = SPOTS[state.spotKey] || SPOTS.arenales;
 
-    const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cape&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max&timezone=Europe%2FMadrid&forecast_days=7`;
-    const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lon}&current=wave_height,wave_direction,wave_period`;
+    const apiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,weather_code,cloud_cover,pressure_msl,surface_pressure,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,pressure_msl,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m,uv_index,cape&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,sunrise,sunset,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max&timezone=Europe%2FMadrid&forecast_days=7`;
+    const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${spot.lat}&longitude=${spot.lon}&current=wave_height,wave_direction,wave_period,sea_surface_temperature`;
+    const multiModelUrl = `https://api.open-meteo.com/v1/forecast?latitude=${spot.lat}&longitude=${spot.lon}&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,temperature_2m&models=ecmwf_ifs025,gfs_seamless,icon_seamless&timezone=Europe%2FMadrid&forecast_days=2`;
+    const aqiUrl = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${spot.lat}&longitude=${spot.lon}&current=european_aqi,pm10,pm2_5`;
 
     try {
-      liveText.textContent = 'Actualizando...';
-      const [wRes, mRes] = await Promise.allSettled([
+      if (liveText) liveText.textContent = 'Actualizando...';
+      const [wRes, mRes, mmRes, aqiRes] = await Promise.allSettled([
         fetch(apiUrl),
-        fetch(marineUrl)
+        fetch(marineUrl),
+        fetch(multiModelUrl),
+        fetch(aqiUrl)
       ]);
 
       if (wRes.status === 'fulfilled' && wRes.value.ok) {
@@ -247,10 +254,22 @@
       if (mRes.status === 'fulfilled' && mRes.value.ok) {
         state.marineData = await mRes.value.json();
       } else {
-        state.marineData = { current: { wave_height: 0.32, wave_period: 6.8, wave_direction: 78 } };
+        state.marineData = { current: { wave_height: 0.32, wave_period: 6.8, wave_direction: 78, sea_surface_temperature: null } };
       }
 
-      liveText.textContent = 'En directo';
+      if (mmRes.status === 'fulfilled' && mmRes.value.ok) {
+        state.multiModelData = await mmRes.value.json();
+      } else {
+        state.multiModelData = null;
+      }
+
+      if (aqiRes.status === 'fulfilled' && aqiRes.value.ok) {
+        state.aqiData = await aqiRes.value.json();
+      } else {
+        state.aqiData = null;
+      }
+
+      if (liveText) liveText.textContent = 'En directo';
     } catch (err) {
       console.warn('Usando dataset litoral para ' + spot.name, err);
       state.weatherData = getFallbackData(spot);
@@ -330,13 +349,28 @@
       progress = 0;
     }
 
+    const svgRise = document.getElementById('svgSunriseLabel');
+    const svgNoon = document.getElementById('svgNoonLabel');
+    const svgSet = document.getElementById('svgSunsetLabel');
+    if (svgRise) svgRise.textContent = `${fmt(tRise)} Orto`;
+    if (svgNoon) svgNoon.textContent = `Mediodía: ${fmt(tNoon)}`;
+    if (svgSet) svgSet.textContent = `${fmt(tSet)} Ocaso`;
+
     const sunInd = document.getElementById('sunPositionIndicator');
+    const sunProg = document.getElementById('sunArcProgress');
+    const angle = Math.PI - progress * Math.PI;
+    const cx = 160, cy = 115, rx = 140, ry = 100;
+    const sx = cx + rx * Math.cos(angle);
+    const sy = cy - ry * Math.sin(angle);
     if (sunInd) {
-      const angle = Math.PI - progress * Math.PI;
-      const cx = 160, cy = 115, rx = 140, ry = 100;
-      const sx = cx + rx * Math.cos(angle);
-      const sy = cy - ry * Math.sin(angle);
       sunInd.setAttribute('transform', `translate(${sx.toFixed(1)}, ${sy.toFixed(1)})`);
+    }
+    if (sunProg) {
+      if (progress <= 0.01) {
+        sunProg.setAttribute('d', 'M 20 115');
+      } else {
+        sunProg.setAttribute('d', `M 20 115 A 140 100 0 0 1 ${sx.toFixed(1)} ${sy.toFixed(1)}`);
+      }
     }
 
     const phase = ((d % 29.53058867) + 29.53058867) % 29.53058867;
@@ -355,6 +389,16 @@
     const elMoonIllum = document.getElementById('moonIllumText');
     if (elMoonName) elMoonName.textContent = phaseName;
     if (elMoonIllum) elMoonIllum.textContent = `Iluminación: ${(fraction * 100).toFixed(0)}% · Edad: ${phase.toFixed(0)} días`;
+
+    const moonPath = document.getElementById('moonPhasePath');
+    if (moonPath) {
+      const r = 17, cxm = 20, cym = 20;
+      const rxTerm = Math.abs(Math.cos(2 * Math.PI * phaseFraction)) * r;
+      const waxing = phaseFraction <= 0.5;
+      const sweepOuter = waxing ? 1 : 0;
+      const sweepInner = (phaseFraction <= 0.25 || (phaseFraction > 0.5 && phaseFraction <= 0.75)) ? (waxing ? 0 : 1) : (waxing ? 1 : 0);
+      moonPath.setAttribute('d', `M ${cxm} ${cym - r} A ${r} ${r} 0 0 ${sweepOuter} ${cxm} ${cym + r} A ${rxTerm.toFixed(2)} ${r} 0 0 ${sweepInner} ${cxm} ${cym - r}`);
+    }
   }
 
   // 2. Breezy Weather Bioclimatics
@@ -383,6 +427,20 @@
     if (elSafe) elSafe.textContent = safeMinutes;
     if (elHumidex) elHumidex.textContent = `${humidex.toFixed(1)} °C`;
     if (elDew) elDew.textContent = `${dewPoint.toFixed(1)} °C`;
+
+    const aqiValEl = document.getElementById('aqiVal');
+    if (aqiValEl) {
+      const aqi = state.aqiData?.current?.european_aqi;
+      if (typeof aqi === 'number') {
+        let label = 'Excelente', color = '#16a34a';
+        if (aqi > 80) { label = 'Mala'; color = '#dc2626'; }
+        else if (aqi > 60) { label = 'Regular'; color = '#d97706'; }
+        else if (aqi > 40) { label = 'Moderada'; color = '#0284c7'; }
+        else if (aqi > 20) { label = 'Buena'; color = '#16a34a'; }
+        aqiValEl.textContent = `${label} (${Math.round(aqi)})`;
+        aqiValEl.style.color = color;
+      }
+    }
   }
 
   // 3. Windguru Arenales Spot 6756 & Unit Toggle
@@ -404,38 +462,102 @@
     return kmh.toFixed(1);
   }
 
+  function getCompassShort(deg) {
+    const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    return dirs[Math.round(((deg % 360) / 22.5)) % 16];
+  }
+
+  function findCurrentHourIndex(times) {
+    if (!Array.isArray(times) || !times.length) return 0;
+    const nowMs = Date.now();
+    let bestIdx = 0, bestDiff = Infinity;
+    for (let i = 0; i < times.length; i++) {
+      const diff = Math.abs(new Date(times[i]).getTime() - nowMs);
+      if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+    }
+    return bestIdx;
+  }
+
   function renderWindguruSpot() {
     renderWindguruHourlyTable();
     const unit = state.windUnit || 'kmh';
     const unitSuffix = unit === 'knots' ? 'kn' : (unit === 'bft' ? '' : 'km/h');
     const cur = state.weatherData?.current || {};
-    const baseKmh = cur.wind_speed_10m || 11;
-    const baseGustKmh = cur.wind_gusts_10m || 19;
+    const mm = state.multiModelData?.hourly;
+    const idx = mm?.time ? findCurrentHourIndex(mm.time) : 0;
 
-    const elE1 = document.getElementById('wgEcmwfSpeed');
-    const elE2 = document.getElementById('wgUnitLabel1');
-    const elE3 = document.getElementById('wgEcmwfGust');
-    if (elE1) elE1.textContent = convertWind(baseKmh, unit);
-    if (elE2) elE2.textContent = `${unitSuffix} (${(baseKmh/1.852).toFixed(0)} kn)`;
-    if (elE3) elE3.textContent = `Rachas: ${convertWind(baseGustKmh, unit)} ${unitSuffix}`;
+    const getModelVals = (suffix, fallbackMult) => {
+      const spd = mm?.[`wind_speed_10m_${suffix}`]?.[idx];
+      const gst = mm?.[`wind_gusts_10m_${suffix}`]?.[idx];
+      const dir = mm?.[`wind_direction_10m_${suffix}`]?.[idx];
+      return {
+        speed: typeof spd === 'number' ? spd : (cur.wind_speed_10m ?? 11) * fallbackMult,
+        gust: typeof gst === 'number' ? gst : (cur.wind_gusts_10m ?? 19) * fallbackMult,
+        deg: typeof dir === 'number' ? dir : (cur.wind_direction_10m ?? 155)
+      };
+    };
 
-    const elG1 = document.getElementById('wgGfsSpeed');
-    const elG2 = document.getElementById('wgUnitLabel2');
-    const elG3 = document.getElementById('wgGfsGust');
-    if (elG1) elG1.textContent = convertWind(baseKmh * 0.95, unit);
-    if (elG2) elG2.textContent = `${unitSuffix} (${(baseKmh*0.95/1.852).toFixed(0)} kn)`;
-    if (elG3) elG3.textContent = `Rachas: ${convertWind(baseGustKmh * 0.9, unit)} ${unitSuffix}`;
+    const ecmwf = getModelVals('ecmwf_ifs025', 1.0);
+    const gfs = getModelVals('gfs_seamless', 0.95);
+    const icon = getModelVals('icon_seamless', 0.90);
 
-    const elI1 = document.getElementById('wgIconSpeed');
-    const elI2 = document.getElementById('wgUnitLabel3');
-    const elI3 = document.getElementById('wgIconGust');
-    if (elI1) elI1.textContent = convertWind(baseKmh * 0.85, unit);
-    if (elI2) elI2.textContent = `${unitSuffix} (${(baseKmh*0.85/1.852).toFixed(0)} kn)`;
-    if (elI3) elI3.textContent = `Rachas: ${convertWind(baseGustKmh * 0.85, unit)} ${unitSuffix}`;
+    const applyModelCard = (prefix, labelIdx, model) => {
+      const elSpd = document.getElementById(`wg${prefix}Speed`);
+      const elLbl = document.getElementById(`wgUnitLabel${labelIdx}`);
+      const elGst = document.getElementById(`wg${prefix}Gust`);
+      const elArr = document.getElementById(`wg${prefix}Arrow`);
+      const elDir = document.getElementById(`wg${prefix}Dir`);
+      if (elSpd) elSpd.textContent = convertWind(model.speed, unit);
+      if (elLbl) elLbl.textContent = `${unitSuffix} (${(model.speed / 1.852).toFixed(0)} kn)`.trim();
+      if (elGst) elGst.textContent = `Rachas: ${convertWind(model.gust, unit)} ${unitSuffix}`.trim();
+      if (elArr) elArr.style.transform = `rotate(${Math.round(model.deg + 180)}deg)`;
+      if (elDir) elDir.textContent = `${getCompassShort(model.deg)} · ${getWindName(model.deg)}`;
+    };
+
+    applyModelCard('Ecmwf', 1, ecmwf);
+    applyModelCard('Gfs', 2, gfs);
+    applyModelCard('Icon', 3, icon);
+
+    // Dynamic nautical sports suitability matrix
+    const waveH = state.marineData?.current?.wave_height ?? 0.3;
+    const knots = ecmwf.speed / 1.852;
+    const setSport = (id, text, cls) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      el.className = `sc-rating ${cls}`;
+    };
+
+    if (waveH > 1.5 || knots > 24) {
+      setSport('sportBano', 'Peligroso', 'poor');
+      setSport('sportSup', 'No apto', 'poor');
+      setSport('sportKayak', 'Complicado', 'poor');
+    } else if (waveH > 0.6 || knots > 15) {
+      setSport('sportBano', 'Precaución', 'fair');
+      setSport('sportSup', 'Olas / Viento', 'fair');
+      setSport('sportKayak', 'Moderado', 'fair');
+    } else {
+      setSport('sportBano', 'Excelente', 'good');
+      setSport('sportSup', knots < 8 ? 'Ideal' : 'Aceptable', knots < 8 ? 'good' : 'fair');
+      setSport('sportKayak', 'Óptimo', 'good');
+    }
+
+    if (knots >= 18) {
+      setSport('sportWindsurf', 'Óptimo ★★★', 'good');
+      setSport('sportKite', 'Condición Top', 'good');
+    } else if (knots >= 12) {
+      setSport('sportWindsurf', 'Planeo ★★', 'good');
+      setSport('sportKite', 'Vela Grande ★', 'fair');
+    } else if (knots >= 8) {
+      setSport('sportWindsurf', 'Vela Grande ★', 'fair');
+      setSport('sportKite', 'Foil / Marginal', 'fair');
+    } else {
+      setSport('sportWindsurf', 'Insuficiente 0★', 'poor');
+      setSport('sportKite', 'Insuficiente', 'poor');
+    }
   }
 
-
-  // Windguru Hourly Synoptic Table
+  // Windguru Hourly Synoptic Table (Real Dynamic 48h Horizon)
   function renderWindguruHourlyTable() {
     const wrap = document.getElementById('wgHourlyTableWrap');
     if (!wrap) return;
@@ -443,42 +565,49 @@
     const unit = state.windUnit || 'kmh';
     const unitSuffix = unit === 'knots' ? 'kn' : (unit === 'bft' ? '' : 'km/h');
 
-    const steps = [
-      { time: 'Hoy 14h', kmh: 9, gust: 18, dir: 'SSE', deg: 155, t: 21 },
-      { time: 'Hoy 15h', kmh: 11, gust: 20, dir: 'SSE', deg: 155, t: 20 },
-      { time: 'Hoy 16h', kmh: 11, gust: 20, dir: 'SSE', deg: 155, t: 20 },
-      { time: 'Hoy 17h', kmh: 11, gust: 19, dir: 'SSE', deg: 155, t: 20 },
-      { time: 'Hoy 18h', kmh: 7, gust: 11, dir: 'SE', deg: 135, t: 19 },
-      { time: 'Hoy 19h', kmh: 4, gust: 7, dir: 'ESE', deg: 115, t: 19 },
-      { time: 'Hoy 20h', kmh: 2, gust: 7, dir: 'E', deg: 90, t: 19 },
-      { time: 'Hoy 21h', kmh: 4, gust: 9, dir: 'NW', deg: 315, t: 18 },
-      { time: 'Hoy 22h', kmh: 7, gust: 13, dir: 'NNW', deg: 335, t: 17 },
-      { time: 'Dom 08h', kmh: 9, gust: 17, dir: 'NNW', deg: 340, t: 14 },
-      { time: 'Dom 11h', kmh: 9, gust: 17, dir: 'NE', deg: 45, t: 20 },
-      { time: 'Dom 14h', kmh: 13, gust: 22, dir: 'ENE', deg: 65, t: 21 },
-      { time: 'Dom 17h', kmh: 11, gust: 19, dir: 'ENE', deg: 70, t: 20 },
-      { time: 'Dom 20h', kmh: 13, gust: 20, dir: 'NE', deg: 50, t: 19 },
-      { time: 'Lun 08h', kmh: 7, gust: 13, dir: 'NW', deg: 315, t: 17 },
-      { time: 'Lun 14h', kmh: 6, gust: 15, dir: 'ESE', deg: 115, t: 22 }
-    ];
+    const mm = state.multiModelData?.hourly;
+    const hFallback = state.weatherData?.hourly;
+    const times = mm?.time || hFallback?.time || [];
+    const speeds = mm?.wind_speed_10m_ecmwf_ifs025 || hFallback?.wind_speed_10m || [];
+    const gusts = mm?.wind_gusts_10m_ecmwf_ifs025 || hFallback?.wind_gusts_10m || [];
+    const dirs = mm?.wind_direction_10m_ecmwf_ifs025 || hFallback?.wind_direction_10m || [];
+    const temps = mm?.temperature_2m_ecmwf_ifs025 || hFallback?.temperature_2m || [];
+
+    if (!times.length) return;
+    const startIdx = findCurrentHourIndex(times);
+    const steps = [];
+    for (let i = startIdx; i < times.length && steps.length < 16; i += 3) {
+      const dt = new Date(times[i]);
+      const dayStr = dt.toLocaleDateString('es-ES', { weekday: 'short' }).replace('.', '');
+      const hrStr = dt.getHours().toString().padStart(2, '0') + 'h';
+      const deg = dirs[i] ?? 90;
+      steps.push({
+        time: `${dayStr.charAt(0).toUpperCase() + dayStr.slice(1)} ${hrStr}`,
+        kmh: speeds[i] ?? 10,
+        gust: gusts[i] ?? 15,
+        dir: getCompassShort(deg),
+        deg: deg,
+        t: Math.round(temps[i] ?? 20)
+      });
+    }
 
     let html = '<table class="wst-table">';
     html += '<thead><tr><th class="row-title">Hora</th>';
     steps.forEach(s => { html += `<th>${s.time}</th>`; });
     html += '</tr></thead><tbody>';
 
-    html += `<tr><td class="row-title">Viento (${unitSuffix})</td>`;
+    html += `<tr><td class="row-title">Viento (${unitSuffix || 'Bft'})</td>`;
     steps.forEach(s => {
       const val = convertWind(s.kmh, unit);
-      let bg = '#ffffff';
-      if (s.kmh >= 13) bg = '#e0f2fe';
+      let bg = '#f8fafc';
+      if (s.kmh >= 24) bg = '#fef08a';
+      else if (s.kmh >= 15) bg = '#e0f2fe';
       else if (s.kmh >= 9) bg = '#f0fdf4';
-      else bg = '#f8fafc';
       html += `<td style="background: ${bg}; font-weight: 700;">${val}</td>`;
     });
     html += '</tr>';
 
-    html += `<tr><td class="row-title">Rachas (${unitSuffix})</td>`;
+    html += `<tr><td class="row-title">Rachas (${unitSuffix || 'Bft'})</td>`;
     steps.forEach(s => {
       const val = convertWind(s.gust, unit);
       html += `<td style="color: #d97706; font-weight: 700;">${val}</td>`;
@@ -487,7 +616,7 @@
 
     html += '<tr><td class="row-title">Dirección</td>';
     steps.forEach(s => {
-      html += `<td><span style="display: inline-block; transform: rotate(${s.deg}deg);">➔</span><br><small style="font-size: 0.65rem; color: #64748b;">${s.dir}</small></td>`;
+      html += `<td><span style="display: inline-block; transform: rotate(${Math.round(s.deg + 180)}deg);">➔</span><br><small style="font-size: 0.65rem; color: #64748b;">${s.dir}</small></td>`;
     });
     html += '</tr>';
 
@@ -642,11 +771,9 @@
     renderMetrics();
     renderInteractiveChart();
     renderDailyForecast();
-    renderRadarEchos();
     renderBeachState();
     renderAlerts();
     renderWebcamHUD();
-    renderWebcamCanvas();
     renderAtmosphereCanvas();
     renderSunCalcAndAstro();
     renderBioclimatics();
@@ -789,35 +916,7 @@
       waveHeightEl.textContent = `Olas ~${wave.toFixed(1)} m`;
     }
 
-    const cloudEl = document.getElementById('cloudCover');
-    if (cloudEl) cloudEl.textContent = `${Math.round(cur.cloud_cover)}%`;
 
-    // Radial Gauges SVG calculations
-    const uv = state.weatherData.daily?.uv_index_max?.[0] ?? 4.8;
-    const uvEl = document.getElementById('uvGaugeVal');
-    if (uvEl) uvEl.textContent = uv.toFixed(1);
-    const uvArc = document.getElementById('uvRadialArc');
-    if (uvArc) {
-      const uvOffset = Math.max(0, 110 - (uv / 11) * 110);
-      uvArc.style.strokeDashoffset = uvOffset;
-    }
-
-    const hum = cur.relative_humidity_2m || 60;
-    const humEl = document.getElementById('humGaugeVal');
-    if (humEl) humEl.textContent = `${Math.round(hum)}%`;
-    const humArc = document.getElementById('humRadialArc');
-    if (humArc) {
-      const humOffset = Math.max(0, 110 - (hum / 100) * 110);
-      humArc.style.strokeDashoffset = humOffset;
-    }
-
-    const waveEl = document.getElementById('waveGaugeVal');
-    if (waveEl) waveEl.textContent = `${wave.toFixed(1)}m`;
-    const waveArc = document.getElementById('waveRadialArc');
-    if (waveArc) {
-      const waveOffset = Math.max(0, 110 - (wave / 2.5) * 110);
-      waveArc.style.strokeDashoffset = waveOffset;
-    }
   }
 
   // 4. Quick 24h Hourly Ribbon in Primera Plana
@@ -1158,25 +1257,6 @@
     }
   }
 
-  // 8. Radar & Echo Clusters (Tab 5)
-  function renderRadarEchos() {
-    const group = document.getElementById('radarEchoesGroup');
-    if (!group) return;
-    const offset = (state.radarFrame - 6) * 15;
-    
-    group.innerHTML = `
-      <g opacity="0.6" transform="translate(${offset}, ${offset * 0.4})">
-        <ellipse cx="290" cy="180" rx="35" ry="22" fill="#38bdf8" opacity="0.5"/>
-        <ellipse cx="295" cy="182" rx="20" ry="12" fill="#22c55e" opacity="0.6"/>
-        <ellipse cx="298" cy="183" rx="8" ry="5" fill="#eab308" opacity="0.7"/>
-      </g>
-      <g opacity="0.5" transform="translate(${offset * 1.2}, ${offset * 0.2})">
-        <ellipse cx="90" cy="170" rx="28" ry="18" fill="#38bdf8" opacity="0.45"/>
-        <ellipse cx="92" cy="172" rx="14" ry="9" fill="#22c55e" opacity="0.55"/>
-      </g>
-    `;
-  }
-
   // 9. Beach State & Ocean Conditions (Tab 6)
   function renderBeachState() {
     const m = state.marineData?.current || { wave_height: 0.32, wave_period: 6.5 };
@@ -1191,8 +1271,9 @@
 
     const month = new Date().getMonth();
     const seaTemps = [15.2, 14.8, 15.5, 17.0, 19.5, 23.2, 26.5, 27.2, 25.8, 22.8, 19.4, 16.8];
-    const estimatedSea = seaTemps[month] || 19.5;
-    document.getElementById('seaTempVal').textContent = `${estimatedSea.toFixed(1)} °C`;
+    const realSea = typeof m.sea_surface_temperature === 'number' ? m.sea_surface_temperature : (seaTemps[month] || 19.5);
+    const seaEl = document.getElementById('seaTempVal');
+    if (seaEl) seaEl.textContent = `${realSea.toFixed(1)} °C`;
 
     const flagWrap = document.getElementById('beachFlagWrap');
     const flagText = document.getElementById('flagText');
@@ -1335,167 +1416,53 @@
     }
   }
 
-  // Realistic Panoramic Coastal Canvas Renderer
-  let waveOffset = 0;
-  function renderWebcamCanvas() {
-    const canvas = document.getElementById('webcamCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-      canvas.width = canvas.clientWidth || 800;
-      canvas.height = canvas.clientHeight || 440;
-    }
-
-    const w = canvas.width;
-    const h = canvas.height;
-
-    // Time of day lighting calculation
-    const mode = state.camTimeMode;
-    let skyTop, skyBottom, seaTop, seaBottom, sunY, sunAlpha, sandColor;
-
-    if (mode === 'morning') {
-      skyTop = '#3b82f6'; skyBottom = '#fed7aa';
-      seaTop = '#0284c7'; seaBottom = '#38bdf8';
-      sunY = h * 0.38; sunAlpha = 0.8; sandColor = '#fed7aa';
-    } else if (mode === 'noon') {
-      skyTop = '#0284c7'; skyBottom = '#bae6fd';
-      seaTop = '#0369a1'; seaBottom = '#0ea5e9';
-      sunY = h * 0.15; sunAlpha = 1.0; sandColor = '#fef08a';
-    } else if (mode === 'sunset') {
-      skyTop = '#7c2d12'; skyBottom = '#f97316';
-      seaTop = '#431407'; seaBottom = '#ea580c';
-      sunY = h * 0.45; sunAlpha = 0.85; sandColor = '#fdba74';
-    } else {
-      // Live 'now' mode based on sun elevation
-      const cur = state.weatherData?.current;
-      const isDay = cur ? cur.is_day : 1;
-      if (isDay) {
-        skyTop = '#0284c7'; skyBottom = '#e0f2fe';
-        seaTop = '#0369a1'; seaBottom = '#38bdf8';
-        sunY = h * 0.22; sunAlpha = 0.9; sandColor = '#fef08a';
-      } else {
-        skyTop = '#090d16'; skyBottom = '#1e293b';
-        seaTop = '#0f172a'; seaBottom = '#0284c7';
-        sunY = h * 0.18; sunAlpha = 0.5; sandColor = '#64748b';
-      }
-    }
-
-    // Sky gradient
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.55);
-    skyGrad.addColorStop(0, skyTop);
-    skyGrad.addColorStop(1, skyBottom);
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, w, h * 0.55);
-
-    // Sun / Moon glow
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(w * 0.75, sunY, 32, 0, Math.PI * 2);
-    ctx.fillStyle = mode === 'now' && !state.weatherData?.current?.is_day ? '#f8fafc' : '#fef08a';
-    ctx.shadowColor = '#fbbf24';
-    ctx.shadowBlur = 45;
-    ctx.fill();
-    ctx.restore();
-
-    // Distant horizon sea
-    const seaGrad = ctx.createLinearGradient(0, h * 0.5, 0, h * 0.8);
-    seaGrad.addColorStop(0, seaTop);
-    seaGrad.addColorStop(1, seaBottom);
-    ctx.fillStyle = seaGrad;
-    ctx.fillRect(0, h * 0.5, w, h * 0.3);
-
-    // Dynamic animated water waves & shoreline
-    waveOffset += 0.04;
-    const waveAmp = (state.marineData?.current?.wave_height || 0.3) * 12;
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(0, h * 0.72);
-    for (let x = 0; x <= w; x += 15) {
-      const y = h * 0.72 + Math.sin(x * 0.02 + waveOffset) * (waveAmp + 2) + Math.cos(x * 0.04 - waveOffset) * 3;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
-    ctx.closePath();
-    ctx.fillStyle = '#bae6fd';
-    ctx.fill();
-    ctx.restore();
-
-    // Sandy Shore & Dunes of Arenales del Sol
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(0, h * 0.78);
-    for (let x = 0; x <= w; x += 20) {
-      const y = h * 0.78 + Math.sin(x * 0.015 + waveOffset * 0.5) * 4;
-      ctx.lineTo(x, y);
-    }
-    ctx.lineTo(w, h);
-    ctx.lineTo(0, h);
-    ctx.closePath();
-    ctx.fillStyle = sandColor;
-    ctx.fill();
-
-    // Boardwalk pasarela de madera silhouette
-    ctx.fillStyle = 'rgba(120, 53, 15, 0.75)';
-    ctx.fillRect(0, h * 0.88, w * 0.45, 6);
-    for (let px = 20; px < w * 0.45; px += 25) {
-      ctx.fillRect(px, h * 0.88, 3, 20);
-    }
-    ctx.restore();
-
-    // Animated request frame
-    if (!state.camAnimId) {
-      state.camAnimId = requestAnimationFrame(function loop() {
-        renderWebcamCanvas();
-        state.camAnimId = requestAnimationFrame(loop);
-      });
-    }
-  }
-
-  // 12. Atmosphere Canvas Engine (Particles behind Hero card)
+  // 12. Atmosphere Canvas Engine (Single guarded rAF loop + visibility pause)
   let atmoParticles = [];
   function renderAtmosphereCanvas() {
+    if (state.atmoRunning) return;
     const canvas = document.getElementById('skyAtmosphereCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
-      canvas.width = canvas.clientWidth || 600;
-      canvas.height = canvas.clientHeight || 280;
-      atmoParticles = [];
-      for (let i = 0; i < 28; i++) {
-        atmoParticles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          r: Math.random() * 3 + 1,
-          vx: Math.random() * 0.4 + 0.1,
-          vy: Math.random() * 0.2 - 0.1,
-          alpha: Math.random() * 0.5 + 0.2
+    state.atmoRunning = true;
+
+    function step() {
+      if (!document.hidden && state.activeTab === 'tab-overview') {
+        if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+          canvas.width = canvas.clientWidth || 600;
+          canvas.height = canvas.clientHeight || 280;
+          atmoParticles = [];
+          for (let i = 0; i < 28; i++) {
+            atmoParticles.push({
+              x: Math.random() * canvas.width,
+              y: Math.random() * canvas.height,
+              r: Math.random() * 3 + 1,
+              vx: Math.random() * 0.4 + 0.1,
+              vy: Math.random() * 0.2 - 0.1,
+              alpha: Math.random() * 0.5 + 0.2
+            });
+          }
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        atmoParticles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha})`;
+          ctx.fill();
+
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x > canvas.width) p.x = 0;
+          if (p.y > canvas.height) p.y = 0;
+          if (p.y < 0) p.y = canvas.height;
         });
       }
+      requestAnimationFrame(step);
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#38bdf8';
-
-    atmoParticles.forEach(p => {
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(56, 189, 248, ${p.alpha})`;
-      ctx.fill();
-
-      p.x += p.vx;
-      p.y += p.vy;
-      if (p.x > canvas.width) p.x = 0;
-      if (p.y > canvas.height) p.y = 0;
-      if (p.y < 0) p.y = canvas.height;
-    });
-
-    requestAnimationFrame(renderAtmosphereCanvas);
+    requestAnimationFrame(step);
   }
 
   // 13. Web Audio API Ambient Synthesizer (Sea breeze & gentle waves)
@@ -1586,7 +1553,6 @@
 
         // Specific tab initializers
         if (targetTab === 'tab-hourly') setTimeout(renderInteractiveChart, 50);
-        if (targetTab === 'tab-webcam') setTimeout(renderWebcamCanvas, 50);
       });
     });
 
@@ -1670,33 +1636,6 @@
       });
     }
 
-    // Radar Controls
-    const playBtn = document.getElementById('btnRadarPlay');
-    const timeRange = document.getElementById('radarTimeRange');
-    if (playBtn && timeRange) {
-      playBtn.addEventListener('click', () => {
-        state.radarPlaying = !state.radarPlaying;
-        if (state.radarPlaying) {
-          playBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg><span>Pausar</span>`;
-          state.radarInterval = setInterval(() => {
-            state.radarFrame = (state.radarFrame + 1) % 7;
-            timeRange.value = state.radarFrame;
-            renderRadarEchos();
-          }, 800);
-        } else {
-          playBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg><span>Animar radar</span>`;
-          clearInterval(state.radarInterval);
-        }
-      });
-
-      timeRange.addEventListener('input', (e) => {
-        state.radarFrame = parseInt(e.target.value, 10);
-        renderRadarEchos();
-      });
-    }
-
-
-
     // Windguru View Toggle (Sinoptico vs Oficial Widget)
     const btnWgSin = document.getElementById('btnWgSinoptico');
     const btnWgOfi = document.getElementById('btnWgOficial');
@@ -1757,7 +1696,9 @@
     if (btnRadar && timeSlider) {
       btnRadar.addEventListener('click', () => {
         state.radarPlaying = !state.radarPlaying;
+        const playIcon = document.getElementById('playIconSvg');
         if (state.radarPlaying) {
+          if (playIcon) playIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
           if (btnRadarText) btnRadarText.textContent = 'Pausar bucle';
           radarAnimTimer = setInterval(() => {
             if (radarFrames.length > 0) {
@@ -1766,6 +1707,7 @@
             }
           }, 700);
         } else {
+          if (playIcon) playIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
           if (btnRadarText) btnRadarText.textContent = 'Animar radar (12 cuadros)';
           clearInterval(radarAnimTimer);
         }
