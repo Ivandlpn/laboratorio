@@ -718,38 +718,6 @@ export function crearVidaEscena({ escena, Eje3D, W, cotaTerrenoUTM, caminosPorKm
   ];
   grupo.add(grupoTrabajadores);
 
-  const archivosRoles = [
-    './modelos/trabajador_encargado.glb',
-    './modelos/trabajador_operario.glb',
-    './modelos/trabajador_observador.glb',
-  ];
-  archivosRoles.forEach((ruta, rolIdx) => {
-    gltfLoader.load(ruta, (gltf) => {
-      for (const q of cuadrillas) {
-        for (let i = 0; i < q.miembros.length; i++) {
-          if (i % 3 !== rolIdx) continue;
-          const m = q.miembros[i];
-          const modeloBl = gltf.scene.clone(true);
-          const ud = m.mesh.userData;
-          modeloBl.traverse((n) => {
-            if (n.isMesh) {
-              n.castShadow = true;
-              n.receiveShadow = true;
-              n.userData = ud;
-            }
-          });
-          m.mesh.clear();
-          m.mesh.add(modeloBl);
-          ud.modeloBlender = modeloBl;
-          ud.grpTorso = null;
-          ud.grpCabeza = null;
-          ud.brazoDer = null;
-          ud.codoDer = null;
-        }
-      }
-    }, undefined, () => {});
-  });
-
   let tAnimTrab = 0;
   function actualizarCuadrillas(dt, pkObs) {
     tAnimTrab += dt;

@@ -16,19 +16,8 @@
 //   bajo viendo los haces).
 
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 import { crearAudioObras } from './audio-obras.js';
 import { crearPolvo } from './pbr-maquinas.js';
-
-const _gltfInsp = new GLTFLoader();
-const _cacheGlbInsp = new Map();
-function cargarGlbInsp(ruta) {
-  if (!_cacheGlbInsp.has(ruta)) {
-    _cacheGlbInsp.set(ruta, new Promise((res, rej) => _gltfInsp.load(ruta, res, undefined, rej)));
-  }
-  return _cacheGlbInsp.get(ruta);
-}
 
 const ESP = 0.6;                 // espaciado de traviesas (rejilla global de PK)
 const Z_TRAV = -0.16;            // cara superior de la traviesa respecto a la cabeza de carril
@@ -122,126 +111,42 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
     return g;
   }
 
-  // Geometrías anatómicas perfiladas (sin cubos rígidos) para extremidades y chaleco
-  const gMusloInsp = new THREE.LatheGeometry([
-    new THREE.Vector2(0.056, -MUSLO),
-    new THREE.Vector2(0.062, -MUSLO * 0.65),
-    new THREE.Vector2(0.078, -MUSLO * 0.25),
-    new THREE.Vector2(0.082, 0.0),
-  ], 14);
-  const gTibiaInsp = new THREE.LatheGeometry([
-    new THREE.Vector2(0.044, -TIBIA),
-    new THREE.Vector2(0.064, -TIBIA * 0.42),
-    new THREE.Vector2(0.058, 0.0),
-  ], 14);
-  const gBrazoInsp = new THREE.LatheGeometry([
-    new THREE.Vector2(0.042, -0.30),
-    new THREE.Vector2(0.048, -0.15),
-    new THREE.Vector2(0.056, 0.0),
-  ], 12);
-  const gAntebrazoInsp = new THREE.LatheGeometry([
-    new THREE.Vector2(0.034, -0.27),
-    new THREE.Vector2(0.043, -0.12),
-    new THREE.Vector2(0.044, 0.0),
-  ], 12);
-
-  // ---- Agente: rig orgánico articulado con mallas Blender ----
+  // ---- Agente: rig procedural ----
   function crearAgente(def, i) {
     const raiz = new THREE.Group();
-    const anch = def.mujer ? 0.90 : 1;
+    const anch = def.mujer ? 0.88 : 1;
     const piel = M.pieles[i % M.pieles.length], pelo = M.pelos[i % M.pelos.length];
     // Chaleco retrorreflectante: amarillo fluorescente y bandas plateadas; su brillo (emisivo) depende de la luz que recibe
-    const matChaleco = std('#cddc2a', 0.55, 0, { emissive: new THREE.Color('#d9ff3a'), emissiveIntensity: 0.04 });
-    const matBanda = std('#d8dce0', 0.22, 0.65, { emissive: new THREE.Color('#ffffff'), emissiveIntensity: 0.05 });
-    const infoAgente = { capa: 'Inspección de superestructura', nombre: `${def.nombre} · agente de inspección`, info: `Patrulla nocturna de inspección de vía: chaleco retrorreflectante, ${def.luz === 'frontal' ? 'frontal en la cabeza' : 'linterna de mano'} ${def.tablet ? 'y la tablet de la pareja para registrar incidencias' : 'junto a su compañero, que lleva la tablet'}.` };
-
+    const matChaleco = std('#cddc2a', 0.6, 0, { emissive: new THREE.Color('#d9ff3a'), emissiveIntensity: 0.04 });
+    const matBanda = std('#c9ccc8', 0.3, 0.2, { emissive: new THREE.Color('#ffffff'), emissiveIntensity: 0.05 });
     const caderas = new THREE.Group(); caderas.position.y = 0.93; raiz.add(caderas);
-    const cadMalla = new THREE.Mesh(new THREE.SphereGeometry(0.145, 16, 12), M.ropa);
-    cadMalla.scale.set(0.82, 0.72, 1.22 * anch); cadMalla.castShadow = true;
-    caderas.add(cadMalla);
-    cargarGlbInsp('./modelos/op_pelvis.glb').then((g) => {
-      const cl = g.scene.clone(true);
-      cl.scale.set(1, 1, anch);
-      cl.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.userData = infoAgente; } });
-      caderas.remove(cadMalla);
-      caderas.add(cl);
-    }).catch(() => {});
-
-    const tronco = new THREE.Group(); tronco.position.y = 0.06; caderas.add(tronco);
-    // Torso interior (ropa oscura) + chaleco orgánico Blender ceñido
-    const torsoProcedural = new THREE.Group();
-    const ropaIntMalla = new THREE.Mesh(new THREE.CylinderGeometry(0.165, 0.148, 0.52, 16), M.ropa2);
-    ropaIntMalla.scale.set(0.70, 1.0, 1.08 * anch); ropaIntMalla.position.y = 0.28; ropaIntMalla.castShadow = true;
-    const chalecoMalla = new THREE.Mesh(new THREE.CylinderGeometry(0.178, 0.158, 0.44, 16), matChaleco);
-    chalecoMalla.scale.set(0.72, 1.0, 1.12 * anch); chalecoMalla.position.y = 0.28; chalecoMalla.castShadow = true;
-    torsoProcedural.add(ropaIntMalla, chalecoMalla);
-    for (const [y, r] of [[0.17, 0.176], [0.31, 0.192]]) {
-      const b = new THREE.Mesh(new THREE.CylinderGeometry(r, r - 0.004, 0.042, 20), matBanda);
-      b.scale.set(0.64, 1.0, 1.04 * anch); b.position.y = y;
-      torsoProcedural.add(b);
-    }
-    for (const z of [-0.095, 0.095]) {
-      const tir = new THREE.Mesh(new THREE.CapsuleGeometry(0.018, 0.24, 4, 8), matBanda);
-      tir.scale.set(6.2, 1.0, 1.1); tir.position.set(0, 0.36, z * anch);
-      torsoProcedural.add(tir);
-    }
-    tronco.add(torsoProcedural);
-    cargarGlbInsp('./modelos/op_torso.glb').then((g) => {
-      const cl = g.scene.clone(true);
-      cl.scale.set(1, 1, anch);
-      cl.traverse((n) => {
-        if (n.isMesh) {
-          n.castShadow = true;
-          n.receiveShadow = true;
-          n.userData = infoAgente;
-          if (n.material?.name === 'Chaleco') {
-            n.material = n.material.clone();
-            n.material.emissive = matChaleco.emissive;
-          } else if (n.material?.name === 'Banda3M') {
-            n.material = n.material.clone();
-            n.material.emissive = matBanda.emissive;
-          }
-        }
-      });
-      tronco.remove(torsoProcedural);
-      tronco.add(cl);
-    }).catch(() => {});
-
+    caderas.add(caja(0.2, 0.18, 0.34 * anch, M.ropa, 0, 0, 0));
+    const tronco = new THREE.Group(); tronco.position.y = 0.08; caderas.add(tronco);
+    tronco.add(caja(0.2, 0.52, 0.36 * anch, M.ropa2, 0, 0.27, 0));
+    tronco.add(caja(0.235, 0.42, 0.395 * anch, matChaleco, 0, 0.3, 0));
+    for (const y of [0.17, 0.32]) tronco.add(caja(0.24, 0.045, 0.4 * anch, matBanda, 0, y, 0));
+    for (const z of [-0.1, 0.1]) tronco.add(caja(0.24, 0.3, 0.04, matBanda, 0, 0.38, z * anch));
     // Emisora portátil en el pecho, con su antena
-    tronco.add(caja(0.032, 0.10, 0.052, M.emisora, 0.125, 0.40, -0.095 * anch), cil(0.004, 0.07, M.emisora, 0.125, 0.49, -0.105 * anch));
-    // Logotipo de Ineco en la espalda curva del chaleco
-    const logo = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.058), matLogoChaleco);
-    logo.position.set(-0.123, 0.39, 0); logo.rotation.y = -Math.PI / 2;
+    tronco.add(caja(0.035, 0.11, 0.06, M.emisora, 0.135, 0.42, -0.1 * anch), caja(0.008, 0.07, 0.008, M.emisora, 0.135, 0.51, -0.115 * anch));
+    // Logotipo de Ineco en la espalda del chaleco
+    const logo = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.07), matLogoChaleco);
+    logo.position.set(-0.12, 0.46, 0); logo.rotation.y = -Math.PI / 2;
     tronco.add(logo);
-
-    const cuello = new THREE.Group(); cuello.position.y = 0.54; tronco.add(cuello);
-    cuello.add(cil(0.052, 0.09, piel, 0, 0.03, 0, 'y', 14));
+    const cuello = new THREE.Group(); cuello.position.y = 0.55; tronco.add(cuello);
+    cuello.add(cil(0.05, 0.08, piel, 0, 0.03, 0));
     const cabeza = new THREE.Group(); cabeza.position.y = 0.08; cuello.add(cabeza);
-    const cráneo = new THREE.Mesh(new THREE.SphereGeometry(0.106, 18, 14), piel);
-    cráneo.scale.set(0.96, 1.12, 0.92); cráneo.position.y = 0.10; cráneo.castShadow = true;
-    const nariz = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.038, 8).rotateZ(-Math.PI / 2), piel);
-    nariz.position.set(0.102, 0.095, 0);
-    cabeza.add(cráneo, nariz);
-    const pel = new THREE.Mesh(new THREE.SphereGeometry(0.112, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.58), pelo);
-    pel.scale.set(0.98, 1.05, 0.94); pel.position.set(-0.012, 0.115, 0); pel.rotation.z = 0.25; cabeza.add(pel);
-    if (def.mujer) { const mono = new THREE.Mesh(new THREE.SphereGeometry(0.056, 12, 10), pelo); mono.position.set(-0.11, 0.11, 0); cabeza.add(mono); }
-
-    // Brazos orgánicos (hombro → codo → mano)
+    cabeza.add(new THREE.Mesh(new THREE.SphereGeometry(0.105, 14, 10), piel).translateY(0.1));
+    const pel = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), pelo);
+    pel.position.set(-0.012, 0.115, 0); pel.rotation.z = 0.25; cabeza.add(pel);
+    if (def.mujer) { const mono = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), pelo); mono.position.set(-0.11, 0.11, 0); cabeza.add(mono); }
+    // Brazos (hombro → codo → mano)
     const brazo = (lado) => {
-      const hombro = new THREE.Group(); hombro.position.set(0, 0.46, lado * 0.20 * anch); tronco.add(hombro);
-      const mBr = new THREE.Mesh(gBrazoInsp, M.ropa2); mBr.castShadow = true; hombro.add(mBr);
+      const hombro = new THREE.Group(); hombro.position.set(0, 0.47, lado * 0.21 * anch); tronco.add(hombro);
+      hombro.add(caja(0.075, 0.3, 0.075, M.ropa2, 0, -0.15, 0));
       const codo = new THREE.Group(); codo.position.y = -0.3; hombro.add(codo);
-      const mAnt = new THREE.Mesh(gAntebrazoInsp, M.ropa2); mAnt.castShadow = true; codo.add(mAnt);
+      codo.add(caja(0.065, 0.27, 0.065, M.ropa2, 0, -0.135, 0));
       const mano = new THREE.Group(); mano.position.y = -0.28; codo.add(mano);
-      const manoMalla = new THREE.Mesh(new THREE.SphereGeometry(0.042, 12, 10), M.guante);
-      manoMalla.scale.set(0.85, 1.25, 0.62); manoMalla.position.y = -0.03; manoMalla.castShadow = true;
-      mano.add(manoMalla);
-      cargarGlbInsp('./modelos/op_mano.glb').then((g) => {
-        const cl = g.scene.clone(true);
-        cl.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.userData = infoAgente; } });
-        mano.remove(manoMalla);
-        mano.add(cl);
-      }).catch(() => {});
+      mano.add(caja(0.065, 0.085, 0.055, M.guante, 0, -0.03, 0));   // guantes de trabajo
       return { hombro, codo, mano };
     };
     const bI = brazo(-1), bD = brazo(1);
@@ -259,119 +164,41 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       cabeza.add(caja(0.035, 0.035, 0.06, M.linterna, 0.1, 0.13, 0), caja(0.006, 0.022, 0.032, M.lente, 0.118, 0.13, 0));
       lampara = luzConHaz(6, 0.36, 26); lampara.position.set(0.12, 0.13, 0); cabeza.add(lampara);
     } else {
+      // La linterna prolonga el antebrazo (eje −Y de la mano)
       bD.mano.add(cil(0.018, 0.17, M.linterna, 0, -0.08, 0), caja(0.03, 0.004, 0.03, M.lente, 0, -0.167, 0));
       lampara = luzConHaz(7, 0.3, 34); lampara.position.set(0, -0.17, 0); bD.mano.add(lampara);
     }
-    // Piernas orgánicas: cadera → rodilla → tobillo (IK)
+    // Piernas: cadera → rodilla → tobillo (IK)
     const pierna = (lado) => {
       const cad = new THREE.Group(); cad.position.set(0, 0, lado * 0.1 * anch); caderas.add(cad);
-      const mMus = new THREE.Mesh(gMusloInsp, M.ropa); mMus.castShadow = true; cad.add(mMus);
+      cad.add(caja(0.12, MUSLO, 0.12, M.ropa, 0, -MUSLO / 2, 0));
       const rod = new THREE.Group(); rod.position.y = -MUSLO; cad.add(rod);
-      const mTib = new THREE.Mesh(gTibiaInsp, M.ropa); mTib.castShadow = true; rod.add(mTib);
+      rod.add(caja(0.1, TIBIA, 0.1, M.ropa, 0, -TIBIA / 2, 0));
       const tob = new THREE.Group(); tob.position.y = -TIBIA; rod.add(tob);
-      const botaMalla = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.15, 4, 10), M.bota);
-      botaMalla.rotation.z = Math.PI / 2; botaMalla.position.set(0.05, -0.035, 0); botaMalla.castShadow = true;
-      tob.add(botaMalla);
-      cargarGlbInsp('./modelos/op_bota.glb').then((g) => {
-        const cl = g.scene.clone(true);
-        cl.position.set(0, 0.01, 0);
-        cl.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; n.userData = infoAgente; } });
-        tob.remove(botaMalla);
-        tob.add(cl);
-      }).catch(() => {});
+      tob.add(caja(0.25, 0.08, 0.11, M.bota, 0.05, -0.035, 0));
       return { cad, rod, tob, lado };
     };
     const pI = pierna(-1), pD = pierna(1);
-    raiz.traverse((o) => { if (o.isMesh) o.userData = infoAgente; });
-
-    let mixerHum = null, actIdle = null, actWalk = null, modeloHum = null, caminandoPrev = null;
-    if (!def.conductor) {
-      cargarGlbInsp('./modelos/humano_ineco.glb').then((gltf) => {
-        modeloHum = SkeletonUtils.clone(gltf.scene);
-        modeloHum.rotation.y = Math.PI / 2;
-        modeloHum.scale.set(1, 1, anch);
-        modeloHum.traverse((n) => {
-          if (n.isMesh) {
-            n.castShadow = true;
-            n.receiveShadow = true;
-            n.frustumCulled = false;
-            n.userData = infoAgente;
-            if (n.material?.name === 'Chaleco') {
-              n.material = n.material.clone();
-              n.material.emissive = matChaleco.emissive;
-            } else if (n.material?.name === 'Banda3M') {
-              n.material = n.material.clone();
-              n.material.emissive = matBanda.emissive;
-            }
-          }
-        });
-        const conservar = new Set([logo]);
-        for (const grp of [tablet, lampara]) {
-          if (grp) grp.traverse((x) => conservar.add(x));
-        }
-        caderas.traverse((n) => {
-          if (n.isMesh && !conservar.has(n)) n.visible = false;
-        });
-        raiz.add(modeloHum);
-
-        if (gltf.animations?.length) {
-          mixerHum = new THREE.AnimationMixer(modeloHum);
-          const clipIdle = gltf.animations.find((c) => c.name === 'Idle') || gltf.animations[0];
-          const clipWalk = gltf.animations.find((c) => c.name === 'Walk') || clipIdle;
-          actIdle = mixerHum.clipAction(clipIdle);
-          actWalk = mixerHum.clipAction(clipWalk);
-          actIdle.play();
-          caminandoPrev = false;
-        }
-      }).catch(() => {});
-    }
-    const actualizarHum = (dt, andando, agachaVal, velAct) => {
-      if (!mixerHum || !modeloHum) return;
-      if (andando !== caminandoPrev) {
-        caminandoPrev = andando;
-        if (andando) {
-          actIdle?.fadeOut(0.2);
-          actWalk?.reset().fadeIn(0.2).play();
-        } else {
-          actWalk?.fadeOut(0.2);
-          actIdle?.reset().fadeIn(0.2).play();
-        }
-      }
-      if (andando && actWalk) actWalk.timeScale = Math.max(0.65, velAct / 0.85);
-      mixerHum.update(dt);
-      modeloHum.position.y = -0.45 * agachaVal;
-    };
-    return { def, raiz, caderas, tronco, cabeza, cuello, bI, bD, pI, pD, tablet, pant, luzTablet, lampara, matChaleco, matBanda, actualizarHum };
+    raiz.traverse((o) => { if (o.isMesh) o.userData = { capa: 'Inspección de superestructura', nombre: `${def.nombre} · agente de inspección`, info: `Patrulla nocturna de inspección de vía: chaleco retrorreflectante, ${def.luz === 'frontal' ? 'frontal en la cabeza' : 'linterna de mano'} ${def.tablet ? 'y la tablet de la pareja para registrar incidencias' : 'junto a su compañero, que lleva la tablet'}.` }; });
+    return { def, raiz, caderas, tronco, cabeza, cuello, bI, bD, pI, pD, tablet, pant, luzTablet, lampara, matChaleco, matBanda };
   }
 
-  // ---- Coche de apoyo (4x4 blanco esculpido en Blender) ----
+  // ---- Coche de apoyo (4x4 blanco) ----
   function crearCoche() {
     const c = new THREE.Group();
-    const chasisFallback = new THREE.Group();
-    chasisFallback.add(caja(4.7, 0.75, 1.86, M.blanco, 0, 0.75, 0));
-    chasisFallback.add(caja(2.5, 0.09, 1.76, M.blanco, -0.2, 1.8, 0), caja(2.5, 0.08, 1.8, M.blanco, -0.2, 1.16, 0));
-    for (const x of [1.0, -0.2, -1.4]) for (const z of [-0.85, 0.85]) chasisFallback.add(caja(0.09, 0.6, 0.07, M.blanco, x, 1.48, z));
-    const vid = new THREE.Mesh(new THREE.BoxGeometry(2.38, 0.56, 1.72), M.vidrioCoche); vid.position.set(-0.2, 1.48, 0); vid.renderOrder = 2; chasisFallback.add(vid);
-    c.add(chasisFallback);
+    c.add(caja(4.7, 0.75, 1.86, M.blanco, 0, 0.75, 0));
+    // Habitáculo: techo, montantes y cristales tintados (se ve al conductor por la ventanilla)
+    c.add(caja(2.5, 0.09, 1.76, M.blanco, -0.2, 1.8, 0), caja(2.5, 0.08, 1.8, M.blanco, -0.2, 1.16, 0));
+    for (const x of [1.0, -0.2, -1.4]) for (const z of [-0.85, 0.85]) c.add(caja(0.09, 0.6, 0.07, M.blanco, x, 1.48, z));
+    const vid = new THREE.Mesh(new THREE.BoxGeometry(2.38, 0.56, 1.72), M.vidrioCoche); vid.position.set(-0.2, 1.48, 0); vid.renderOrder = 2; c.add(vid);
     for (const z of [-0.42, 0.42]) c.add(caja(0.5, 0.2, 0.48, M.asiento, -0.35, 0.68, z), caja(0.1, 0.75, 0.46, M.asiento, -0.62, 1.1, z));
     c.add(cil(0.17, 0.03, M.llanta, 0.45, 1.12, -0.42, 'x', 16));   // volante
+    c.add(caja(1.4, 0.05, 1.7, M.llanta, -0.2, 1.86, 0));
     const ruedas = [];
-    for (const x of [1.38, -1.38]) for (const z of [-0.88, 0.88]) {
+    for (const x of [1.45, -1.45]) for (const z of [-0.82, 0.82]) {
       const r = new THREE.Group(); r.add(cil(0.38, 0.27, M.neumatico, 0, 0, 0, 'z', 18), cil(0.24, 0.28, M.llanta, 0, 0, 0, 'z', 12));
       r.position.set(x, 0.38, z); c.add(r); ruedas.push(r);
     }
-    cargarGlbInsp('./modelos/vehiculo_servicio.glb').then((g) => {
-      const mBl = g.scene.clone(true);
-      mBl.traverse((n) => {
-        if (n.isMesh) {
-          n.castShadow = true;
-          n.receiveShadow = true;
-          if (n.material && n.material.name === 'VehCristal') n.material = M.vidrioCoche;
-        }
-      });
-      chasisFallback.clear();
-      chasisFallback.add(mBl);
-    }).catch(() => {});
     for (const z of [-0.65, 0.65]) { c.add(caja(0.04, 0.12, 0.3, M.faro, 2.36, 0.88, z)); c.add(caja(0.04, 0.16, 0.12, M.piloto, -2.36, 0.95, z * 1.2)); }
     // Logotipo de Ineco en las puertas y en el capó (sin rotativo en el techo)
     for (const z of [-1, 1]) { const l = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 0.25), matLogoCoche); l.position.set(-0.15, 0.82, z * 0.935); l.rotation.y = z > 0 ? 0 : Math.PI; c.add(l); }
@@ -591,7 +418,6 @@ export function crearInspeccion({ escena, Eje3D, W, cotaTerrenoUTM }) {
       const bajando = ag.estado === 'Crouch_Inspect' && ag.juntos && ag.tEst > 0.7;
       ag.tAgacha = bajando ? Math.min(1, (ag.tAgacha || 0) + dt * 1.4) : Math.max(0, (ag.tAgacha || 0) - dt * 1.5);
       const agacha = suave(ag.tAgacha);
-      ag.actualizarHum?.(dt, ag.v > 0.05 && !quieto, agacha, ag.v);
       const fase = (t * ag.vel * 1.7 + ag.mirada);
       const hip = 0.9 - 0.5 * agacha + (ag.v > 0.05 ? Math.abs(Math.sin(fase * Math.PI)) * 0.025 : 0);
       ag.caderas.position.y = hip;
