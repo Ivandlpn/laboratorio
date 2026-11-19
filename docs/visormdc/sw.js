@@ -71,7 +71,10 @@ self.addEventListener('fetch', (event) => {
   if (
     url.pathname.includes('/aemet-') ||
     url.pathname.includes('/firms-') ||
-    url.pathname.includes('/emsc-')
+    url.pathname.includes('/emsc-') ||
+    url.hostname === 'opendata.aemet.es' ||
+    url.hostname === 'www.aemet.es' ||
+    url.hostname === 'www.seismicportal.eu'
   ) {
     event.respondWith(
       fetch(event.request)
@@ -82,9 +85,9 @@ self.addEventListener('fetch', (event) => {
           }
           return response;
         })
-        .catch(() => {
+        .catch(async () => {
           // Si no hay red (túnel, trinchera sin cobertura), devolver última respuesta meteorológica conocida
-          return caches.match(event.request);
+          return (await caches.match(event.request)) || Response.error();
         })
     );
     return;
@@ -118,7 +121,7 @@ self.addEventListener('fetch', (event) => {
             }
             return networkResponse;
           })
-          .catch(() => cached);
+          .catch(() => cached || Response.error());
 
         return cached || fetchPromise;
       })
