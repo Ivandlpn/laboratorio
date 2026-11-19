@@ -1109,10 +1109,26 @@ export function crearGestorTeselas(ctx) {
           for (let i = 0; i < tramoT.length; i += 4) {
             const m = tramoT[i], yaw = Math.atan2(m.ty, m.tx);
             const ux = m.tx, uz = -m.ty, nx = -m.ty, ny = m.tx;
-            // Soportes metálicos de suspensión de catenaria anclados en la clave de la bóveda
+            // Catenaria de túnel según plano oficial Adif: péndolas centrales dobles ancladas a clave de bóveda,
+            // tirantes inclinados, ménsulas hacia ambas vías y aisladores de feeder en ambos hastiales
             for (const s of [-1, 1]) {
-              const pS = L(m.E + nx * s * (m.sep * 0.5), m.N + ny * s * (m.sep * 0.5), m.Z);
-              cajaOrientada(mAceroGalv, pS[0], pS[2], pS[1] + 5.75, pS[1] + 7.25, ux, uz, 0.14, 0.18);
+              const pS = L(m.E + nx * s * 0.42, m.N + ny * s * 0.42, m.Z);
+              cajaOrientada(mAceroGalv, pS[0], pS[2], pS[1] + 5.25, pS[1] + 7.45, ux, uz, 0.11, 0.11);
+              cajaOrientada(mAceroGalv, pS[0], pS[2], pS[1] + 7.36, pS[1] + 7.48, ux, uz, 0.24, 0.24);
+              // Tirante diagonal desde la parte alta de la bóveda hasta el soporte central
+              const pBov = L(m.E + nx * s * 1.65, m.N + ny * s * 1.65, m.Z + 7.12);
+              const pSop = L(m.E + nx * s * 0.42, m.N + ny * s * 0.42, m.Z + 5.55);
+              linSeg(segSustent, pBov, pSop);
+              // Ménsula simétrica hacia la vía correspondiente
+              const alc = m.sep * 0.5 + 0.28 - 0.42;
+              const oM = s * (0.42 + alc * 0.5);
+              inst.mensula.push(matInst(L(m.E + nx * oM, m.N + ny * oM, m.Z + 5.55), yaw + (s > 0 ? -Math.PI * 0.5 : Math.PI * 0.5), alc, 1, 1));
+              linSeg(segSustent, L(m.E + nx * s * 0.42, m.N + ny * s * 0.42, m.Z + 6.40), L(m.E + nx * s * (m.sep * 0.5 + 0.20), m.N + ny * s * (m.sep * 0.5 + 0.20), m.Z + 5.55));
+              for (const h of [5.55, 6.32]) inst.aislador.push(matInst(L(m.E + nx * s * 0.68, m.N + ny * s * 0.68, m.Z + h), yaw + Math.PI * 0.5));
+              // Soporte y aislador de feeder en el hastial
+              const pHas = L(m.E + nx * s * 6.08, m.N + ny * s * 6.08, m.Z);
+              cajaOrientada(mAceroGalv, pHas[0], pHas[2], pHas[1] + 4.36, pHas[1] + 4.44, -ny, nx, 0.62, 0.08);
+              inst.aislador.push(matInst(L(m.E + nx * s * 5.85, m.N + ny * s * 5.85, m.Z + 4.62), yaw));
             }
             // Luminarias en el hastial izquierdo y derecho (a 2,65 m sobre carril en la pared curva)
             for (const s of [-1, 1]) {
@@ -1283,7 +1299,7 @@ export function crearGestorTeselas(ctx) {
               for (const h of [5.55, 6.32]) inst.aislador.push(matInst(L(mA.E + nx * (offPoste - s * 0.42), mA.N + ny * (offPoste - s * 0.42), mA.Z + h), yaw + Math.PI * 0.5));
             }
             // Brazo de atirantado en el apoyo: del tubo de la ménsula al hilo, tirando de él hacia su lado
-            if (a >= pk0 && a < pk1 && !mA.enTunel) {
+            if (a >= pk0 && a < pk1) {
               const nx = -mA.ty, ny = mA.tx, oH = s * mA.sep * 0.5 + desc(a, s), oT = oH + s * 1.05;
               const pH = L(mA.E + nx * oH, mA.N + ny * oH, mA.Z + 5.30), pT = L(mA.E + nx * oT, mA.N + ny * oT, mA.Z + 5.40);
               linSeg(segSustent, pH, pT);
@@ -1291,17 +1307,23 @@ export function crearGestorTeselas(ctx) {
             }
             if (j === aps.length - 1) break;
             const b = aps[j + 1].pk, mB = Eje3D.enPk(b);
-            if (mA.enTunel || mB.enTunel || b - a < 2) continue;
+            if (b - a < 2) continue;
+            const enTunTramo = mA.enTunel || mB.enTunel;
             const nSub = Math.max(2, Math.round((b - a) / 4.6));
-            const flecha = 0.38 * Math.min(1, (b - a) / 55) ** 2, flechaF = 0.28 * Math.min(1, (b - a) / 55) ** 2;
+            const flecha = (enTunTramo ? 0.14 : 0.38) * Math.min(1, (b - a) / 55) ** 2;
+            const flechaF = (enTunTramo ? 0.12 : 0.28) * Math.min(1, (b - a) / 55) ** 2;
             let c0 = null, s0 = null, f0 = null;
             for (let k = 0; k <= nSub; k++) {
               const u = k / nSub, pk = a + (b - a) * u, m = Eje3D.enPk(pk);
-              const nx = -m.ty, ny = m.tx, o = s * m.sep * 0.5 + desc(pk, s), oF = s * (m.sep * 0.5 + 3.28);
+              const nx = -m.ty, ny = m.tx, o = s * m.sep * 0.5 + desc(pk, s);
+              const enTun = Boolean(m.enTunel);
+              const oF = enTun ? s * 5.85 : s * (m.sep * 0.5 + 3.28);
+              const zSust = enTun ? 6.18 : 6.46;
+              const zFeed = enTun ? 4.80 : 7.36;
               const enTesela = pk >= pk0 - 0.01 && pk <= pk1 + 0.01;
               const c1 = L(m.E + nx * o, m.N + ny * o, m.Z + 5.30);
-              const s1 = L(m.E + nx * o, m.N + ny * o, m.Z + 6.46 - flecha * 4 * u * (1 - u));
-              const f1 = L(m.E + nx * oF, m.N + ny * oF, m.Z + 7.36 - flechaF * 4 * u * (1 - u));
+              const s1 = L(m.E + nx * o, m.N + ny * o, m.Z + zSust - flecha * 4 * u * (1 - u));
+              const f1 = L(m.E + nx * oF, m.N + ny * oF, m.Z + zFeed - flechaF * 4 * u * (1 - u));
               const pkMed = pk - (b - a) / nSub * 0.5;
               if (c0 && pkMed >= pk0 && pkMed < pk1) {
                 linSeg(segContacto, c0, c1);
