@@ -473,7 +473,7 @@ const Carga = (() => {
   let objetivo = 0, mostrado = 0, ultimoRitmo = 1, raf = 0;
   function pintar() {
     // Al terminar la carga la aguja acelera más deprisa para llegar a 300 km/h antes de salir del túnel
-    mostrado += (objetivo - mostrado) * (objetivo >= 1 ? 0.22 : 0.1);
+    mostrado += (objetivo - mostrado) * (objetivo >= 1 ? 0.36 : 0.18);
     if (Math.abs(objetivo - mostrado) < 0.002) mostrado = objetivo;
     elNum.textContent = String(Math.round(mostrado * 300));
     elArco.style.strokeDasharray = elBrillo.style.strokeDasharray = `${(mostrado * 75).toFixed(2)} 100`;
@@ -504,7 +504,7 @@ const Carga = (() => {
     // 300 km/h, la boca se abre hasta llenar la pantalla y el visor aparece debajo
     cerrar() {
       avance(1, 'Saliendo del túnel…');
-      const t = reducido ? [0, 0, 0] : [550, 650, 800];
+      const t = reducido ? [0, 0, 0] : [120, 220, 260];
       setTimeout(() => {
         cargando.classList.add('saliendo');
         // El visor (oculto mientras carga) aparece bajo la boca que se abre
@@ -3303,9 +3303,9 @@ Carga.avance(0.6, `Montando el corredor en torno al km ${kmIni} y su relieve LiD
 await Promise.all([
   MdtCorredor.asegurarEntorno(pIni.E, pIni.N),
   cargarTeselaKm(kmIni),
-  cargarTeselaKm(kmIni - 1),
-  cargarTeselaKm(kmIni + 1),
-].map((p) => Carga.contar(p, 0.08)));
+].map((p) => Carga.contar(p, 0.16)));
+cargarTeselaKm(kmIni - 1);
+cargarTeselaKm(kmIni + 1);
 Carga.avance(0.94, 'Preparando terreno, ortofoto y cámara…');
 actualizarVentanaTerreno(pIni.E, pIni.N);
 procesarColaTerreno(false);
