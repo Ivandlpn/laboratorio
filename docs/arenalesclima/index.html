@@ -212,6 +212,43 @@
 
         </div>
 
+
+        <!-- ================= WEBCAM INCRUSTADA EN DIRECTO 24/7 (ALGARA PICTURES) ================= -->
+        <div class="card webcam-home-card">
+          <div class="card-header">
+            <div>
+              <div class="webcam-title-row">
+                <span class="webcam-live-badge"><span class="cam-ping"></span> EN DIRECTO 24/7</span>
+                <h2 class="card-title">Webcam Playa de Arenales del Sol</h2>
+                <span class="source-badge-algara">Algara Pictures</span>
+              </div>
+              <span class="card-hint">Estado visual real del cielo, playa y oleaje en directo</span>
+            </div>
+            <div class="webcam-actions">
+              <a href="https://www.algarapictures.com/webcam" target="_blank" rel="noopener noreferrer" class="btn-action btn-algara-link" title="Abrir en Algara Pictures">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                <span>Algara Pictures</span>
+              </a>
+              <button type="button" id="btnHomeCamFullscreen" class="btn-action btn-icon" title="Pantalla completa" aria-label="Webcam en pantalla completa">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="webcam-home-viewport" id="webcamHomeViewport">
+            <iframe
+              id="webcamHomeIframe"
+              src="https://www.skylinewebcams.com/webcam/espana/comunidad-valenciana/alicante/elche-arenales-del-sol.html?w=6147"
+              frameborder="0"
+              scrolling="no"
+              allow="autoplay; fullscreen; encrypted-media"
+              allowfullscreen
+              referrerpolicy="no-referrer-when-downgrade"
+              title="Webcam en Directo 24/7 Arenales del Sol - Algara Pictures">
+            </iframe>
+          </div>
+        </div>
+
         <!-- ================= SEGUNDA SECCIÓN: DIAGNÓSTICO Y CONFORT ================= -->
         <div class="smart-brief-card" id="smartBriefCard">
           <div class="brief-icon">✨</div>
@@ -551,9 +588,6 @@
 
           <!-- Video / Stream Viewport con elemento Video HTML5 exacto y reproductor oficial -->
           <div class="webcam-viewport" id="webcamViewport">
-            <!-- Video HTML5 exacto de la emisión Skyline / Algara Pictures -->
-            <video data-html5-video="" poster="https://cdn.skylinewebcams.com/_6147.jpg" preload="metadata" playsinline="playsinline" muted style="object-fit: cover;"><style class="clappr-style">[data-html5-video]{position:absolute;height:100%;width:100%;display:block}</style></video>
-
             <!-- Iframe oficial Skyline / Algara Pictures para streaming en vivo activo -->
             <iframe 
               id="webcamIframe" 
@@ -561,7 +595,7 @@
               src="https://www.skylinewebcams.com/webcam/espana/comunidad-valenciana/alicante/elche-arenales-del-sol.html?w=6147" 
               frameborder="0" 
               scrolling="no" 
-              allow="autoplay; fullscreen" 
+              allow="autoplay; fullscreen; encrypted-media" referrerpolicy="no-referrer-when-downgrade" 
               allowfullscreen 
               title="Webcam en Directo Arenales del Sol - Algara Pictures">
             </iframe>

@@ -1623,6 +1623,19 @@
       });
     }
 
+    // Home Webcam Fullscreen
+    const homeFsBtn = document.getElementById('btnHomeCamFullscreen');
+    const homeViewport = document.getElementById('webcamHomeViewport');
+    if (homeFsBtn && homeViewport) {
+      homeFsBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          homeViewport.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen();
+        }
+      });
+    }
+
     // Webcam Fullscreen
     const fsBtn = document.getElementById('btnCamFullscreen');
     const viewport = document.getElementById('webcamViewport');
