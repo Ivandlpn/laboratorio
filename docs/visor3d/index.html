@@ -1278,6 +1278,9 @@ let vistaActiva = params.get('vista') || 'dron'; // la web arranca en vuelo de d
 let pkRecorrido = pkArranque;
 let sentidoRecorrido = 1;
 let multVel = 1;
+let velCabinaKmh = 250;
+let fovBaseUsuario = 50;
+let fovPasajero = 68;
 let marcoCabActivo = true;
 const elCab = document.getElementById('cab');
 const elMarcoCab = document.getElementById('marcoCabina');
@@ -2675,8 +2678,6 @@ document.getElementById('btnBrujula')?.addEventListener('click', () => {
     duracion: 520,
   });
 });
-  let fovBaseUsuario = 50;
-  let fovPasajero = 68;
   for (const b of document.querySelectorAll('#ctrlFov button')) {
     b.addEventListener('click', () => {
       fovBaseUsuario = Number(b.dataset.fov) || 50;
@@ -3446,7 +3447,6 @@ function actualizarSujeciones() {
   }
 }
 const elDmiVmax = document.getElementById('dmiVmax');
-let velCabinaKmh = 250;
 function fotograma(ahora) {
   const dt = Math.min(0.08, (ahora - tPrev) / 1000);
   tPrev = ahora;
