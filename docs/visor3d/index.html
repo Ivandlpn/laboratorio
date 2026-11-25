@@ -32,7 +32,7 @@
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="./visor.css?v=12">
+<link rel="stylesheet" href="./visor.css?v=13">
 <link rel="stylesheet" href="./comun/panel.css?v=12">
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
@@ -335,6 +335,7 @@
   <button type="button" id="btnSoldadura" role="menuitemcheckbox" aria-checked="false" data-hoja-movil="sold" title="Soldadura aluminotérmica de un carril UIC 60: corte, moldes, precalentamiento, colada, rebarbado y esmerilado">🔥 Soldadura aluminotérmica<small>Unión de carril UIC 60 in situ</small></button>
   <label class="menu-sonido"><input type="checkbox" id="chkSonidoObras" checked> 🔊 Sonido de las obras<small>Máquinas, generadores, viento y pasos</small></label>
 </div>
+<div id="menuAmbiente" hidden role="dialog" aria-label="Ambiente: hora y clima"></div>
 <div id="panelSold" hidden role="dialog" aria-label="Soldadura aluminotérmica">
   <div class="tr-cab">
     <span class="tr-tit">🔥 Soldadura aluminotérmica</span>
@@ -448,6 +449,7 @@ import { origen as declarar, origenDe, CLASES as CLASES_ORIGEN } from './js/orig
 import { crearMedidor } from './js/medir.js';
 import { crearConfianza } from './js/confianza.js';
 import { crearSeccion } from './js/seccion.js';
+import { icono, botonIcono } from './js/iconos.js';
 import { normalizar as normalizarBusq, crearIndice as crearIndiceBusq, interpretarNumero as interpretarNumeroBusq, ETIQUETA_TIPO as ETIQUETA_BUSQ } from './js/buscador.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
@@ -668,6 +670,13 @@ let horaSol = params.get('sol') || prefsVisor.horaSol || 'dia';
 let climaActual = params.get('clima') || prefsVisor.climaActual || 'despejado';
 let modoVivo = false;
 let solVivoDesvio = null;
+let solManual = false;      // hora elegida con el control continuo: la dirección del sol es la astronómica de esa hora
+let horaManualMin = 780;     // minutos desde medianoche (hora de la península)
+const HORAS_TIPICAS = { amanecer: 450, dia: 780, atardecer: 1140, noche: 1380 };
+const ROTULO_SOL = { amanecer: 'Amanecer', dia: 'Día', atardecer: 'Tarde', noche: 'Noche' };
+const ICONO_SOL = { amanecer: 'amanecer', dia: 'sol', atardecer: 'atardecer', noche: 'luna' };
+const ROTULO_CLIMA = { despejado: 'Despejado', bruma: 'Calima', nublado: 'Nublado', lluvia: 'Lluvia', nieve: 'Nieve', tormenta: 'Tormenta' };
+const hhmm = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
 let meteoViva = null;
 let rayosXActivo = false;
 let expBaseSol = 1.07;
@@ -755,7 +764,7 @@ function aplicarTema() {
   else document.documentElement.removeAttribute('data-noche');
   const tm = TEMAS_SOL[horaSol] || TEMAS_SOL.dia;
   const cl = CLIMAS[climaActual] || CLIMAS.despejado;
-  if (modoVivo && solVivoDesvio) {
+  if ((modoVivo || solManual) && solVivoDesvio) {
     SOL_DESVIO.set(solVivoDesvio[0], solVivoDesvio[1], solVivoDesvio[2]);
   } else {
     SOL_DESVIO.set(tm.desvio[0], tm.desvio[1], tm.desvio[2]);
@@ -856,19 +865,18 @@ function aplicarTema() {
   }
   const btnISol = document.getElementById('btnIslaSol');
   if (btnISol) {
-    const ico = { amanecer: '🌅 Amanecer', dia: '☀️ Día', atardecer: '🌇 Tarde', noche: '🌙 Noche' };
-    const tSol = ico[horaSol] || '☀️ Día';
-    btnISol.textContent = tSol;
-    btnISol.setAttribute('aria-label', `Iluminación solar: ${tSol.replace(/^\S+\s*/, '')}`);
+    const tSol = solManual ? hhmm(horaManualMin) : (ROTULO_SOL[horaSol] || 'Día');
+    botonIcono(btnISol, ICONO_SOL[horaSol] || 'sol', tSol);
+    btnISol.setAttribute('aria-label', `Hora y clima. Iluminación solar: ${tSol}`);
   }
   const btnIClima = document.getElementById('btnIslaClima');
   if (btnIClima) {
-    const icoC = { despejado: '🌤 Despejado', bruma: '🌫 Calima', nublado: '☁️ Nublado', lluvia: '🌧 Lluvia', nieve: '❄️ Nieve', tormenta: '⛈️ Tormenta' };
     const tTxt = (modoVivo && meteoViva?.temp != null) ? ` ${Math.round(meteoViva.temp)}°C` : '';
-    const tCl = (icoC[climaActual] || '🌤 Despejado') + tTxt;
-    btnIClima.textContent = tCl;
-    btnIClima.setAttribute('aria-label', `Atmósfera: ${tCl.replace(/^\S+\s*/, '')}`);
+    const tCl = (ROTULO_CLIMA[climaActual] || 'Despejado') + tTxt;
+    botonIcono(btnIClima, climaActual in ROTULO_CLIMA ? climaActual : 'despejado', tCl);
+    btnIClima.setAttribute('aria-label', `Atmósfera: ${tCl}`);
   }
+  { const ma = document.getElementById('menuAmbiente'); if (ma && !ma.hidden) pintarAmbiente(); }
   const elLimpia = document.getElementById('limpiaCabina');
   if (elLimpia) elLimpia.classList.toggle('activo', climaActual === 'lluvia' || climaActual === 'nieve' || climaActual === 'tormenta');
   if (controlesListos) {
@@ -2693,6 +2701,7 @@ document.getElementById('chkSubsuelo').addEventListener('change', (e) => {
 // Elegir hora o clima a mano apaga el modo «En vivo» (si no, el sol seguiría en su posición astronómica con otro tema)
 function salirModoVivo() {
   modoVivo = false;
+  solManual = false;
   solVivoDesvio = null;
   document.getElementById('btnIslaVivo')?.setAttribute('aria-pressed', 'false');
 }
@@ -2713,18 +2722,81 @@ document.getElementById('chkBtsModelos')?.addEventListener('change', () => {
 });
 
 // UI 4 + UX 5: Isla flotante de controles rápidos y Modo Cine (tecla H)
-const ORDEN_SOL = ['amanecer', 'dia', 'atardecer', 'noche'];
-const ORDEN_CLIMA = ['despejado', 'bruma', 'nublado', 'lluvia', 'nieve', 'tormenta'];
-document.getElementById('btnIslaSol')?.addEventListener('click', () => {
+// ---- Ambiente: hora continua (posición solar real del PK en pantalla) y clima a la vista ----
+// Un menú en lugar de botones que giran a ciegas: se ve cada opción antes de elegirla.
+const menuAmbiente = document.getElementById('menuAmbiente');
+/** Hoy a la hora oficial de la península indicada en minutos desde medianoche, como instante UTC. */
+function fechaMadrid(minutos) {
+  const ahora = new Date();
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(ahora).map((x) => [x.type, x.value]));
+  const madridComoUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  const offsetH = (madridComoUtc - Math.floor(ahora.getTime() / 60000) * 60000) / 3600000;
+  return new Date(Date.UTC(+p.year, +p.month - 1, +p.day) + minutos * 60000 - offsetH * 3600000);
+}
+function moverSol() {
+  if (!solVivoDesvio) return;
+  SOL_DESVIO.set(solVivoDesvio[0], solVivoDesvio[1], solVivoDesvio[2]);
+  solUltimoTarget.set(Infinity, 0, 0);
+  if (controlesListos) sol.position.copy(controles.target).add(SOL_DESVIO);
+}
+function ponerHora(min) {
+  const p = Eje3D.enPk(pkActualUI), [lon, lat] = utmALonlat(p.E, p.N);
+  const s = calcularSolAstronomico(lat, lon, fechaMadrid(min));
   salirModoVivo();
-  horaSol = ORDEN_SOL[(ORDEN_SOL.indexOf(horaSol) + 1) % ORDEN_SOL.length];
-  aplicarTema();
-});
-document.getElementById('btnIslaClima')?.addEventListener('click', () => {
-  salirModoVivo();
-  climaActual = ORDEN_CLIMA[(ORDEN_CLIMA.indexOf(climaActual) + 1) % ORDEN_CLIMA.length];
-  aplicarTema();
-});
+  solManual = true; horaManualMin = min; solVivoDesvio = s.desvio;
+  if (s.horaSol !== horaSol) { horaSol = s.horaSol; aplicarTema(); } else { moverSol(); pintarAmbiente(s); }
+  pintarAmbiente(s);
+  guardarPrefsVisor();
+}
+function pintarAmbiente(s = null) {
+  const rng = menuAmbiente.querySelector('#rngHora');
+  if (!rng) return;
+  rng.value = String(horaManualMin);
+  rng.setAttribute('aria-valuetext', `${hhmm(horaManualMin)}, ${ROTULO_SOL[horaSol] || ''}`);
+  menuAmbiente.querySelector('#outHora').textContent = hhmm(horaManualMin);
+  const e = s?.elevacionDeg;
+  menuAmbiente.querySelector('#ambSol').textContent = e == null ? ROTULO_SOL[horaSol] : `${ROTULO_SOL[horaSol]} · sol a ${Math.round(e)}° del horizonte`;
+  for (const b of menuAmbiente.querySelectorAll('[data-sol]')) b.setAttribute('aria-pressed', String(b.dataset.sol === horaSol));
+  for (const b of menuAmbiente.querySelectorAll('[data-clima]')) b.setAttribute('aria-checked', String(b.dataset.clima === climaActual));
+}
+function construirAmbiente() {
+  menuAmbiente.innerHTML = `
+    <div class="amb-fila"><label for="rngHora">Hora (península)</label><output id="outHora" for="rngHora"></output></div>
+    <input type="range" id="rngHora" min="0" max="1435" step="5" aria-label="Hora del día">
+    <p id="ambSol" class="amb-sol" aria-live="polite"></p>
+    <div class="amb-temas" role="group" aria-label="Franja del día">${Object.keys(ROTULO_SOL).map((id) => `<button type="button" data-sol="${id}" aria-pressed="false">${icono(ICONO_SOL[id])}<span>${ROTULO_SOL[id]}</span></button>`).join('')}</div>
+    <div class="amb-fila"><span id="rotClima">Clima</span></div>
+    <div class="amb-clima" role="radiogroup" aria-labelledby="rotClima">${Object.keys(ROTULO_CLIMA).map((id) => `<button type="button" role="radio" data-clima="${id}" aria-checked="false">${icono(id)}<span>${ROTULO_CLIMA[id]}</span></button>`).join('')}</div>`;
+  menuAmbiente.querySelector('#rngHora').addEventListener('input', (e) => ponerHora(Number(e.target.value)));
+  menuAmbiente.addEventListener('click', (e) => {
+    const bs = e.target.closest('[data-sol]'), bc = e.target.closest('[data-clima]');
+    if (bs) ponerHora(HORAS_TIPICAS[bs.dataset.sol]);
+    if (bc) { salirModoVivo(); climaActual = bc.dataset.clima; aplicarTema(); guardarPrefsVisor(); pintarAmbiente(); }
+  });
+}
+function abrirAmbiente(abrir, origen = document.getElementById('btnIslaSol')) {
+  if (abrir && !menuAmbiente.children.length) construirAmbiente();
+  menuAmbiente.hidden = !abrir;
+  for (const id of ['btnIslaSol', 'btnIslaClima']) document.getElementById(id)?.setAttribute('aria-expanded', String(abrir));
+  if (!abrir) return;
+  if (!solManual) horaManualMin = HORAS_TIPICAS[horaSol] ?? 780;
+  pintarAmbiente();
+  const r = origen.getBoundingClientRect();
+  if (matchMedia('(max-width: 760px)').matches) {
+    const isla = document.getElementById('islaRapida').getBoundingClientRect();
+    Object.assign(menuAmbiente.style, { left: '12px', right: '12px', top: 'auto', bottom: `${innerHeight - isla.top + 8}px` });
+  } else {
+    Object.assign(menuAmbiente.style, { left: `${Math.max(12, Math.min(innerWidth - 320, r.left))}px`, right: 'auto', top: `${r.bottom + 6}px`, bottom: 'auto' });
+  }
+}
+for (const id of ['btnIslaSol', 'btnIslaClima']) {
+  const b = document.getElementById(id);
+  b?.setAttribute('aria-haspopup', 'dialog'); b?.setAttribute('aria-expanded', 'false');
+  b?.addEventListener('click', (e) => { e.stopPropagation(); abrirAmbiente(menuAmbiente.hidden, b); });
+}
+addEventListener('click', (e) => { if (!menuAmbiente.hidden && !menuAmbiente.contains(e.target)) abrirAmbiente(false); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menuAmbiente.hidden) { abrirAmbiente(false); document.getElementById('btnIslaSol')?.focus(); } });
 async function sincronizarMeteoVivo(pk) {
   if (!modoVivo) return;
   const p = Eje3D.enPk(pk);
@@ -2845,6 +2917,7 @@ function conmutarFaros() {
 document.getElementById('btnFaros')?.addEventListener('click', () => conmutarFaros());
 
 function conmutarModoNoche() {
+  if (!modoVivo) { solManual = false; solVivoDesvio = null; }
   horaSol = horaSol === 'noche' ? 'dia' : 'noche';
   aplicarTema();
   const btn = document.getElementById('btnModoNoche');
