@@ -29,10 +29,11 @@
 <meta name="twitter:image:alt" content="Simulador 3D de la alta velocidad Albacete–Alicante">
 <link rel="image_src" href="https://ivandlpn.github.io/laboratorio/visor3d/vista-previa.jpg">
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<link rel="manifest" href="./manifest.webmanifest">
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="./visor.css?v=19">
+<link rel="stylesheet" href="./visor.css?v=21">
 <link rel="stylesheet" href="./comun/panel.css?v=12">
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
@@ -152,7 +153,10 @@
     </div>
     <div class="acciones" style="margin-top:8px">
       <button type="button" id="btnCaptura" title="Guardar captura PNG de la vista actual (P)">📷 Captura PNG (P)</button>
+      <button type="button" id="btnEstoyAqui" title="Ir al PK más próximo a tu posición GPS (la posición no sale del navegador)">Estoy aquí</button>
+      <button type="button" id="btnSeguirGps" aria-pressed="false" title="Acompañar tu posición GPS mientras te mueves">Seguir GPS</button>
       <button type="button" id="btnAtajos" title="Lista de atajos de teclado (?)">Atajos (?)</button>
+      <button type="button" class="solo-tecnico" id="btnIncidencias" aria-pressed="false" title="Anotar incidencias en la escena y exportarlas en BCF (I)">Incidencias (I)</button>
       <button type="button" class="solo-tecnico" id="btnSeccion" aria-pressed="false" title="Sección transversal esquemática en el PK de la cámara (S)">Sección (S)</button>
       <button type="button" class="solo-tecnico" id="btnConfianza" aria-pressed="false" title="Pintar la escena por el origen de cada dato: medido, otra fuente, deducido, supuesto o simulado (C)">Confianza (C)</button>
       <button type="button" class="solo-tecnico" id="btnMedir" aria-pressed="false" title="Medir distancia y desnivel entre dos puntos de la escena (D)">Medir (D)</button>
@@ -457,6 +461,8 @@ import { origen as declarar, origenDe, CLASES as CLASES_ORIGEN } from './js/orig
 import { crearMedidor } from './js/medir.js';
 import { crearConfianza } from './js/confianza.js';
 import { crearSeccion } from './js/seccion.js';
+import { crearIncidencias } from './js/incidencias.js';
+import { crearCampo } from './js/campo.js';
 import { icono, botonIcono } from './js/iconos.js';
 import { crearAyudaAtajos } from './js/ayuda.js';
 import { crearOrdenEtiquetas } from './js/etiquetas.js';
@@ -673,7 +679,7 @@ function aplicarModoUi(m, { guardar = true } = {}) {
   document.documentElement.dataset.modo = m;
   for (const b of document.querySelectorAll('.modo-ui [data-modo]')) b.setAttribute('aria-pressed', String(b.dataset.modo === m));
   // En Explorar se apagan las herramientas técnicas que estuvieran encendidas
-  if (m === 'explorar') { if (typeof medidor !== 'undefined' && medidor.activa) alternarMedicion(false); if (typeof confianza !== 'undefined' && confianza.activa) alternarConfianza(false); if (typeof seccion !== 'undefined' && seccion.activa) alternarSeccion(false); }
+  if (m === 'explorar') { if (typeof medidor !== 'undefined' && medidor.activa) alternarMedicion(false); if (typeof confianza !== 'undefined' && confianza.activa) alternarConfianza(false); if (typeof seccion !== 'undefined' && seccion.activa) alternarSeccion(false); if (typeof incidencias !== 'undefined' && incidencias.activa) alternarIncidencias(false); }
   if (guardar) guardarPrefsVisor();
   if (typeof ajustarDisposicion === 'function') ajustarDisposicion();
 }
@@ -1716,6 +1722,8 @@ ordenesExtra.set('seccion', () => ({ titulo: 'Sección transversal en este PK', 
 ordenesExtra.set('modo-explorar', () => ({ titulo: 'Modo Explorar', sub: 'Interfaz mínima para recorrer la línea', extra: 'simple visitante limpio', accion: () => aplicarModoUi('explorar') }));
 ordenesExtra.set('modo-tecnico', () => ({ titulo: 'Modo Técnico', sub: 'Capas, medidas y herramientas', extra: 'completo avanzado datos', accion: () => aplicarModoUi('tecnico') }));
 ordenesExtra.set('atajos', () => ({ titulo: 'Atajos de teclado', sub: 'Lista y interruptor de las teclas de una letra (tecla ?)', extra: 'ayuda teclas teclado ayuda', accion: () => ayudaAtajos.abrir() }));
+ordenesExtra.set('incidencias', () => ({ titulo: 'Incidencias', sub: 'Anotar un punto y exportar en BCF (tecla I)', extra: 'anotar nota defecto problema bcf', accion: () => alternarIncidencias() }));
+ordenesExtra.set('aqui', () => ({ titulo: 'Estoy aquí (GPS)', sub: 'Ir al PK más próximo a tu posición', extra: 'ubicacion gps posicion campo donde', accion: () => campo.estoyAqui() }));
 ordenesExtra.set('medir', () => ({ titulo: 'Medir distancia y desnivel', sub: 'Dos puntos sobre el modelo (tecla D)', extra: 'galibo altura regla metro distancia', accion: () => alternarMedicion() }));   // otras funciones (medir, confianza…) añaden aquí sus órdenes: ordenesExtra.set('id', () => ({ titulo, sub, extra, accion }))
 let indiceBusq = null, indiceBusqN = '';
 function indiceBuscador() {
@@ -2940,9 +2948,11 @@ addEventListener('keydown', (e) => {
   if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) return;
   if (e.code === 'KeyH') { e.preventDefault(); alternarModoCine(); }
   else if (e.code === 'KeyD' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); alternarMedicion(); }
+  else if (e.code === 'KeyI' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); alternarIncidencias(); }
   else if (e.code === 'KeyS' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); alternarSeccion(); }
   else if (e.code === 'KeyC' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); alternarConfianza(); }
   else if (e.code === 'Escape') {
+    if (incidencias.activa) { alternarIncidencias(false); return; }
     if (medidor.activa) { alternarMedicion(false); return; }
     if (cerrarFicha()) return;
     if (!elPanelTR.hidden) { abrirPanelTR(false); return; }
@@ -3507,6 +3517,24 @@ function alternarSeccion(on) {
 document.getElementById('btnSeccion')?.addEventListener('click', () => alternarSeccion());
 document.getElementById('btnAtajos')?.addEventListener('click', () => ayudaAtajos.abrir());
 for (const b of document.querySelectorAll('.modo-ui [data-modo]')) { b.setAttribute('aria-pressed', String(b.dataset.modo === modoUi)); b.addEventListener('click', () => aplicarModoUi(b.dataset.modo)); }
+if ('serviceWorker' in navigator && !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && !params.has('sinSw')) {
+  navigator.serviceWorker.register('./sw.js').catch(() => { /* sin servicio sin conexión */ });
+}
+const incidencias = crearIncidencias({
+  camara, controles, render, escena, W, UTMdeMundo, Eje3D, fmtPk, panelAnuncios: document.getElementById('anunciosSr'),
+  enlaceActual: () => construirEnlace(),
+  irAVista: (it) => { if (enRuta(vistaActiva)) setModoVista('viaducto'); gestorVuelo.volarAPose({ posE: it.cam.pos[0], posN: it.cam.pos[1], posZ: it.cam.pos[2], objE: it.cam.obj[0], objN: it.cam.obj[1], objZ: it.cam.obj[2], pk: it.pk, duracion: 700 }); },
+});
+function alternarIncidencias(on) {
+  const activa = incidencias.activar(on);
+  if (activa) { cerrarFicha(); if (medidor.activa) alternarMedicion(false); }
+  document.getElementById('btnIncidencias')?.setAttribute('aria-pressed', String(activa));
+}
+document.getElementById('btnIncidencias')?.addEventListener('click', () => alternarIncidencias());
+const campo = crearCampo({ lonlatAUTM, Eje3D, fmtPk, irAPk: (pk) => irAPk(pk, vistaActiva), anunciar: (t) => { const sr = document.getElementById('anunciosSr'); if (sr) sr.textContent = t; } });
+campo.alAlternar((on) => document.getElementById('btnSeguirGps')?.setAttribute('aria-pressed', String(on)));
+document.getElementById('btnEstoyAqui')?.addEventListener('click', () => campo.estoyAqui());
+document.getElementById('btnSeguirGps')?.addEventListener('click', (e) => e.currentTarget.setAttribute('aria-pressed', String(campo.seguir())));
 const confianza = crearConfianza({ raices: () => [grupoTeselas, grupoFlota, grupoArquetas], origenDe, CLASES: CLASES_ORIGEN });
 function alternarConfianza(on) {
   const activa = confianza.activar(on);
@@ -3522,6 +3550,11 @@ render.domElement.addEventListener('pointerup', (e) => {
   ptr.x = ((e.clientX - r.left) / r.width) * 2 - 1;
   ptr.y = -((e.clientY - r.top) / r.height) * 2 + 1;
   raycaster.setFromCamera(ptr, camara);
+  if (incidencias.anotando) {
+    const h = raycaster.intersectObjects([grupoTeselas, grupoFlota, grupoTerrenoMalla, grupoArquetas], true).find((x) => x.object?.isMesh && x.object.visible);
+    incidencias.nuevaEn(h);
+    return;
+  }
   if (medidor.activa) {
     // Midiendo: el punto es lo primero que cruza el rayo (se ignoran las líneas, que se «tocan» a 1 m)
     const h = raycaster.intersectObjects([grupoTeselas, grupoFlota, grupoTerrenoMalla, grupoArquetas], true).find((x) => x.object?.isMesh && x.object.visible);
@@ -3939,6 +3972,7 @@ function fotograma(ahora) {
   arquetasRed.actualizar();
   medidor.actualizar();
   seccion.actualizar(pkActualUI);
+  incidencias.actualizar();
   (ordenEtiquetas ??= crearOrdenEtiquetas(renderEtq.domElement)).actualizar();
 
   let pkObservado = pkRecorrido;

@@ -1256,3 +1256,44 @@
   :root[data-modo="explorar"] #seccion { display: none !important; }
   :root[data-modo="explorar"] .leyenda-p { display: none; }
   @media (min-width: 761px) { :root[data-modo="explorar"] #panel { max-height: min(430px, calc(100vh - var(--reserva-inf) - 12px)) !important; } }
+
+  /* ---- Incidencias (js/incidencias.js) ---- */
+  body.anotando #lienzo canvas { cursor: crosshair !important; }
+  .etq-incidencia { font: 700 11.5px/1 var(--mono); color: #1f1300; background: #f59e0b; border-radius: 6px; padding: 4px 7px; box-shadow: 0 2px 8px rgba(0, 0, 0, .4); pointer-events: none; white-space: nowrap; }
+  #incidencias {
+    position: fixed; z-index: 9; top: var(--top-chips); left: var(--izq-libre); width: min(360px, calc(100vw - var(--izq-libre) - 12px));
+    max-height: calc(100vh - var(--top-chips) - var(--reserva-inf) - 24px); overflow-y: auto; padding: 8px 14px 12px; background: var(--panel); color: var(--fg);
+    border: 1px solid var(--line); border-top: 3px solid #f59e0b; border-radius: var(--hud-radio, 12px); box-shadow: var(--hud-sombra, 0 10px 28px rgba(0, 0, 0, .24));
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  #incidencias[hidden] { display: none; }
+  #incidencias .f-cab { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+  #incidencias .i-n { display: inline-block; min-width: 20px; padding: 1px 6px; margin-left: 4px; border-radius: 10px; background: #f59e0b; color: #1f1300; font: 700 11px/1.3 var(--mono); text-align: center; }
+  #incidencias .f-btn { display: grid; place-items: center; width: 28px; height: 28px; min-height: 0; padding: 0; border-radius: 7px; color: var(--muted); background: transparent; border-color: transparent; }
+  #incidencias .f-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }
+  #incidencias p { margin: 4px 0; font-size: 12.5px; line-height: 1.4; }
+  #incidencias .i-nota { font-size: 11px; color: var(--muted); }
+  #incidencias .i-pk small { color: var(--muted); }
+  #incidencias .i-foto { width: 100%; border-radius: 6px; margin: 4px 0; display: block; }
+  #incidencias label { display: grid; gap: 3px; margin-top: 6px; font: 600 11.5px/1.2 var(--sans); color: var(--muted); }
+  #incidencias input, #incidencias textarea, #incidencias select { font: 500 13px/1.3 var(--sans); color: var(--fg); background: color-mix(in srgb, var(--fg) 5%, transparent); border: 1px solid var(--line); border-radius: 7px; padding: 6px 8px; min-height: 32px; }
+  #incidencias .i-lista { list-style: none; margin: 6px 0; padding: 0; display: grid; gap: 6px; }
+  #incidencias .i-lista li { display: grid; grid-template-columns: 1fr auto auto auto; gap: 6px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  #incidencias .i-lista li div { display: grid; gap: 2px; min-width: 0; }
+  #incidencias .i-lista small { color: var(--muted); font: 500 11px/1.2 var(--mono); }
+  #incidencias .i-lista select { padding: 3px 4px; min-height: 28px; font-size: 12px; }
+  #incidencias .i-lista button { min-height: 28px; padding: 0 8px; font: 600 12px/1 var(--sans); }
+  #incidencias .i-vacia { display: block; color: var(--muted); font-size: 12.5px; border: 0; }
+  #incidencias .acciones { display: flex; gap: 6px; margin-top: 8px; }
+  #incidencias .acciones button { min-height: 32px; padding: 0 10px; font: 600 12px/1 var(--sans); }
+  body.limpio #incidencias, body.modo-cine #incidencias { display: none !important; }
+  :root[data-modo="explorar"] #incidencias { display: none !important; }
+  @media (max-width: 760px) { #incidencias { top: auto; left: 12px; right: 12px; width: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); max-height: 52vh; } }
+
+  /* ---- Uso en campo (js/campo.js) ---- */
+  #toastCampo {
+    position: fixed; z-index: 20; left: 50%; transform: translateX(-50%); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); max-width: min(92vw, 520px);
+    padding: 10px 14px; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-left: 4px solid var(--accent-fuerte); border-radius: var(--hud-radio, 12px);
+    box-shadow: var(--hud-sombra, 0 10px 28px rgba(0, 0, 0, .3)); font: 600 13px/1.35 var(--sans); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  #toastCampo[hidden] { display: none; }
