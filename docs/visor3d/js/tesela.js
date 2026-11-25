@@ -6,6 +6,7 @@ import { decodificarArboles } from './arboles.js';
 import { hash2 } from './terreno.js';
 import { cargarEdificiosOsmKm } from './entorno-osm.js';
 import { construirCentroTraccion } from './centros-traccion.js';
+import { origen as declarar } from './origen.js';
 
 export function crearGestorTeselas(ctx) {
   const {
@@ -708,6 +709,7 @@ export function crearGestorTeselas(ctx) {
           }
           const ficha = {
             capa: 'Estructuras',
+            origen: declarar('adif', 'Cartografía 3D de Adif: largo, ancho, gálibo y esviaje', 'vanos, canto, pilas, estribos y pretiles tipo'),
             nombre: `Paso superior PK ${fmtPk(ps.pk)}`,
             info: `Medido en la cartografía 3D de Adif: ${ps.longitud.toFixed(0)} m de largo, ${ps.ancho.toFixed(1)} m de ancho, gálibo ${ps.galibo.toFixed(1)} m sobre el carril y esviaje de ${ps.esviaje.toFixed(0)}°. `
               + (largo ? `Supuesto: ${apoyos.length + 1} vanos de hasta ${luzMax.toFixed(0)} m, canto de ${canto.toFixed(1)} m en el centro del vano a ${cantoPila.toFixed(1)} m sobre las pilas, estribos y pretiles tipo. ` : `Supuesto: ${ps.vanos} vano(s), canto de ${canto.toFixed(1)} m, pilas a ±11 m del eje, estribos y pretiles tipo. `)
@@ -959,6 +961,7 @@ export function crearGestorTeselas(ctx) {
           prisma(M.marquesina, banda(435720, 435816, 26.5, 31.0), Y(zR + 3.2), Y(zR + 3.45));
           const fichaEst = {
             capa: 'Estación de viajeros', nombre: 'Estación de Villena AV',
+            origen: declarar('adif', 'Cartografía 3D de Adif: huellas y alturas; acabados según el proyecto de INES Ingenieros', 'celosía y pilares de cubierta'),
             info: 'PK 435+526 de la L042. Andenes de 7,8 m a 760 mm sobre carril con banda de borde, marquesinas, vestíbulo-puente acristalado sobre las cuatro vías, edificio de viajeros y torre de comunicación vertical en sus huellas de la cartografía 3D de Adif. Alturas de la cartografía (cubierta a unos 10,4 m sobre carril); acabados según las fotos del proyecto de INES Ingenieros para Adif. Celosía y pilares de cubierta, supuestos.',
           };
           for (const [k, malla] of Object.entries(M)) {
@@ -1063,6 +1066,7 @@ export function crearGestorTeselas(ctx) {
           prisma(M.cornisa, anillo(vestibulo), Y(zR + 8.3), Y(zR + 8.7));
           const fichaAli = {
             capa: 'Estación de viajeros', nombre: 'Estación de Alicante-Terminal',
+            origen: declarar('adif', 'Cartografía 3D de Adif: huellas, aleros y alturas', 'fachada, lucernario, cerchas y cubierta del edificio'),
             info: 'PK 485+975, fin de la L042. Edificio de viajeros de la MZA (1858), neoclásico y en planta en U, con su cuerpo central hacia la avenida de Salamanca; vías de ancho estándar (alta velocidad) según el ancho entre carriles de la cartografía, con una marquesina plana sobre cada andén que deja las vías al descubierto (como en la vista aérea); a su izquierda, las vías de ancho ibérico con marquesinas blancas. Seis andenes entre las vías reales y topes al final de cada una. Huellas, aleros y alturas de la cartografía 3D de Adif; fachada, lucernario, cerchas y cubierta del edificio, supuestos a partir de la descripción del catálogo municipal de protecciones.',
           };
           for (const [k, malla] of Object.entries(M)) {
@@ -1213,7 +1217,7 @@ export function crearGestorTeselas(ctx) {
             const mesh = new THREE.Mesh(GEO_PLACA_PK, matP);
             mesh.position.set(pPl[0], pPl[1], pPl[2]);
             mesh.rotation.y = yaw + (dir > 0 ? Math.PI * 0.5 : -Math.PI * 0.5);
-            mesh.userData = { placaPk: Math.round(pkM) * 10 + via, capa: 'Catenaria y señalización', nombre: `Placa PK ${fmtPk(Math.round(pkM))}`, info: `PK ${fmtPk(pkM)} · Placa kilométrica azul Adif en poste de catenaria (km, hectómetro y metros). Supuesto: número de vía según el lado (vía ${via}).` };
+            mesh.userData = { placaPk: Math.round(pkM) * 10 + via, capa: 'Catenaria y señalización', origen: declarar('deducido', 'Una por poste de la cartografía; PK calculado sobre el eje', 'número de vía según el lado'), nombre: `Placa PK ${fmtPk(Math.round(pkM))}`, info: `PK ${fmtPk(pkM)} · Placa kilométrica azul Adif en poste de catenaria (km, hectómetro y metros). Supuesto: número de vía según el lado (vía ${via}).` };
             grupos.catenaria.add(mesh);
           }
         };
@@ -1583,7 +1587,7 @@ export function crearGestorTeselas(ctx) {
         const extra = construirCentroTraccion(M, { ...ct, trafosLoc }, R, Ed, zSuelo - anclaZ, [ct.haciaVia[0], -ct.haciaVia[1]],
           (F) => vallaRecinto(mValla, mAlambreValla, inst.posteValla, F.cx, F.cz, zSuelo - anclaZ + 0.05, F.ux, F.uz, 2 * F.A, 2 * F.B, 2.27, matInst));
         for (const m of extra) {
-          m.userData = { ...fichaElemento('050012', null, ct.pk), nombre: ct.nombre, info: ct.info };
+          m.userData = { ...fichaElemento('050012', null, ct.pk), nombre: ct.nombre, info: ct.info, origen: ct.origenDato };
           grupos.estructuras?.add(m);
         }
       }
@@ -2310,7 +2314,10 @@ export function crearGestorTeselas(ctx) {
             ed.cat === 'energia'
               ? `${ed.info || ed.sub || ''} · Centro técnico de tracción 2×25 kV 50 Hz. Alimentación directa a hilo de contacto (+25 kV), retorno de carril neutro (0 kV) y feeder (-25 kV).`
               : (ed.sub || ''),
-            [...filasEmp, ...pt.filas], pt);
+            [...filasEmp, ...pt.filas], pt,
+            ed.origenDato || (ed.supuesto
+              ? declarar('supuesto', 'Caseta BTS sin edificio en la cartografía', 'posición y código')
+              : declarar('adif', 'Catálogo de edificios e instalaciones de Adif, georreferenciado')));
         });
         const obj = new CSS2DObject(el);
         const pLbl = L(ed.e, ed.n, zSuelo + (ed.h || 4.5));
@@ -2441,11 +2448,13 @@ export function crearGestorTeselas(ctx) {
       // Montaje de las celdas: un THREE.LOD por celda y por familia (edificios en su grupo, árboles en el de entorno)
       const fichaEd = {
         capa: 'Edificios',
+        origen: declarar('fuente', 'Catastro INSPIRE (huella y plantas) y LiDAR PNOA del IGN (altura)', 'cubierta'),
         nombre: 'Edificaciones del entorno (Catastro)',
         info: `${nEdifReal} edificios en este kilómetro: huella y plantas de Catastro INSPIRE, altura medida con el LiDAR PNOA del IGN (MDS normalizado de edificación, 2,5 m). La cubierta es supuesta.`,
       };
       const fichaArb = {
         capa: 'Entorno',
+        origen: declarar('fuente', 'LiDAR PNOA del IGN: posición, altura y copa de cada árbol', 'especie'),
         nombre: 'Arbolado real (LiDAR PNOA, IGN)',
         info: `${arbolesReal?.n || 0} árboles en este kilómetro, cada uno en su sitio y con su altura y copa medidas: máximos locales del MDS normalizado de vegetación del IGN (2,5 m). La especie es supuesta: pino por encima de 6 m; olivo o almendro por parcela.`,
       };
@@ -2528,7 +2537,7 @@ export function crearGestorTeselas(ctx) {
         const g = new THREE.BufferGeometry();
         g.setAttribute('position', new THREE.Float32BufferAttribute(arrSeg, 3));
         const ln = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: colorHex }));
-        ln.userData = { capa: 'Catenaria y señalización', nombre, info };
+        ln.userData = { capa: 'Catenaria y señalización', nombre, info, origen: nombre.startsWith('Línea eléctrica') ? declarar('adif', 'Cartografía 3D de Adif · capa 040230') : declarar('deducido', 'Generado entre los apoyos de la catenaria de la cartografía', 'tipo de cable y flecha') };
         grupos[idGrupo].add(ln);
       };
 
@@ -2548,11 +2557,11 @@ export function crearGestorTeselas(ctx) {
       addMalla(mBarandillaTunel, mat('#eab308', 1, { metalness: 0.35, roughness: 0.4 }), 'estructuras', '050020');
       addMalla(mHormigonObra, matHormigonViad, 'estructuras', '030203', true, true);
 
-      addHilos(segContacto, '#9a5833', 'catenaria', 'Hilo de contacto EAC-350 (Cu-Ag)', `PK ${fmtPk(pkCentro)} · Altura constante de 5,30 m sobre el carril. Descentramiento de ±20 cm: en cada ménsula el brazo de atirantado lleva el hilo a un lado y otro del eje de la vía, alternando, y entre postes va recto. Así barre las bandas de carbón del pantógrafo de lado a lado (desgaste uniforme) y gana rigidez frente al viento. Apoyos en los postes de la cartografía de Adif.`);
-      addHilos(segSustent, '#475569', 'catenaria', 'Cable sustentador y celosía EAC-350', `PK ${fmtPk(pkCentro)} · Sustentador de bronce compensado mecánicamente y arriostramientos.`);
-      addHilos(segPendolas, '#64748b', 'catenaria', 'Péndolas equipotenciales EAC-350', `PK ${fmtPk(pkCentro)} · Péndolas verticales de bronce cada 4,6 m entre sustentador e hilo de contacto.`);
-      addHilos(segFeeder, '#334155', 'catenaria', 'Feeder negativo 2×25 kV', `PK ${fmtPk(pkCentro)} · Conductor de retorno/alimentación suspendido en cabeza de poste.`);
-      addHilos(segLineaElec, '#1e293b', 'catenaria', 'Línea eléctrica aérea (040230)', `PK ${fmtPk(pkCentro)} · Conductores aéreos de alta/media tensión sobre apoyos de celosía metálica.`);
+      addHilos(segContacto, '#9a5833', 'catenaria', 'Hilo de contacto EAC-350 (Cu-Ag)', `Altura constante de 5,30 m sobre el carril. Descentramiento de ±20 cm: en cada ménsula el brazo de atirantado lleva el hilo a un lado y otro del eje de la vía, alternando, y entre postes va recto. Así barre las bandas de carbón del pantógrafo de lado a lado (desgaste uniforme) y gana rigidez frente al viento. Apoyos en los postes de la cartografía de Adif.`);
+      addHilos(segSustent, '#475569', 'catenaria', 'Cable sustentador y celosía EAC-350', `Sustentador de bronce compensado mecánicamente y arriostramientos.`);
+      addHilos(segPendolas, '#64748b', 'catenaria', 'Péndolas equipotenciales EAC-350', `Péndolas verticales de bronce cada 4,6 m entre sustentador e hilo de contacto.`);
+      addHilos(segFeeder, '#334155', 'catenaria', 'Feeder negativo 2×25 kV', `Conductor de retorno/alimentación suspendido en cabeza de poste.`);
+      addHilos(segLineaElec, '#1e293b', 'catenaria', 'Línea eléctrica aérea (040230)', `Conductores aéreos de alta/media tensión sobre apoyos de celosía metálica.`);
 
       addMalla(mCanaleta, matCanaleta, 'plataforma', '050150', false, true);
       addMalla(mCuneta, mat('#9ba3ab'), 'plataforma', '010127', false, true);
@@ -2616,6 +2625,7 @@ export function crearGestorTeselas(ctx) {
             im.computeBoundingSphere();
             im.userData = fichaElemento('050117', null, pkCentro);
             im.userData.nombre = 'Sujeción de carril';
+            im.userData.origen = declarar('deducido', 'Generada sobre cada traviesa a lo largo del eje de vía', 'modelo tipo de la sujeción');
             im.userData.info = 'Sujeción elástica tipo Vossloh SKL sobre traviesa monobloque: grapa de varilla en verde Adif, placa guía acodada, tirafondo con arandela y placa de asiento de 10 mm bajo el patín del carril UIC 60. Una por traviesa y carril, cada 0,6 m.';
             tramo.add(im);
           }

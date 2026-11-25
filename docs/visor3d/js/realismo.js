@@ -39,6 +39,8 @@ export function aplicarColisionTerreno({ camara, controles, cotaTerrenoUTM, UTMd
 }
 
 // UX 3: Gestor de vuelos parabólicos suaves entre PKs / hitos / activos
+const REDUCIDO = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 export function crearGestorVuelo({ camara, controles, Eje3D, origen, W, recentrarOrigen, gestionarStreaming, bloquesTerreno, procesarColaTerreno, actualizarUI, onTunelDestino }) {
   let vuelo = null;
 
@@ -69,7 +71,7 @@ export function crearGestorVuelo({ camara, controles, Eje3D, origen, W, recentra
     if (pRef.enTunel && onTunelDestino) onTunelDestino(true);
     if (pk !== null) gestionarStreaming(pk);
 
-    if (inmediato) {
+    if (inmediato || REDUCIDO) {   // con «reducir movimiento» la cámara salta, no vuela
       vuelo = null;
       if (Math.hypot(objE - origen.E, objN - origen.N) > 2500) recentrarOrigen(objE, objN, objZ);
       if (bloquesTerreno.size < 9) procesarColaTerreno(true);

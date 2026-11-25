@@ -32,8 +32,8 @@
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="./visor.css?v=10">
-<link rel="stylesheet" href="./comun/panel.css">
+<link rel="stylesheet" href="./visor.css?v=11">
+<link rel="stylesheet" href="./comun/panel.css?v=11">
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
 <script src="./comun/trenes.js"></script>
@@ -152,15 +152,26 @@
     </div>
   </section>
 
-  <div id="ficha" hidden role="dialog" aria-labelledby="fichaNombre">
-    <span class="capa" id="fichaCapa"></span>
-    <strong id="fichaNombre"></strong>
+</aside>
+
+<!-- Ficha del elemento pulsado: tarjeta propia (a la derecha del panel en escritorio, hoja plegada sobre la barra en movil).
+     El sello dice de donde sale el dato: ver js/origen.js -->
+<aside id="ficha" hidden tabindex="-1" aria-labelledby="fichaNombre">
+  <div class="f-cab">
+    <span class="sello" id="fichaSello" data-clase="sin"><i aria-hidden="true">?</i><b>Sin declarar</b></span>
+    <button type="button" id="btnFichaPlegar" class="f-btn" aria-expanded="true" aria-controls="fichaCuerpo" aria-label="Plegar la ficha" title="Plegar o desplegar"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 10l5-5 5 5"/></svg></button>
+    <button type="button" id="btnFichaCerrar" class="f-btn" aria-label="Cerrar la ficha (Esc)" title="Cerrar (Esc)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+  </div>
+  <span class="capa" id="fichaCapa"></span>
+  <h2 id="fichaNombre"></h2>
+  <div id="fichaCuerpo">
     <p id="fichaInfo"></p>
+    <dl id="fichaOrigen" class="f-origen"></dl>
     <dl id="fichaDatos" hidden></dl>
     <div class="acciones" id="fichaAcciones" hidden>
       <button type="button" id="btnCopiarCoord">Copiar coordenadas</button>
-      <button type="button" id="btnFichaCctv" hidden>📹 Ver desde CCTV</button>
-      <a id="lnkMapa" target="_blank" rel="noopener" style="align-self:center;font-size:12px">Abrir en mapa</a>
+      <button type="button" id="btnFichaCctv" hidden>Ver desde CCTV</button>
+      <a id="lnkMapa" target="_blank" rel="noopener">Abrir en mapa</a>
       <a id="lnkGeoLibre" target="_blank" rel="noopener" style="align-self:center;font-size:12px" title="Abre la cartografía 3D de Adif de este tramo (km anterior, actual y siguiente) en GeoLibre, un SIG libre en el navegador: atributos, mediciones, SQL y geoproceso">Abrir en GeoLibre</a>
     </div>
   </div>
@@ -430,6 +441,7 @@ import { crearTrafico } from './js/trafico.js';
 import { crearLaguna } from './js/laguna.js';
 import { mostrarGuiaCamara } from './js/guia.js';
 import { crearArquetas, fichaArqueta } from './js/arquetas.js';
+import { origen as declarar, origenDe, CLASES as CLASES_ORIGEN } from './js/origen.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
 import { crearArboles } from './js/arboles.js';
@@ -903,7 +915,7 @@ function fichaElemento(idCapa, props, pkAprx) {
   const c = capasMeta[idCapa] || { nombre: idCapa, grupo: 'via' };
   const g = meta.grupos.find((x) => x.id === c.grupo);
   const txt = (props?.t || '').trim();
-  const sub = pkAprx ? `PK ${fmtPk(pkAprx)} · L042 Albacete–Alicante` : 'L042 Albacete–Alicante';
+  const sub = 'L042 Albacete–Alicante'; // el PK exacto lo da el punto pulsado (datosDePunto), no el centro del km
   if (idCapa === '050025' && pkAprx) {
     const vi = Eje3D.buscarViaductoInfo(pkAprx);
     const vr = vi ? VIADUCTOS_REALES.get(vi.pkIni) : null;
@@ -915,13 +927,14 @@ function fichaElemento(idCapa, props, pkAprx) {
         info: `PK ${fmtPk(vr.pkEstribo1)} a ${fmtPk(vr.pkEstribo2)} · ${Math.round(vr.pkEstribo2 - vr.pkEstribo1)} m en ${nV} vanos (${vr.luces[0]} + ${nV - 2} × ${lMax} + ${vr.luces[nV - 1]} m). `
           + `${vr.tablero.tipo} de ${vr.tablero.ancho} m de ancho sobre ${nV - 1} pilas de ${vr.pilas.ancho} m; puntos fijos en las pilas ${vr.pilas.puntosFijos.join(', ')}. `
           + `${vr.cimentacion}. ${vr.construccion}. Medido: ${vr.medido.join('; ')}. Supuesto: ${vr.supuestos.join('; ')}.`,
+        origen: declarar('fuente', 'Ficha del proyecto del viaducto y cartografía 3D de Adif', vr.supuestos.join('; ')),
       };
     }
-    if (vi) return { capa: 'Estructuras', nombre: vi.nombre, info: `PK ${fmtPk(vi.pkIni)} a ${fmtPk(vi.pkFin)} · Tablero de cajón monocelular pretensado de doble vía AV sobre apoyos pot y pilas troncocónicas (sección tipo, sin medir).` };
+    if (vi) return { capa: 'Estructuras', nombre: vi.nombre, info: `PK ${fmtPk(vi.pkIni)} a ${fmtPk(vi.pkFin)} · Tablero de cajón monocelular pretensado de doble vía AV sobre apoyos pot y pilas troncocónicas (sección tipo, sin medir).`, origen: declarar('supuesto', 'Sección tipo: el viaducto no tiene ficha propia', 'tablero, pilas y apoyos') };
   }
   if (idCapa === '050020' && pkAprx) {
     const tn = Eje3D.enPk(pkAprx).enTunel;
-    if (tn) return { capa: 'Estructuras', nombre: tn.nombre, info: `PK ${fmtPk(tn.pkIni)} a ${fmtPk(tn.pkFin)} · Sección interior de doble vía AV con aceras de evacuación, barandillas y alumbrado de emergencia.` };
+    if (tn) return { capa: 'Estructuras', nombre: tn.nombre, info: `PK ${fmtPk(tn.pkIni)} a ${fmtPk(tn.pkFin)} · Sección interior de doble vía AV con aceras de evacuación, barandillas y alumbrado de emergencia.`, origen: declarar('deducido', 'Tramo del túnel tomado del eje de la línea', 'sección interior tipo') };
   }
   const descripciones = {
     '050075': ['Estación base GSM-R (BTS)', `${sub}. Torre celosía arriostrada de comunicaciones ferroviarias, antenas sectoriales GSM-R y caseta de equipos.`],
@@ -939,11 +952,12 @@ function fichaElemento(idCapa, props, pkAprx) {
     '040023': ['Torre metálica de línea eléctrica', `${sub}. Apoyo de celosía metálica galvanizada con crucetas y cadenas de aisladores.`],
     '040230': ['Línea eléctrica aérea', `${sub}. Tendido eléctrico de alta/media tensión en su trazado cartografiado.`],
   };
-  if (descripciones[idCapa]) return { capa: g ? g.nombre : c.grupo, nombre: descripciones[idCapa][0], info: descripciones[idCapa][1] };
+  if (descripciones[idCapa]) return { capa: g ? g.nombre : c.grupo, nombre: descripciones[idCapa][0], info: descripciones[idCapa][1], origen: declarar('adif', `Cartografía 3D de Adif · capa ${idCapa}`) };
   return {
     capa: g ? g.nombre : c.grupo,
     nombre: txt ? `${c.nombre} (${txt})` : c.nombre,
     info: `${sub} · Cartografía DXF 3D Adif (capa ${idCapa}).`,
+    origen: declarar('adif', `Cartografía 3D de Adif · capa ${idCapa}`),
   };
 }
 
@@ -983,16 +997,19 @@ function marcoEnPk(pk, of, largo, ancho) {
 const CENTROS_TRACCION_CORREDOR = (centrosTraccionDatos?.centros || []).map((c) => {
   const signo = c.lado === 'izquierda' ? 1 : -1;
   const esSub = c.tipo === 'SUB';
-  let recinto = null, edificio = null, origen;
+  let recinto = null, edificio = null, origen, origenClase = 'adif', origenSupuesto = '';
   if (c.caja) {
     recinto = marcoEnPk((c.caja.pk[0] + c.caja.pk[1]) / 2, (c.caja.of[0] + c.caja.of[1]) / 2, Math.abs(c.caja.pk[1] - c.caja.pk[0]), Math.abs(c.caja.of[1] - c.caja.of[0]));
     edificio = Array.isArray(c.edificio) ? marcoDeAnillo(c.edificio) : marcoEnPk(c.edificio.pk, c.edificio.of, c.edificio.largo, c.edificio.ancho);
     origen = Array.isArray(c.edificio) ? 'edificio de la cartografía de Adif y recinto medido sobre el PNOA' : 'recinto y edificio medidos sobre el PNOA';
+    origenClase = 'fuente';
   } else {
     if (c.recinto) recinto = marcoDeAnillo(c.recinto);
     if (c.edificio) edificio = marcoDeAnillo(c.edificio);
     origen = recinto && edificio ? 'recinto y edificio de la cartografía de Adif' : recinto ? 'recinto de la cartografía; edificio en su posición tipo (supuesto)' : edificio ? 'edificio de la cartografía; recinto tipo (supuesto)' : 'posición y medidas tipo (supuesto: no está en la cartografía)';
   }
+  if (!recinto || !edificio) origenSupuesto = !recinto && !edificio ? 'recinto y edificio tipo' : !recinto ? 'recinto tipo' : 'edificio en su posición tipo';
+  if (!recinto && !edificio) origenClase = 'supuesto';
   if (!recinto) {
     recinto = edificio
       ? { ...edificio, A: edificio.A + 7.3, B: edificio.B + 7.6 }
@@ -1015,6 +1032,7 @@ const CENTROS_TRACCION_CORREDOR = (centrosTraccionDatos?.centros || []).map((c) 
     sub: `PK ${fmtPk(c.pk)}`,
     info: `${DESC_CENTRO[c.tipo]} · PK ${fmtPk(c.pk)}${c.pkInventario ? ` (inventario: PK ${fmtPk(c.pkInventario)})` : ''} · vía ${c.via} (${c.lado}) · ${origen}`,
     cat: 'energia', recinto, edificio, haciaVia: [vx, vy], recintoCarto: Boolean(c.vallaCarto),
+    origenDato: declarar(origenClase, `Inventario de centros de tracción · ${origen}`, origenSupuesto),
     trafos: (c.trafos || []).map(([pk, of]) => { const q = marcoEnPk(pk, of, 1, 1); return [q.E, q.N]; }),
     e: edificio.E, n: edificio.N,
   };
@@ -1026,7 +1044,7 @@ for (const ct of CENTROS_TRACCION_CORREDOR) {
   if (!arr) { arr = []; edificiosPorKm.set(kmCt, arr); }
   // La etiqueta del inventario sustituye a la que hubiera de otra fuente para el mismo centro
   for (let i = arr.length - 1; i >= 0; i--) if (arr[i].cat === 'energia' && Math.abs(arr[i].pk - ct.pk) < 300) arr.splice(i, 1);
-  arr.push({ km: kmCt, pk: ct.pk, e: ct.e, n: ct.n, nombre: ct.nombre, sub: ct.sub, info: ct.info, cat: ct.cat, h: ct.tipo === 'SUB' ? 7 : 6 });
+  arr.push({ km: kmCt, pk: ct.pk, e: ct.e, n: ct.n, nombre: ct.nombre, sub: ct.sub, info: ct.info, cat: ct.cat, origenDato: ct.origenDato, h: ct.tipo === 'SUB' ? 7 : 6 });
 }
 // Perfil transversal de cajón monocelular pretensado de viaducto AV (coordenadas respecto a cota de carril Z=0)
 const PERFIL_VIADUCTO = [
@@ -1597,7 +1615,8 @@ function crearMarcasEmplazamientos() {
         ['ID Pidame', e.id],
         ...pt.filas.slice(1),
       ];
-      mostrarFicha('Emplazamiento · L042', e.nombre, 'Posición por PK sobre el eje (el listado no trae coordenadas propias).', filas, pt);
+      mostrarFicha('Emplazamiento · L042', e.nombre, 'Posición por PK sobre el eje (el listado no trae coordenadas propias).', filas, pt,
+        declarar('deducido', 'Inventario de emplazamientos de la L042: PK del listado proyectado sobre el eje'));
     });
     const obj = new CSS2DObject(el);
     obj.visible = false;
@@ -1693,7 +1712,7 @@ document.getElementById('formPk').addEventListener('submit', (e) => {
 });
 
 // Pausa del recorrido automático (cabina y dron), centrado y zoom por teclado
-let recorridoPausado = false;
+let recorridoPausado = reducido; // con «reducir movimiento» el recorrido arranca parado (botón Seguir para reanudarlo)
 let prevRefPos = null;
 let prevRefObj = null;
 function calcularPoseRecorrido(modo, pk) {
@@ -2212,7 +2231,7 @@ pintarTrenesReales();
 // Encadena planos (persecución, barrido lateral hacia el morro, frontal a ras, grúa que se aleja, travelling cercano y
 // aéreo orbitando). Cada plano mueve azimut, elevación, distancia y punto de mira con el tiempo y el paso de uno a otro
 // se suaviza. Arranca así al abrir la web; cualquier toque o rueda sobre la escena lo pasa a manual (botón 🎥 para volver).
-let dronCine = !params.get('vista');
+let dronCine = !params.get('vista') && !reducido;
 // Planos de cine: azimut (0 = por delante, π = por detrás), elevación, distancia, punto de mira a lo largo del tren
 // (foco, m por delante del centro) y focal (fov, grados: menos = más zoom). Dentro de cada plano el movimiento arranca
 // y frena con suavidad (curva en S) y el paso de uno a otro se funde como el de una grúa
@@ -2429,6 +2448,7 @@ function alternarPausaRecorrido(forzar) {
   btnPausaRec.setAttribute('aria-pressed', String(recorridoPausado));
 }
 btnPausaRec.addEventListener('click', () => alternarPausaRecorrido());
+if (recorridoPausado) alternarPausaRecorrido(true);
 btnCentrarRec.addEventListener('click', () => centrarCamaraRecorrido());
 function tocarBocinaTren() {
   audioAmbiental.activar?.();
@@ -2659,8 +2679,7 @@ addEventListener('keydown', (e) => {
   if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) return;
   if (e.code === 'KeyH') { e.preventDefault(); alternarModoCine(); }
   else if (e.code === 'Escape') {
-    const fichaEl = document.getElementById('ficha');
-    if (fichaEl && !fichaEl.hidden) { fichaEl.hidden = true; return; }
+    if (cerrarFicha()) return;
     if (!elPanelTR.hidden) { abrirPanelTR(false); return; }
     if (document.body.classList.contains('modo-cine')) { alternarModoCine(false); }
   }
@@ -2993,41 +3012,101 @@ function datosDePunto(E, N, Zpunto) {
     lat, lon, E, N, pk: q.pk,
   };
 }
-function mostrarFicha(capa, nombre, info, filas = [], coord = null) {
+const elFicha = document.getElementById('ficha');
+const elFichaOrigen = document.getElementById('fichaOrigen');
+const elFichaSello = document.getElementById('fichaSello');
+const btnFichaPlegar = document.getElementById('btnFichaPlegar');
+let fichaFocoPrevio = null;
+function plegarFicha(plegar) {
+  elFicha.classList.toggle('plegada', plegar);
+  btnFichaPlegar.setAttribute('aria-expanded', String(!plegar));
+  btnFichaPlegar.setAttribute('aria-label', plegar ? 'Desplegar la ficha' : 'Plegar la ficha');
+}
+const filaDl = (dl, k, v) => {
+  const dt = document.createElement('dt'); dt.textContent = k;
+  const dd = document.createElement('dd'); dd.textContent = v;
+  dl.append(dt, dd);
+};
+/** Ficha de un elemento. `og` es su origen declarado (js/origen.js); sin él sale «Sin declarar», nunca «Cartografía Adif». */
+function mostrarFicha(capa, nombre, info, filas = [], coord = null, og = null) {
+  const o = og?.clase ? og : origenDe(null);
+  const cl = CLASES_ORIGEN[o.clase] || CLASES_ORIGEN.sin;
+  const parcial = o.supuesto && ['adif', 'fuente', 'deducido'].includes(o.clase);
+  elFichaSello.dataset.clase = o.clase;
+  elFichaSello.title = cl.ayuda;
+  elFichaSello.querySelector('i').textContent = cl.icono;
+  elFichaSello.querySelector('b').textContent = cl.etiqueta + (parcial ? ' · con partes supuestas' : '');
   document.getElementById('fichaCapa').textContent = capa;
   document.getElementById('fichaNombre').textContent = nombre;
   document.getElementById('fichaInfo').textContent = info || '';
   document.getElementById('fichaInfo').hidden = !info;
-  const filasFinal = [...filas];
-  if (!filasFinal.some(([k]) => /origen|fuente/i.test(k))) {
-    const txt = `${capa} ${info || ''}`.toLowerCase();
-    const origenDato = txt.includes('supuesto') || txt.includes('tipo') ? 'Geometría tipo / supuesto'
-      : txt.includes('lidar') || txt.includes('mdt') ? 'LiDAR / MDT IGN'
-      : 'Cartografía 3D Adif L042';
-    filasFinal.push(['Origen del dato', origenDato]);
-  }
-  elFichaDatos.replaceChildren(...filasFinal.flatMap(([k, v]) => {
-    const dt = document.createElement('dt'); dt.textContent = k;
-    const dd = document.createElement('dd'); dd.textContent = v;
-    return [dt, dd];
-  }));
-  elFichaDatos.hidden = !filasFinal.length;
+  elFichaOrigen.replaceChildren();
+  filaDl(elFichaOrigen, 'Fuente', o.fuente);
+  if (o.supuesto) filaDl(elFichaOrigen, 'Supuesto', o.supuesto);
+  elFichaDatos.replaceChildren();
+  for (const [k, v] of filas) filaDl(elFichaDatos, k, v);
+  elFichaDatos.hidden = !filas.length;
   coordFicha = coord;
   elFichaAcc.hidden = !coord;
   if (coord) {
     document.getElementById('lnkMapa').href = `https://www.google.com/maps?q=${coord.lat.toFixed(6)},${coord.lon.toFixed(6)}`;
     document.getElementById('lnkGeoLibre').href = urlGeoLibre({ pk: coord.pk, lat: coord.lat, lon: coord.lon, pkIni: Eje3D.pkIni, pkFin: Eje3D.pkFin });
   }
-  const fichaEl = document.getElementById('ficha');
-  fichaEl.hidden = false;
-  if (panel.classList.contains('cerrado')) {
-    panel.classList.remove('cerrado');
-    btnAbrir?.setAttribute('aria-expanded', 'true');
-  }
-  if (panel.classList.contains('ventana-plegada')) {
-    panel.classList.remove('ventana-plegada');
-  }
-  fichaEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  // En móvil la ficha nace plegada (solo sello y nombre); en escritorio, abierta
+  plegarFicha(matchMedia('(max-width: 760px)').matches);
+  const previo = document.activeElement;
+  elFicha.hidden = false;
+  elFicha.scrollTop = 0;
+  // Con el teclado el foco pasa a la ficha y vuelve al cerrarla; con el ratón no se le quita nada a la escena
+  if (previo && previo !== document.body && previo !== render.domElement && !elFicha.contains(previo)) {
+    fichaFocoPrevio = previo;
+    elFicha.focus({ preventScroll: true });
+  } else if (!elFicha.contains(previo)) fichaFocoPrevio = null;
+  const sr = document.getElementById('anunciosSr');
+  if (sr) sr.textContent = `Ficha: ${nombre}. ${cl.etiqueta}${parcial ? ', con partes supuestas' : ''}.`;
+}
+function cerrarFicha() {
+  if (elFicha.hidden) return false;
+  elFicha.hidden = true;
+  realce.visible = false;
+  if (fichaFocoPrevio?.isConnected) fichaFocoPrevio.focus({ preventScroll: true });
+  fichaFocoPrevio = null;
+  return true;
+}
+document.getElementById('btnFichaCerrar').addEventListener('click', cerrarFicha);
+btnFichaPlegar.addEventListener('click', () => plegarFicha(!elFicha.classList.contains('plegada')));
+elFicha.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); cerrarFicha(); } });
+
+// Realce del elemento pulsado: caja de aristas sobre su volumen (la orientada de la instancia si es un instanciado).
+// Va de hija del objeto pulsado, así sigue al origen flotante y se libera con su km. Los conjuntos grandes no se realzan.
+const REALCE_MAX = 80;
+const realce = new THREE.Group();
+{
+  const geoCaja = new THREE.BoxGeometry(1, 1, 1);
+  const aristas = new THREE.LineSegments(new THREE.EdgesGeometry(geoCaja), new THREE.LineBasicMaterial({ color: 0x38bdf8, depthTest: false, transparent: true, opacity: 1 }));
+  const relleno = new THREE.Mesh(geoCaja, new THREE.MeshBasicMaterial({ color: 0x38bdf8, depthTest: false, depthWrite: false, transparent: true, opacity: 0.28 }));
+  for (const o of [aristas, relleno]) { o.renderOrder = 999; o.frustumCulled = false; o.raycast = () => {}; o.material.userData.compartida = true; o.geometry.userData.compartida = true; realce.add(o); }
+  Object.assign(realce, { visible: false, matrixAutoUpdate: false, raycast() {} });
+}
+const _mReal = new THREE.Matrix4(), _mBox = new THREE.Matrix4(), _cBox = new THREE.Vector3(), _sBox = new THREE.Vector3();
+const _qBox = new THREE.Quaternion(), _minBox = new THREE.Vector3(0.6, 0.6, 0.6);   // mínimo visible a decenas de metros
+function realzarHit(hit) {
+  const o = hit?.object, g = o?.geometry;
+  realce.visible = false;
+  if (!g || o.isSprite) return;
+  if (!g.boundingBox) g.computeBoundingBox();
+  const bb = g.boundingBox;
+  if (!bb || bb.isEmpty()) return;
+  bb.getSize(_sBox);
+  if (Math.max(_sBox.x, _sBox.y, _sBox.z) > REALCE_MAX) return;
+  bb.getCenter(_cBox);
+  _sBox.max(_minBox).multiplyScalar(1.06);
+  _mBox.compose(_cBox, _qBox, _sBox);
+  if (o.isInstancedMesh && hit.instanceId != null) { o.getMatrixAt(hit.instanceId, _mReal); _mReal.multiply(_mBox); } else _mReal.copy(_mBox);
+  o.add(realce);
+  realce.matrix.copy(_mReal);
+  realce.matrixWorldNeedsUpdate = true;
+  realce.visible = true;
 }
 document.getElementById('btnCopiarCoord').addEventListener('click', async (ev) => {
   if (!coordFicha) return;
@@ -3156,7 +3235,7 @@ render.domElement.addEventListener('pointerup', (e) => {
   const hitArq = visibles.find((h) => h.object?.userData?.arquetas && h.distance < (visibles[0]?.distance ?? 0) + 1.5);
   const hit = hitArq || visibles.find((h) => h.object?.userData?.nombre);
   const primero = hit || visibles[0];
-  if (!primero) { document.getElementById('ficha').hidden = true; return; }
+  if (!primero) { cerrarFicha(); return; }
   const u = UTMdeMundo(primero.point);
   const pt = datosDePunto(u.E, u.N, u.Z);
   let baculo = null;
@@ -3164,18 +3243,22 @@ render.domElement.addEventListener('pointerup', (e) => {
     baculo = hit.object.userData.baculosCctv[hit.instanceId] || null;
   }
   let capa = hit ? (hit.object.userData.capa || 'Elemento') : 'Punto del terreno';
+  let og = hit ? origenDe(hit.object.userData) : declarar('sin', 'El punto señalado no es un elemento con ficha');
   let nombre = baculo ? baculo.nombre : (hit ? hit.object.userData.nombre : `PK ${fmtPk(pt.pk)}`);
   let info = hit ? (hit.object.userData.info || '') : '';
   // Arqueta de fibra óptica: PK, lado de vía, función (empalme / segregación) y cable
   const arq = hit?.object.userData?.arquetas?.[hit.instanceId];
-  if (arq) ({ capa, nombre, info } = fichaArqueta(arq, fmtPk));
+  if (arq) ({ capa, nombre, info, origen: og } = fichaArqueta(arq, fmtPk));
   if (hit && capa.includes('Circulación')) {
     const trCerca = flota.reduce((m, tr) => (!m || Math.abs(tr.pk - pt.pk) < Math.abs(m.pk - pt.pk) ? tr : m), null);
     if (trCerca && Math.abs(trCerca.pk - pt.pk) < 160) info = `${trCerca.estadoTxt} · ${info}`;
   }
   if (hit?.object.userData?.url) window.open(hit.object.userData.url, '_blank', 'noopener');
   if (hit?.object.userData?.tiempoReal) abrirDetalleTR(hit.object.userData.tiempoReal);
-  mostrarFicha(capa, nombre, info, pt.filas, pt);
+  // Un instanciado (poste, traviesa, sujeción…) comparte ficha con todo el conjunto: se dice cuál se ha tocado
+  const filasClic = hit?.instanceId != null && hit.object.count > 1 ? [...pt.filas, ['Selección', `1 de ${hit.object.count} elementos iguales en este tramo`]] : pt.filas;
+  mostrarFicha(capa, nombre, info, filasClic, pt, og);
+  realzarHit(hit);
   baculoFicha = baculo || null;
   if (btnFichaCctv) btnFichaCctv.hidden = !baculo;
 });
@@ -3291,7 +3374,7 @@ function actualizarUI(pk) {
   const txtOrto = ortofotoActiva ? ` · ${{ proyecto: 'Ortofoto', pnoa: 'PNOA', esri: 'Satélite' }[fondoTerreno]} ${nOrto}/${bloquesTerreno.size}` : '';
   const badgePkValor = document.getElementById('badgePkValor');
   if (badgePkValor) badgePkValor.textContent = `PK ${fmtPk(pk)}`;
-  txtPosicion.innerHTML = `<strong>PK ${fmtPk(pk)}</strong> · cota ${p.Z.toFixed(1)} m · pend ${(p.pend >= 0 ? '+' : '') + p.pend.toFixed(1)} ‰ · ${teselasCargadas.size} km activos · ${Math.round(fpsSuave)} fps${txtOrto}${ctx}`;
+  txtPosicion.innerHTML = `<strong>PK ${fmtPk(pk)}</strong> · cota ${p.Z.toFixed(1)} m · pend ${(p.pend >= 0 ? '+' : '') + p.pend.toFixed(1)} ‰ ${params.has('depurar') ? ` · ${teselasCargadas.size} km activos · ${Math.round(fpsSuave)} fps${txtOrto}` : ''}${ctx}`; // fps y teselas solo con ?depurar
   dibujarPerfil(pk);
 }
 

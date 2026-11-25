@@ -122,6 +122,7 @@ export function crearLaguna({ escena, Eje3D, W, cotaTerrenoUTM }) {
     mesh.renderOrder = 2;
     mesh.userData = {
       capa: 'Entorno', nombre: 'Laguna del Salobrejo',
+      origen: { clase: 'deducido', fuente: 'Cota de la lámina del MDT del IGN y orilla de la cartografía de Adif', supuesto: 'profundidad, color y oleaje' },
       info: 'Laguna salada endorreica de Higueruela. Lámina a 915,0 m (cota del MDT del IGN, que la aplana), recortada por el relieve. Supuesto: profundidad según el terreno, orilla de costra salina y carrizo.',
     };
     mesh.userData.anclaE = (E0 + E1) / 2; mesh.userData.anclaN = (N0 + N1) / 2;
@@ -133,7 +134,7 @@ export function crearLaguna({ escena, Eje3D, W, cotaTerrenoUTM }) {
       const mCana = new THREE.MeshStandardMaterial({ color: '#8a8f55', roughness: 0.9, side: THREE.DoubleSide });
       const n = Math.min(orilla.length * 3, 6000);
       carrizo = new THREE.InstancedMesh(gCana, mCana, n);
-      carrizo.userData = { capa: 'Entorno', nombre: 'Carrizal de la orilla', info: 'Carrizo (Phragmites) en la orilla de la laguna. Supuesto.', origenes: [] };
+      carrizo.userData = { capa: 'Entorno', origen: { clase: 'supuesto', fuente: 'Matas repartidas por la orilla de la laguna: no están medidas' }, nombre: 'Carrizal de la orilla', info: 'Carrizo (Phragmites) en la orilla de la laguna. Supuesto.', origenes: [] };
       let s = 97; const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
       const col = new THREE.Color(), mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
       for (let k = 0; k < n; k++) {

@@ -15,7 +15,7 @@
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
 }
 #panel header::before {
-  content: "Visor 3D"; font: 600 10px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--accent);
+  content: "Visor 3D"; font: 600 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--accent-txt);
 }
 #panel h1 { font-size: 20px; letter-spacing: -0.005em; }
 #panel .sub { font-size: 11.5px; line-height: 1.45; }
@@ -24,7 +24,7 @@
 /* Cabeceras de sección plegables */
 #panel section > h2 {
   display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 10px; cursor: pointer;
-  user-select: none; font-size: 10.5px; letter-spacing: .12em; color: var(--muted);
+  user-select: none; font-size: 11px; letter-spacing: .12em; color: var(--muted);
 }
 #panel section > h2::after {
   content: ""; flex: none; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
@@ -34,8 +34,8 @@
 #panel section.plegada > h2::after { transform: rotate(-45deg); }
 #panel section.plegada > :not(h2) { display: none !important; }
 #panel section > h2 .cuenta {
-  margin-left: auto; padding: 3px 7px; border-radius: 999px; font: 500 10px/1 var(--mono); letter-spacing: 0;
-  background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent);
+  margin-left: auto; padding: 3px 7px; border-radius: 999px; font: 500 11px/1 var(--mono); letter-spacing: 0;
+  background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent-txt);
 }
 #panel h2:focus-visible, #panel .grupo-capas:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 
@@ -49,7 +49,7 @@
 #panel .vistas button:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); background: color-mix(in srgb, var(--accent) 9%, transparent); }
 #panel .vistas button:active { transform: scale(.97); }
 #panel .vistas button[aria-pressed="true"] {
-  color: #fff; border-color: transparent; background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #000));
+  color: #fff; border-color: transparent; background: linear-gradient(135deg, var(--accent-fuerte), color-mix(in srgb, var(--accent-fuerte) 70%, #000));
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 #panel .vistas button:last-child:nth-child(odd) { grid-column: 1 / -1; }
@@ -79,11 +79,11 @@
 /* Subgrupos de capas */
 #panel .grupo-capas {
   display: flex; align-items: center; gap: 8px; margin: 12px 0 3px; padding: 0; color: var(--muted); cursor: pointer; user-select: none;
-  font: 600 10px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
+  font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase;
 }
 #panel .grupo-capas::before { content: ""; width: 14px; height: 1px; background: var(--line); }
 #panel .grupo-capas::after { content: ""; flex: 1; height: 1px; background: var(--line); order: 1; }
-#panel .grupo-capas .plegar { font-size: 10px; opacity: .8; order: 2; }
+#panel .grupo-capas .plegar { font-size: 11px; opacity: .8; order: 2; }
 #panel .grupo-capas:first-child { margin-top: 0; }
 #panel .oculta { display: none !important; }
 
@@ -93,11 +93,6 @@
 #panel .acciones-capas button:hover { color: var(--fg); }
 
 #panel .ayuda { padding: 12px 18px; font-size: 12.5px; line-height: 1.45; background: color-mix(in srgb, var(--fg) 3.5%, transparent); }
-#panel #ficha {
-  margin: 0 12px 12px; padding: 12px 14px; border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 12px;
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
-}
-#panel #ficha p { font-size: 13px; line-height: 1.45; }
 #panel .nota { padding: 10px 18px 14px; }
 
 /* Botones flotantes y etiquetas */
@@ -116,7 +111,7 @@
 #leyenda3d[hidden] { display: none; }
 #leyenda3d > button {
   all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; gap: 8px; padding: 10px 14px; cursor: pointer;
-  font: 600 10.5px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+  font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
 }
 #leyenda3d > button::after { content: ""; margin-left: auto; width: 6px; height: 6px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); transition: transform .18s; }
 #leyenda3d.plegada > button::after { transform: rotate(-135deg); }
@@ -153,11 +148,11 @@
 #alarma .al-barra i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .4s ease; }
 #alarma ol { list-style: none; margin: 0; padding: 10px 12px 12px; display: grid; gap: 0; font-size: 12px; line-height: 1.35; counter-reset: paso; }
 #alarma li { position: relative; display: flex; gap: 10px; align-items: flex-start; padding: 4px 0; color: var(--muted); counter-increment: paso; }
-#alarma li::before { content: counter(paso); flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 700 10px/1 var(--mono); border: 1.5px solid currentColor; background: var(--panel); position: relative; z-index: 1; }
+#alarma li::before { content: counter(paso); flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font: 700 11px/1 var(--mono); border: 1.5px solid currentColor; background: var(--panel); position: relative; z-index: 1; }
 #alarma li:not(:last-child)::after { content: ""; position: absolute; left: 9.5px; top: 24px; bottom: -4px; width: 1.5px; background: var(--line); }
 #alarma li span { padding-top: 2px; }
 #alarma li.hecho { color: var(--fg); }
-#alarma li.hecho::before { background: var(--accent); border-color: var(--accent); color: #fff; }
+#alarma li.hecho::before { background: var(--accent-fuerte); border-color: var(--accent-fuerte); color: #fff; }
 #alarma.activa { border-color: #e5352a; animation: latido 0.9s ease-in-out infinite; }
 #alarma.activa .al-cab { background: linear-gradient(135deg, #d6382a, #a3231a); border-bottom-color: #a3231a; }
 #alarma.activa b, #alarma.activa em { color: #fff; }
@@ -186,7 +181,7 @@
 #panel button, #panel .vistas button, #panel .acciones-capas button { transition: background .15s, border-color .15s, color .15s, transform .08s, box-shadow .15s; }
 #panel button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 #panel button:disabled { opacity: .45; cursor: not-allowed; }
-#panel .vistas button[aria-pressed="true"]::after { content: "●"; float: right; font-size: 8px; line-height: 1.6; opacity: .9; }
+#panel .vistas button[aria-pressed="true"]::after { content: "●"; float: right; font-size: 11px; line-height: 1.6; opacity: .9; }
 #panel .vistas button { min-height: 36px; display: flex; align-items: center; }
 #panel .acciones-capas button { border: 1px solid var(--line); background: color-mix(in srgb, var(--fg) 4%, transparent); font-weight: 500; }
 #panel .acciones-capas button:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 9%, transparent); }
@@ -196,7 +191,7 @@
 #panel .lista label:has(input:focus-visible) { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent); }
 #panel .grupo-capas { transition: color .15s; }
 #panel .grupo-capas:hover { color: var(--fg); }
-#panel .grupo-capas .cuenta-grp { order: 2; padding: 2px 6px; border-radius: 999px; font: 500 9.5px/1 var(--mono); letter-spacing: 0; background: color-mix(in srgb, var(--fg) 8%, transparent); }
+#panel .grupo-capas .cuenta-grp { order: 2; padding: 2px 6px; border-radius: 999px; font: 500 11px/1 var(--mono); letter-spacing: 0; background: color-mix(in srgb, var(--fg) 8%, transparent); }
 #panel .grupo-capas .plegar { order: 3; }
 #panel .filtrada { display: none !important; }
 #panel .buscar-capas { margin: 0 0 8px; }
@@ -208,12 +203,9 @@
 }
 #panel .buscar-capas input::placeholder { color: var(--muted); }
 #panel .buscar-capas input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
-#panel #ficha { box-shadow: 0 6px 18px rgba(10, 18, 24, .12); animation: entra-ficha .22s ease-out; }
-@keyframes entra-ficha { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 #leyenda3d { transition: box-shadow .2s; }
 #leyenda3d li { padding: 1px 0; }
 .etq { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, .12); }
 #abrir:hover, #brujula:hover, #cruceta button:hover { filter: brightness(1.08); }
 #abrir:active, #cruceta button:active { transform: scale(.96); }
-@media (prefers-reduced-motion: reduce) { #panel #ficha { animation: none; } }
 @media (max-width: 640px) { #panel .vistas button { min-height: 40px; } #panel .lista label { min-height: 40px; } #panel .buscar-capas input { padding-block: 10px; font-size: 14px; } }

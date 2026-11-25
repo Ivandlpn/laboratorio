@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { lonlatAUTM } from './proyeccion.js';
+import { origen } from './origen.js';
 
 /*
  * Arquetas de fibra óptica del listado «Tramos Arquetas ALBALI v1» (datos/albali/arquetas.json, generado por
@@ -66,6 +67,9 @@ export function fichaArqueta(a, fmtPk) {
     : 'Sin arqueta en la cartografía en esa centena: posición supuesta en su PK teórico.';
   return {
     capa: 'Arqueta de fibra óptica',
+    origen: a.encaje === 'cartografia'
+      ? origen('fuente', 'Listado de arquetas de fibra óptica (Adif), encajado en la arqueta de canaleta de la cartografía 3D')
+      : origen('supuesto', 'Listado de arquetas de fibra óptica (Adif); sin arqueta en la cartografía, posición en su PK teórico'),
     nombre: `${a.codigo} · ${a.funcion}`,
     info: `PK ${fmtPk(a.pkReal)} (listado: PK ${pkListado}) · Vía ${a.via}, lado ${a.lado} (vía 1 a la izquierda en sentido de PK creciente) · `
       + `${a.funcion} · Cable de ${a.fibras} fibras.${ados} ${encaje}`,
