@@ -11,7 +11,7 @@ const COL_RAMPA = [
 ];
 const colorPend = (p) => COL_RAMPA.find(([lim]) => Math.abs(p) < lim)[1];
 
-export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk }) {
+export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk, trenes = () => [], conCarriles = () => false }) {
   const ctxP = cvPerfil.getContext('2d');
   const fondo = document.createElement('canvas');
   const ctxF = fondo.getContext('2d');
@@ -29,6 +29,8 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
     .map((e) => ({ pk: e.pk, nombre: e.nombre.replace(/^Estación\s+/i, '').replace(/-Los Llanos|-Terminal| AV$/g, '') }));
   const cumbre = (Eje3D.saltos || []).find((s) => s.id === 'cumbre');
 
+  let v0 = Eje3D.pkIni, v1 = Eje3D.pkFin;   // tramo visible (PK): con la rueda se acerca y aleja; doble clic lo restablece
+  const MIN_VENTANA = 3000;
   let hoverPk = null;
   let ultimoPkActual = Eje3D.pkIni;
   let claveFondo = '', tFondo = 0;
@@ -59,13 +61,14 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
 
   // Geometría común del dibujo (márgenes: cotas a la izquierda, kilómetros y estructuras abajo, estaciones arriba)
   function marco(w, h) {
-    const izq = 30, der = 4, arriba = 13, abajo = 15;
-    const L = Eje3D.pkFin - Eje3D.pkIni;
-    const xDePk = (pk) => izq + ((pk - Eje3D.pkIni) / L) * (w - izq - der);
-    const pkDeX = (x) => Eje3D.pkIni + ((x - izq) / (w - izq - der)) * L;
+    const carriles = conCarriles() && h >= 80;
+    const izq = 30, der = 4, arriba = 13, abajo = carriles ? 33 : 15;
+    const L = v1 - v0;
+    const xDePk = (pk) => izq + ((pk - v0) / L) * (w - izq - der);
+    const pkDeX = (x) => v0 + ((x - izq) / (w - izq - der)) * L;
     const base = h - abajo;
     const yDeZ = (z) => base - ((Math.min(zMaxP, Math.max(zMinP, z)) - zMinP) / (zMaxP - zMinP)) * (base - arriba);
-    return { izq, der, arriba, abajo, base, xDePk, pkDeX, yDeZ };
+    return { izq, der, arriba, abajo, base, xDePk, pkDeX, yDeZ, carriles };
   }
 
   function dibujarFondo(w, h, dpr) {
@@ -73,7 +76,7 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
     const c = ctxF;
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     c.clearRect(0, 0, w, h);
-    const { izq, der, arriba, base, xDePk, pkDeX, yDeZ } = marco(w, h);
+    const { izq, der, arriba, base, xDePk, pkDeX, yDeZ, carriles } = marco(w, h);
     const muted = token('--muted') || '#889690';
     const linea = token('--line') || 'rgba(148,163,184,.3)';
     const mono = '"IBM Plex Mono", monospace';
@@ -90,6 +93,8 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
       c.setLineDash([]); c.globalAlpha = 1;
       if (z % pasoEtq === 0) { c.fillStyle = muted; c.fillText(String(z), izq - 4, y); }
     }
+
+    c.save(); c.beginPath(); c.rect(izq, 0, w - izq - der, h); c.clip();   // lo que cae fuera del tramo visible no se dibuja
 
     // Muestreo: una muestra por columna de píxel
     const nCol = Math.max(2, Math.round(w - izq - der));
@@ -167,19 +172,27 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
     for (const t of Eje3D.tuneles) c.fillRect(xDePk(t.pkIni), yB, Math.max(3, xDePk(t.pkFin) - xDePk(t.pkIni)), 3);
     c.fillStyle = '#f59e0b';
     for (const [sa, sb] of Eje3D.subestaciones) c.fillRect(xDePk((sa + sb) * 0.5) - 1.5, yB - 1, 3, 5);
-
-    // Kilómetros
-    c.fillStyle = muted; c.font = `500 9px ${mono}`; c.textBaseline = 'bottom';
-    const pasoKm = w < 520 ? 40 : w < 900 ? 20 : 10;
-    c.textAlign = 'center';
-    for (let km = Math.ceil(Eje3D.pkIni / 1000 / pasoKm) * pasoKm; km * 1000 < Eje3D.pkFin - 3000; km += pasoKm) {
-      if (km * 1000 - Eje3D.pkIni < 4000) continue;
-      const x = xDePk(km * 1000);
-      c.fillText(String(km), x, h);
-      c.fillRect(Math.round(x), yB + 4, 1, 2);
+    if (carriles) {
+      // Carriles bajo la rasante: energía (ATI, ATF y subestaciones) y GSM-R. Los trenes en directo van encima, cada fotograma.
+      c.fillStyle = '#fb7185';
+      for (const e of Eje3D.edificios) if (e.cat === 'energia') c.fillRect(xDePk(e.pk) - 1.5, yB + 6, 3, 4);
+      c.fillStyle = '#a78bfa';
+      for (const pk of Eje3D.bts) c.fillRect(xDePk(pk) - 1, yB + 11, 2, 4);
     }
-    c.textAlign = 'left'; c.fillText(String(Math.round(Eje3D.pkIni / 1000)), izq, h);
-    c.textAlign = 'right'; c.fillText(String(Math.round(Eje3D.pkFin / 1000)), w - der, h);
+
+    // Kilómetros (la separación se adapta al tramo visible)
+    c.fillStyle = muted; c.font = `500 9px ${mono}`; c.textBaseline = 'bottom';
+    const pxPorKm = (w - izq - der) / ((v1 - v0) / 1000);
+    const pasoKm = [1, 2, 5, 10, 20, 40].find((k) => k * pxPorKm >= 34) || 40;
+    c.textAlign = 'center';
+    for (let km = Math.ceil(v0 / 1000 / pasoKm) * pasoKm; km * 1000 <= v1; km += pasoKm) {
+      const x = xDePk(km * 1000);
+      if (x < izq + 8 || x > w - der - 8) continue;
+      c.fillText(String(km), x, h);
+      c.fillRect(Math.round(x), yB + (carriles ? 17 : 4), 1, 2);
+    }
+    if (v0 <= Eje3D.pkIni + 1) { c.textAlign = 'left'; c.fillText(String(Math.round(Eje3D.pkIni / 1000)), izq, h); }
+    if (v1 >= Eje3D.pkFin - 1) { c.textAlign = 'right'; c.fillText(String(Math.round(Eje3D.pkFin / 1000)), w - der, h); }
 
     // Estaciones y cota máxima, arriba
     const fg = token('--fg') || '#e6ece9';
@@ -199,6 +212,7 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
       c.fillStyle = muted; c.font = `500 9px ${mono}`; c.textAlign = 'left'; c.textBaseline = 'bottom';
       c.fillText(`▲ ${Math.round(Eje3D.enPk(cumbre.pk).Z)} m`, x + 4, y - 2);
     }
+    c.restore();
   }
 
   function dibujarPerfil(pkActual) {
@@ -209,7 +223,7 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
       cvPerfil.width = Math.round(w * dpr); cvPerfil.height = Math.round(h * dpr);
     }
     const ahora = performance.now();
-    const clave = `${w}x${h}@${dpr}|${document.documentElement.dataset.theme || ''}|${document.documentElement.dataset.noche || ''}`;
+    const clave = `${Math.round(v0)}-${Math.round(v1)}|${conCarriles() ? 'c' : ''}|${w}x${h}@${dpr}|${document.documentElement.dataset.theme || ''}|${document.documentElement.dataset.noche || ''}`;
     if (clave !== claveFondo || ahora - tFondo > 3000) {
       dibujarFondo(w, h, dpr);
       claveFondo = clave; tFondo = ahora;
@@ -219,7 +233,13 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
     ctxP.drawImage(fondo, 0, 0);
     ctxP.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const { arriba, base, xDePk, yDeZ } = marco(w, h);
+    // Con zoom, el tramo visible acompaña a la posición actual
+    if (v1 - v0 < Eje3D.pkFin - Eje3D.pkIni - 1 && (pkActual < v0 + (v1 - v0) * 0.08 || pkActual > v1 - (v1 - v0) * 0.08)) {
+      const L = v1 - v0, n0 = Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin - L, pkActual - L / 2));
+      if (Math.abs(n0 - v0) > 1) { v0 = n0; v1 = n0 + L; dibujarFondo(w, h, dpr); claveFondo = clave; tFondo = ahora; ctxP.setTransform(1, 0, 0, 1, 0, 0); ctxP.drawImage(fondo, 0, 0); ctxP.setTransform(dpr, 0, 0, dpr, 0, 0); }
+    }
+    const { izq, der, arriba, base, xDePk, yDeZ, carriles } = marco(w, h);
+    ctxP.save(); ctxP.beginPath(); ctxP.rect(izq, 0, w - izq - der, h); ctxP.clip();
 
     // Zona activa en 3D (±2 km) y posición actual
     const xc = xDePk(pkActual), pAct = Eje3D.enPk(pkActual), yc = yDeZ(pAct.Z);
@@ -243,6 +263,12 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
       ctxP.fillStyle = token('--fg') || '#f8fafc';
       ctxP.beginPath(); ctxP.arc(xh, yh, 3, 0, Math.PI * 2); ctxP.fill();
     }
+    // Trenes de Renfe en directo, en su carril
+    if (carriles) {
+      ctxP.fillStyle = '#22d3ee';
+      for (const pk of trenes()) { const x = xDePk(pk), y = base + 2 + 20; ctxP.beginPath(); ctxP.moveTo(x, y - 4); ctxP.lineTo(x + 3.5, y + 2); ctxP.lineTo(x - 3.5, y + 2); ctxP.closePath(); ctxP.fill(); }
+    }
+    ctxP.restore();
   }
 
   let arrastrandoPerfil = false;
@@ -271,6 +297,15 @@ export function crearPerfil({ cvPerfil, Eje3D, MdtCorredor, token, onSaltarPk })
   cvPerfil.addEventListener('pointerdown', (e) => { arrastrandoPerfil = true; cvPerfil.setPointerCapture(e.pointerId); saltarDesdeEventoPerfil(e); actualizarTooltip(e); });
   cvPerfil.addEventListener('pointermove', (e) => { actualizarTooltip(e); if (arrastrandoPerfil) saltarDesdeEventoPerfil(e); });
   cvPerfil.addEventListener('pointerup', () => { arrastrandoPerfil = false; });
+  cvPerfil.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const { pk } = pkDesdeEvento(e);
+    const L = v1 - v0, nL = Math.max(MIN_VENTANA, Math.min(Eje3D.pkFin - Eje3D.pkIni, L * (e.deltaY < 0 ? 0.8 : 1.25)));
+    const u = (pk - v0) / L;
+    v0 = Math.max(Eje3D.pkIni, Math.min(Eje3D.pkFin - nL, pk - u * nL)); v1 = v0 + nL;
+    tFondo = 0; dibujarPerfil(ultimoPkActual);
+  }, { passive: false });
+  cvPerfil.addEventListener('dblclick', () => { v0 = Eje3D.pkIni; v1 = Eje3D.pkFin; tFondo = 0; dibujarPerfil(ultimoPkActual); });
   cvPerfil.addEventListener('pointerleave', () => { arrastrandoPerfil = false; hoverPk = null; tip.hidden = true; dibujarPerfil(ultimoPkActual); });
 
   return { dibujarPerfil };

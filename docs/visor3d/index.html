@@ -32,7 +32,7 @@
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="./visor.css?v=13">
+<link rel="stylesheet" href="./visor.css?v=19">
 <link rel="stylesheet" href="./comun/panel.css?v=12">
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
@@ -95,7 +95,11 @@
           role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias">
         <button type="submit">Ir</button>
       </form>
-      <ul id="sugerencias" role="listbox" aria-label="Emplazamientos" hidden></ul>
+      <ul id="sugerencias" role="listbox" aria-label="Resultados de la búsqueda" hidden></ul>
+    </div>
+    <div class="modo-ui" role="group" aria-label="Modo de la interfaz">
+      <button type="button" data-modo="explorar" aria-pressed="false" title="Interfaz mínima: vistas, hitos, trenes y cine">Explorar</button>
+      <button type="button" data-modo="tecnico" aria-pressed="true" title="Todas las capas, herramientas de medida y datos">Técnico</button>
     </div>
   </header>
 
@@ -109,12 +113,12 @@
     <div class="saltos" id="saltos"></div>
   </section>
 
-  <section>
+  <section class="solo-tecnico">
     <h2>Capas</h2>
     <div class="lista" id="capas"></div>
   </section>
 
-  <section>
+  <section class="solo-tecnico">
     <h2>Fondo del terreno</h2>
     <div class="fondos" id="fondos" role="radiogroup" aria-label="Imagen sobre el relieve">
       <label><input type="radio" name="fondo" value="proyecto" checked><span><b>Ortofoto del proyecto</b><small>PNOA 23 cm del corredor y 10 cm en Elda, servida con el visor</small></span></label>
@@ -124,7 +128,7 @@
     </div>
   </section>
 
-  <section>
+  <section class="solo-tecnico">
     <h2>Etiquetas</h2>
     <div class="lista">
       <label><input type="checkbox" id="chkNombresEdif" checked> Edificios y emplazamientos</label>
@@ -137,9 +141,9 @@
     <h2>Escena y calidad</h2>
     <div class="lista">
       <label><input type="checkbox" id="chkTrenes" checked> Trenes en circulación</label>
-      <label><input type="checkbox" id="chkSubsuelo"> Monte en rayos X (túneles)</label>
-      <label><input type="checkbox" id="chkPerfil" checked> Perfil longitudinal (164 km)</label>
-      <label><input type="checkbox" id="chkBtsModelos" checked> Modelos 3D torres y casetas BTS</label>
+      <label class="solo-tecnico"><input type="checkbox" id="chkSubsuelo"> Monte en rayos X (túneles)</label>
+      <label class="solo-tecnico"><input type="checkbox" id="chkPerfil" checked> Perfil longitudinal (164 km)</label>
+      <label class="solo-tecnico"><input type="checkbox" id="chkBtsModelos" checked> Modelos 3D torres y casetas BTS</label>
     </div>
     <div id="ctrlCalidad" class="acciones" style="margin-top:8px" role="group" aria-label="Calidad gráfica">
       <button type="button" data-cal="alta" class="activo" aria-pressed="true">Calidad alta</button>
@@ -148,9 +152,10 @@
     </div>
     <div class="acciones" style="margin-top:8px">
       <button type="button" id="btnCaptura" title="Guardar captura PNG de la vista actual (P)">📷 Captura PNG (P)</button>
-      <button type="button" id="btnSeccion" aria-pressed="false" title="Sección transversal esquemática en el PK de la cámara (S)">Sección (S)</button>
-      <button type="button" id="btnConfianza" aria-pressed="false" title="Pintar la escena por el origen de cada dato: medido, otra fuente, deducido, supuesto o simulado (C)">Confianza (C)</button>
-      <button type="button" id="btnMedir" aria-pressed="false" title="Medir distancia y desnivel entre dos puntos de la escena (D)">Medir (D)</button>
+      <button type="button" id="btnAtajos" title="Lista de atajos de teclado (?)">Atajos (?)</button>
+      <button type="button" class="solo-tecnico" id="btnSeccion" aria-pressed="false" title="Sección transversal esquemática en el PK de la cámara (S)">Sección (S)</button>
+      <button type="button" class="solo-tecnico" id="btnConfianza" aria-pressed="false" title="Pintar la escena por el origen de cada dato: medido, otra fuente, deducido, supuesto o simulado (C)">Confianza (C)</button>
+      <button type="button" class="solo-tecnico" id="btnMedir" aria-pressed="false" title="Medir distancia y desnivel entre dos puntos de la escena (D)">Medir (D)</button>
       <button type="button" id="btnCopiarEnlace" title="Copiar enlace directo a este PK y modo de vista">🔗 Copiar enlace</button>
     </div>
   </section>
@@ -299,6 +304,9 @@
       <span><i style="background:#10b981"></i><span id="nViaductos">17</span> viaductos</span>
       <span><i style="background:#0ea5e9"></i>5 túneles</span>
       <span><i style="background:#f59e0b"></i>5 subestaciones</span>
+      <span><i style="background:#fb7185"></i>energía</span>
+      <span><i style="background:#a78bfa"></i>GSM-R</span>
+      <span><i style="background:#22d3ee"></i>trenes en directo</span>
     </span>
   </div>
   <canvas id="cvPerfil" width="900" height="52" tabindex="0" role="slider" aria-label="Perfil longitudinal interactivo de Albacete (PK 322) a Alicante (PK 486)" aria-valuemin="322" aria-valuemax="486" aria-valuenow="437"></canvas>
@@ -450,6 +458,8 @@ import { crearMedidor } from './js/medir.js';
 import { crearConfianza } from './js/confianza.js';
 import { crearSeccion } from './js/seccion.js';
 import { icono, botonIcono } from './js/iconos.js';
+import { crearAyudaAtajos } from './js/ayuda.js';
+import { crearOrdenEtiquetas } from './js/etiquetas.js';
 import { normalizar as normalizarBusq, crearIndice as crearIndiceBusq, interpretarNumero as interpretarNumeroBusq, ETIQUETA_TIPO as ETIQUETA_BUSQ } from './js/buscador.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
@@ -645,6 +655,7 @@ cont.appendChild(render.domElement);
 }
 
 const renderEtq = new CSS2DRenderer();
+let ordenEtiquetas = null;   // se crea con el DOM listo (js/etiquetas.js)
 renderEtq.setSize(innerWidth, innerHeight);
 Object.assign(renderEtq.domElement.style, { position: 'absolute', top: '0', left: '0', pointerEvents: 'none' });
 cont.appendChild(renderEtq.domElement);
@@ -656,12 +667,26 @@ const SOL_DESVIO = new THREE.Vector3(-95, 175, 105);
 const solUltimoTarget = new THREE.Vector3(Infinity, 0, 0);
 let prefsVisor = {};
 try { prefsVisor = JSON.parse(localStorage.getItem('visor3d.prefs') || '{}') || {}; } catch { prefsVisor = {}; }
+let modoUi = ['explorar', 'tecnico'].includes(params.get('modo')) ? params.get('modo') : (['explorar', 'tecnico'].includes(prefsVisor.modo) ? prefsVisor.modo : 'tecnico');
+function aplicarModoUi(m, { guardar = true } = {}) {
+  modoUi = m;
+  document.documentElement.dataset.modo = m;
+  for (const b of document.querySelectorAll('.modo-ui [data-modo]')) b.setAttribute('aria-pressed', String(b.dataset.modo === m));
+  // En Explorar se apagan las herramientas técnicas que estuvieran encendidas
+  if (m === 'explorar') { if (typeof medidor !== 'undefined' && medidor.activa) alternarMedicion(false); if (typeof confianza !== 'undefined' && confianza.activa) alternarConfianza(false); if (typeof seccion !== 'undefined' && seccion.activa) alternarSeccion(false); }
+  if (guardar) guardarPrefsVisor();
+  if (typeof ajustarDisposicion === 'function') ajustarDisposicion();
+}
+document.documentElement.dataset.modo = modoUi;
+let atajosLetras = prefsVisor.atajos !== false;   // atajos de una sola letra (se pueden desactivar: WCAG 2.1.4)
 function guardarPrefsVisor() {
   try {
     localStorage.setItem('visor3d.prefs', JSON.stringify({
       horaSol,
       climaActual,
       calidadGrafica,
+      atajos: atajosLetras,
+      modo: modoUi,
       perfil: document.getElementById('chkPerfil')?.checked ?? true,
     }));
   } catch { /* sin almacenamiento */ }
@@ -1688,6 +1713,9 @@ function ordenesBuscador() {
 const ordenesExtra = new Map();
 ordenesExtra.set('confianza', () => ({ titulo: 'Capa de confianza', sub: 'Pintar la escena por origen del dato (tecla C)', extra: 'origen fuente medido supuesto simulado fiabilidad', accion: () => alternarConfianza() }));
 ordenesExtra.set('seccion', () => ({ titulo: 'Sección transversal en este PK', sub: 'Terreno, vías e hilo de contacto (tecla S)', extra: 'perfil corte plano seccion transversal galibo plataforma', accion: () => alternarSeccion() }));
+ordenesExtra.set('modo-explorar', () => ({ titulo: 'Modo Explorar', sub: 'Interfaz mínima para recorrer la línea', extra: 'simple visitante limpio', accion: () => aplicarModoUi('explorar') }));
+ordenesExtra.set('modo-tecnico', () => ({ titulo: 'Modo Técnico', sub: 'Capas, medidas y herramientas', extra: 'completo avanzado datos', accion: () => aplicarModoUi('tecnico') }));
+ordenesExtra.set('atajos', () => ({ titulo: 'Atajos de teclado', sub: 'Lista y interruptor de las teclas de una letra (tecla ?)', extra: 'ayuda teclas teclado ayuda', accion: () => ayudaAtajos.abrir() }));
 ordenesExtra.set('medir', () => ({ titulo: 'Medir distancia y desnivel', sub: 'Dos puntos sobre el modelo (tecla D)', extra: 'galibo altura regla metro distancia', accion: () => alternarMedicion() }));   // otras funciones (medir, confianza…) añaden aquí sus órdenes: ordenesExtra.set('id', () => ({ titulo, sub, extra, accion }))
 let indiceBusq = null, indiceBusqN = '';
 function indiceBuscador() {
@@ -1736,10 +1764,17 @@ function buscarTodo(texto) {
   if (num) res.push({ ...num, accion: () => irAPk(num.pk, vistaActiva) });
   return res.concat(indiceBuscador().buscar(q, 14));
 }
+function cercanosBuscador() {
+  const pk = pkActualUI;
+  return EMPLAZAMIENTOS.filter((e) => e.tipo !== 'Paso Superior' && Math.abs(((e.pk + (e.pkFin ?? e.pk)) / 2) - pk) < 4000)
+    .sort((a, b) => Math.abs(a.pk - pk) - Math.abs(b.pk - pk)).slice(0, 8)
+    .map((e) => ({ tipo: 'lugar', titulo: e.nombre, sub: `${e.tipo} · a ${Math.round(Math.abs(e.pk - pk))} m`, pkTexto: e.pkTexto, pk: e.pk, accion: () => irAEmplazamiento(e) }));
+}
 function pintarSugerencias() {
   const q = inpPk.value.trim();
-  if (q.length < 2 && !/^\d/.test(q)) { cerrarSugerencias(); return; }
-  sugeridos = buscarTodo(q);
+  const cerca = q.length === 0;   // sin texto: lo que hay cerca de la cámara (también sirve de lista de elementos para teclado y lector de pantalla)
+  if (q.length < 2 && !/^\d/.test(q) && !cerca) { cerrarSugerencias(); return; }
+  sugeridos = cerca ? cercanosBuscador() : buscarTodo(q);
   listaSug.replaceChildren(...sugeridos.map((r, i) => {
     const li = document.createElement('li');
     const b = document.createElement('button');
@@ -1793,7 +1828,7 @@ function marcarSugerencia(i) {
   inpPk.setAttribute('aria-activedescendant', bs[selSug].id);
 }
 inpPk.addEventListener('input', pintarSugerencias);
-inpPk.addEventListener('focus', () => { if (inpPk.value.trim().length >= 2) pintarSugerencias(); });
+inpPk.addEventListener('focus', () => pintarSugerencias());
 inpPk.addEventListener('blur', () => setTimeout(cerrarSugerencias, 120));
 inpPk.addEventListener('keydown', (ev) => {
   if (listaSug.hidden) return;
@@ -2721,6 +2756,57 @@ document.getElementById('chkBtsModelos')?.addEventListener('change', () => {
   }
 });
 
+// ---- Teclado: ayuda (?), atajos desactivables, flechas para girar e inclinar y mandos en pantalla ----
+const ayudaAtajos = crearAyudaAtajos({ activos: () => atajosLetras, alCambiar: (v) => { atajosLetras = v; guardarPrefsVisor(); } });
+// Oyente en captura: con los atajos de letra apagados, las letras sueltas no llegan al resto de oyentes
+addEventListener('keydown', (e) => {
+  if (!atajosLetras && /^Key[A-Z]$/.test(e.code) && !e.ctrlKey && !e.metaKey && !e.altKey
+    && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) e.stopImmediatePropagation();
+}, true);
+addEventListener('keydown', (e) => {
+  const enCampo = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '');
+  if (e.key === '?' && !enCampo && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); ayudaAtajos.abrir(); }
+});
+/** Gira (azimut) e inclina (polar) la cámara de órbita alrededor de su objetivo. */
+const _offGiro = new THREE.Vector3(), _esf = new THREE.Spherical();
+function girarCamara(dAz, dPolar) {
+  if (esPasajero(vistaActiva)) return;
+  _offGiro.copy(camara.position).sub(controles.target);
+  _esf.setFromVector3(_offGiro);
+  _esf.theta += dAz;
+  _esf.phi = Math.max(0.05, Math.min(Math.PI / 2 - 0.02, _esf.phi + dPolar));
+  camara.position.copy(controles.target).add(_offGiro.setFromSpherical(_esf));
+  controles.update();
+}
+const PASO_GIRO = 0.12;
+addEventListener('keydown', (e) => {
+  if (!e.key.startsWith('Arrow') || e.ctrlKey || e.metaKey || e.altKey || ayudaAtajos.abierta) return;
+  const a = document.activeElement;
+  if (a && a !== document.body && (/INPUT|TEXTAREA|SELECT|BUTTON/.test(a.tagName) || a.closest?.('[role=slider],[role=listbox],[role=menu],[role=dialog],aside'))) return;
+  e.preventDefault();
+  girarCamara(e.key === 'ArrowLeft' ? PASO_GIRO : e.key === 'ArrowRight' ? -PASO_GIRO : 0, e.key === 'ArrowUp' ? -PASO_GIRO : e.key === 'ArrowDown' ? PASO_GIRO : 0);
+});
+{
+  // Mandos en pantalla: la misma acción sin arrastrar (WCAG 2.5.7). Mantener pulsado repite.
+  const caja = document.createElement('div');
+  caja.id = 'mandosCamara';
+  caja.setAttribute('role', 'group');
+  caja.setAttribute('aria-label', 'Cámara: girar e inclinar');
+  const defs = [['izq', 'Girar a la izquierda', 'girar', PASO_GIRO, 0], ['der', 'Girar a la derecha', 'girar', -PASO_GIRO, 0], ['arr', 'Inclinar hacia arriba', 'inclinar', 0, -PASO_GIRO], ['aba', 'Inclinar hacia abajo', 'inclinar', 0, PASO_GIRO]];
+  for (const [id, rot, ico, dA, dP] of defs) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.dir = id; b.title = rot; b.setAttribute('aria-label', rot);
+    b.innerHTML = icono(ico);
+    let t = 0;
+    const parar = () => { clearInterval(t); t = 0; };
+    b.addEventListener('pointerdown', (ev) => { ev.preventDefault(); gestorVuelo.cancelar(); girarCamara(dA, dP); t = setInterval(() => girarCamara(dA * 0.6, dP * 0.6), 70); });
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, parar);
+    b.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); girarCamara(dA, dP); } });
+    caja.appendChild(b);
+  }
+  document.body.appendChild(caja);
+}
+
 // UI 4 + UX 5: Isla flotante de controles rápidos y Modo Cine (tecla H)
 // ---- Ambiente: hora continua (posición solar real del PK en pantalla) y clima a la vista ----
 // Un menú en lugar de botones que giran a ciegas: se ve cada opción antes de elegirla.
@@ -2790,6 +2876,19 @@ function abrirAmbiente(abrir, origen = document.getElementById('btnIslaSol')) {
     Object.assign(menuAmbiente.style, { left: `${Math.max(12, Math.min(innerWidth - 320, r.left))}px`, right: 'auto', top: `${r.bottom + 6}px`, bottom: 'auto' });
   }
 }
+// Iconos propios en lugar de emojis: isla, panel, mandos de cabina y barra inferior del móvil
+for (const [id, ico, txt] of [['btnIslaVivo', 'vivo', 'En vivo'], ['btnIslaRayosX', 'rayosx', 'Rayos X'], ['btnIslaAudio', 'silencio', 'Audio'], ['btnIslaCine', 'cine', 'Cine'],
+  ['btnCaptura', 'captura', 'Captura PNG (P)'], ['btnCopiarEnlace', 'enlace', 'Copiar enlace'], ['btnModoNoche', 'luna', 'Noche']]) botonIcono(document.getElementById(id), ico, txt);
+{
+  const t = document.getElementById('btnTrabajos');
+  if (t) t.innerHTML = `${icono('obras')}<span>Trabajos Mantenimiento ▾</span>`;
+  const ICO_DOCK = { mandos: 'mandos', perfil: 'perfil', hitos: 'hitos', trenes: 'tren', ambiente: 'ambiente', mant: 'obras', insp: 'obras', ener: 'obras', sold: 'obras' };
+  for (const b of document.querySelectorAll('#dockMovil button')) {
+    const ico = b.id === 'dockTrabajos' ? 'obras' : ICO_DOCK[b.dataset.hoja];
+    const sp = b.querySelector('span');
+    if (ico && sp) sp.innerHTML = icono(ico);
+  }
+}
 for (const id of ['btnIslaSol', 'btnIslaClima']) {
   const b = document.getElementById(id);
   b?.setAttribute('aria-haspopup', 'dialog'); b?.setAttribute('aria-expanded', 'false');
@@ -2824,7 +2923,7 @@ document.getElementById('btnIslaRayosX')?.addEventListener('click', () => {
 document.getElementById('btnIslaAudio')?.addEventListener('click', (e) => {
   const on = audioAmbiental.alternar();
   e.currentTarget.setAttribute('aria-pressed', String(on));
-  e.currentTarget.textContent = on ? '🔊 Audio' : '🔇 Audio';
+  botonIcono(e.currentTarget, on ? 'audio' : 'silencio', 'Audio');
 });
 function alternarModoCine(forzar) {
   const on = typeof forzar === 'boolean' ? forzar : !document.body.classList.contains('modo-cine');
@@ -2922,7 +3021,7 @@ function conmutarModoNoche() {
   aplicarTema();
   const btn = document.getElementById('btnModoNoche');
   if (btn) {
-    btn.textContent = horaSol === 'noche' ? '☀️ Día' : '🌙 Noche';
+    botonIcono(btn, horaSol === 'noche' ? 'sol' : 'luna', horaSol === 'noche' ? 'Día' : 'Noche');
     btn.setAttribute('aria-pressed', String(horaSol === 'noche'));
   }
 }
@@ -3128,6 +3227,8 @@ if (window.Camara3D?.configurar) {
 const cvPerfil = document.getElementById('cvPerfil');
 const { dibujarPerfil } = crearPerfil({
   cvPerfil, Eje3D, MdtCorredor, token,
+  trenes: () => [...trenesReales.estado.trenes.values()].filter((t) => t.tr).map((t) => t.pkVis),
+  conCarriles: () => document.documentElement.dataset.modo !== 'explorar',
   onSaltarPk(pk) {
     if (enRuta(vistaActiva)) {
       pkRecorrido = pk;
@@ -3359,7 +3460,7 @@ document.getElementById('btnCopiarEnlace')?.addEventListener('click', async (ev)
   } catch {
     btn.textContent = 'No se pudo copiar';
   }
-  setTimeout(() => { btn.textContent = '🔗 Copiar enlace'; }, 1600);
+  setTimeout(() => botonIcono(btn, 'enlace', 'Copiar enlace'), 1600);
 });
 if (typeof prefsVisor.perfil === 'boolean') {
   const chkP = document.getElementById('chkPerfil');
@@ -3404,6 +3505,8 @@ function alternarSeccion(on) {
   document.getElementById('btnSeccion')?.setAttribute('aria-pressed', String(activa));
 }
 document.getElementById('btnSeccion')?.addEventListener('click', () => alternarSeccion());
+document.getElementById('btnAtajos')?.addEventListener('click', () => ayudaAtajos.abrir());
+for (const b of document.querySelectorAll('.modo-ui [data-modo]')) { b.setAttribute('aria-pressed', String(b.dataset.modo === modoUi)); b.addEventListener('click', () => aplicarModoUi(b.dataset.modo)); }
 const confianza = crearConfianza({ raices: () => [grupoTeselas, grupoFlota, grupoArquetas], origenDe, CLASES: CLASES_ORIGEN });
 function alternarConfianza(on) {
   const activa = confianza.activar(on);
@@ -3484,6 +3587,7 @@ function construirEnlace() {
   if (!modoVivo && horaSol !== 'dia') sp.set('sol', horaSol); else sp.delete('sol');
   if (!modoVivo && climaActual !== 'despejado') sp.set('clima', climaActual); else sp.delete('clima');
   if (fondoTerreno !== 'proyecto') sp.set('fondo', fondoTerreno); else sp.delete('fondo');
+  sp.set('modo', modoUi);
   const apagadas = Object.keys(gruposVisibles).filter((id) => id !== 'terreno' && !gruposVisibles[id]);
   if (apagadas.length) sp.set('sin', apagadas.join(',')); else sp.delete('sin');
   if (seleccionActual && !elFicha.hidden) sp.set('sel', [seleccionActual.E, seleccionActual.N, seleccionActual.Z].map(r1).join(',')); else sp.delete('sel');
@@ -3835,6 +3939,7 @@ function fotograma(ahora) {
   arquetasRed.actualizar();
   medidor.actualizar();
   seccion.actualizar(pkActualUI);
+  (ordenEtiquetas ??= crearOrdenEtiquetas(renderEtq.domElement)).actualizar();
 
   let pkObservado = pkRecorrido;
   if (enRuta(vistaActiva)) {
