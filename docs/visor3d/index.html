@@ -32,8 +32,8 @@
 <link rel="alternate icon" href="./favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap">
-<link rel="stylesheet" href="./visor.css?v=11">
-<link rel="stylesheet" href="./comun/panel.css?v=11">
+<link rel="stylesheet" href="./visor.css?v=12">
+<link rel="stylesheet" href="./comun/panel.css?v=12">
 <script src="./comun/rendimiento.js"></script>
 <script src="./comun/camara.js"></script>
 <script src="./comun/trenes.js"></script>
@@ -91,7 +91,7 @@
     <div class="sub" id="subtitulo">L042 · PK 322+000 a 486+200 · 164,2 km</div>
     <div class="buscador">
       <form class="ir-pk" id="formPk" autocomplete="off">
-        <input id="inpPk" type="text" inputmode="text" placeholder="PK (437+020) o emplazamiento" aria-label="Ir a un punto kilométrico o a un emplazamiento"
+        <input id="inpPk" type="text" inputmode="text" placeholder="PK, lugar u orden · Ctrl K" aria-label="Buscar: punto kilométrico, lugar, coordenada, arqueta, tren u orden (Ctrl K)"
           role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugerencias">
         <button type="submit">Ir</button>
       </form>
@@ -148,6 +148,9 @@
     </div>
     <div class="acciones" style="margin-top:8px">
       <button type="button" id="btnCaptura" title="Guardar captura PNG de la vista actual (P)">📷 Captura PNG (P)</button>
+      <button type="button" id="btnSeccion" aria-pressed="false" title="Sección transversal esquemática en el PK de la cámara (S)">Sección (S)</button>
+      <button type="button" id="btnConfianza" aria-pressed="false" title="Pintar la escena por el origen de cada dato: medido, otra fuente, deducido, supuesto o simulado (C)">Confianza (C)</button>
+      <button type="button" id="btnMedir" aria-pressed="false" title="Medir distancia y desnivel entre dos puntos de la escena (D)">Medir (D)</button>
       <button type="button" id="btnCopiarEnlace" title="Copiar enlace directo a este PK y modo de vista">🔗 Copiar enlace</button>
     </div>
   </section>
@@ -442,6 +445,10 @@ import { crearLaguna } from './js/laguna.js';
 import { mostrarGuiaCamara } from './js/guia.js';
 import { crearArquetas, fichaArqueta } from './js/arquetas.js';
 import { origen as declarar, origenDe, CLASES as CLASES_ORIGEN } from './js/origen.js';
+import { crearMedidor } from './js/medir.js';
+import { crearConfianza } from './js/confianza.js';
+import { crearSeccion } from './js/seccion.js';
+import { normalizar as normalizarBusq, crearIndice as crearIndiceBusq, interpretarNumero as interpretarNumeroBusq, ETIQUETA_TIPO as ETIQUETA_BUSQ } from './js/buscador.js';
 import { crearPerfil } from './js/perfil.js';
 import { cargarCatalogoModelos } from './js/modelos.js';
 import { crearArboles } from './js/arboles.js';
@@ -885,6 +892,7 @@ const matTejaArabe = crearMatTejaArabe();
 
 const capasMeta = Object.fromEntries(meta.capas.map((c) => [c.id, c]));
 const gruposVisibles = Object.fromEntries(meta.grupos.map((g) => [g.id, g.id !== 'terreno']));
+for (const id of (params.get('sin') || '').split(',')) if (id in gruposVisibles) gruposVisibles[id] = false;   // capas apagadas en el enlace
 
 // ---- Gestor del Modelo Digital del Terreno Real + Índice espacial de cotas DXF ----
 const MdtCorredor = crearMdtCorredor({ RUTA, mdtIndex, mdt5Index });
@@ -1634,7 +1642,7 @@ function colocarMarcasEmplazamientos(enTun) {
     if (vis) m.position.copy(W(d.E, d.N, d.Z + 16));
   }
 }
-function normalizarTexto(t) { return String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+function normalizarTexto(t) { return normalizarBusq(t); }
 let sugeridos = [], selSug = -1;
 function cerrarSugerencias() {
   listaSug.hidden = true;
@@ -1643,39 +1651,131 @@ function cerrarSugerencias() {
   selSug = -1;
 }
 function irAEmplazamiento(e) {
-  inpPk.value = e.nombre;
-  cerrarSugerencias();
   // Un emplazamiento con PK fin (viaducto, tunel, estacion) se mira desde su centro
   const pk = Math.min(Math.max((e.pk + (e.pkFin ?? e.pk)) / 2, Eje3D.pkIni), Eje3D.pkFin);
   irAPk(pk, vistaActiva);
 }
+
+// ---- Buscador universal (js/buscador.js): PK, coordenada, lugar, arqueta, tren en directo y órdenes ----
+const ORDENES_SOL = { amanecer: 'Amanecer', dia: 'Día', atardecer: 'Atardecer', noche: 'Noche' };
+const ORDENES_CLIMA = { despejado: 'Despejado', bruma: 'Bruma', nublado: 'Nublado', lluvia: 'Lluvia', nieve: 'Nieve', tormenta: 'Tormenta' };
+function ordenesBuscador() {
+  const o = [];
+  for (const [id, nombre] of Object.entries(ORDENES_SOL)) {
+    o.push({ tipo: 'comando', titulo: `Hora: ${nombre}`, sub: 'Posición del sol', extra: id === 'noche' ? 'oscuro anochecer luna' : 'sol luz hora', accion: () => { salirModoVivo(); horaSol = id; aplicarTema(); guardarPrefsVisor(); } });
+  }
+  for (const [id, nombre] of Object.entries(ORDENES_CLIMA)) {
+    o.push({ tipo: 'comando', titulo: `Clima: ${nombre}`, sub: 'Atmósfera y visibilidad', extra: 'tiempo meteorologia niebla', accion: () => { salirModoVivo(); climaActual = id; aplicarTema(); guardarPrefsVisor(); } });
+  }
+  for (const v of VISTAS) o.push({ tipo: 'comando', titulo: `Vista: ${v.nombre}`, sub: 'Modo de cámara', extra: 'camara modo', accion: () => setModoVista(v.id) });
+  o.push(
+    { tipo: 'comando', titulo: 'Rayos X de los túneles', sub: 'Ver el monte en transparencia', extra: 'tunel subsuelo', accion: () => aplicarRayosX(!rayosXActivo) },
+    { tipo: 'comando', titulo: 'Modo cine', sub: 'Ocultar la interfaz (tecla H)', extra: 'pantalla limpia', accion: () => alternarModoCine() },
+    { tipo: 'comando', titulo: 'Captura PNG', sub: 'Guardar la vista actual (tecla P)', extra: 'imagen foto pantallazo', accion: () => document.getElementById('btnCaptura')?.click() },
+    { tipo: 'comando', titulo: 'Copiar enlace a esta vista', sub: 'Cámara, capas y elemento elegido', extra: 'compartir url link', accion: () => document.getElementById('btnCopiarEnlace')?.click() },
+  );
+  for (const [k, f] of ordenesExtra) o.push({ tipo: 'comando', ...f(k) });
+  return o;
+}
+const ordenesExtra = new Map();
+ordenesExtra.set('confianza', () => ({ titulo: 'Capa de confianza', sub: 'Pintar la escena por origen del dato (tecla C)', extra: 'origen fuente medido supuesto simulado fiabilidad', accion: () => alternarConfianza() }));
+ordenesExtra.set('seccion', () => ({ titulo: 'Sección transversal en este PK', sub: 'Terreno, vías e hilo de contacto (tecla S)', extra: 'perfil corte plano seccion transversal galibo plataforma', accion: () => alternarSeccion() }));
+ordenesExtra.set('medir', () => ({ titulo: 'Medir distancia y desnivel', sub: 'Dos puntos sobre el modelo (tecla D)', extra: 'galibo altura regla metro distancia', accion: () => alternarMedicion() }));   // otras funciones (medir, confianza…) añaden aquí sus órdenes: ordenesExtra.set('id', () => ({ titulo, sub, extra, accion }))
+let indiceBusq = null, indiceBusqN = '';
+function indiceBuscador() {
+  // Los datos llegan por separado (inventario, arquetas): se rehace el índice si han cambiado
+  const huella = `${EMPLAZAMIENTOS.length}/${arquetasRed.lista?.length || 0}/${ordenesExtra.size}`;
+  if (indiceBusq && huella === indiceBusqN) return indiceBusq;
+  indiceBusqN = huella;
+  indiceBusq = crearIndiceBusq({
+    dinamicos: () => [...trenesReales.estado.trenes].filter(([, t]) => t.tr).map(([num, t]) => ({
+      tipo: 'tren', titulo: t.nombre, sub: `PK ${fmtPk(t.pkVis)} · ${t.info?.destino?.nombre ? '→ ' + t.info.destino.nombre : 'sin horario publicado'}`, pk: t.pkVis,
+      accion: () => { irAPk(t.pkVis, vistaActiva); abrirDetalleTR(num); },
+    })),
+  });
+  indiceBusq.agregar(EMPLAZAMIENTOS.map((e) => ({
+    tipo: 'lugar', titulo: e.nombre, sub: e.tipo + (e.base ? ' · Base ' + e.base : ''), extra: e.id, pkTexto: e.pkTexto, pk: e.pk, accion: () => irAEmplazamiento(e),
+  })));
+  indiceBusq.agregar((arquetasRed.lista || []).map((a) => ({
+    tipo: 'arqueta', titulo: a.codigo, sub: `${a.funcion} · vía ${a.via} · PK ${fmtPk(a.pkReal)}`, extra: 'fibra optica cable empalme segregacion', pkTexto: fmtPk(a.pkReal), pk: a.pkReal,
+    accion: () => irAPk(a.pkReal, enRuta(vistaActiva) ? vistaActiva : 'cerca'),
+  })));
+  indiceBusq.agregar([...document.querySelectorAll('#saltos button')].map((b) => ({
+    tipo: 'hito', titulo: b.children[0]?.textContent || b.textContent, sub: b.children[1]?.textContent || 'Hito', accion: () => b.click(),
+  })));
+  indiceBusq.agregar([...document.querySelectorAll('#capas label')].map((lb) => {
+    const chk = lb.querySelector('input'), nombre = lb.textContent.trim();
+    return { tipo: 'capa', titulo: nombre, sub: 'Mostrar u ocultar la capa', extra: PALABRAS_CAPA[nombre] || '', accion: () => chk?.click() };
+  }));
+  indiceBusq.agregar(ordenesBuscador());
+  return indiceBusq;
+}
+// Lo que se dibuja en cada capa, para que «poste», «señal» o «cámara» lleven a su capa (no hay índice de elementos sueltos)
+const PALABRAS_CAPA = {
+  'Catenaria y señalización': 'poste postes senal señal baliza eurobaliza armario camara cctv hilo contacto feeder',
+  'Vía': 'carril traviesa balasto sujecion',
+  'Estructuras': 'viaducto tunel paso superior inferior muro',
+  'Edificios y naves': 'edificio nave caseta',
+  'Plataforma y drenaje': 'cuneta canaleta arqueta drenaje',
+  'Viales y límites': 'valla vallado camino carretera farola',
+};
+const ayudaNumero = () => ({ parsearPk, lonlatAUTM, proyUTM: Eje3D.proyUTM, pkIni: Eje3D.pkIni, pkFin: Eje3D.pkFin, fmtPk });
+function buscarTodo(texto) {
+  const q = texto.trim();
+  if (!q) return [];
+  const res = [];
+  const num = interpretarNumeroBusq(q, ayudaNumero());
+  if (num) res.push({ ...num, accion: () => irAPk(num.pk, vistaActiva) });
+  return res.concat(indiceBuscador().buscar(q, 14));
+}
 function pintarSugerencias() {
-  const q = normalizarTexto(inpPk.value.trim());
-  if (q.length < 2 || /^\d+([+.,]\d*)?$/.test(q)) { cerrarSugerencias(); return; }
-  const palabras = q.split(/\s+/);
-  sugeridos = EMPLAZAMIENTOS.filter((e) => palabras.every((w) => e.clave.includes(w))).slice(0, 30);
-  listaSug.replaceChildren(...sugeridos.map((e, i) => {
+  const q = inpPk.value.trim();
+  if (q.length < 2 && !/^\d/.test(q)) { cerrarSugerencias(); return; }
+  sugeridos = buscarTodo(q);
+  listaSug.replaceChildren(...sugeridos.map((r, i) => {
     const li = document.createElement('li');
     const b = document.createElement('button');
     b.type = 'button'; b.setAttribute('role', 'option'); b.id = 'sug' + i;
-    b.innerHTML = `<span></span><span class="pk"></span><small></small>`;
-    b.children[0].textContent = e.nombre;
-    b.children[1].textContent = 'PK ' + e.pkTexto;
-    b.children[2].textContent = e.tipo + (e.base ? ' · Base ' + e.base : '');
+    b.innerHTML = '<span></span><span class="pk"></span><small></small>';
+    b.children[0].textContent = r.titulo;
+    b.children[1].textContent = r.pkTexto ? 'PK ' + r.pkTexto : '';
+    b.children[2].textContent = `${ETIQUETA_BUSQ[r.tipo] || ''} · ${r.sub || ''}`;
     b.addEventListener('pointerdown', (ev) => ev.preventDefault());
-    b.addEventListener('click', () => irAEmplazamiento(e));
+    b.addEventListener('click', () => ejecutarBusqueda(r));
     li.appendChild(b);
     return li;
   }));
   if (!sugeridos.length) {
     const li = document.createElement('li');
-    li.innerHTML = '<small style="display:block;padding:6px 7px">Ningún emplazamiento coincide</small>';
+    li.innerHTML = '<small style="display:block;padding:6px 7px">Nada coincide. Prueba un PK (437+020), un lugar, una coordenada o una orden como «noche».</small>';
     listaSug.appendChild(li);
   }
   selSug = -1;
   listaSug.hidden = false;
   inpPk.setAttribute('aria-expanded', 'true');
 }
+function ejecutarBusqueda(r) {
+  cerrarSugerencias();
+  inpPk.value = r.tipo === 'comando' || r.tipo === 'capa' ? '' : r.titulo.replace(/^Ir (?:al|a la) /, '');
+  r.accion();
+  // En el móvil el panel tapa la escena: se cierra para ver adónde se ha ido
+  if (matchMedia('(max-width: 760px)').matches) { panel.classList.add('cerrado'); btnAbrir?.setAttribute('aria-expanded', 'false'); inpPk.blur(); }
+}
+/** Ctrl K (o «/» fuera de un campo): abre el panel y deja el cursor en el buscador. */
+function enfocarBuscador() {
+  if (panel.classList.contains('cerrado')) { panel.classList.remove('cerrado'); btnAbrir?.setAttribute('aria-expanded', 'true'); }
+  panel.classList.remove('ventana-plegada');
+  inpPk.focus({ preventScroll: true });
+  inpPk.select();
+  if (inpPk.value.trim()) pintarSugerencias();
+}
+addEventListener('keydown', (e) => {
+  const enCampo = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '') || document.activeElement?.isContentEditable;
+  if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !enCampo && !e.ctrlKey && !e.metaKey && !e.altKey)) {
+    e.preventDefault();
+    enfocarBuscador();
+  }
+});
 function marcarSugerencia(i) {
   const bs = listaSug.querySelectorAll('button');
   if (!bs.length) return;
@@ -1691,24 +1791,14 @@ inpPk.addEventListener('keydown', (ev) => {
   if (listaSug.hidden) return;
   if (ev.key === 'ArrowDown') { ev.preventDefault(); marcarSugerencia(selSug + 1); }
   else if (ev.key === 'ArrowUp') { ev.preventDefault(); marcarSugerencia(selSug - 1); }
-  else if (ev.key === 'Escape') { cerrarSugerencias(); }
+  else if (ev.key === 'Escape') { ev.stopPropagation(); cerrarSugerencias(); }
 });
 
 document.getElementById('formPk').addEventListener('submit', (e) => {
   e.preventDefault();
-  if (!listaSug.hidden && sugeridos.length && selSug >= 0) {
-    irAEmplazamiento(sugeridos[selSug]);
-    return;
-  }
-  const v = parsearPk(inpPk.value, Eje3D.pkIni, Eje3D.pkFin);
-  if (v !== null) {
-    cerrarSugerencias();
-    irAPk(v, vistaActiva);
-    return;
-  }
-  if (!listaSug.hidden && sugeridos.length) {
-    irAEmplazamiento(sugeridos[0]);
-  }
+  const res = !listaSug.hidden && sugeridos.length ? sugeridos : buscarTodo(inpPk.value);
+  const elegido = selSug >= 0 && !listaSug.hidden ? res[selSug] : res[0];
+  if (elegido) ejecutarBusqueda(elegido);
 });
 
 // Pausa del recorrido automático (cabina y dron), centrado y zoom por teclado
@@ -2678,7 +2768,11 @@ document.getElementById('btnIslaCine')?.addEventListener('click', () => alternar
 addEventListener('keydown', (e) => {
   if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '')) return;
   if (e.code === 'KeyH') { e.preventDefault(); alternarModoCine(); }
+  else if (e.code === 'KeyD' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); alternarMedicion(); }
+  else if (e.code === 'KeyS' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); alternarSeccion(); }
+  else if (e.code === 'KeyC' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); alternarConfianza(); }
   else if (e.code === 'Escape') {
+    if (medidor.activa) { alternarMedicion(false); return; }
     if (cerrarFicha()) return;
     if (!elPanelTR.hidden) { abrirPanelTR(false); return; }
     if (document.body.classList.contains('modo-cine')) { alternarModoCine(false); }
@@ -3017,6 +3111,7 @@ const elFichaOrigen = document.getElementById('fichaOrigen');
 const elFichaSello = document.getElementById('fichaSello');
 const btnFichaPlegar = document.getElementById('btnFichaPlegar');
 let fichaFocoPrevio = null;
+let seleccionActual = null;   // punto UTM de la última ficha abierta (para el enlace)
 function plegarFicha(plegar) {
   elFicha.classList.toggle('plegada', plegar);
   btnFichaPlegar.setAttribute('aria-expanded', String(!plegar));
@@ -3068,6 +3163,7 @@ function mostrarFicha(capa, nombre, info, filas = [], coord = null, og = null) {
 function cerrarFicha() {
   if (elFicha.hidden) return false;
   elFicha.hidden = true;
+  seleccionActual = null;
   realce.visible = false;
   if (fichaFocoPrevio?.isConnected) fichaFocoPrevio.focus({ preventScroll: true });
   fichaFocoPrevio = null;
@@ -3183,12 +3279,9 @@ function capturarPNG() {
 }
 document.getElementById('btnCaptura')?.addEventListener('click', capturarPNG);
 document.getElementById('btnCopiarEnlace')?.addEventListener('click', async (ev) => {
-  const url = new URL(location.href);
-  url.searchParams.set('pk', (pkActualUI / 1000).toFixed(3));
-  url.searchParams.set('vista', vistaActiva);
   const btn = ev.currentTarget;
   try {
-    await navigator.clipboard.writeText(url.toString());
+    await navigator.clipboard.writeText(construirEnlace());
     btn.textContent = '✓ Enlace copiado';
   } catch {
     btn.textContent = 'No se pudo copiar';
@@ -3221,6 +3314,30 @@ btnFichaCctv?.addEventListener('click', () => { if (baculoFicha) irACctv(baculoF
 
 const raycaster = new THREE.Raycaster();
 const ptr = new THREE.Vector2();
+const medidor = crearMedidor({ camara, escena, W, UTMdeMundo, Eje3D, fmtPk, origenDe, CLASES: CLASES_ORIGEN, panelAnuncios: document.getElementById('anunciosSr') });
+function alternarMedicion(on) {
+  const activa = medidor.activar(on);
+  if (activa) cerrarFicha();
+  document.getElementById('btnMedir')?.setAttribute('aria-pressed', String(activa));
+}
+document.getElementById('btnMedir')?.addEventListener('click', () => alternarMedicion());
+const seccion = crearSeccion({
+  Eje3D, cotaTerrenoUTM, Catenaria, fmtPk,
+  viaductoReal: (vi) => { const vr = VIADUCTOS_REALES.get(vi.pkIni); return vr ? { ancho: vr.tablero.ancho } : null; },
+  origen: { terreno: 'Adif + LiDAR PNOA' },
+});
+function alternarSeccion(on) {
+  const activa = seccion.activar(on, pkActualUI);
+  document.getElementById('btnSeccion')?.setAttribute('aria-pressed', String(activa));
+}
+document.getElementById('btnSeccion')?.addEventListener('click', () => alternarSeccion());
+const confianza = crearConfianza({ raices: () => [grupoTeselas, grupoFlota, grupoArquetas], origenDe, CLASES: CLASES_ORIGEN });
+function alternarConfianza(on) {
+  const activa = confianza.activar(on);
+  document.getElementById('btnConfianza')?.setAttribute('aria-pressed', String(activa));
+}
+confianza.alApagar(() => alternarConfianza(false));
+document.getElementById('btnConfianza')?.addEventListener('click', () => alternarConfianza());
 let downXY = null;
 render.domElement.addEventListener('pointerdown', (e) => { downXY = [e.clientX, e.clientY]; });
 render.domElement.addEventListener('pointerup', (e) => {
@@ -3229,15 +3346,29 @@ render.domElement.addEventListener('pointerup', (e) => {
   ptr.x = ((e.clientX - r.left) / r.width) * 2 - 1;
   ptr.y = -((e.clientY - r.top) / r.height) * 2 + 1;
   raycaster.setFromCamera(ptr, camara);
+  if (medidor.activa) {
+    // Midiendo: el punto es lo primero que cruza el rayo (se ignoran las líneas, que se «tocan» a 1 m)
+    const h = raycaster.intersectObjects([grupoTeselas, grupoFlota, grupoTerrenoMalla, grupoArquetas], true).find((x) => x.object?.isMesh && x.object.visible);
+    medidor.agregarHit(h);
+    return;
+  }
+  seleccionarConRayo(true);
+});
+/** Ficha del elemento que atraviesa el rayo del `raycaster`. Con `abrir` se abren también los enlaces y paneles de los elementos (solo si lo pulsa la persona). */
+function seleccionarConRayo(abrir, cerca = null) {
   const hits = raycaster.intersectObjects([grupoTeselas, grupoFlota, grupoTerrenoMalla, grupoArquetas], true);
   const visibles = hits.filter((h) => h.object?.visible);
   // Las arquetas tienen prioridad si están junto al primer objeto tocado (van pegadas a la canaleta)
   const hitArq = visibles.find((h) => h.object?.userData?.arquetas && h.distance < (visibles[0]?.distance ?? 0) + 1.5);
-  const hit = hitArq || visibles.find((h) => h.object?.userData?.nombre);
+  // Al restaurar un enlace: de lo que cruza el rayo junto al punto guardado, el elemento antes que el terreno (el punto va redondeado a 0,1 m)
+  const juntoAlPunto = cerca ? visibles.filter((h) => h.object?.userData?.nombre && h.point.distanceTo(cerca) < 0.8)
+    .sort((a, b) => (a.object.userData.capa === 'Terreno') - (b.object.userData.capa === 'Terreno') || a.point.distanceTo(cerca) - b.point.distanceTo(cerca)) : [];
+  const hit = hitArq || juntoAlPunto[0] || visibles.find((h) => h.object?.userData?.nombre);
   const primero = hit || visibles[0];
-  if (!primero) { cerrarFicha(); return; }
+  if (!primero) { cerrarFicha(); return false; }
   const u = UTMdeMundo(primero.point);
   const pt = datosDePunto(u.E, u.N, u.Z);
+  seleccionActual = { E: u.E, N: u.N, Z: u.Z };
   let baculo = null;
   if (hit && hit.object.userData?.baculosCctv && hit.instanceId != null) {
     baculo = hit.object.userData.baculosCctv[hit.instanceId] || null;
@@ -3253,15 +3384,62 @@ render.domElement.addEventListener('pointerup', (e) => {
     const trCerca = flota.reduce((m, tr) => (!m || Math.abs(tr.pk - pt.pk) < Math.abs(m.pk - pt.pk) ? tr : m), null);
     if (trCerca && Math.abs(trCerca.pk - pt.pk) < 160) info = `${trCerca.estadoTxt} · ${info}`;
   }
-  if (hit?.object.userData?.url) window.open(hit.object.userData.url, '_blank', 'noopener');
-  if (hit?.object.userData?.tiempoReal) abrirDetalleTR(hit.object.userData.tiempoReal);
+  if (abrir && hit?.object.userData?.url) window.open(hit.object.userData.url, '_blank', 'noopener');
+  if (abrir && hit?.object.userData?.tiempoReal) abrirDetalleTR(hit.object.userData.tiempoReal);
   // Un instanciado (poste, traviesa, sujeción…) comparte ficha con todo el conjunto: se dice cuál se ha tocado
   const filasClic = hit?.instanceId != null && hit.object.count > 1 ? [...pt.filas, ['Selección', `1 de ${hit.object.count} elementos iguales en este tramo`]] : pt.filas;
   mostrarFicha(capa, nombre, info, filasClic, pt, og);
   realzarHit(hit);
   baculoFicha = baculo || null;
   if (btnFichaCctv) btnFichaCctv.hidden = !baculo;
-});
+  return Boolean(hit);
+}
+
+// ---- Enlace exacto: PK, vista, cámara, capas apagadas, hora, clima, fondo y elemento elegido ----
+const _cam = new THREE.Vector3(), _dir = new THREE.Vector3();
+const r1 = (v) => Math.round(v * 10) / 10;
+function construirEnlace() {
+  const u = new URL(location.href);
+  const sp = u.searchParams;
+  for (const k of ['guia', 'avanza', 'quieto', 'esperarOrto', 'depurar', 'sinOrto']) sp.delete(k);   // ajustes de revisión: no se comparten
+  sp.set('pk', (pkActualUI / 1000).toFixed(3));
+  sp.set('vista', vistaActiva);
+  if (!enRuta(vistaActiva)) {
+    const c = UTMdeMundo(camara.position), t = UTMdeMundo(controles.target);
+    sp.set('cam', [c.E, c.N, c.Z, t.E, t.N, t.Z].map(r1).join(','));
+  } else sp.delete('cam');
+  if (!modoVivo && horaSol !== 'dia') sp.set('sol', horaSol); else sp.delete('sol');
+  if (!modoVivo && climaActual !== 'despejado') sp.set('clima', climaActual); else sp.delete('clima');
+  if (fondoTerreno !== 'proyecto') sp.set('fondo', fondoTerreno); else sp.delete('fondo');
+  const apagadas = Object.keys(gruposVisibles).filter((id) => id !== 'terreno' && !gruposVisibles[id]);
+  if (apagadas.length) sp.set('sin', apagadas.join(',')); else sp.delete('sin');
+  if (seleccionActual && !elFicha.hidden) sp.set('sel', [seleccionActual.E, seleccionActual.N, seleccionActual.Z].map(r1).join(',')); else sp.delete('sel');
+  return u.toString();
+}
+/** Cámara y selección de un enlace: se aplican en cuanto las teselas de la zona están montadas. */
+function restaurarDesdeEnlace() {
+  const num = (k, n) => { const v = (params.get(k) || '').split(',').map(Number); return v.length === n && v.every(Number.isFinite) ? v : null; };
+  const cam = num('cam', 6), sel = num('sel', 3);
+  if (cam && !enRuta(vistaActiva)) {
+    gestorVuelo.volarAPose({ posE: cam[0], posN: cam[1], posZ: cam[2], objE: cam[3], objN: cam[4], objZ: cam[5], pk: pkArranque, inmediato: true });
+  }
+  if (!sel) return;
+  let intentos = 0;
+  const probar = () => {
+    // Un rayo desde la cámara al punto guardado: lo primero con ficha que cruza es lo que se eligió
+    const w = W(sel[0], sel[1], sel[2]);
+    camara.getWorldPosition(_cam);
+    _dir.copy(w).sub(_cam);
+    const dist = _dir.length();
+    _dir.normalize();
+    raycaster.set(_cam, _dir);
+    raycaster.far = dist + 3;
+    const ok = seleccionarConRayo(false, w);
+    raycaster.far = Infinity;
+    if (!ok && ++intentos < 40) setTimeout(probar, 500);
+  };
+  setTimeout(probar, 1500);
+}
 
 const txtPosicion = document.getElementById('txtPosicion');
 const flecha = document.getElementById('flecha');
@@ -3394,6 +3572,7 @@ actualizarVentanaTerreno(pIni.E, pIni.N);
 procesarColaTerreno(false);
 setModoVista(VISTAS.some((v) => v.id === vistaActiva) ? vistaActiva : 'viaducto');
 irAPk(pkArranque, vistaActiva, { inmediato: true });
+restaurarDesdeEnlace();
 
 if (params.has('esperarOrto') && ortofotoActiva) {
   const tLim = performance.now() + 3600;
@@ -3581,6 +3760,8 @@ function fotograma(ahora) {
   trafico?.actualizar(dt, utmCam);
   laguna.actualizar(dt, utmCam);
   arquetasRed.actualizar();
+  medidor.actualizar();
+  seccion.actualizar(pkActualUI);
 
   let pkObservado = pkRecorrido;
   if (enRuta(vistaActiva)) {
