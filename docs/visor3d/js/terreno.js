@@ -266,7 +266,7 @@ export function crearTerreno({
     mesh.updateMatrix();
     mesh.userData = {
       capa: 'Terreno',
-      origen: { clase: 'fuente', fuente: fino ? 'MDT05 LiDAR PNOA (IGN, CC BY 4.0) y cartografía 3D de Adif junto a la vía' : 'MDT25 LiDAR PNOA (IGN, CC BY 4.0) y cartografía 3D de Adif junto a la vía' },
+      origen: { clase: 'fuente', fuente: fino ? 'MDT05 LiDAR PNOA (IGN, CC BY 4.0); en Alicante, MDT LiDAR 1 m 2016 del ICV (Generalitat Valenciana, CC BY 4.0) a 2 m; y cartografía 3D de Adif junto a la vía' : 'MDT25 LiDAR PNOA (IGN, CC BY 4.0) y cartografía 3D de Adif junto a la vía' },
       nombre: fino ? 'Terreno real PNOA-LiDAR 5 m + Adif' : 'Terreno real PNOA-LiDAR + Adif',
       info: fino
         ? 'Superficie combinada de la cartografía 3D de Adif junto a la vía y el MDT05 LiDAR (malla de 5 m) + ortofoto PNOA del Instituto Geográfico Nacional (CC BY 4.0).'
