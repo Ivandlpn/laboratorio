@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+  <title>Regalo Solidario INECO 2026 • Nuestros Mejores Deseos para el Nuevo Año</title>
+
+  <meta name="application-name" content="Regalo Solidario INECO 2026">
+  <meta name="apple-mobile-web-app-title" content="Regalo INECO 2026">
+  <meta name="author" content="Equipo INECO • Base de Monforte del Cid">
+  <meta name="description" content="Regalo Solidario INECO 2026: Calendario de Adviento interactivo con 9 productos artesanales, vídeos personalizados de entrega para cada miembro del equipo, simuladores ferroviarios y seguimiento de la ruta polar hasta Monforte del Cid.">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1A4488">
+  <link rel="canonical" href="https://ivandlpn.github.io/laboratorio/regaloineco/">
+
+  <!-- Favicon e Iconos -->
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="icon" type="image/png" href="assets/Logo-Ineco.png">
+  <link rel="apple-touch-icon" href="assets/og-preview.jpg">
+
+  <!-- Schema.org / Google / Clientes de Correo -->
+  <meta itemprop="name" content="Regalo Solidario INECO 2026 • Nuestros Mejores Deseos">
+  <meta itemprop="description" content="Calendario de Adviento solidario de INECO 2026, vídeos personalizados de entrega y simuladores ferroviarios.">
+  <meta itemprop="image" content="https://ivandlpn.github.io/laboratorio/regaloineco/assets/og-preview.jpg">
+
+  <!-- Open Graph (WhatsApp, Teams, Telegram, LinkedIn, Facebook, Slack) -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ivandlpn.github.io/laboratorio/regaloineco/">
+  <meta property="og:site_name" content="Regalo Solidario INECO 2026">
+  <meta property="og:title" content="🎄 Regalo Solidario INECO 2026 • Nuestros Mejores Deseos">
+  <meta property="og:description" content="Descubre los 9 regalos del Lote Solidario 2026, abre tu vídeo personalizado de entrega y sigue la ruta polar de Alta Velocidad hasta Monforte del Cid.">
+  <meta property="og:image" content="https://ivandlpn.github.io/laboratorio/regaloineco/assets/og-preview.jpg">
+  <meta property="og:image:secure_url" content="https://ivandlpn.github.io/laboratorio/regaloineco/assets/og-preview.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Regalo Solidario INECO 2026 — Calendario de Adviento y Vídeos Personalizados">
+  <meta property="og:locale" content="es_ES">
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="🎄 Regalo Solidario INECO 2026 • Nuestros Mejores Deseos">
+  <meta name="twitter:description" content="Calendario de Adviento interactivo del Lote Solidario 2026 de INECO, vídeos personalizados de entrega y simuladores ferroviarios.">
+  <meta name="twitter:image" content="https://ivandlpn.github.io/laboratorio/regaloineco/assets/og-preview.jpg">
+  <meta name="twitter:image:alt" content="Regalo Solidario INECO 2026 — Vista Previa Oficial">
+
+  <!-- Datos Estructurados JSON-LD -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Regalo Solidario INECO 2026",
+    "alternateName": "Detalle Solidario INECO 2026",
+    "url": "https://ivandlpn.github.io/laboratorio/regaloineco/",
+    "description": "Calendario de Adviento interactivo con 9 regalos solidarios, vídeos personalizados de entrega y simuladores ferroviarios de INECO.",
+    "inLanguage": "es-ES",
+    "image": "https://ivandlpn.github.io/laboratorio/regaloineco/assets/og-preview.jpg"
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,600&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            poppins: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            ineco: {
+              blue: '#1A4488',
+              dark: '#0D2246',
+              light: '#3463AC',
+              sky: '#6B96CF',
+              red: '#CB1823',
+            },
+            festive: {
+              gold: '#D4AF37',
+              amber: '#F59E0B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Confetti Canvas -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Estilos Personalizados -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="personal-entrega.css">
+</head>
+<body class="bg-[#040A16] text-slate-100 font-poppins selection:bg-red-600 selection:text-white pb-24 lg:pb-0 relative min-h-screen" data-theme="ineco">
+
+  <!-- CANVAS DE NIEVE FESTIVA -->
+  <canvas id="snow-canvas"></canvas>
+
+  <!-- CANVAS DE ESTELA MÁGICA DEL CURSOR -->
+  <canvas id="sparkle-canvas" aria-hidden="true"></canvas>
+
+  <!-- CAPA DE ADORNOS NAVIDEÑOS FLOTANTES (EASTER EGGS INTERACTIVOS) -->
+  <div id="floating-ornaments-layer" aria-hidden="true"></div>
+
+  <!-- CONTENEDOR DE NOTIFICACIONES DE INSIGNIAS -->
+  <div id="badge-toast-container" class="fixed top-4 right-4 z-[90] flex flex-col gap-2 pointer-events-none max-w-xs sm:max-w-sm"></div>
+
+  <!-- ======================================================== -->
+  <!-- PANTALLA DE INICIO / TEASER GATE (1 DE DICIEMBRE A LAS 12:00) -->
+  <!-- ======================================================== -->
+  <div id="teaser-gate-screen" class="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-b from-[#020612] via-[#051126] to-[#020612] flex flex-col justify-between p-4 sm:p-6 lg:p-8 select-none transition-opacity duration-700">
+    
+    <!-- Fondo Aurora Boreal & Luces de Ambiente -->
+    <div class="aurora-bg opacity-70 pointer-events-none"></div>
+
+    <!-- LIENZO DE REGALOS PERSONALIZADOS CAYENDO COMO COPOS DE NIEVE -->
+    <canvas id="teaser-gifts-canvas" class="fixed inset-0 w-full h-full pointer-events-none z-10"></canvas>
+
+    <!-- Logo Oficial Ineco -->
+    <div class="w-full max-w-7xl mx-auto flex items-center justify-start relative z-20 shrink-0">
+      <div id="teaser-logo-wrapper" class="bg-white/95 px-4 py-2 rounded-2xl border-2 border-amber-400/60 shadow-[0_0_25px_rgba(26,68,136,0.8)] backdrop-blur-md hover:scale-105 transition active:scale-95 shrink-0">
+        <img src="assets/Logo-Ineco.png" alt="Logo Ineco" class="h-9 sm:h-12 w-auto object-contain">
+      </div>
+    </div>
+
+    <!-- CUERPO PRINCIPAL: DUAL ESCRITORIO (IZQUIERDA: VÍDEO | DERECHA: MENSAJE IMPACTANTE + CUENTA ATRÁS) -->
+    <main id="teaser-main-content" class="w-full max-w-7xl mx-auto my-auto py-6 sm:py-8 lg:py-10 relative z-20">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        
+        <!-- ============================================== -->
+        <!-- COLUMNA IZQUIERDA (ESCRITORIO): VÍDEO CON AUTOPLAY -->
+        <!-- ============================================== -->
+        <div class="lg:col-span-7 flex flex-col justify-center">
+          <div class="relative rounded-3xl overflow-hidden border-2 border-amber-400/70 shadow-[0_0_50px_rgba(26,68,136,0.6)] bg-slate-950 group">
+            
+            <!-- Contenedor del Vídeo Cinemático (Reproducción manual con botón Play) -->
+            <div id="teaser-video-container" class="relative w-full aspect-video min-h-[260px] sm:min-h-[360px] md:min-h-[420px] bg-slate-950 flex items-center justify-center overflow-hidden cursor-pointer group">
+              <video id="teaser-video" 
+                     playsinline 
+                     preload="metadata"
+                     poster="assets/cesta_solidaria_real.jpg"
+                     class="w-full h-full object-cover">
+                <source src="Videos/Dia1.mp4" type="video/mp4">
+                <source src="Videos/Video1.mp4" type="video/mp4">
+              </video>
+
+              <!-- Overlay Botón Play Central (No se reproduce solo) -->
+              <div id="teaser-video-play-overlay" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 group-hover:bg-black/30 backdrop-blur-[2px] transition-all duration-300">
+                <button id="teaser-video-play-btn" type="button" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-red-600 to-amber-500 text-white flex items-center justify-center shadow-[0_0_40px_rgba(220,38,38,0.85)] border-2 border-amber-300 transition-all duration-300 transform group-hover:scale-110 active:scale-95 cursor-pointer" aria-label="Reproducir Vídeo Oficial">
+                  <svg class="w-9 h-9 sm:w-11 sm:h-11 translate-x-1 fill-current" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                </button>
+                <span class="mt-4 px-4 py-1.5 rounded-full bg-slate-950/85 backdrop-blur-md text-amber-300 border border-amber-400/40 text-xs sm:text-sm font-bold tracking-wider shadow-lg flex items-center gap-2">
+                  <span>▶</span> Reproducir Vídeo Oficial
+                </span>
+              </div>
+
+              <!-- Indicador en Esquina Superior Izquierda -->
+              <div class="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/80 backdrop-blur-md border border-amber-400/50 shadow-lg">
+                <span class="text-amber-400 text-xs">🎬</span>
+                <span id="teaser-video-badge" class="text-[10px] sm:text-xs font-black text-white tracking-wider uppercase">VÍDEO OFICIAL</span>
+              </div>
+
+              <!-- Botón Unmute / Silencio del Vídeo -->
+              <button id="teaser-video-unmute-btn" type="button" class="absolute bottom-4 right-4 z-10 px-3.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-amber-300 text-xs font-bold border border-amber-400/40 shadow-lg flex items-center gap-1.5 transition active:scale-95">
+                <span id="teaser-video-mute-icon">🔊</span>
+                <span id="teaser-video-mute-label">Sonido</span>
+              </button>
+            </div>
+
+            <!-- Pie del marco del vídeo con detalle ferroviario -->
+            <div class="bg-gradient-to-r from-blue-950 via-slate-900 to-blue-950 px-5 py-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+              <div class="flex items-center gap-2">
+                <span class="text-amber-400">🚄</span>
+                <span class="font-bold text-slate-200">Alta Velocidad Ineco</span>
+                <span class="text-slate-600">•</span>
+                <span class="text-blue-300">Ruta Polar Monforte</span>
+              </div>
+              <span class="text-[11px] font-mono text-amber-400/80 font-semibold">1080p HD • 60 FPS</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- COLUMNA DERECHA (ESCRITORIO): MENSAJE IMPACTANTE + CUENTA ATRÁS -->
+        <!-- ============================================== -->
+        <div class="lg:col-span-5 flex flex-col justify-center">
+          
+          <!-- ESTADO 1: ANTES DEL 1 DE DICIEMBRE A LAS 12:00 (BLOQUEADO) -->
+          <div id="teaser-locked-view" class="space-y-6">
+            
+            <!-- Badge Festivo Brillante -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-600/30 via-amber-500/20 to-blue-600/30 text-amber-300 border border-amber-400/50 shadow-[0_0_20px_rgba(212,175,55,0.25)] text-xs font-black tracking-wider uppercase">
+              <span class="animate-spin text-sm">✨</span>
+              <span>LANZAMIENTO EXCLUSIVO DE NAVIDAD</span>
+            </div>
+
+            <!-- TÍTULO ULTRA VISUAL E IMPACTANTE SOLICITADO -->
+            <div class="space-y-3">
+              <h1 class="text-3xl sm:text-4xl xl:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-amber-300 to-amber-500 font-poppins leading-[1.15] drop-shadow-[0_10px_25px_rgba(212,175,55,0.35)] tracking-tight">
+                Descubre el <span class="text-red-500">Regalo Solidario 2026</span>
+              </h1>
+              
+              <!-- Cartela destacada de fecha y hora exacta -->
+              <div class="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-red-950/80 via-blue-950/90 to-slate-900 border-2 border-amber-400/60 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                <div class="flex items-center gap-3">
+                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-600 to-amber-500 text-white flex items-center justify-center text-2xl shadow-md border border-amber-300 shrink-0">
+                    📅
+                  </div>
+                  <div>
+                    <span class="text-[10px] uppercase font-black text-amber-300 tracking-widest block">
+                      FECHA Y HORA OFICIAL DE APERTURA:
+                    </span>
+                    <p class="text-base sm:text-xl font-black text-white leading-tight">
+                      El día <span class="text-amber-300">27 de noviembre</span> a las <span class="text-amber-300">13:00</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Párrafo Descriptivo de Alta Legibilidad -->
+            <p class="text-sm sm:text-base text-slate-200 leading-relaxed font-normal">
+              Una cuidada selección de productos solidarios y nuestros mejores deseos para dar la bienvenida al nuevo año. La cuenta atrás está en marcha y todo el equipo de Ineco podrá acceder en el instante exacto.
+            </p>
+
+            <!-- CUENTA ATRÁS MUY VISUAL E IMPACTANTE -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs text-amber-300/90 font-bold px-1">
+                <span>TIEMPO RESTANTE PARA LA APERTURA:</span>
+                <span id="teaser-pct-label" class="font-mono text-white">0%</span>
+              </div>
+
+              <!-- Bloques de Cuenta Atrás -->
+              <div class="grid grid-cols-4 gap-2 sm:gap-3">
+                
+                <!-- DÍAS -->
+                <div class="bg-gradient-to-b from-slate-900/90 to-blue-950/90 rounded-2xl p-3 sm:p-4 border border-amber-400/40 text-center shadow-lg relative overflow-hidden group hover:border-amber-300 transition">
+                  <div class="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition"></div>
+                  <span id="teaser-days" class="text-2xl sm:text-3xl xl:text-4xl font-black text-white font-mono block drop-shadow leading-none">--</span>
+                  <span class="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-widest mt-1 block">DÍAS</span>
+                </div>
+
+                <!-- HORAS -->
+                <div class="bg-gradient-to-b from-slate-900/90 to-blue-950/90 rounded-2xl p-3 sm:p-4 border border-amber-400/40 text-center shadow-lg relative overflow-hidden group hover:border-amber-300 transition">
+                  <div class="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition"></div>
+                  <span id="teaser-hours" class="text-2xl sm:text-3xl xl:text-4xl font-black text-amber-300 font-mono block drop-shadow leading-none">--</span>
+                  <span class="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-widest mt-1 block">HORAS</span>
+                </div>
+
+                <!-- MINUTOS -->
+                <div class="bg-gradient-to-b from-slate-900/90 to-blue-950/90 rounded-2xl p-3 sm:p-4 border border-amber-400/40 text-center shadow-lg relative overflow-hidden group hover:border-amber-300 transition">
+                  <div class="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition"></div>
+                  <span id="teaser-minutes" class="text-2xl sm:text-3xl xl:text-4xl font-black text-white font-mono block drop-shadow leading-none">--</span>
+                  <span class="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-widest mt-1 block">MINUTOS</span>
+                </div>
+
+                <!-- SEGUNDOS -->
+                <div class="bg-gradient-to-b from-slate-900/90 to-blue-950/90 rounded-2xl p-3 sm:p-4 border border-amber-400/40 text-center shadow-lg relative overflow-hidden group hover:border-amber-300 transition">
+                  <div class="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition"></div>
+                  <span id="teaser-seconds" class="text-2xl sm:text-3xl xl:text-4xl font-black text-red-400 font-mono block drop-shadow leading-none animate-pulse">--</span>
+                  <span class="text-[9px] sm:text-[10px] font-black text-amber-400 uppercase tracking-widest mt-1 block">SEGUNDOS</span>
+                </div>
+
+              </div>
+
+              <!-- Barra de Progreso Luminosa -->
+              <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-700/80 mt-2">
+                <div id="teaser-progress-bar" class="h-full bg-gradient-to-r from-blue-600 via-amber-400 to-red-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_#FCD34D]" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <!-- Aviso de Protección hasta la fecha oficial -->
+            <div class="pt-2 flex items-center justify-between border-t border-slate-800/80 text-xs">
+              <span class="text-slate-400 flex items-center gap-1.5">
+                <span>🔐</span> Página protegida hasta la fecha oficial
+              </span>
+            </div>
+
+          </div>
+
+          <!-- ESTADO 2: AL LLEGAR AL 1 DE DICIEMBRE A LAS 12:00 (DESBLOQUEADO) -->
+          <div id="teaser-unlocked-view" class="hidden space-y-6">
+            
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 shadow-[0_0_20px_rgba(52,211,153,0.3)] text-xs font-black tracking-wider uppercase animate-bounce">
+              <span>🎉</span>
+              <span>¡LLEGÓ EL MOMENTO ESPERADO!</span>
+            </div>
+
+            <!-- FRASE EXACTA SOLICITADA POR EL USUARIO -->
+            <div class="space-y-3">
+              <h1 class="text-3xl sm:text-4xl xl:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-amber-300 to-white font-poppins leading-[1.15] drop-shadow-[0_10px_30px_rgba(52,211,153,0.4)] tracking-tight">
+                ¡Por fin ya puedes ver qué sorpresas tenemos preparadas!
+              </h1>
+              <p class="text-sm sm:text-base text-slate-200 leading-relaxed font-normal">
+                El tren solidario de Ineco ha completado su viaje. Explora el Calendario de Adviento con los 9 productos artesanales, descarga tu Billete AVE de Alta Velocidad, celebra con todo el equipo.
+              </p>
+            </div>
+
+            <!-- Botón Grande de Entrada a la Web -->
+            <div class="pt-2">
+              <button id="teaser-enter-app-btn" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 active:scale-95 text-white text-base font-black shadow-[0_0_35px_rgba(203,24,35,0.8)] border-2 border-amber-300 transition-all transform hover:scale-102 flex items-center justify-center gap-3 tracking-wide">
+                <span>🎁 Descubrir las Sorpresas del Lote</span>
+                <svg class="w-6 h-6 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Barra Inferior de la Pantalla de Inicio -->
+    <footer class="w-full max-w-7xl mx-auto pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 relative z-20 gap-2 shrink-0">
+      <div class="flex items-center gap-2">
+        <span>✨ Ineco 2026-2027</span>
+        <span>•</span>
+        <span>Mantenimiento Ferroviario y Compromiso Social</span>
+      </div>
+      <div class="text-[11px] text-slate-400">
+        Apertura: 27 de Noviembre de 2026 • 13:00:00 h
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- CONTENEDOR PRINCIPAL DUAL: BARRA LATERAL 33% + MAIN 67% -->
+  <!-- ======================================================== -->
+  <div class="min-h-screen flex flex-col lg:flex-row w-full">
+
+    <!-- ======================================================== -->
+    <!-- BARRA LATERAL IZQUIERDA FIJA (33% ANCHO • CUENTA ATRÁS & HILO TEMPORAL) -->
+    <!-- ======================================================== -->
+    <aside class="w-full lg:fixed lg:top-0 lg:left-0 lg:bottom-0 lg:w-[33.333333%] lg:h-screen lg:overflow-y-auto bg-[#030815]/95 backdrop-blur-2xl border-b lg:border-b-0 lg:border-r border-blue-900/40 p-4 sm:p-5 flex flex-col justify-between shrink-0 z-30 custom-sidebar-scroll" id="seccion-radar">
+      
+      <div class="space-y-4">
+        <!-- Bloque Superior: Logo Ineco & Controles de Ambiente/Sonido -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+          <div class="flex items-center gap-2.5">
+            <div class="bg-white/95 px-3 py-1.5 rounded-xl border border-amber-400/50 shadow-md">
+              <img src="assets/Logo-Ineco.png" alt="Ineco" class="h-8 w-auto object-contain">
+            </div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-xs font-black uppercase tracking-wider text-amber-400">Regalo 2026</span>
+              </div>
+              <p class="text-[10px] text-blue-200 font-medium">Nuestros Mejores Deseos</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-1.5">
+            <button id="open-studio-sidebar-btn" class="js-open-studio p-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/35 text-xs text-amber-300 font-semibold border border-amber-400/50 transition shadow-sm active:scale-95" title="Estudio de Personalización y Atmósfera">
+              <span>✨</span>
+            </button>
+            <button id="toggle-theme-btn" class="p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700/80 transition shadow-sm active:scale-95" title="Cambiar variante de tema (INECO Clásico / Gala Dorada / Noche Polar)">
+              <span>🌓</span>
+            </button>
+            <button id="toggle-snow-btn" class="p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs text-sky-300 font-semibold border border-slate-700/80 transition shadow-sm active:scale-95" title="Cambiar intensidad de nieve">
+              <span class="snow-icon">❄️</span>
+            </button>
+            <button id="toggle-sound-btn" class="p-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-xs text-amber-300 font-semibold border border-slate-700/80 transition shadow-sm active:scale-95" title="Activar o desactivar música ambiental">
+              <span class="sound-icon">🔇</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CUENTA ATRÁS A MONFORTE (Display Digital Compacto) -->
+        <div class="bg-gradient-to-br from-blue-950/90 via-slate-900/95 to-blue-950/90 rounded-2xl p-4 border border-amber-400/40 shadow-xl">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] uppercase font-black tracking-widest text-amber-300 flex items-center gap-1.5">
+              <span>⏱️</span> <span>Llegada a Base Monforte</span>
+            </span>
+            <span class="text-[9px] px-2.5 py-0.5 rounded-full bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 font-bold font-mono">
+              14 DIC 2026
+            </span>
+          </div>
+
+          <div class="grid grid-cols-4 gap-1.5 text-center my-2">
+            <div class="bg-slate-950/95 rounded-xl p-2 border border-slate-800">
+              <span id="cd-days" class="block text-2xl font-black text-amber-400 font-mono leading-none">--</span>
+              <span class="text-[8px] uppercase font-bold text-slate-400 mt-1 block">Días</span>
+            </div>
+            <div class="bg-slate-950/95 rounded-xl p-2 border border-slate-800">
+              <span id="cd-hours" class="block text-2xl font-black text-white font-mono leading-none">--</span>
+              <span class="text-[8px] uppercase font-bold text-slate-400 mt-1 block">Horas</span>
+            </div>
+            <div class="bg-slate-950/95 rounded-xl p-2 border border-slate-800">
+              <span id="cd-mins" class="block text-2xl font-black text-white font-mono leading-none">--</span>
+              <span class="text-[8px] uppercase font-bold text-slate-400 mt-1 block">Min</span>
+            </div>
+            <div class="bg-slate-950/95 rounded-xl p-2 border border-slate-800">
+              <span id="cd-secs" class="block text-2xl font-black text-red-400 font-mono leading-none">--</span>
+              <span class="text-[8px] uppercase font-bold text-slate-400 mt-1 block">Seg</span>
+            </div>
+          </div>
+
+          <div id="cd-status-text" class="hidden text-xs text-amber-300 font-bold text-center my-1.5 p-1.5 rounded-xl bg-amber-500/10 border border-amber-400/30"></div>
+          
+          <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400">
+            <span>Horario: <strong class="text-white">09:00 - 15:00 h</strong></span>
+            <span class="font-mono text-emerald-400 font-bold">Horizonte 2027</span>
+          </div>
+        </div>
+
+        <!-- HILO TEMPORAL DE LA LLEGADA DEL REGALO (Ruta Polar Continental - compacto en móvil) -->
+        <div class="hidden lg:block bg-slate-900/90 rounded-2xl p-4 border border-blue-500/30 shadow-xl space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-black uppercase tracking-wider text-white flex items-center gap-1.5">
+              <span>🚄</span> <span>Hilo Temporal de la Ruta</span>
+            </span>
+            <div class="flex items-center gap-1.5">
+              <span id="radar-pct-badge" class="text-[10px] font-black text-amber-300 font-mono bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-400/40">5%</span>
+              <span id="radar-distance" class="text-[10px] font-extrabold text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/30">35 días</span>
+            </div>
+          </div>
+
+          <!-- Selector de Hitos Rápidos -->
+          <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+            <button id="map-btn-laponia" data-stage="laponia" class="radar-waypoint-btn p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95">
+              <div class="flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-md bg-sky-950 text-sky-400 flex items-center justify-center font-bold text-[10px] border border-sky-400/30">1</span>
+                <span class="font-bold text-white truncate">Laponia (66°N)</span>
+              </div>
+              <span class="text-[9px] text-sky-300 block mt-0.5 font-mono">Origen Polar • 0 km</span>
+            </button>
+
+            <button id="map-btn-europe" data-stage="europe" class="radar-waypoint-btn p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95">
+              <div class="flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-md bg-indigo-950 text-indigo-400 flex items-center justify-center font-bold text-[10px] border border-indigo-400/30">2</span>
+                <span class="font-bold text-white truncate">Corredor Europeo</span>
+              </div>
+              <span class="text-[9px] text-indigo-300 block mt-0.5 font-mono">Tránsito TEN-T • 1.925 km</span>
+            </button>
+
+            <button id="map-btn-madrid" data-stage="madrid" class="radar-waypoint-btn p-2 rounded-xl bg-slate-950/80 hover:bg-slate-800 border border-slate-700/60 text-left transition active:scale-95">
+              <div class="flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-md bg-blue-950 text-blue-300 flex items-center justify-center font-bold text-[10px] border border-blue-400/30">3</span>
+                <span class="font-bold text-white truncate">Sede Ineco</span>
+              </div>
+              <span class="text-[9px] text-amber-300 block mt-0.5 font-mono">Madrid (1 Dic) • 2.890 km</span>
+            </button>
+
+            <button id="map-btn-monforte" data-stage="monforte" class="radar-waypoint-btn p-2 rounded-xl bg-red-950/40 hover:bg-red-950/70 border border-red-500/50 text-left transition active:scale-95">
+              <div class="flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-md bg-red-600 text-white flex items-center justify-center font-bold text-[10px]">4</span>
+                <span class="font-bold text-amber-300 truncate">Base Monforte</span>
+              </div>
+              <span class="text-[9px] text-emerald-400 block mt-0.5 font-mono font-bold">Llegada 14 Dic • 3.850 km</span>
+            </button>
+          </div>
+
+          <!-- MAPA FERROVIARIO PROFESIONAL (Estilo GIS Alta Precisión) -->
+          <div class="relative w-full aspect-[500/360] rounded-2xl bg-gradient-to-b from-[#020713] via-[#040E24] to-[#020713] border border-blue-800/60 shadow-[inset_0_0_25px_rgba(0,0,0,0.8)] overflow-hidden p-1.5 select-none">
+            
+            <!-- Etiqueta Técnica Superior GIS -->
+            <div class="absolute top-2.5 left-2.5 z-20 flex items-center gap-2 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-lg border border-blue-500/30 text-[9px] font-mono text-blue-300 shadow">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span class="font-bold tracking-wider">GIS GNSS • RED ALTA VELOCIDAD</span>
+            </div>
+
+            <div class="absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5 bg-slate-950/85 backdrop-blur-md px-2 py-0.5 rounded text-[8px] font-mono text-amber-400 border border-amber-500/30">
+              <span>ERTMS L2 • 25 kV AC</span>
+            </div>
+
+            <!-- MAPA SVG VECTORIAL DE ALTA PRECISIÓN: EUROPA & PENÍNSULA IBÉRICA (ESTILO GIS FERROVIARIO) -->
+            <svg viewBox="0 0 500 360" class="w-full h-full" id="radar-svg-map" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Filtro Glow Profesional Alta Densidad -->
+                <filter id="gisGlow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="3.5" result="blur"/>
+                  <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+                <filter id="trackGlow" x="-25%" y="-25%" width="150%" height="150%">
+                  <feGaussianBlur stdDeviation="2.8" result="blur"/>
+                  <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+                <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.8"/>
+                </filter>
+
+                <!-- Degradados de Trazado Ferroviario -->
+                <linearGradient id="gisRouteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#38BDF8"/>
+                  <stop offset="35%" stop-color="#60A5FA"/>
+                  <stop offset="65%" stop-color="#818CF8"/>
+                  <stop offset="85%" stop-color="#FCD34D"/>
+                  <stop offset="100%" stop-color="#EF4444"/>
+                </linearGradient>
+
+                <linearGradient id="headlightBeam" x1="0%" y1="50%" x2="100%" y2="50%">
+                  <stop offset="0%" stop-color="#FEF08A" stop-opacity="0.95"/>
+                  <stop offset="35%" stop-color="#FDE047" stop-opacity="0.5"/>
+                  <stop offset="100%" stop-color="#FDE047" stop-opacity="0"/>
+                </linearGradient>
+
+                <!-- Patrón de Cuadrícula Cartográfica de Precisión -->
+                <pattern id="gisGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                  <path d="M 30 0 L 0 0 0 30" fill="none" stroke="#1E293B" stroke-width="0.5" opacity="0.35"/>
+                  <circle cx="0" cy="0" r="0.8" fill="#475569" opacity="0.6"/>
+                </pattern>
+              </defs>
+
+              <!-- Fondo Cartográfico Oceánico con Cuadrícula Técnica -->
+              <rect width="100%" height="100%" fill="#030816"/>
+              <rect width="100%" height="100%" fill="url(#gisGrid)"/>
+
+              <!-- Líneas de Coordenadas Latitud Oficiales -->
+              <g opacity="0.45" stroke="#334155" stroke-width="0.6" stroke-dasharray="3,3">
+                <line x1="15" y1="35" x2="485" y2="35"/>
+                <line x1="15" y1="180" x2="485" y2="180"/>
+                <line x1="15" y1="280" x2="485" y2="280"/>
+              </g>
+              <g font-size="7" fill="#64748B" font-mono font-bold>
+                <text x="20" y="31">66°33'N (Círculo Polar Ártico • Laponia)</text>
+                <text x="20" y="176">50°00'N (Europa Central • Corredor TEN-T)</text>
+                <text x="20" y="276">40°00'N (Península Ibérica • Red Alta Velocidad)</text>
+              </g>
+
+              <!-- Radar Anillos Concéntricos de Navegación Monforte del Cid -->
+              <g opacity="0.2" stroke="#EF4444" fill="none" stroke-width="0.7">
+                <circle cx="218" cy="320" r="45" stroke-dasharray="2,3"/>
+                <circle cx="218" cy="320" r="90" stroke-dasharray="3,4"/>
+                <circle cx="218" cy="320" r="140" stroke-dasharray="3,5"/>
+              </g>
+
+              <!-- ============================================== -->
+              <!-- CONTINENTES Y SILUETAS GEOGRÁFICAS DETALLADAS   -->
+              <!-- ============================================== -->
+
+              <!-- 1. ISLAS BRITÁNICAS (Gran Bretaña e Irlanda) -->
+              <g fill="#0A1832" stroke="#1E3A8A" stroke-width="0.9" opacity="0.75">
+                <!-- Gran Bretaña -->
+                <path d="M 180 110 C 195 95, 210 102, 212 120 C 215 138, 202 152, 192 165 C 182 172, 172 165, 170 152 C 168 138, 172 122, 180 110 Z"/>
+                <!-- Irlanda -->
+                <path d="M 152 125 C 162 118, 168 128, 165 142 C 160 150, 150 148, 146 138 C 144 130, 148 125, 152 125 Z"/>
+              </g>
+
+              <!-- 2. ESCANDINAVIA, FINLANDIA Y BÁLTICO (LAPONIA 66°N) -->
+              <g fill="#0B1A36" stroke="#2563EB" stroke-width="1.1" opacity="0.92">
+                <!-- Macizo Escandinavo / Finlandia / Laponia -->
+                <path d="M 330 65 C 322 45, 335 22, 365 15 C 395 8, 435 12, 455 28 C 470 42, 465 65, 442 78 C 425 88, 408 95, 402 112 C 390 128, 368 132, 355 118 C 358 98, 372 85, 368 70 C 358 58, 348 68, 346 82 C 342 115, 322 145, 310 162 C 298 155, 292 138, 298 122 C 292 98, 302 78, 315 58 Z"/>
+                <!-- Dinamarca / Jutlandia -->
+                <path d="M 278 138 C 284 128, 292 132, 290 145 C 286 155, 278 152, 278 138 Z"/>
+              </g>
+
+              <!-- 3. EUROPA CONTINENTAL (Francia, Alemania, Benelux, Suiza, Norte Italia) -->
+              <path d="M 205 168 C 225 158, 255 152, 288 142 C 305 136, 318 146, 312 162 C 330 156, 355 152, 385 148 C 400 168, 392 195, 380 215 C 355 220, 328 215, 302 225 C 288 230, 282 250, 272 265 C 255 260, 245 250, 235 244 C 215 244, 198 246, 182 248 C 188 232, 195 216, 198 200 C 190 186, 192 176, 205 168 Z" 
+                    fill="#08142A" 
+                    stroke="#1E3A8A" 
+                    stroke-width="1.1" 
+                    opacity="0.88"/>
+
+              <!-- Península Itálica (Bota) -->
+              <path d="M 312 228 C 325 240, 335 260, 345 282 C 340 286, 330 282, 325 272 C 318 258, 310 248, 305 238 Z" fill="#08142A" stroke="#1E3A8A" stroke-width="0.8" opacity="0.65"/>
+
+              <!-- 4. PENÍNSULA IBÉRICA (ESPAÑA & PORTUGAL) • SILUETA GEOGRÁFICA DE ALTA PRECISIÓN -->
+              <path d="M 112 248 C 132 246, 155 247, 185 248 C 205 251, 225 255, 240 262 C 238 274, 232 286, 228 298 C 224 306, 222 316, 220 326 C 214 332, 204 336, 188 338 C 172 340, 152 342, 138 340 C 126 338, 118 328, 116 318 C 110 302, 108 286, 110 272 C 104 264, 100 254, 112 248 Z" 
+                    fill="#0D2040" 
+                    stroke="#3B82F6" 
+                    stroke-width="1.6" 
+                    opacity="0.95"/>
+
+              <!-- Islas Baleares (Mallorca, Menorca, Ibiza) -->
+              <g fill="#0D2040" stroke="#3B82F6" stroke-width="0.9">
+                <ellipse cx="248" cy="296" rx="7" ry="3.5"/>
+                <ellipse cx="258" cy="290" rx="4" ry="2"/>
+                <ellipse cx="238" cy="303" rx="3.5" ry="2"/>
+              </g>
+
+              <!-- ============================================== -->
+              <!-- RED DE ALTA VELOCIDAD SECUNDARIA (FONDO TEN-T) -->
+              <!-- ============================================== -->
+              <g fill="none" stroke="#1E293B" stroke-width="1" stroke-dasharray="2,3" opacity="0.6">
+                <path d="M 212 120 L 245 195 L 302 225 L 325 272"/>
+                <path d="M 245 195 L 288 142 L 355 118"/>
+                <path d="M 168 285 L 138 320"/>
+                <path d="M 168 285 L 126 265"/>
+                <path d="M 168 285 L 235 260"/>
+              </g>
+
+              <!-- ============================================== -->
+              <!-- TRAZADO FERROVIARIO OFICIAL "RUTA POLAR INECO" -->
+              <!-- ============================================== -->
+
+              <!-- Vía de Balasto Base de Seguridad -->
+              <path d="M 400 35 L 370 80 L 340 130 L 245 195 L 195 245 L 168 285 L 195 305 L 218 320" 
+                    fill="none" 
+                    stroke="#0B1C38" 
+                    stroke-width="6" 
+                    stroke-linecap="round"/>
+
+              <!-- Traviesas de Doble Vía de Alta Velocidad -->
+              <path d="M 400 35 L 370 80 L 340 130 L 245 195 L 195 245 L 168 285 L 195 305 L 218 320" 
+                    fill="none" 
+                    stroke="#1E3A8A" 
+                    stroke-width="4" 
+                    stroke-dasharray="2.5,3.5" 
+                    opacity="0.8"/>
+
+              <!-- Carril Base Pendiente (Tenue) -->
+              <path d="M 400 35 L 370 80 L 340 130 L 245 195 L 195 245 L 168 285 L 195 305 L 218 320" 
+                    fill="none" 
+                    stroke="#334155" 
+                    stroke-width="2.2" 
+                    stroke-linecap="round"
+                    stroke-dasharray="4,4"
+                    opacity="0.75"/>
+
+              <!-- Carril Recorrido Dinámico (Progreso Real del Tren) -->
+              <path id="radar-progress-path"
+                    d="M 400 35 L 370 80 L 340 130 L 245 195 L 195 245 L 168 285 L 195 305 L 218 320" 
+                    pathLength="100"
+                    stroke-dasharray="100"
+                    stroke-dashoffset="95"
+                    fill="none" 
+                    stroke="url(#gisRouteGrad)" 
+                    stroke-width="3.2" 
+                    stroke-linecap="round" 
+                    filter="url(#trackGlow)"/>
+
+              <!-- Pulso de Energía Viajero (Efecto Fibra Óptica / ERTMS) -->
+              <path d="M 400 35 L 370 80 L 340 130 L 245 195 L 195 245 L 168 285 L 195 305 L 218 320" 
+                    fill="none" 
+                    stroke="#FFFFFF" 
+                    stroke-width="1.3" 
+                    stroke-linecap="round" 
+                    stroke-dasharray="7,26" 
+                    opacity="0.75">
+                <animate attributeName="stroke-dashoffset" values="320;0" dur="2.8s" repeatCount="indefinite"/>
+              </path>
+
+              <!-- Brújula Cartográfica & Escala GIS -->
+              <g transform="translate(36, 326)" opacity="0.85">
+                <circle cx="0" cy="0" r="12" fill="rgba(2,6,23,0.85)" stroke="#334155" stroke-width="1"/>
+                <path d="M 0 -9 L 3 1 L 0 -1 L -3 1 Z" fill="#EF4444"/>
+                <path d="M 0 9 L 2.5 -1 L 0 1 L -2.5 -1 Z" fill="#64748B"/>
+                <text x="0" y="-14" font-size="6.5" font-weight="900" fill="#94A3B8" text-anchor="middle" font-mono>N</text>
+                <line x1="20" y1="4" x2="72" y2="4" stroke="#64748B" stroke-width="1.2"/>
+                <line x1="20" y1="1" x2="20" y2="7" stroke="#94A3B8" stroke-width="1"/>
+                <line x1="72" y1="1" x2="72" y2="7" stroke="#94A3B8" stroke-width="1"/>
+                <text x="46" y="-1" font-size="6" fill="#94A3B8" text-anchor="middle" font-mono>500 km</text>
+              </g>
+
+              <!-- ============================================== -->
+              <!-- ESTACIONES Y NODOS OPERACIONALES CLAVE         -->
+              <!-- ============================================== -->
+
+              <!-- ESTACIÓN 1: LAPONIA (ORIGEN POLAR 66°N) -->
+              <g transform="translate(400, 35)" class="radar-station-node cursor-pointer" data-stage="laponia">
+                <!-- Baliza de radar -->
+                <circle cx="0" cy="0" r="14" fill="#0284C7" opacity="0.25">
+                  <animate attributeName="r" values="8;16;8" dur="3s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="0" cy="0" r="5.5" fill="#38BDF8" stroke="#FFFFFF" stroke-width="1.8"/>
+                <circle cx="0" cy="0" r="2" fill="#0284C7"/>
+                <!-- Cartela Técnica -->
+                <g transform="translate(0, -12)" filter="url(#badgeShadow)">
+                  <rect x="-42" y="-14" width="84" height="15" rx="4" fill="rgba(2, 6, 23, 0.9)" stroke="#38BDF8" stroke-width="1"/>
+                  <text x="0" y="-3.5" font-size="7.5" font-weight="900" fill="#38BDF8" text-anchor="middle" font-poppins>LAPONIA (66°N)</text>
+                </g>
+              </g>
+
+              <!-- ESTACIÓN 2: CORREDOR EUROPEO TEN-T (PARÍS) -->
+              <g transform="translate(245, 195)" class="radar-station-node cursor-pointer" data-stage="europe">
+                <circle cx="0" cy="0" r="9" fill="#6366F1" opacity="0.25"/>
+                <circle cx="0" cy="0" r="5" fill="#818CF8" stroke="#FFFFFF" stroke-width="1.6"/>
+                <!-- Cartela Técnica -->
+                <g transform="translate(14, -6)" filter="url(#badgeShadow)">
+                  <rect x="0" y="-12" width="76" height="15" rx="4" fill="rgba(2, 6, 23, 0.9)" stroke="#818CF8" stroke-width="0.8"/>
+                  <text x="38" y="-1.5" font-size="7" font-weight="bold" fill="#C7D2FE" text-anchor="middle">Corredor Europeo</text>
+                </g>
+              </g>
+
+              <!-- ESTACIÓN 3: SEDE CENTRAL INECO (MADRID) -->
+              <g transform="translate(168, 285)" class="radar-station-node cursor-pointer" data-stage="madrid">
+                <circle cx="0" cy="0" r="15" fill="#1A4488" opacity="0.35">
+                  <animate attributeName="r" values="9;18;9" dur="2.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="0" cy="0" r="6.5" fill="#FFFFFF" stroke="#1A4488" stroke-width="2.2"/>
+                <circle cx="0" cy="0" r="2.8" fill="#1A4488"/>
+                <!-- Cartela Técnica -->
+                <g transform="translate(-14, 2)" filter="url(#badgeShadow)">
+                  <rect x="-78" y="-15" width="74" height="19" rx="4" fill="rgba(2, 6, 23, 0.92)" stroke="#D4AF37" stroke-width="1.2"/>
+                  <text x="-41" y="-5.5" font-size="7.5" font-weight="900" fill="#F8FAFC" text-anchor="middle" font-poppins>SEDE INECO</text>
+                  <text x="-41" y="2.5" font-size="6" font-weight="bold" fill="#FCD34D" text-anchor="middle" font-mono>(Madrid)</text>
+                </g>
+              </g>
+
+              <!-- ESTACIÓN 4: BASE DE MONFORTE DEL CID (TERMINAL LLEGADA) -->
+              <g transform="translate(218, 320)" class="radar-station-node cursor-pointer" data-stage="monforte">
+                <!-- Baliza de llegada con pulsos de alta prioridad -->
+                <circle cx="0" cy="0" r="20" fill="none" stroke="#EF4444" stroke-width="1.8" opacity="0.8">
+                  <animate attributeName="r" values="6;24" dur="1.6s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.95;0" dur="1.6s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="0" cy="0" r="7.5" fill="#DC2626" stroke="#FCD34D" stroke-width="2.2"/>
+                <circle cx="0" cy="0" r="3" fill="#FEF08A"/>
+                <!-- Cartela Técnica Destino Final -->
+                <g transform="translate(16, 2)" filter="url(#badgeShadow)">
+                  <rect x="0" y="-16" width="90" height="21" rx="4" fill="rgba(15, 23, 42, 0.95)" stroke="#EF4444" stroke-width="1.4"/>
+                  <text x="45" y="-5.5" font-size="7.5" font-weight="900" fill="#FCD34D" text-anchor="middle" font-poppins>BASE MONFORTE</text>
+                  <text x="45" y="3" font-size="6" font-weight="bold" fill="#FCA5A5" text-anchor="middle" font-mono>Destino Final • Alicante</text>
+                </g>
+              </g>
+
+              <!-- ============================================== -->
+              <!-- TREN DE ALTA VELOCIDAD VECTORIAL (MARCADOR AVE) -->
+              <!-- ============================================== -->
+              <g id="train-marker" transform="translate(400, 35)" class="cursor-pointer" filter="url(#gisGlow)">
+                <!-- Cono de Luz Delantero -->
+                <polygon points="12,-4 38,-15 38,15 12,4" fill="url(#headlightBeam)"/>
+                
+                <!-- Silueta Aerodinámica de Cabeza Motriz de Alta Velocidad -->
+                <path d="M -14 -6 L 8 -6 Q 16 0 8 6 L -14 6 Q -11 0 -14 -6 Z" fill="#0F172A" stroke="#FCD34D" stroke-width="1.5"/>
+                <path d="M -10 -4 L 4 -4 Q 12 0 4 4 L -10 4 Z" fill="#CB1823"/>
+                <!-- Parabrisas Cabina -->
+                <path d="M 2 -3 L 7 -1 L 7 1 L 2 3 Z" fill="#38BDF8"/>
+                <!-- Foco Frontal Luminoso -->
+                <circle cx="10" cy="0" r="2.5" fill="#FFFFFF" stroke="#FEF08A" stroke-width="1"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Slider de Progreso de Ruta -->
+          <div>
+            <div class="flex items-center justify-between text-[10px] font-bold text-slate-400 mb-1 gap-2">
+              <span class="text-amber-300 truncate" id="radar-waypoint-title">🎮 Laponia (Círculo Polar)</span>
+              <span id="radar-km-info" class="font-mono text-sky-300 text-[9px] shrink-0">193 / 3.850 km</span>
+            </div>
+            <input type="range" id="radar-progress-slider" min="0" max="100" value="5" step="1" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-red-600 focus:outline-none">
+            <div class="flex justify-between text-[8px] text-slate-500 font-bold uppercase mt-1">
+              <span>Laponia</span>
+              <span>Europa</span>
+              <span>Madrid Ineco</span>
+              <span class="text-red-400">Monforte</span>
+            </div>
+            <div class="text-right text-[9px] font-mono text-emerald-400/90 mt-0.5" id="radar-coords">65.1200°N, 22.8400°E</div>
+          </div>
+
+          <!-- Tacómetro y Controles -->
+          <div class="flex items-center justify-between bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 text-xs gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="speedo-gauge-container w-10 h-7 relative overflow-hidden shrink-0">
+                <svg viewBox="0 0 130 90" class="w-full h-auto">
+                  <path d="M 20 75 A 50 50 0 0 1 110 75" fill="none" stroke="#1E293B" stroke-width="12" stroke-linecap="round"/>
+                  <path d="M 20 75 A 50 50 0 0 1 85 30" fill="none" stroke="#10B981" stroke-width="10" stroke-linecap="round"/>
+                  <path d="M 85 30 A 50 50 0 0 1 110 75" fill="none" stroke="#CB1823" stroke-width="10" stroke-linecap="round"/>
+                  <line id="speedo-needle-line" x1="65" y1="75" x2="65" y2="30" stroke="#FCD34D" stroke-width="3" stroke-linecap="round" class="speedo-needle" style="transform: rotate(-45deg);"/>
+                  <circle cx="65" cy="75" r="6" fill="#FCD34D" stroke="#0F172A" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <span class="text-[9px] uppercase font-bold text-slate-400 block leading-none">Velocidad</span>
+                <span id="radar-speed" class="text-xs font-black text-amber-400 font-mono truncate block">180 km/h</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0">
+              <button id="radar-play-btn" type="button" class="px-2 py-1.5 rounded-lg bg-emerald-700/80 hover:bg-emerald-600 active:scale-95 text-white font-bold text-[10px] transition border border-emerald-400/40" title="Simular recorrido completo">
+                ▶ Ruta
+              </button>
+              <button id="radar-horn-btn" class="px-2 py-1.5 rounded-lg bg-blue-900 hover:bg-blue-800 active:scale-95 text-amber-300 font-bold text-[10px] transition" title="Silbato AVE">
+                📢
+              </button>
+              <button id="radar-boost-btn" class="px-2 py-1.5 rounded-lg bg-gradient-to-r from-red-600 to-amber-500 hover:from-red-500 hover:to-amber-400 active:scale-95 text-white font-bold text-[10px] transition shadow" title="Acelerar a 350 km/h">
+                ⚡ 350
+              </button>
+            </div>
+          </div>
+
+          <p id="radar-status" class="text-[10px] text-slate-300 leading-tight bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+            8 Noviembre: En travesía polar desde Laponia. Velocidad de crucero ártica.
+          </p>
+        </div>
+      </div>
+
+      <!-- Accesos Rápidos en la barra fija -->
+      <div class="mt-4 pt-3 border-t border-slate-800 hidden lg:block space-y-2">
+        <button type="button" class="js-open-personal-entrega w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500/25 via-red-600/25 to-amber-500/25 hover:from-amber-500/40 hover:to-red-600/40 text-amber-200 font-bold text-xs border border-amber-400/45 flex items-center justify-center gap-2 transition active:scale-95 shadow">
+          <span class="text-sm">🎬</span> <span>Tu Video Personalizado de Entrega</span>
+        </button>
+        <button id="open-game-btn" class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 via-red-600 to-amber-600 hover:from-amber-500 hover:to-red-500 text-white font-black text-xs shadow-lg flex items-center justify-center gap-2 transition active:scale-95 border border-amber-300/40">
+          <span class="text-base">🎮</span> <span>Juegos y Simuladores</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ======================================================== -->
+    <!-- CONTENIDO PRINCIPAL DERECHO (67% ANCHO EN DESKTOP)        -->
+    <!-- ======================================================== -->
+    <main class="w-full lg:w-[66.666667%] lg:ml-[33.333333%] p-3 sm:p-6 lg:p-8 space-y-8 min-h-screen main-content-column">
+      
+      <!-- GUIRNALDA & CATENARIA SUPERIOR INTERACTIVA -->
+      <div class="w-full catenary-wire catenary-interactive flex justify-between px-4 overflow-hidden select-none -mt-2 mb-2" id="interactive-catenary" title="¡Toca las bombillas para tocar villancicos!">
+        <div class="catenary-light bg-red-500 text-red-500" style="left: 4%; animation-delay: 0.1s"></div>
+        <div class="catenary-light bg-amber-400 text-amber-400" style="left: 14%; animation-delay: 0.5s"></div>
+        <div class="catenary-light bg-blue-400 text-blue-400" style="left: 26%; animation-delay: 0.8s"></div>
+        <div class="catenary-light bg-emerald-400 text-emerald-400" style="left: 38%; animation-delay: 0.2s"></div>
+        <div class="catenary-light bg-red-500 text-red-500" style="left: 50%; animation-delay: 0.6s"></div>
+        <div class="catenary-light bg-amber-400 text-amber-400" style="left: 62%; animation-delay: 0.3s"></div>
+        <div class="catenary-light bg-blue-400 text-blue-400" style="left: 74%; animation-delay: 0.9s"></div>
+        <div class="catenary-light bg-emerald-400 text-emerald-400" style="left: 86%; animation-delay: 0.4s"></div>
+        <div class="catenary-light bg-red-500 text-red-500" style="left: 96%; animation-delay: 0.7s"></div>
+      </div>
+      
+      <!-- HERO BANNER: ADVIENTO, SALUDO PERSONALIZADO & ACCESOS ESTRELLA -->
+      <section class="hero-festive-card bg-gradient-to-r from-blue-950/85 via-slate-900/95 to-blue-950/85 rounded-3xl p-5 sm:p-7 border border-blue-500/30 shadow-2xl relative overflow-hidden">
+        <div class="aurora-bg opacity-35 pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col gap-5">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-900/60 border border-blue-400/30 text-blue-200 text-xs font-semibold shadow">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>Detalle Navideño Solidario Ineco</span>
+                </div>
+                <span id="hero-personal-greeting" class="hidden inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/50 text-amber-200 text-xs font-bold shadow">
+                  <span>✨</span>
+                  <span id="hero-personal-greeting-text">¡Feliz Navidad!</span>
+                </span>
+              </div>
+              <h1 class="text-2xl sm:text-4xl font-black text-white font-poppins tracking-tight">
+                CALENDARIO DE ADVIENTO
+                <span class="block text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-red-400 to-amber-200">
+                  REGALO SOLIDARIO 2026
+                </span>
+              </h1>
+              <p class="text-xs sm:text-sm text-blue-100/90 mt-1 max-w-xl">
+                Descubre día a día los <strong class="text-amber-300">9 regalos solidarios</strong> seleccionados con el espíritu y la dedicación del equipo para celebrar la Navidad y dar la bienvenida al nuevo año.
+              </p>
+            </div>
+
+            <!-- Cuadro de Progreso Rápido Mejorado -->
+            <div class="w-full sm:w-72 bg-gradient-to-br from-slate-950/95 via-blue-950/75 to-slate-950/95 p-4 sm:p-5 rounded-2xl border border-amber-400/40 shadow-[0_12px_30px_rgba(2,6,23,0.75)] shrink-0 relative overflow-hidden">
+              <div class="flex items-center justify-between gap-2 mb-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500/25 to-amber-500/25 border border-amber-400/40 flex items-center justify-center text-base shadow-inner">🎄</span>
+                  <div>
+                    <span class="text-[10px] uppercase tracking-widest font-bold text-slate-400 block leading-none">Progreso del Lote</span>
+                    <span class="text-xs font-black text-amber-300">Descubiertos</span>
+                  </div>
+                </div>
+                <span id="discovered-count" class="px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-400/40 text-amber-300 text-sm font-black font-mono shadow-inner">0 de 9</span>
+              </div>
+              <div class="flex items-center gap-2 mb-3">
+                <div class="flex-1 bg-slate-900/95 rounded-full h-3.5 p-0.5 overflow-hidden border border-slate-700/80 shadow-inner">
+                  <div id="discovered-bar" class="bg-gradient-to-r from-red-500 via-amber-400 to-emerald-400 h-full rounded-full transition-all duration-700 shadow-[0_0_12px_rgba(251,191,36,0.55)]" style="width: 0%"></div>
+                </div>
+                <span id="discovered-pct" class="text-[11px] font-black font-mono text-emerald-300 w-9 text-right">0%</span>
+              </div>
+              <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+                <span class="text-[10px] text-slate-400 font-medium">✨ Toca cada puerta</span>
+                <button id="reset-advent-btn" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/95 hover:bg-red-950/75 text-slate-200 hover:text-red-200 border border-slate-700/90 hover:border-red-400/60 text-[11px] font-bold transition-all shadow-sm hover:shadow-[0_0_12px_rgba(248,113,113,0.3)] active:scale-95">
+                  <span>🔄</span>
+                  <span>Reiniciar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SECCIÓN 2: CALENDARIO DE ADVIENTO (9 DÍAS) -->
+      <!-- ========================================== -->
+      <section id="seccion-calendario" class="scroll-mt-6">
+        <div class="text-center mb-6">
+          <span class="px-3 py-1 rounded-full bg-red-600/20 text-red-400 border border-red-500/30 text-xs font-bold uppercase tracking-wider">
+            Toca o rasca cada puerta misteriosa
+          </span>
+          <h2 class="text-xl sm:text-3xl font-black text-white font-poppins mt-2">
+            Los 9 Regalos del Lote Solidario
+          </h2>
+          <p class="text-xs text-blue-200 mt-0.5">
+            Cada día desvela una sorpresa gastronómica y artesanal con ficha técnica detallada.
+          </p>
+        </div>
+
+        <!-- Rejilla Responsive de 9 Puertas -->
+        <div id="advent-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+          <!-- Generado dinámicamente por app.js -->
+        </div>
+      </section>
+
+      <!-- ======================================================== -->
+      <!-- SECCIÓN 3A: EXPERIENCIA ESTRELLA DE NAVIDAD (VIDEO)      -->
+      <!-- ======================================================== -->
+      <section id="seccion-experiencias" class="scroll-mt-6">
+        <!-- TARJETA DESTACADA: TU VIDEO PERSONALIZADO DE ENTREGA -->
+        <article class="showcase-card showcase-card-entrega rounded-3xl p-5 sm:p-6 lg:p-7 border border-amber-400/45 shadow-2xl relative overflow-hidden flex flex-col gap-4">
+          <div class="showcase-spotlight"></div>
+          <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-2.5 max-w-2xl">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/50 text-[10px] font-black uppercase tracking-wider">
+                  <span>✨</span> Estreno Personalizado
+                </span>
+                <span class="text-[10px] font-mono text-amber-200/80 bg-slate-950/70 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                  Teatro VIP INECO
+                </span>
+              </div>
+
+              <div class="flex items-start gap-3.5">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 via-amber-500 to-red-700 flex items-center justify-center text-3xl shadow-[0_0_25px_rgba(245,158,11,0.45)] border-2 border-amber-300/70 shrink-0">
+                  🎬
+                </div>
+                <div>
+                  <h2 class="text-lg sm:text-2xl font-black text-white font-poppins leading-tight">
+                    Tu Video Personalizado de Entrega
+                  </h2>
+                  <p class="text-xs sm:text-sm text-blue-100/85 mt-1 leading-relaxed">
+                    Abre tu sobre dorado con intro cinematográfica, música navideña y el vídeo exclusivo grabado para cada miembro del equipo.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="shrink-0 flex flex-col sm:items-end gap-2">
+              <button type="button" id="open-personal-entrega-btn" class="js-open-personal-entrega w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white text-xs sm:text-sm font-black shadow-lg border border-amber-300/70 flex items-center justify-center gap-2 transition active:scale-95">
+                <span>▶</span>
+                <span>Abrir Mi Video de Entrega</span>
+              </button>
+              <span class="text-[11px] text-slate-300 flex items-center gap-1.5">
+                <span>🎁</span>
+                <span>Incluye enlace directo compartible</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Acceso directo por destinatario (2 filas de 6 miembros) -->
+          <div id="entrega-quick-chips-wrapper" class="relative z-10 pt-3 border-t border-amber-400/20">
+            <span class="text-[10px] uppercase tracking-wider font-bold text-amber-300/90 block mb-2">
+              Acceso directo por destinatario:
+            </span>
+            <div id="entrega-quick-chips" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              <!-- Se rellena automáticamente desde window.PersonalEntrega.getPeople() o fallback seguro -->
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- PIE DE PÁGINA LIMPIO -->
+      <footer class="border-t border-slate-800 bg-[#030914] py-8 px-4 text-center text-xs text-slate-400 rounded-2xl">
+        <div class="max-w-xl mx-auto space-y-2">
+          <div class="flex items-center justify-center gap-2">
+            <div class="bg-white/95 px-3 py-1 rounded">
+              <img src="assets/Logo-Ineco.png" alt="Ineco" class="h-6 w-auto object-contain">
+            </div>
+          </div>
+          <p class="text-xs text-slate-300 font-semibold">
+            Detalle Solidario 2026 • Nuestros Mejores Deseos para el Nuevo Año
+          </p>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- BARRA DE NAVEGACIÓN MÓVIL INFERIOR         -->
+  <!-- ========================================== -->
+  <nav class="mobile-bottom-nav lg:hidden px-2 py-2 flex items-center justify-around text-center select-none" aria-label="Navegación Móvil">
+    <a href="#seccion-calendario" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-amber-300 active:scale-95 transition">
+      <span class="text-base">📅</span>
+      <span class="text-[9px] font-semibold">Adviento</span>
+    </a>
+    <button type="button" class="js-open-personal-entrega flex-1 flex flex-col items-center py-0.5 text-amber-300 hover:text-amber-200 active:scale-95 transition font-bold">
+      <span class="text-base">🎬</span>
+      <span class="text-[9px]">Video</span>
+    </button>
+    <button id="mobile-game-btn" class="flex-1 flex flex-col items-center py-0.5 text-amber-400 hover:text-amber-300 active:scale-95 transition font-bold">
+      <span class="text-base">🎮</span>
+      <span class="text-[9px]">Juego</span>
+    </button>
+    <button id="mobile-studio-btn" class="js-open-studio flex-1 flex flex-col items-center py-0.5 text-amber-200 hover:text-white active:scale-95 transition" title="Personalizar">
+      <span class="text-base">✨</span>
+      <span class="text-[9px] font-semibold">Estudio</span>
+    </button>
+    <button id="mobile-sound-btn" class="flex-1 flex flex-col items-center py-0.5 text-slate-300 hover:text-amber-300 active:scale-95 transition" title="Sonido">
+      <span class="sound-icon text-base">🔇</span>
+      <span class="sound-label text-[9px] font-semibold">Sonido</span>
+    </button>
+  </nav>
+
+  <!-- ========================================== -->
+  <!-- MODAL: DETALLES DEL REGALO                 -->
+  <!-- ========================================== -->
+  <div id="gift-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-5 modal-backdrop" role="dialog" aria-modal="true" aria-label="Detalles del Regalo Solidario">
+    <div class="bg-slate-900/98 border-2 border-amber-400/60 rounded-3xl w-[85vw] max-w-[85vw] p-5 sm:p-7 md:p-8 shadow-2xl max-h-[92vh] overflow-y-auto modal-dialog-responsive relative" id="gift-modal-dialog">
+      <div id="gift-modal-body">
+        <!-- Inyectado dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: CENTRO DE JUEGOS Y SIMULADORES      -->
+  <!-- ========================================== -->
+  <div id="games-hub-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop" role="dialog" aria-modal="true" aria-label="Centro de Juegos y Simuladores">
+    <div class="w-full max-w-2xl bg-slate-950/95 border-2 border-amber-400/50 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <span class="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-amber-500 text-white flex items-center justify-center text-xl shadow-md border border-amber-300/60">🎮</span>
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-white font-poppins">Juegos y Simuladores Ferroviarios</h3>
+            <p class="text-[11px] text-amber-300/90">Elige una experiencia interactiva para jugar o explorar</p>
+          </div>
+        </div>
+        <button id="close-games-hub-btn" type="button" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition border border-slate-700" aria-label="Cerrar juegos">✕</button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
+        <button id="hub-play-maquinista-btn" type="button" class="group text-left rounded-2xl bg-gradient-to-b from-slate-900 to-blue-950/85 border border-amber-400/40 hover:border-amber-300 transition-all hover:-translate-y-1 shadow-xl overflow-hidden flex flex-col justify-between">
+          <!-- Vista Previa Miniatura: El Maquinista Solidario -->
+          <div class="relative w-full h-28 bg-[#020716] border-b border-amber-400/25 overflow-hidden">
+            <svg viewBox="0 0 240 110" class="w-full h-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs>
+                <linearGradient id="prevBeam" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0%" stop-color="#FEF08A" stop-opacity="0.7"/>
+                  <stop offset="100%" stop-color="#FEF08A" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <rect width="240" height="110" fill="#020716"/>
+              <line x1="65" y1="0" x2="45" y2="110" stroke="#334155" stroke-width="2"/>
+              <line x1="95" y1="0" x2="90" y2="110" stroke="#475569" stroke-width="2"/>
+              <line x1="145" y1="0" x2="150" y2="110" stroke="#475569" stroke-width="2"/>
+              <line x1="175" y1="0" x2="195" y2="110" stroke="#334155" stroke-width="2"/>
+              <polygon points="120,62 96,12 144,12" fill="url(#prevBeam)"/>
+              <rect x="106" y="60" width="28" height="38" rx="6" fill="#CB1823" stroke="#D4AF37" stroke-width="2"/>
+              <rect x="109" y="65" width="22" height="8" rx="2" fill="#38BDF8"/>
+              <rect x="108" y="78" width="24" height="5" fill="#1A4488"/>
+              <circle cx="62" cy="34" r="10" fill="#FDE047" fill-opacity="0.22"/>
+              <text x="62" y="39" font-size="14" text-anchor="middle">🎁</text>
+              <text x="176" y="44" font-size="14" text-anchor="middle">⭐</text>
+              <text x="120" y="25" font-size="13" text-anchor="middle">❄️</text>
+            </svg>
+            <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-400/50 text-[9px] font-black text-amber-200 uppercase">Arcade</span>
+          </div>
+          <div class="p-4 flex flex-col justify-between gap-3 flex-1">
+            <div>
+              <h4 class="text-sm font-black text-white font-poppins group-hover:text-amber-300 transition">🚄 El Maquinista Solidario</h4>
+              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">Conduce el AVE por las 3 vías, esquiva el hielo y recoge los 9 regalos del lote.</p>
+            </div>
+            <span class="inline-flex items-center gap-1 text-xs font-black text-amber-300">▶ Jugar ahora</span>
+          </div>
+        </button>
+
+        <a href="https://ivandlpn.github.io/laboratorio/visor3d/" target="_blank" rel="noopener noreferrer" class="group text-left rounded-2xl bg-gradient-to-b from-slate-900 to-blue-950/85 border border-sky-400/35 hover:border-sky-300 transition-all hover:-translate-y-1 shadow-xl overflow-hidden flex flex-col justify-between">
+          <!-- Vista Previa Miniatura: Visor 3D Alta Velocidad -->
+          <div class="relative w-full h-28 bg-[#041229] border-b border-sky-400/25 overflow-hidden">
+            <svg viewBox="0 0 240 110" class="w-full h-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <defs>
+                <linearGradient id="prevSky3d" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#0C4A6E"/>
+                  <stop offset="100%" stop-color="#020617"/>
+                </linearGradient>
+              </defs>
+              <rect width="240" height="110" fill="url(#prevSky3d)"/>
+              <path d="M0 80 Q60 55 120 72 T240 64 L240 110 L0 110 Z" fill="#0F172A"/>
+              <path d="M0 90 Q80 74 160 85 T240 80 L240 110 L0 110 Z" fill="#1E293B"/>
+              <path d="M25 110 Q110 72 215 48" stroke="#38BDF8" stroke-width="2.5" fill="none"/>
+              <path d="M35 110 Q116 74 220 50" stroke="#E2E8F0" stroke-width="1.5" fill="none"/>
+              <line x1="120" y1="36" x2="120" y2="74" stroke="#7DD3FC" stroke-width="1.5" stroke-dasharray="3 2"/>
+              <circle cx="120" cy="36" r="4" fill="#38BDF8"/>
+              <text x="120" y="25" font-size="9" font-weight="bold" fill="#BAE6FD" text-anchor="middle" font-family="monospace">ALBACETE ➔ ALICANTE</text>
+            </svg>
+            <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-sky-500/20 border border-sky-400/50 text-[9px] font-black text-sky-200 uppercase">3D WebGL</span>
+          </div>
+          <div class="p-4 flex flex-col justify-between gap-3 flex-1">
+            <div>
+              <h4 class="text-sm font-black text-white font-poppins group-hover:text-sky-300 transition">🌐 Visor 3D · Alta Velocidad</h4>
+              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">Simulador 3D interactivo de la línea de Alta Velocidad Albacete–Alicante.</p>
+            </div>
+            <span class="inline-flex items-center gap-1 text-xs font-black text-sky-300">↗ Abrir Visor 3D</span>
+          </div>
+        </a>
+
+        <a href="https://ivandlpn.github.io/laboratorio/simuladormdc/" target="_blank" rel="noopener noreferrer" class="group text-left rounded-2xl bg-gradient-to-b from-slate-900 to-blue-950/85 border border-emerald-400/35 hover:border-emerald-300 transition-all hover:-translate-y-1 shadow-xl overflow-hidden flex flex-col justify-between">
+          <!-- Vista Previa Miniatura: Simulador MDC -->
+          <div class="relative w-full h-28 bg-[#031817] border-b border-emerald-400/25 overflow-hidden">
+            <svg viewBox="0 0 240 110" class="w-full h-full" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <rect width="240" height="110" fill="#021417"/>
+              <rect x="18" y="16" width="204" height="78" rx="8" fill="#0F172A" stroke="#10B981" stroke-opacity="0.45"/>
+              <line x1="34" y1="45" x2="206" y2="45" stroke="#34D399" stroke-width="2.5"/>
+              <line x1="90" y1="45" x2="130" y2="68" stroke="#FBBF24" stroke-width="2.5"/>
+              <line x1="130" y1="68" x2="206" y2="68" stroke="#34D399" stroke-width="2.5"/>
+              <circle cx="62" cy="45" r="5" fill="#10B981"/>
+              <circle cx="130" cy="68" r="5" fill="#FBBF24"/>
+              <circle cx="176" cy="45" r="5" fill="#EF4444"/>
+              <rect x="34" y="76" width="42" height="10" rx="3" fill="#064E3B"/>
+              <rect x="84" y="76" width="42" height="10" rx="3" fill="#1E293B"/>
+              <text x="120" y="30" font-size="9" font-weight="bold" fill="#6EE7B7" text-anchor="middle" font-family="monospace">BASE MONFORTE · MDC</text>
+            </svg>
+            <span class="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-[9px] font-black text-emerald-200 uppercase">Enclavamiento</span>
+          </div>
+          <div class="p-4 flex flex-col justify-between gap-3 flex-1">
+            <div>
+              <h4 class="text-sm font-black text-white font-poppins group-hover:text-emerald-300 transition">🎛️ Simulador MDC</h4>
+              <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">Explora y opera el entorno interactivo del Simulador MDC de la Base de Monforte.</p>
+            </div>
+            <span class="inline-flex items-center gap-1 text-xs font-black text-emerald-300">↗ Abrir Simulador MDC</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: MINIJUEGO "EL MAQUINISTA SOLIDARIO"  -->
+  <!-- ========================================== -->
+  <div id="game-modal" class="minigame-modal hidden" role="dialog" aria-modal="true" aria-label="Minijuego El Maquinista Solidario">
+    <div class="w-full max-w-md flex items-center justify-between mb-3 text-white">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🎮</span>
+        <div>
+          <h3 class="text-sm font-black font-poppins">El Maquinista Solidario 2027</h3>
+          <p class="text-[10px] text-amber-300">¡Recoge los 9 regalos evitando los bloques de hielo!</p>
+        </div>
+      </div>
+      <button id="close-game-btn" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center hover:bg-slate-700 transition" aria-label="Cerrar juego">✕</button>
+    </div>
+
+    <div class="game-canvas-container">
+      <canvas id="game-canvas" width="360" height="480"></canvas>
+      
+      <!-- Controles táctiles en pantalla para móvil -->
+      <div class="absolute bottom-3 inset-x-3 flex justify-between gap-3 pointer-events-auto">
+        <button id="game-btn-left" class="flex-1 py-3 bg-blue-900/90 active:bg-blue-700 text-white rounded-xl font-black text-sm border border-amber-400/50 shadow-lg select-none">
+          ◀ Izquierda
+        </button>
+        <button id="game-btn-right" class="flex-1 py-3 bg-blue-900/90 active:bg-blue-700 text-white rounded-xl font-black text-sm border border-amber-400/50 shadow-lg select-none">
+          Derecha ▶
+        </button>
+      </div>
+    </div>
+
+    <!-- Pantalla de Inicio / Instrucciones del Juego -->
+    <div id="game-overlay-screen" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center z-30">
+      <div class="text-5xl mb-3">🚄 🎁</div>
+      <h3 class="text-xl font-black text-white font-poppins mb-1">El Maquinista Solidario 2027</h3>
+      <p class="text-xs text-blue-200 max-w-xs mb-3">
+        Guía el AVE por las 3 vías. ¡Recoge los <strong>9 regalos solidarios</strong> antes de llegar a la Base de Monforte del Cid!
+      </p>
+      <div class="flex gap-2 text-xs text-slate-300 mb-5 bg-slate-900 px-4 py-2 rounded-xl border border-slate-700">
+        <span>🎮 Flechas ◀ ▶ o desliza el dedo</span>
+      </div>
+      <button id="start-game-btn" class="px-8 py-3 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-red-600 hover:from-red-500 hover:to-amber-400 text-white font-black text-sm shadow-xl active:scale-95 transition tracking-wider">
+        ¡COMENZAR DESAFÍO!
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- ESTUDIO DE PERSONALIZACIÓN Y ATMÓSFERA (DRAWER)          -->
+  <!-- ======================================================== -->
+  <div id="studio-backdrop" class="studio-backdrop hidden" aria-hidden="true"></div>
+  <aside id="studio-drawer" class="studio-drawer" role="dialog" aria-modal="true" aria-label="Estudio de Personalización y Atmósfera" aria-hidden="true">
+    <div class="flex items-center justify-between pb-4 border-b border-slate-700/80">
+      <div class="flex items-center gap-2.5">
+        <span class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-red-600 text-white flex items-center justify-center text-lg shadow-md border border-amber-200/60">✨</span>
+        <div>
+          <h3 class="text-base font-black text-white font-poppins leading-tight">Estudio de Atmósfera</h3>
+          <p class="text-[11px] text-amber-300/90">Personaliza tu experiencia navideña INECO</p>
+        </div>
+      </div>
+      <button id="close-studio-btn" type="button" class="w-9 h-9 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition border border-slate-600/70 active:scale-95" aria-label="Cerrar estudio">
+        ✕
+      </button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto py-4 space-y-5 custom-sidebar-scroll pr-1">
+      <!-- 1. Nombre y Saludo Personalizado -->
+      <div class="studio-section space-y-2">
+        <label for="studio-name-input" class="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+          <span>👤</span> Tu Nombre y Saludo
+        </label>
+        <input id="studio-name-input" type="text" maxlength="32" placeholder="Ej. Ana, Edu, Iván..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/90 border border-slate-700 focus:border-amber-400 focus:outline-none text-sm text-white placeholder-slate-500 transition">
+        <div id="studio-quick-names" class="flex flex-wrap gap-1.5 pt-1">
+          <!-- Chips rápidos de compañeros generados por app.js -->
+        </div>
+      </div>
+
+      <!-- 2. Variante de Tema de Color -->
+      <div class="studio-section space-y-2.5">
+        <span class="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+          <span>🎨</span> Variante de Color
+        </span>
+        <div class="grid grid-cols-1 gap-2" id="studio-theme-options">
+          <button type="button" data-theme-choice="ineco" class="studio-theme-btn active">
+            <span class="flex items-center gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-[#1A4488] via-[#3463AC] to-[#CB1823] border border-amber-300 shrink-0"></span>
+              <span class="text-left">
+                <strong class="block text-xs text-white">INECO Clásico</strong>
+                <span class="text-[10px] text-slate-400">Azul corporativo, rojo navideño y oro</span>
+              </span>
+            </span>
+            <span class="studio-check text-amber-300 text-xs font-black">✓</span>
+          </button>
+
+          <button type="button" data-theme-choice="gala" class="studio-theme-btn">
+            <span class="flex items-center gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-[#7C1D26] via-[#D4AF37] to-[#F59E0B] border border-amber-200 shrink-0"></span>
+              <span class="text-left">
+                <strong class="block text-xs text-white">Gala Dorada</strong>
+                <span class="text-[10px] text-slate-400">Burdeos cálido, champán y nieve dorada</span>
+              </span>
+            </span>
+            <span class="studio-check text-amber-300 text-xs font-black">✓</span>
+          </button>
+
+          <button type="button" data-theme-choice="polar" class="studio-theme-btn">
+            <span class="flex items-center gap-2.5">
+              <span class="w-5 h-5 rounded-full bg-gradient-to-tr from-[#021B3A] via-[#38BDF8] to-[#10B981] border border-sky-200 shrink-0"></span>
+              <span class="text-left">
+                <strong class="block text-xs text-white">Noche Polar</strong>
+                <span class="text-[10px] text-slate-400">Aurora boreal, azul glacial y destellos</span>
+              </span>
+            </span>
+            <span class="studio-check text-amber-300 text-xs font-black">✓</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Intensidad de Nieve -->
+      <div class="studio-section space-y-2">
+        <span class="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+          <span>❄️</span> Intensidad de Nieve
+        </span>
+        <div class="grid grid-cols-3 gap-1.5 bg-slate-950/80 p-1 rounded-xl border border-slate-700/80" id="studio-snow-options">
+          <button type="button" data-snow-choice="off" class="studio-seg-btn">Apagada</button>
+          <button type="button" data-snow-choice="gentle" class="studio-seg-btn active">Suave</button>
+          <button type="button" data-snow-choice="blizzard" class="studio-seg-btn">Ventisca</button>
+        </div>
+      </div>
+
+      <!-- 4. Luces Festivas, Estela y Efectos de Sonido -->
+      <div class="studio-section space-y-2.5">
+        <span class="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+          <span>💡</span> Atmósfera e Interactividad
+        </span>
+
+        <label class="studio-toggle-row">
+          <div>
+            <strong class="block text-xs text-white">Guirnalda & Brillo Festivo</strong>
+            <span class="text-[10px] text-slate-400">Luces cálidas y resplandor en tarjetas</span>
+          </div>
+          <input type="checkbox" id="studio-fairy-toggle" class="studio-switch" checked>
+        </label>
+
+        <label class="studio-toggle-row">
+          <div>
+            <strong class="block text-xs text-white">Estela Mágica del Cursor</strong>
+            <span class="text-[10px] text-slate-400">Chispas doradas y copos al mover el ratón</span>
+          </div>
+          <input type="checkbox" id="studio-sparkle-toggle" class="studio-switch" checked>
+        </label>
+
+        <label class="studio-toggle-row">
+          <div>
+            <strong class="block text-xs text-white">Adornos Flotantes (Easter Eggs)</strong>
+            <span class="text-[10px] text-slate-400">Atrapa adornos navideños por la pantalla</span>
+          </div>
+          <input type="checkbox" id="studio-ornaments-toggle" class="studio-switch" checked>
+        </label>
+
+        <label class="studio-toggle-row">
+          <div>
+            <strong class="block text-xs text-white">Sonidos UI (Clics y Campanillas)</strong>
+            <span class="text-[10px] text-slate-400">Efectos sutiles Web Audio al interactuar</span>
+          </div>
+          <input type="checkbox" id="studio-sfx-toggle" class="studio-switch" checked>
+        </label>
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-slate-700/80 flex items-center justify-between gap-2">
+      <button type="button" id="studio-test-chime-btn" class="px-3.5 py-2 rounded-xl bg-blue-900/70 hover:bg-blue-800 text-amber-200 text-xs font-bold border border-blue-500/40 transition active:scale-95">
+        🔔 Probar Sonido
+      </button>
+      <button type="button" id="studio-reset-btn" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold border border-slate-600/60 transition active:scale-95">
+        ↺ Restablecer
+      </button>
+    </div>
+  </aside>
+
+  <script src="personal-entrega.js" defer></script>
+  <script src="app.js"></script>
+</body>
+</html>
