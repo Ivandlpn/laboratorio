@@ -1526,3 +1526,42 @@
     min-height: 38px;
   }
 }
+
+/* Auditoría móvil */
+@media (hover: none) {
+  .pe-card:hover, .pe-btn:hover { transform: none; }
+}
+@media (max-width: 640px) {
+  #pe-overlay .pe-topbar { padding-top: calc(10px + env(safe-area-inset-top, 0px)); gap: 8px; }
+  #pe-overlay .pe-brand-text { display: none; } /* se cortaba como "E..." */
+  #pe-overlay .pe-body { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  #pe-overlay .pe-btn-icon,
+  #pe-overlay #pe-back-btn { width: 44px; height: 44px; }
+  #pe-overlay .pe-btn { min-height: 44px; }
+
+  #pe-overlay .pe-gallery-view { padding: 14px 12px 40px; }
+  /* Dos columnas compactas: las 12 personas se recorren sin un scroll interminable */
+  #pe-overlay .pe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  #pe-overlay .pe-card { padding: 10px; border-radius: 16px; }
+  #pe-overlay .pe-card-top { margin-bottom: 8px; gap: 4px; flex-wrap: wrap; justify-content: center; }
+  #pe-overlay .pe-card-avatar-wrap { width: 84px; height: 84px; margin: 0 auto 8px; }
+  #pe-overlay .pe-card-name { font-size: 0.92rem; min-height: 2.5em; display: flex; align-items: center; justify-content: center; }
+  #pe-overlay .pe-card-msg { display: none; }
+  #pe-overlay .pe-card-actions { flex-direction: column; gap: 6px; }
+  #pe-overlay .pe-card-actions .pe-btn-primary { flex: none; width: 100%; padding-inline: 6px; }
+
+  #pe-overlay .pe-video-wrap { aspect-ratio: auto; height: min(52vh, 360px); max-height: none; }
+  #pe-overlay .pe-video-overlay { padding: 10px 16px; text-align: center; gap: 10px; }
+  #pe-overlay .pe-big-play { width: 64px; height: 64px; font-size: 1.5rem; flex: none; }
+  #pe-overlay .pe-controls { padding: 10px; }
+  #pe-overlay .pe-range { height: 28px; background: linear-gradient(rgba(148, 163, 184, 0.35), rgba(148, 163, 184, 0.35)) center / 100% 6px no-repeat; }
+  #pe-overlay .pe-range::-webkit-slider-thumb { width: 22px; height: 22px; }
+}
+@media (max-width: 340px) {
+  #pe-overlay .pe-card { padding: 8px; }
+}
+
+@media (max-width: 640px) {
+  #pe-overlay .pe-recipient-bar .pe-controls-group { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #pe-overlay .pe-recipient-bar .pe-controls-group .pe-btn { white-space: normal; padding-inline: 8px; line-height: 1.2; }
+}

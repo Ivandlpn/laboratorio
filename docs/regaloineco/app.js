@@ -1167,13 +1167,14 @@ class AdventCalendar {
         });
       }
 
+      // Primero en la página y después el lienzo: así se mide el tamaño real de la casilla
+      this.container.appendChild(col);
+
       if (!isOpened) {
         setupCardScratch(card, gift.day, () => {
           this.handleCardClick(gift.day);
         });
       }
-
-      this.container.appendChild(col);
     });
 
     this.updateProgress();
@@ -2460,14 +2461,15 @@ function initTeaserGate() {
     teaserTimerInterval = setInterval(update, 1000);
   }
 
-  const stopTeaserVideo = () => {
+  // Declaración de función (hoisted): enableCreatorMode la usa antes de llegar aquí con ?preview / ?creator
+  function stopTeaserVideo() {
     if (teaserVideo) {
       teaserVideo.pause();
       if (videoPlayOverlay) {
         videoPlayOverlay.classList.remove('opacity-0', 'pointer-events-none');
       }
     }
-  };
+  }
 
   // 5. Mecanismo secreto de acceso anticipado (solo en la sesión actual, sin persistir en localStorage)
   function enableCreatorMode(notify = true) {
@@ -2572,9 +2574,9 @@ function setupCardScratch(cardElement, day, onReveal) {
   canvas.className = 'frost-scratch-canvas';
   front.appendChild(canvas);
 
-  const rect = front.getBoundingClientRect();
-  canvas.width = rect.width || 300;
-  canvas.height = rect.height || 240;
+  // offsetWidth/Height ignoran las transformaciones 3D de la casilla
+  canvas.width = front.offsetWidth || 300;
+  canvas.height = front.offsetHeight || 240;
 
   const ctx = canvas.getContext('2d');
   
@@ -2592,14 +2594,37 @@ function setupCardScratch(cardElement, day, onReveal) {
     ctx.stroke();
   }
 
-  ctx.fillStyle = '#0369A1';
-  ctx.font = 'bold 13px Poppins, sans-serif';
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
   ctx.textAlign = 'center';
-  ctx.fillText('❄️ Rasca para abrir', canvas.width / 2, canvas.height - 24);
+  ctx.textBaseline = 'middle';
 
-  let isScratching = false;
+  // Número del día visible por encima de la escarcha
+  ctx.beginPath();
+  ctx.arc(cx, cy - 14, 44, 0, Math.PI * 2);
+  ctx.fillStyle = '#FCD34D';
+  ctx.fill();
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.stroke();
+  ctx.fillStyle = '#0F172A';
+  ctx.font = '800 13px Poppins, sans-serif';
+  ctx.fillText('DÍA', cx, cy - 33);
+  ctx.font = '900 36px Poppins, sans-serif';
+  ctx.fillText(String(day), cx, cy - 5);
+
+  // Franja opaca para que el rótulo no se mezcle con el texto del billete
+  ctx.fillStyle = '#0C4A6E';
+  ctx.fillRect(0, canvas.height - 48, canvas.width, 48);
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 14px Poppins, sans-serif';
+  ctx.fillText('❄️ Toca o rasca para abrir', cx, canvas.height - 24);
+
   let scratchedStrokes = 0;
   let revealed = false;
+  // Gesto activo: solo se rasca con arrastre horizontal; el vertical queda para el scroll de la página
+  let gesture = null;
+  let dragged = false;
 
   const triggerReveal = () => {
     if (revealed) return;
@@ -2638,28 +2663,33 @@ function setupCardScratch(cardElement, day, onReveal) {
     }
   };
 
+  // Un toque (o clic) abre la puerta; tras un arrastre el clic se ignora
   canvas.addEventListener('click', (e) => {
     e.stopPropagation();
     e.preventDefault();
+    if (!dragged) triggerReveal();
+  });
+
+  canvas.addEventListener('pointerdown', (e) => {
+    dragged = false;
+    gesture = { id: e.pointerId, x: e.clientX, y: e.clientY, scratching: false };
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!gesture || gesture.id !== e.pointerId) return;
+    if (!gesture.scratching) {
+      const dx = Math.abs(e.clientX - gesture.x);
+      const dy = Math.abs(e.clientY - gesture.y);
+      if (Math.max(dx, dy) < 8) return;
+      dragged = true;
+      if (e.pointerType === 'touch' && dy >= dx) { gesture = null; return; }
+      gesture.scratching = true;
+    }
     scratch(e.clientX, e.clientY);
   });
-
-  canvas.addEventListener('mousedown', () => isScratching = true);
-  window.addEventListener('mouseup', () => isScratching = false);
-  canvas.addEventListener('mousemove', (e) => {
-    if (isScratching) scratch(e.clientX, e.clientY);
-  });
-
-  canvas.addEventListener('touchstart', (e) => {
-    isScratching = true;
-    if (e.touches && e.touches[0]) scratch(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-
-  canvas.addEventListener('touchmove', (e) => {
-    if (isScratching && e.touches && e.touches[0]) scratch(e.touches[0].clientX, e.touches[0].clientY);
-  }, { passive: true });
-
-  canvas.addEventListener('touchend', () => isScratching = false);
+  const endGesture = () => { gesture = null; };
+  canvas.addEventListener('pointerup', endGesture);
+  canvas.addEventListener('pointercancel', () => { dragged = true; gesture = null; });
+  canvas.addEventListener('pointerleave', endGesture);
 }
 
 // ==========================================

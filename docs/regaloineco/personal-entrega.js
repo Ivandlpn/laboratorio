@@ -72,7 +72,7 @@
       photoFile: 'Edu.jpg',
       videoFile: 'Edu.mp4',
       defaultMessage:
-        'Por otro año compartiendo retos, soluciones y grandes momentos en equipo. ¡Feliz Navidad y un 2026 lleno de éxitos!'
+        'Por otro año compartiendo retos, soluciones y grandes momentos en equipo. ¡Feliz Navidad y un 2027 lleno de éxitos!'
     },
     {
       id: 'gloria',
@@ -104,7 +104,7 @@
       photoFile: 'Manuel.jpg',
       videoFile: 'Manuel.mp4',
       defaultMessage:
-        'Gracias por tu compromiso, tu buen humor y por estar siempre al pie del cañón. ¡Feliz Navidad y próspero 2026!'
+        'Gracias por tu compromiso, tu buen humor y por estar siempre al pie del cañón. ¡Feliz Navidad y próspero 2027!'
     },
     {
       id: 'pepe',
@@ -144,7 +144,7 @@
       photoFile: 'Iván Álvarez.jpg',
       videoFile: 'Iván Alvarez.mp4',
       defaultMessage:
-        'Por tu talento, tu buen hacer y la energía que aportas al equipo cada día. ¡Te deseamos unas fiestas inolvidables y un 2026 repleto de grandes proyectos!'
+        'Por tu talento, tu buen hacer y la energía que aportas al equipo cada día. ¡Te deseamos unas fiestas inolvidables y un 2027 repleto de grandes proyectos!'
     },
     {
       id: 'pascual',

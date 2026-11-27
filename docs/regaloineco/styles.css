@@ -174,10 +174,13 @@ html, body {
   box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.25);
 }
 
-.advent-front:hover {
-  border-color: #D4AF37;
-  transform: translateY(-5px) scale(1.02);
-  box-shadow: 0 20px 40px -4px rgba(212, 175, 55, 0.35), 0 0 22px rgba(26, 68, 136, 0.5);
+/* Solo con ratón: en táctil el :hover se queda pegado al hacer scroll y descoloca la casilla */
+@media (hover: hover) and (pointer: fine) {
+  .advent-front:hover {
+    border-color: #D4AF37;
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 20px 40px -4px rgba(212, 175, 55, 0.35), 0 0 22px rgba(26, 68, 136, 0.5);
+  }
 }
 
 .advent-back {
@@ -481,7 +484,10 @@ input[type="range"]::-moz-range-thumb {
   height: 100%;
   border-radius: 1.5rem;
   z-index: 25;
-  touch-action: none;
+  touch-action: pan-y pinch-zoom;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cfilter id='s'%3E%3CfeDropShadow dx='0' dy='1' stdDeviation='1.5' flood-color='%23000' flood-opacity='0.85'/%3E%3C/filter%3E%3Cg filter='url(%23s)' stroke='%2338BDF8' stroke-width='2' stroke-linecap='round'%3E%3Cline x1='16' y1='3' x2='16' y2='29' stroke='%23FFFFFF'/%3E%3Cline x1='3' y1='16' x2='29' y2='16' stroke='%23FFFFFF'/%3E%3Cline x1='6.8' y1='6.8' x2='25.2' y2='25.2' stroke='%23BAE6FD'/%3E%3Cline x1='6.8' y1='25.2' x2='25.2' y2='6.8' stroke='%23BAE6FD'/%3E%3Cpath d='M12 7 L16 10 L20 7 M12 25 L16 22 L20 25 M7 12 L10 16 L7 20 M25 12 L22 16 L25 20' stroke='%2338BDF8' fill='none'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%2338BDF8' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/g%3E%3C/svg%3E") 16 16, crosshair;
 }
 
@@ -1300,3 +1306,77 @@ body:not(.festive-glow-on) .catenary-light {
 .radar-station-node:hover {
   filter: drop-shadow(0 0 8px rgba(252, 211, 77, 0.85));
 }
+
+/* ==========================================================================
+   AUDITORÍA MÓVIL: scroll, solapes y zonas táctiles
+   ========================================================================== */
+#teaser-gate-screen,
+#gift-modal-dialog,
+#games-hub-modal > div,
+#studio-drawer .overflow-y-auto,
+.pe-body { overscroll-behavior: contain; }
+
+@media (max-width: 1023px) {
+  /* Los adornos flotantes tapaban botones y casillas */
+  #floating-ornaments-layer,
+  .studio-toggle-row:has(#studio-ornaments-toggle) { display: none !important; }
+
+  /* Estudio y sonido ya están en la barra inferior */
+  #open-studio-sidebar-btn,
+  #toggle-sound-btn { display: none !important; }
+  #toggle-theme-btn,
+  #toggle-snow-btn { width: 44px !important; height: 44px !important; }
+
+  /* Avisos abajo: arriba tapaban el título y el botón de cerrar */
+  #badge-toast-container {
+    top: auto !important;
+    bottom: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+    left: 0.75rem !important;
+    right: 0.75rem !important;
+    max-width: none !important;
+    align-items: center;
+  }
+  body:has(#game-modal:not(.hidden)) #badge-toast-container { display: none !important; }
+
+  .open-gift-detail-btn,
+  .entrega-chip,
+  #reset-advent-btn { min-height: 44px; }
+
+  #close-modal-btn,
+  #close-games-hub-btn,
+  #close-game-btn,
+  #close-studio-btn { width: 44px !important; height: 44px !important; flex: 0 0 44px; }
+
+  #studio-quick-names button { min-height: 40px; padding-inline: 0.75rem; font-size: 12px; }
+  #studio-name-input { font-size: 16px; } /* evita el zoom automático de iOS */
+  #teaser-video-unmute-btn { min-height: 40px; }
+
+  #seccion-radar .text-\[8px\],
+  #seccion-radar .text-\[9px\] { font-size: 10.5px; }
+  .mobile-bottom-nav a,
+  .mobile-bottom-nav button { min-height: 48px; }
+}
+
+@media (max-width: 640px) {
+  #gift-modal-dialog { max-height: 92dvh !important; }
+  /* Cabecera de la ficha siempre visible para poder cerrar */
+  #gift-modal-body > div > div:first-child {
+    position: sticky;
+    top: -1.25rem;
+    z-index: 30;
+    background: #0f172a;
+    padding-top: 0.75rem;
+    margin-top: -0.75rem;
+  }
+  #gift-modal-body h3 { font-size: 1.1rem; }
+}
+
+
+@media (max-width: 360px) {
+  #seccion-radar p.text-\[10px\] { display: none; }
+  #gift-modal-body > div > div:first-child span.rounded-full { display: none; }
+}
+
+/* El fondo no se desplaza con el Estudio abierto */
+html:has(#studio-backdrop:not(.hidden)) { overflow: hidden; }
+#studio-backdrop { touch-action: none; }
