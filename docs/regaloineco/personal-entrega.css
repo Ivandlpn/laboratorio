@@ -1508,4 +1508,21 @@
   .pe-vol-range {
     display: none;
   }
+  .pe-recipient-bar {
+    padding: 12px 14px;
+  }
+  .pe-recipient-bar .pe-controls-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 8px;
+  }
+  .pe-recipient-bar .pe-controls-group .pe-btn {
+    justify-content: center;
+    min-height: 40px;
+    font-size: 0.78rem;
+  }
+  .pe-controls-row .pe-btn {
+    min-height: 38px;
+  }
 }

@@ -129,17 +129,17 @@
     </div>
 
     <!-- CUERPO PRINCIPAL: DUAL ESCRITORIO (IZQUIERDA: VÍDEO | DERECHA: MENSAJE IMPACTANTE + CUENTA ATRÁS) -->
-    <main id="teaser-main-content" class="w-full max-w-7xl mx-auto my-auto py-6 sm:py-8 lg:py-10 relative z-20">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+    <main id="teaser-main-content" class="w-full max-w-7xl mx-auto my-auto py-3 sm:py-5 lg:py-6 relative z-20">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 lg:gap-10 items-center">
         
         <!-- ============================================== -->
-        <!-- COLUMNA IZQUIERDA (ESCRITORIO): VÍDEO CON AUTOPLAY -->
+        <!-- COLUMNA IZQUIERDA (ESCRITORIO): VÍDEO -->
         <!-- ============================================== -->
-        <div class="lg:col-span-7 flex flex-col justify-center">
+        <div class="md:col-span-6 lg:col-span-7 flex flex-col justify-center">
           <div class="relative rounded-3xl overflow-hidden border-2 border-amber-400/70 shadow-[0_0_50px_rgba(26,68,136,0.6)] bg-slate-950 group">
             
             <!-- Contenedor del Vídeo Cinemático (Reproducción manual con botón Play) -->
-            <div id="teaser-video-container" class="relative w-full aspect-video min-h-[260px] sm:min-h-[360px] md:min-h-[420px] bg-slate-950 flex items-center justify-center overflow-hidden cursor-pointer group">
+            <div id="teaser-video-container" class="relative w-full aspect-video min-h-[195px] sm:min-h-[280px] lg:min-h-[360px] bg-slate-950 flex items-center justify-center overflow-hidden cursor-pointer group">
               <video id="teaser-video" 
                      playsinline 
                      preload="metadata"
@@ -190,7 +190,7 @@
         <!-- ============================================== -->
         <!-- COLUMNA DERECHA (ESCRITORIO): MENSAJE IMPACTANTE + CUENTA ATRÁS -->
         <!-- ============================================== -->
-        <div class="lg:col-span-5 flex flex-col justify-center">
+        <div class="md:col-span-6 lg:col-span-5 flex flex-col justify-center">
           
           <!-- ESTADO 1: ANTES DEL 1 DE DICIEMBRE A LAS 12:00 (BLOQUEADO) -->
           <div id="teaser-locked-view" class="space-y-6">
@@ -1004,8 +1004,8 @@
   <!-- ========================================== -->
   <!-- MODAL: CENTRO DE JUEGOS Y SIMULADORES      -->
   <!-- ========================================== -->
-  <div id="games-hub-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop" role="dialog" aria-modal="true" aria-label="Centro de Juegos y Simuladores">
-    <div class="w-full max-w-2xl bg-slate-950/95 border-2 border-amber-400/50 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
+  <div id="games-hub-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 modal-backdrop" role="dialog" aria-modal="true" aria-label="Centro de Juegos y Simuladores">
+    <div class="w-full max-w-2xl max-h-[90dvh] overflow-y-auto bg-slate-950/95 border-2 border-amber-400/50 rounded-3xl p-4 sm:p-7 shadow-2xl relative">
       <div class="flex items-center justify-between pb-4 border-b border-slate-800">
         <div class="flex items-center gap-3">
           <span class="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-amber-500 text-white flex items-center justify-center text-xl shadow-md border border-amber-300/60">🎮</span>

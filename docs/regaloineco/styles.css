@@ -686,8 +686,8 @@ body.theme-mediterraneo .mobile-bottom-nav {
 .game-canvas-container {
   position: relative;
   width: 100%;
-  max-width: 440px;
-  height: 520px;
+  max-width: min(440px, 100%);
+  height: min(520px, calc(100dvh - 115px));
   border-radius: 1.5rem;
   overflow: hidden;
   border: 2px solid #D4AF37;
